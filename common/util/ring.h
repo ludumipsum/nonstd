@@ -26,11 +26,6 @@ public:
         _tail(0),
         _used(0) {
             if (count == 0) {
-                #if defined(DEBUG_MEMORY)
-                    LOG("Ring \"%s\" was created with `count == 0`. Zero-sized "
-                        "Rings are not supported, so count has been set to 1",
-                        this->_name);
-                #endif
                 count = 1;
                 // _objects will have already bumped from 0 to 1
             }

@@ -75,11 +75,6 @@ public:
 
         // Force at least one element worth of storage
         if (count == 0) {
-            #if defined(DEBUG_MEMORY)
-                LOG("Region \"%s\" was created with `count == 0`. Zero-sized "
-                    "Regions are not supported, so count has been set to 1",
-                    m_name);
-            #endif
             count = 1;
             m_size = 1;
         }

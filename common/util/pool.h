@@ -54,11 +54,6 @@ public:
                               USHRT_MAX-1);
             }
             if (count == 0) {
-                #if defined(DEBUG_MEMORY)
-                    LOG("Pool \"%s\" was created with `count == 0`. Zero-sized "
-                        "Pools are not supported, so count has been set to 1",
-                        m_name);
-                #endif
                 count = 1;
                 m_tail = 0;
                 // m_objects and m_indicies will have already bumped from 0 to 1
