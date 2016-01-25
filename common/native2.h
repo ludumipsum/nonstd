@@ -25,10 +25,19 @@ struct Entity {
     f32 xr, yr, zr;
 }; ENFORCE_POD(Entity);
 
-struct FrameStat {
-  ID  id;
-  f32 elapsed;
+struct SimulationStat {
+  u64 sim_frame;
+  u64 tick_usec,
+      post_tick_usec,
+      total_usec;
+};
+struct StepStat {
   u64 frame;
+  u64 input_poll_usec,
+      blend_view_usec,
+      total_usec;
+  f32 blend_alpha;
+  u16 sim_frames_run;
 };
 
 /*## Game State
@@ -101,19 +110,26 @@ struct GameState {
   } graphics;
 
   struct DebugData {
-    Ring<FrameStat> frame_stats;
+    Ring<SimulationStat> simulation_stats;
+    Ring<StepStat> step_stats;
     inline u64 size() {
       return sizeof(*this)
-           + frame_stats.capacity_bytes();
+           + simulation_stats.capacity_bytes()
+           + step_stats.capacity_bytes();
     }
   } debug;
 
   /* Platform functions exposed directly to gamecode */
   struct PlatformFunctions {
+    /* Configuration variable accessors */
     CVar_i* (*find_cvar_i)(char const* name);
     CVar_f* (*find_cvar_f)(char const* name);
     CVar_b* (*find_cvar_b)(char const* name);
     CVar_s* (*find_cvar_s)(char const* name);
+
+    /* Get the current time */
+    u64 (*now)();
+
     // TODO: File IO
     // TOOD: Network IO
     inline u64 size() { return sizeof(*this); }
@@ -146,7 +162,7 @@ using PlatformFunctions = GameState::PlatformFunctions;
 
 /*### Simulation Step
   Given the current game state, step it forward once. */
-void step(GameState& state);
+void step(GameState const& prev, GameState& state);
 
 //TODO: notion of worlds and world start vs whole game initialization
 /*### Start of play hook

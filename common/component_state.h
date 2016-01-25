@@ -53,5 +53,5 @@ public:
     void beginPlay(name##State &state);                                       \
     void tick(name##State &state, u32 dt, u64 frame);                         \
     void postTick(name##State&, u32 dt, u64 frame);                           \
-    void blendView(name##State& prev, name##State& next, f32);                \
+    void blendView(name##State const& prev, name##State& next, f32);          \
     struct name

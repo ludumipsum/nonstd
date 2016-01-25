@@ -35,6 +35,7 @@ typedef u32 ID;
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
+#define NS_PER_US 1000
 #define NS_PER_SEC 1000000000
 #define NS_PER_MS 1000000
 #define MS_PER_SEC 1000
@@ -410,6 +411,38 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
     #else
         free(buffer);
     #endif
+}
+
+/* Tuple-expanding call template, from Stack Overflow:
+   http://stackoverflow.com/questions/10766112/c11-i-can-go-from-multiple-args-to-tuple-but-can-i-go-from-tuple-to-multiple
+*/
+namespace detail
+{
+    template <typename F, typename Tuple, bool Done, int Total, int... N>
+    struct call_impl
+    {
+        static void call(F f, Tuple && t)
+        {
+            call_impl<F, Tuple, Total == 1 + sizeof...(N), Total, N..., sizeof...(N)>::call(f, std::forward<Tuple>(t));
+        }
+    };
+
+    template <typename F, typename Tuple, int Total, int... N>
+    struct call_impl<F, Tuple, true, Total, N...>
+    {
+        static void call(F f, Tuple && t)
+        {
+            f(std::get<N>(std::forward<Tuple>(t))...);
+        }
+    };
+}
+
+// user invokes this
+template <typename F, typename Tuple>
+void tcall(F f, Tuple && t)
+{
+    typedef typename std::decay<Tuple>::type ttype;
+    detail::call_impl<F, Tuple, 0 == std::tuple_size<ttype>::value, std::tuple_size<ttype>::value>::call(f, std::forward<Tuple>(t));
 }
 
 #include "util/region.h"
