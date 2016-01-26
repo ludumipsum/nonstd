@@ -49,7 +49,7 @@ public:
    as it's defined */
 #define COMPONENT(name)                                                       \
     struct name;                                                              \
-    using name##State = ComponentState<##name>;                               \
+    using name##State = ComponentState< name >;                               \
     void beginPlay(name##State &state);                                       \
     void tick(name##State &state, u32 dt, u64 frame);                         \
     void postTick(name##State&, u32 dt, u64 frame);                           \
