@@ -11,6 +11,7 @@
 #include <cstring>
 #include <errno.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 /*## Numeric Type Shorthands
   Rust-style shorthand versions of standard numeric types
