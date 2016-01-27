@@ -223,7 +223,7 @@ public:
     inline ID create(ctor_arg_types && ... _ctor_args) {
         // If the pool is full, attempt a resize
         if (m_head == USHRT_MAX) {
-            uint16_t new_size = min(m_indices.capacity() * 1.2f + 1,
+            uint16_t new_size = n2min(m_indices.capacity() * 1.2f + 1,
                                     USHRT_MAX - 1);
             _resize(new_size);
         }
@@ -275,7 +275,7 @@ public:
         // If we're being asked to create an entity for an ID past the end of
         // our useful range, grow the index array
         if ((id & INDEX_MASK) >= m_indices.capacity()) {
-            uint16_t new_size = min((id & INDEX_MASK) * 1.2f, USHRT_MAX - 1);
+            uint16_t new_size = n2min((id & INDEX_MASK) * 1.2f, USHRT_MAX - 1);
             _resize(new_size);
         }
 

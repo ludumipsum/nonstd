@@ -29,11 +29,11 @@ typedef double f64;
 
 typedef u32 ID;
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#ifndef n2max
+#define n2max(a,b)            (((a) > (b)) ? (a) : (b))
 #endif
-#ifndef min
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#ifndef n2min
+#define n2min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
 #define NS_PER_US 1000
