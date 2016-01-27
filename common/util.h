@@ -438,13 +438,36 @@ namespace detail
     };
 }
 
-// user invokes this
+// expand a std::tuple into function arguments at the callsite
+// (parameters inferred)
+// e.g. tcall(myFunc, my_tuple);
 template <typename F, typename Tuple>
 void tcall(F f, Tuple && t)
 {
     typedef typename std::decay<Tuple>::type ttype;
     detail::call_impl<F, Tuple, 0 == std::tuple_size<ttype>::value, std::tuple_size<ttype>::value>::call(f, std::forward<Tuple>(t));
 }
+
+// Tiny utility for timing segments of code. Given a now function which reports
+// nanoseconds, this defaults to microseconds.
+class ScopeTimer {
+public:
+  u64 start, unit_divisor;
+  u64 &target;
+  u64 (*now)(void);
+
+  ScopeTimer(u64& target, u64 (*now)(void), u64 unit_divisor = NS_PER_US)
+    : start(now())
+    , unit_divisor(unit_divisor)
+    , target(target)
+    , now(now) { }
+
+  ~ScopeTimer() { target = (now() - start) / unit_divisor; }
+  ScopeTimer(ScopeTimer const&) = delete;
+  ScopeTimer& operator=(ScopeTimer const&) = delete;
+  ScopeTimer(ScopeTimer&&) = delete;
+  ScopeTimer& operator=(ScopeTimer&&) = delete;
+};
 
 #include "util/region.h"
 #include "util/pool.h"
