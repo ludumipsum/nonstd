@@ -37,8 +37,12 @@ typedef u32 ID;
 #endif
 
 #define NS_PER_US 1000
-#define NS_PER_SEC 1000000000
 #define NS_PER_MS 1000000
+#define NS_PER_SEC 1000000000
+
+#define US_PER_MS 1000
+#define US_PER_SEC 1000000
+
 #define MS_PER_SEC 1000
 
 /*## C++ Default Constructor Removal
@@ -468,6 +472,18 @@ public:
   ScopeTimer(ScopeTimer&&) = delete;
   ScopeTimer& operator=(ScopeTimer&&) = delete;
 };
+
+// Easymode macro for the above, designed to be used when opening a scope. E.g.
+//      /* Handle incoming inputs */
+//      { TIME_SCOPE_US(step_stat.input_poll_usec, state.functions.now);
+//        handleInput(state);
+//      }
+#define TIME_SCOPE(target, now_function) ScopeTimer st(target, now_function)
+#define TIME_SCOPE_NS(target, now_function) ScopeTimer st(target, now_function, 1)
+#define TIME_SCOPE_US(target, now_function) ScopeTimer st(target, now_function, NS_PER_US)
+#define TIME_SCOPE_MS(target, now_function) ScopeTimer st(target, now_function, NS_PER_MS)
+#define TIME_SCOPE_SEC(target, now_function) ScopeTimer st(target, now_function, NS_PER_SEC)
+
 
 #include "util/region.h"
 #include "util/pool.h"
