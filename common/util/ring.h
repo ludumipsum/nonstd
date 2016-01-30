@@ -172,13 +172,13 @@ public:
             this->_index++;
             return ret;
         }
-        template<typename T>
-        inline iterator& operator+=(T n) {
+        template<typename U>
+        inline iterator& operator+=(U n) {
             this->_index = (this->_index + n) % this->_ring.used();
             return *this;
         }
-        template<typename T>
-        inline iterator operator+(T n) {
+        template<typename U>
+        inline iterator operator+(U n) {
             iterator ret(this->_ring, this->_index);
             ret._index += n;
             return ret;
