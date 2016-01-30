@@ -13,6 +13,7 @@
 #include "util.h"
 
 #include "gui.h"
+#include "2dgfx.h"
 #include "components.h"
 
 extern "C" {
