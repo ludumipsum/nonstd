@@ -63,24 +63,19 @@ enum UIState {
   UI_STATE_ACTIVE,
 };
 
+/* TODO: Optimize this by unioning away things that will never occur together */
 struct UIControl {
   ID id;
   UIWidgetType type;
   f32 x, y;
-  union {
-    struct { f32 w, h; };
-    struct { f32 x_end, y_end; };
-  };
-  union {
-    struct { i32 flags, icon_id, cbegin, cend; };
-    struct { bool vertical, mirror; };
-  };
-  union {
-    struct { f32 offset, size; };
-    struct { f32 progress; };
-  };
+  f32 w, h;
+  f32 x_end, y_end;
+  f32 offset, size;
+  f32 progress;
+  i32 flags, icon_id, cbegin, cend;
   UIState state, state_end;
   f32 color_0[4], color_1[4];
+  bool vertical, mirror;
   char const* text_0,
        const* text_1;
 }; ENFORCE_POD(UIControl);
