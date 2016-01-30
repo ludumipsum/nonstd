@@ -403,6 +403,10 @@ inline int CAPTURE_CRASH(std::function<void(void)> test) {
 }
 #endif
 
+#define N2ASSERT(COND, ERRNO, MESSAGE, ...)                                    \
+  ((COND) ? true :                                                             \
+    CRASH(ERRNO, "Assertion Failed (" #COND "): " #MESSAGE , ##__VA_ARGS__))
+
 // Alias the appropriate free function for destroying underlying buffers. This
 // utility function is necessary because the visual C runtime differentiates
 // aligned from unaligned buffers in terms of how they're freed, unlike POSIX.

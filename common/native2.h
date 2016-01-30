@@ -12,11 +12,11 @@
 
 #include "util.h"
 
+#include "gui.h"
 #include "components.h"
 
 extern "C" {
 
-#include "gui.h"
 #include "input.h"
 
 struct Entity {
