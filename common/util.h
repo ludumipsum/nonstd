@@ -13,8 +13,50 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
+
+/* Symbol Stringifyer
+   ==================
+   Uses the preprocessor to create a static string version of the passed symbol
+   or macro. Usage:
+
+       char const* msg = "This is a string literal defined at "
+                         STRING(__FILE__) ":" STRING(__LINE);
+*/
+#define __STRING_SECONDPASS(X) #X
+#define STRING(X) __STRING_SECONDPASS(X)
+
+/* struct/class type_traits Assertions
+   ===================================
+   A macro to cause compile-time failures when we incorrectly build non-POD
+   datatypes.
+ */
+#if defined(_MSC_VER)
+# define ENFORCE_POD(T) \
+    static_assert(::std::is_trivially_copyable<T>::value, "Type \"" STRING(T) "\" was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
+    static_assert(::std::is_trivially_default_constructible<T>::value, "Type \"" STRING(T) "\" was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
+    static_assert(::std::is_standard_layout<T>::value, "Type \"" STRING(T) "\" was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
+#else
+# define ENFORCE_POD(T) \
+    static_assert(std::is_trivial<T>::value, "Type \"" STRING(T) "\" was marked as Plain Old Data, but is not trivial. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
+    static_assert(std::is_standard_layout<T>::value, "Type \"" STRING(T) "\" was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
+#endif
+
+/* C++ Default Constructor Removal
+   ===============================
+   A macro to disallow the copy constructor and operator= functions
+   This should be used in the private: declarations for a class
+*/
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+  TypeName(const TypeName&);               \
+  void operator=(const TypeName&)
+
+//Note: These were inluded here s.t. we can use them to operate on the structs
+//      defined in "util/primitive_types.h"
+
+
 /* Defines some basic types we use everywhere */
 #include "util/primitive_types.h"
+
 
 #ifndef n2max
 #define n2max(a,b)            (((a) > (b)) ? (a) : (b))
@@ -22,23 +64,6 @@
 #ifndef n2min
 #define n2min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
-
-#define NS_PER_US 1000
-#define NS_PER_MS 1000000
-#define NS_PER_SEC 1000000000
-
-#define US_PER_MS 1000
-#define US_PER_SEC 1000000
-
-#define MS_PER_SEC 1000
-
-/*## C++ Default Constructor Removal
-  A macro to disallow the copy constructor and operator= functions
-  This should be used in the private: declarations for a class
-*/
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&);               \
-  void operator=(const TypeName&)
 
 /*## Force alignment of a given instance or datatype */
 #ifndef alignof
@@ -76,28 +101,6 @@ inline char const* const bool2string(bool b) {
   Utility macro for marking variables deliberately-unused. Nixes warnings.
 */
 #define UNUSED(_var) do { (void)(true ? (void)0 : ( (void)(_var) ) ); } while(0)
-
-/*## Power-of-two Byte Prefixes
-  NB. these implicitly cast the provided value to 64-bit int
-*/
-#define KBYTES(N) ((int64_t)N*1024)
-#define MBYTES(N) ((int64_t)N*1024*1024)
-#define GBYTES(N) ((int64_t)N*1024*1024*1024)
-#define TBYTES(N) ((int64_t)N*1024*1024*1024*1024)
-
-/*## type_traits POD assertion
-  Convenience macro for blowing up on non-POD datatypes
-*/
-#if defined(_MSC_VER)
-# define ENFORCE_POD(T) \
-    static_assert(::std::is_trivially_copyable<T>::value, "Type \"" STRING(T) "\" was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(::std::is_trivially_default_constructible<T>::value, "Type \"" STRING(T) "\" was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(::std::is_standard_layout<T>::value, "Type \"" STRING(T) "\" was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
-#else
-# define ENFORCE_POD(T) \
-    static_assert(std::is_trivial<T>::value, "Type \"" STRING(T) "\" was marked as Plain Old Data, but is not trivial. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(std::is_standard_layout<T>::value, "Type \"" STRING(T) "\" was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
-#endif
 
 /*## std::enable_if convenience wrapper
   Utility tools for easily enabling/disabling functions in templated
@@ -142,16 +145,6 @@ using enable_if_t = typename std::enable_if<B,T>::type;
   Utility functions and macros for logging, variadic printf-expansion, and
   similar chores.
 */
-
-/*## Symbol Stringifyer
-  Uses the preprocessor to create a static string version of the passed symbol
-  or macro. Usage:
-
-      char const* msg = "This is a string literal defined at "
-                        STRING(__FILE__) ":" STRING(__LINE);
-*/
-#define __STRING_SECONDPASS(X) #X
-#define STRING(X) __STRING_SECONDPASS(X)
 
 /*## Variadic Message Format Expander
   _variadicExpand allows the `MESSAGE` parameter that's passed into `LOG` take the form of a format string.
@@ -481,3 +474,5 @@ public:
 #include "util/ring.h"
 #include "util/sha1.h"
 #include "util/sdl_keymap.h"
+
+#include "util/gui_builder.h"
