@@ -167,6 +167,22 @@ public:
             this->_index++;
             return *this;
         }
+        inline iterator operator++(int) {
+            auto ret = *this + 1;
+            this->_index++;
+            return ret;
+        }
+        template<typename T>
+        inline iterator& operator+=(T n) {
+            this->_index = (this->_index + n) % this->_ring.used();
+            return *this;
+        }
+        template<typename T>
+        inline iterator operator+(T n) {
+            iterator ret(this->_ring, this->_index);
+            ret._index += n;
+            return ret;
+        }
 
         inline T& operator*() const { return this->_ring->peek(this->_index); }
     };

@@ -33,6 +33,7 @@ struct SimulationStat {
 };
 struct StepStat {
   u64 frame;
+  u64 platform_total_usec;
   u64 input_poll_usec,
       blend_view_usec,
       total_usec;
