@@ -36,6 +36,7 @@ struct StepStat {
   u64 platform_total_usec;
   u64 input_poll_usec,
       blend_view_usec,
+      draw_gui_usec,
       total_usec;
   f32 blend_alpha;
   u16 sim_frames_run;
@@ -99,7 +100,7 @@ struct GameState {
   } sound;
 
   struct GraphicsData {
-    Pool<UIControl> gui;
+    Pool<UIControl, true> gui;
     /* Width of the viewport */
     u16 width;
     /* Height of the viewport */
