@@ -581,6 +581,6 @@ struct UIControl {
   UIState state, state_end;
   f32 color_0[4], color_1[4];
   bool vertical, mirror;
-  char const* text_0,
-       const* text_1;
+  char const* text_0;
+  char const* text_1;
 }; ENFORCE_POD(UIControl);
