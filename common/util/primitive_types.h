@@ -45,39 +45,38 @@ typedef u32 ID;
 /**********
  * Colors *
  **********/
-struct N2Color {
+struct Color {
     union {
         u8 rgba[4];
         u8 hsva[4];
         struct {
-            union {
-                struct { u8 r, g, b; }; /* `a` cannot be defined twice, so... */
-                struct { u8 h, s, v; }; /* ... it will be included below.     */
-            };
+            /* The compiler isn't smart enough to figure out that both rgba and
+               hsva accessors put the 'a' in the same spot in memory, so if you
+               try to put them all together in one struct in the top level union
+               you'll get a redefinition error. We've done this instead -- a bit
+               harder to read here, but the accessors are the same for users. */
+            union {u8 r; u8 h;};
+            union {u8 g; u8 s;};
+            union {u8 b; u8 v;};
             u8 a;
-            //TODO: Is this worth it? Will this struct even pack into 4x`u8`s?
         };
     };
-}; ENFORCE_POD(N2Color);
+}; ENFORCE_POD(Color);
 
 
 /* Construct empty */
-N2Color make_color() { return N2Color {0}; }
+Color make_color() { return Color {0}; }
 
 /* Construct from 4 numeric parameters */
 template <class T, class U, class V, class W>
-N2Color make_color(T r, U g, V b, W a) { return N2Color {r, g, b, a}; }
+Color make_color(T r, U g, V b, W a) { return Color {r, g, b, a}; }
 template <class T>
-N2Color make_color(T i[4]) { return N2Color {i[0], i[1], i[2], i[3]}; }
+Color make_color(T i[4]) { return Color {i[0], i[1], i[2], i[3]}; }
 
 /* Construct from 3 numeric parameters */
 template <class T, class U, class V>
-N2Color make_color(T r, U g, V b) { return make_color(r, g, b, 0xFF); }
-//NOTE: We want the below, but because we have `make_color(T i[*])` above, this
-//      looks like it's shadowing the above function, rather than overloading it
-// template <class T>
-// N2Color make_color(T i[3]) { return make_color(i[0], i[1], i[2], 0xFF); }
+Color make_color(T r, U g, V b) { return make_color(r, g, b, 0xFF); }
 
 /* Construct from 1 numeric parameter */
 template <class T>
-N2Color make_color(T c) { return make_color(c, c, c); }
+Color make_color(T c) { return make_color(c, c, c); }
