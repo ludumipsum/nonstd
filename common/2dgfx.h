@@ -1,5 +1,5 @@
-/* GUI API
-   =======
+/* VECTOR GRAPHICS API
+   ===================
 
    NanoVG primitives, and some more logic built on top of them, are defined as
    structures here. Gamecode builds a list of these every frame to define what
@@ -15,123 +15,121 @@
 #pragma once
 #include "util.h"
 
-/* Vector Graphics commandlist format */
-
+/* Vector Graphics commandlist type set */
 enum VGCommandType {
-    /* Default no-command-defined type specifier */
+    /* Default no-command-defined type specifier. */
     VG_COMMAND_TYPE_NONE = 0,
 
     /* Path Commands
-     * ============= */
-    /* Marker for start/end of composite path */
+     * ------------- */
+    /* Mark the start of a new path in the command stream */
     VG_COMMAND_TYPE_PATH_START,
-    VG_COMMAND_TYPE_PATH_END,
+    /* Move the current offset to <x,y> without drawing anything in between. */
+    VG_COMMAND_TYPE_PATH_MOVE,
 
-    /* Components of a composite path */
-    VG_COMMAND_TYPE_PATH_LINE,                  // nvgLineTo(x, y);
-    VG_COMMAND_TYPE_PATH_CUBIC_SPLINE,          // nvgBezierTo(c1x, c1y, c2x, c2y, x, y);
-    VG_COMMAND_TYPE_PATH_QUAD_SPLINE,           // nvgQuadTo(cx, cy, x, y);
-    // Adds an arc segment at the corner defined by the last path point, and two specified points.
-    //TODO: .... What!?
-    VG_COMMAND_TYPE_PATH_ARC_TO,                // nvgArcTo(x1, y1, x2, y2, radius)
+    /* Subpath Drawing Commands
+     * ------------------------ */
+    /* Draw a line subpath from the current offset to the start of this path.,
+     * ensuring a closed shape. */
+    VG_COMMAND_TYPE_PATH_CLOSE,
+    /* Draw a line subpath from the current offset to `<x,y>`. */
+    VG_COMMAND_TYPE_PATH_LINE,
+    /* Draw a cubic spline subpath from the current offset, via control points
+     * `ctrl_1` and `ctrl_2`, to `<x,y>`. */
+    VG_COMMAND_TYPE_PATH_CUBIC_SPLINE,
+    /* Draw a quadratic spline subpath from the current offset, via control
+     * point `ctrl_1`, to `<x,y>`. */
+    VG_COMMAND_TYPE_PATH_QUAD_SPLINE,
+    /* Draw an arc subpath from the current offset, via midpoint ctrl_1,
+     * to `<x,y>` along the circle with radius `radius`. */
+    VG_COMMAND_TYPE_PATH_ARC,
 
-    /* Fully defined shapes (added to current path) */
-    VG_COMMAND_TYPE_PATH_ARC,                   // nvgArc(cx, cy, r, a0, a1, int dir);
-    VG_COMMAND_TYPE_PATH_RECT,                  // nvgRect(x, y, w, h);
-    VG_COMMAND_TYPE_PATH_ROUND_RECT,            // nvgRoundedRect(x, y, w, h, r);
-    VG_COMMAND_TYPE_PATH_ELLIPSE,               // nvgEllipse(cx, cy, rx, ry);
-    VG_COMMAND_TYPE_PATH_CIRCLE,                // nvgCircle(cx, cy, r);
+    /* Shape Primitives
+     * ---------------- */
+    /* Insert a fully-formed subpath along an arc of the circle centered at
+     * `<x,y>` with radius `radius`, subtending the angle from `angle_1`
+     * to `angle_2`. */
+    VG_COMMAND_TYPE_SHAPE_ARC,
+    /* Insert a fully-formed rectangular subpath with origin `<x,y>` and
+     * extents `width` by `height`. */
+    VG_COMMAND_TYPE_SHAPE_RECT,
+    /* Insert a fully-formed rectangular subpath with origin `<x,y>`, extents
+     * `width` by `height`, and corner rounding radius `radius`. */
+    VG_COMMAND_TYPE_SHAPE_ROUND_RECT,
+    /* Insert a fully-formed elliptical subpath with center `<x,y>` and axial
+     * radii `ctrl_1_x` and `ctrl_1_y` */
+    VG_COMMAND_TYPE_SHAPE_ELLIPSE,
+    /* Insert a fully-formed circular subpath with center `<x,y>`
+     * and radius `radius`. */
+    VG_COMMAND_TYPE_SHAPE_CIRCLE,
 
-    /* Modifiers that adjust how the next composite is drawn */
-    VG_COMMAND_TYPE_PATH_SET_WINDING,
+    /* Render Controls
+     * --------------- */
+    /* Set the minimum transparency for all subsequent vector graphics. */
+    VG_COMMAND_TYPE_RENDER_GLOBAL_ALPHA,
 
-    /* Commands that adjust how the entire composite is drawn */
-    VG_COMMAND_TYPE_PATH_APPLY_FILL,
-    VG_COMMAND_TYPE_PATH_APPLY_STROLE,
+    /* Render this path as a solid shape, overlapping any shapes behind it. */
+    VG_COMMAND_TYPE_RENDER_SOLID,
+    /* Render this path as a hole in a shape behind it. */
+    VG_COMMAND_TYPE_RENDER_HOLE,
 
-    /* Render Style Commands
-     * ===================== */
-    VG_COMMAND_TYPE_RENDER_SET_STROKE_COLOR,    // nvgStrokeColor(NVGcolor color);
-    //TODO: Figure out how to implement paints.
-    // VG_COMMAND_TYPE_RENDER_SET_STROKE_PAINT,    // nvgStrokePaint(NVGpaint paint);
-    VG_COMMAND_TYPE_RENDER_SET_FILL_COLOR,      // nvgFillColor(NVGcolor color);
-    //TODO: Figure out how to implement paints.
-    // VG_COMMAND_TYPE_RENDER_SET_FILL_PAINT,      // nvgFillPaint(NVGpaint paint);
-    VG_COMMAND_TYPE_RENDER_SET_MITER_LIMIT,     // nvgMiterLimit(float limit);
-    VG_COMMAND_TYPE_RENDER_SET_STROKE_WIDTH,    // nvgStrokeWidth(float size);
-    VG_COMMAND_TYPE_RENDER_SET_LINE_CAP_STYLE,  // nvgLineCap(int cap);
-    VG_COMMAND_TYPE_RENDER_SET_LINE_JOIN_STYLE, // nvgLineJoin(int join);
-    VG_COMMAND_TYPE_RENDER_SET_GLOBAL_ALPHA,    // nvgGlobalAlpha(float alpha);
+    /* Render a solid fill for this path. */
+    VG_COMMAND_TYPE_RENDER_FILL,
+    /* Set the color of the solid fill for this path. Overrides FILL_PAINT. */
+    VG_COMMAND_TYPE_RENDER_FILL_COLOR,
+    /* Set the paint pattern or texture of the solid fill for this path.
+     * Overrides FILL_COLOR. */
+    VG_COMMAND_TYPE_RENDER_FILL_PAINT,
+
+    /* Render an outline (stroke) for this path. */
+    VG_COMMAND_TYPE_RENDER_STROKE,
+    /* Set the width of the stroke for this path. */
+    VG_COMMAND_TYPE_RENDER_STROKE_WIDTH,
+    /* Set the color of the stroke for this path. */
+    VG_COMMAND_TYPE_RENDER_STROKE_COLOR,
+    /* Set the paint pattern or texture of the stroke for this path. */
+    VG_COMMAND_TYPE_RENDER_STROKE_PAINT,
+
+    /* Set the threshold at which sharp corners are beveled. */
+    VG_COMMAND_TYPE_RENDER_MITER_LIMIT,
+
+    /* Terminate unjoined lines with a butt cap. */
+    VG_COMMAND_TYPE_RENDER_LINE_CAP_BUTT,
+    /* Terminate unjoined lines with a round cap. */
+    VG_COMMAND_TYPE_RENDER_LINE_CAP_ROUND,
+    /* Terminate unjoined lines with a square cap. */
+    VG_COMMAND_TYPE_RENDER_LINE_SQUARE,
+
+    /* Join connected lines with a miter (sharp/bevel depending on angle) */
+    VG_COMMAND_TYPE_RENDER_LINE_JOIN_MITER,
+    /* Join connected lines with a round cap. */
+    VG_COMMAND_TYPE_RENDER_LINE_JOIN_ROUND,
+    /* Join connected lines with a beveled cap. */
+    VG_COMMAND_TYPE_RENDER_LINE_JOIN_BEVEL,
 };
-
-enum VGPathWinding {
-    VG_PATH_WINDING_TYPE_SOLID = 1,
-    VG_PATH_WINDING_TYPE_HOLE = 2,
-};
-
-enum VGPathDirection {
-    VG_PATH_DIRECTION_TYPE_CW = 1,
-    VG_PATH_DIRECTION_TYPE_CCW = 2,
-};
-
-enum VGLineCapStyle {
-    VG_RENDER_LINE_CAP_TYPE_BUTT,
-    VG_RENDER_LINE_CAP_TYPE_ROUND,
-    VG_RENDER_LINE_CAP_TYPE_SQUARE,
-};
-
-enum VGLineJoinStyle {
-    VG_RENDER_LINE_JOIN_TYPE_MITER,
-    VG_RENDER_LINE_JOIN_TYPE_ROUND,
-    VG_RENDER_LINE_JOIN_TYPE_BEVEL,
-};
-
 
 struct VGCommand {
     ID id;
     VGCommandType type;
     union {
         struct { /* VG_COMMAND_TYPE_PATH_<TYPE> */
-            // VGSubPathType type; // Do we want one of these?
-            union {
-                struct { f32 x, y; };
-                struct { f32 center_x, center_y; };
-            };
-            union {
-                struct {
-                    f32 ctrl_pt_x, ctrl_pt_y;
-                };
-                struct {
-                    f32 ctrl_pt_1_x, ctrl_pt_1_y,
-                        ctrl_pt_2_x, ctrl_pt_2_y;
-                };
-                struct {
-                    f32 angle_start, angle_end;
-                };
-                struct {
-                    f32 width, height;
-                };
-            };
-            VGPathDirection direction;
+            struct { f32 x, y; };
             f32 radius;
-        } path;
-        struct { /* VG_COMMAND_TYPE_PATH_SET_WINDING */
-            VGPathWinding winding;
-        }
-        struct { /* VG_COMMAND_TYPE_RENDER_SET_* */
             union {
-                N2Color         color; // stroke or fill color
-                f32             miter_limit;
-                f32             stroke_width;
-                VGLineCapStyle  line_cap;
-                VGLineJoinStyle line_join;
-                f32             alpha;
+                struct { f32 ctrl_x, ctrl_y; };
+                struct { f32 ctrl_1_x, ctrl_1_y,
+                             ctrl_2_x, ctrl_2_y; };
+                struct { f32 angle_1, angle_2; };
+                struct { f32 width, height; };
             };
         };
-        // Instead of the above, should we split those commands out father?
-        // struct /* SetFill */ {
-        // };
-        // struct /* SetStroke */ {
-        // };
+        struct { /* VG_COMMAND_TYPE_RENDER_* */
+            union {
+                Color           color;
+                f32             miter_limit;
+                f32             stroke_width;
+                f32             global_alpha;
+            };
+        };
     };
 }; ENFORCE_POD(VGCommand);

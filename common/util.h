@@ -50,7 +50,7 @@
   TypeName(const TypeName&);               \
   void operator=(const TypeName&)
 
-//Note: These were inluded here s.t. we can use them to operate on the structs
+//Note: These were defined first s.t. we can use them to operate on the structs
 //      defined in "util/primitive_types.h"
 
 
@@ -468,7 +468,7 @@ public:
 #define TIME_SCOPE_MS(target, now_function) ScopeTimer st(target, now_function, NS_PER_MS)
 #define TIME_SCOPE_SEC(target, now_function) ScopeTimer st(target, now_function, NS_PER_SEC)
 
-
+#include "util/itertools.h"
 #include "util/region.h"
 #include "util/pool.h"
 #include "util/ring.h"

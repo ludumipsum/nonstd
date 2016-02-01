@@ -102,6 +102,7 @@ struct GameState {
 
   struct GraphicsData {
     Pool<UIControl, true> gui;
+    Pool<VGCommand, true> vector2d;
     /* Width of the viewport */
     u16 width;
     /* Height of the viewport */
