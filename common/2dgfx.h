@@ -22,8 +22,6 @@ enum VGCommandType {
 
     /* Path Commands
      * ------------- */
-    /* Mark the start of a new path in the command stream */
-    VG_COMMAND_TYPE_PATH_START,
     /* Move the current offset to <x,y> without drawing anything in between. */
     VG_COMMAND_TYPE_PATH_MOVE,
 
