@@ -96,7 +96,7 @@ enum VGCommandType {
     /* Terminate unjoined lines with a round cap. */
     VG_COMMAND_TYPE_RENDER_LINE_CAP_ROUND,
     /* Terminate unjoined lines with a square cap. */
-    VG_COMMAND_TYPE_RENDER_LINE_SQUARE,
+    VG_COMMAND_TYPE_RENDER_LINE_CAP_SQUARE,
 
     /* Join connected lines with a miter (sharp/bevel depending on angle) */
     VG_COMMAND_TYPE_RENDER_LINE_JOIN_MITER,
