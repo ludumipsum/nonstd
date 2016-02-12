@@ -9,7 +9,7 @@
    like, or create from scratch every frame if you prefer "immedate mode."
 
    Gamecode has its own builder interface to this structure which can be found
-   in game/util/2dgfx_builder.h
+   in game/util/vg_builder.h
 */
 
 #pragma once
@@ -19,6 +19,13 @@
 enum VGCommandType {
     /* Default no-command-defined type specifier. */
     VG_COMMAND_TYPE_NONE = 0,
+
+    /* Meta Commands
+     * ------------- */
+    /* Push a new state frame on the stack */
+    VG_COMMAND_TYPE_META_STATE_FRAME_PUSH,
+    /* Pop a state frame off the stack */
+    VG_COMMAND_TYPE_META_STATE_FRAME_POP,
 
     /* Path Commands
      * ------------- */
@@ -114,7 +121,6 @@ struct VGCommand {
             struct { f32 x, y; };
             f32 radius;
             union {
-                struct { f32 ctrl_x, ctrl_y; };
                 struct { f32 ctrl_1_x, ctrl_1_y,
                              ctrl_2_x, ctrl_2_y; };
                 struct { f32 angle_1, angle_2; };

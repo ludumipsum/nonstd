@@ -69,9 +69,13 @@ Color make_color() { return Color {0}; }
 
 /* Construct from 4 numeric parameters */
 template <class T, class U, class V, class W>
-Color make_color(T r, U g, V b, W a) { return Color {r, g, b, a}; }
+Color make_color(T r, U g, V b, W a) {
+  return Color {(u8)r, (u8)g, (u8)b, (u8)a};
+}
 template <class T>
-Color make_color(T i[4]) { return Color {i[0], i[1], i[2], i[3]}; }
+Color make_color(T i[4]) {
+  return Color {(u8)i[0], (u8)i[1], (u8)i[2], (u8)i[3]};
+}
 
 /* Construct from 3 numeric parameters */
 template <class T, class U, class V>

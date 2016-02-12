@@ -476,3 +476,4 @@ public:
 #include "util/sdl_keymap.h"
 
 #include "util/gui_builder.h"
+#include "util/vg_builder.h"
