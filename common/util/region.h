@@ -54,15 +54,28 @@ template<typename T, bool IsResizable> class Pool;
 template<typename T, bool IsResizable=false>
 class Region {
 public:
+    ID           id;
+    bool         m_aligned;
+    uint64_t     m_next;
+    uint64_t     m_size;
+    T *          m_buffer;
+    char const * m_name;
+
+protected:
+    friend class Pool<T, IsResizable>;
+
+public:
     // ### Region Lifespan Management
 
     // Create a new memory region to hold a given
     Region(uint64_t count, char const* name)
-            : m_aligned(false)
-            , m_next(0)
-            , m_size(count)
-            , m_buffer(nullptr)
-            , m_name(name) {
+        : id(0)
+        , m_aligned(false)
+        , m_next(0)
+        , m_size(count)
+        , m_buffer(nullptr)
+        , m_name(name)
+    {
         if (nullptr == m_name) {
             m_name = "Unnamed Memory Region";
         }
@@ -119,26 +132,41 @@ public:
         }
     }
     Region(Region const& other)
-            : m_buffer(nullptr) {
+        : m_buffer(nullptr)
+    {
         *this = std::move(Region(other.m_size, other.m_name));
-        m_next = other.m_next;
-        m_size = other.m_size;
-        m_aligned = other.m_aligned;
+        id = other.id;
+        //TODO: This memcpy allows for easy shallow copying, but causes runtime
+        //      failures when deep-copying is required. We need to break out the
+        //      construction and copying logic of this class into helper
+        //      functions that are selected based on whether or not T is
+        //      trivially copyable. The FBVector may be good inspiration for
+        //      this improvement.
+        //      For now we're going to brute-force this and reconstruct every
+        //      element in the `this` region via copy-ctor into the new region.
+        // memcpy(m_buffer, other.m_buffer, capacity_bytes());
+        for (T & element : other) { this->construct(element); }
+        /* m_next will be implicitly set by the above. */
         m_name = other.m_name;
-        memcpy(m_buffer, other.m_buffer, capacity_bytes());
     }
-    Region& operator=(Region const& other) {
-        if (this == &other) return *this;
+    Region& operator=(Region const& other)
+    {
         *this = std::move(Region(other.m_size, other.m_name));
-        memcpy(m_buffer, other.m_buffer, capacity_bytes());
+        //TODO: See the above note.
+        // memcpy(m_buffer, other.m_buffer, capacity_bytes());
+        for (T & element : other) { this->construct(element); }
+        /* m_next will be implicitly set by the above. */
+        return *this;
     }
     // Move construction -- invalidates the source of the move.
     Region(Region&& other)
-            : m_next(other.m_next)
-            , m_size(other.m_size)
-            , m_aligned(other.m_aligned)
-            , m_name(other.m_name)
-            , m_buffer(other.m_buffer) {
+        : id(other.id)
+        , m_aligned(other.m_aligned)
+        , m_next(other.m_next)
+        , m_size(other.m_size)
+        , m_buffer(other.m_buffer)
+        , m_name(other.m_name)
+    {
         // Mark other's buffer as invalid
         other.m_next = other.m_size = 0;
         other.m_aligned = false;
@@ -146,7 +174,8 @@ public:
     }
     // Move by assignment -- tears down previously bound Region and invalidates
     // the source of the move
-    Region& operator=(Region&& other) {
+    Region& operator=(Region&& other)
+    {
         if (this == &other) return *this;
         // Tear down current region, if mapped
         this->~Region();
@@ -398,6 +427,7 @@ public:
         for (auto& entry : *this) {
             entry.~T();
         }
+        m_next = 0;
     }
 
     // Default copying-swap quicksort, arbitrary predicate
@@ -481,13 +511,4 @@ public:
                 used_bytes(), capacity_bytes()
             );
     }
-
-    // INTERNAL -- DO NOT USE WITHOUT GOOD REASON
-    bool m_aligned;
-    uint64_t m_next, m_size;
-    T *m_buffer;
-    char const* m_name;
-
-protected:
-    friend class Pool<T, IsResizable>;
 };
