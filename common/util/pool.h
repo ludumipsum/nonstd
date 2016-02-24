@@ -39,60 +39,82 @@ struct PoolIndex {
 template<typename T, bool IsResizable=false>
 class Pool {
 public:
-    ID id;
-    Pool(uint16_t count, char const* name) :
-        m_head(0),
-        m_tail(count-1),
-        _m_object_region_name(std::string(name) + "/Region"),
-        _m_index_region_name(std::string(name) + "/Index"),
-        m_objects(count, _m_object_region_name.c_str()),
-        m_indices(count, _m_index_region_name.c_str()),
-        m_name(name) {
-            if (count == USHRT_MAX) {
-                CRASH(ENOMEM, "Tried to initialize pool %s to be larger than "
-                              "the max size of %d elements", m_name,
-                              USHRT_MAX-1);
-            }
-            if (count == 0) {
-                count = 1;
-                m_tail = 0;
-                // m_objects and m_indicies will have already bumped from 0 to 1
-            }
-            _initialize_freelist(count);
+    ID                             id;
+    uint16_t                       m_head;
+    uint16_t                       m_tail;
+    // These, annoyingly, need to be before the memory regions to initialize
+    // them to store region names before the regions are initialized. *sigh*
+    std::string                    _m_object_region_name;
+    std::string                    _m_index_region_name;
+    Region<T, IsResizable>         m_objects;
+    Region<PoolIndex, IsResizable> m_indices;
+    char const*                    m_name;
+
+    Pool(uint16_t count, char const* name)
+        : id(0)
+        , m_head(0)
+        , m_tail(count-1)
+        , _m_object_region_name(std::string(name) + "/Region")
+        , _m_index_region_name(std::string(name) + "/Index")
+        , m_objects(count, _m_object_region_name.c_str())
+        , m_indices(count, _m_index_region_name.c_str())
+        , m_name(name)
+    {
+        if (count == USHRT_MAX) {
+            CRASH(ENOMEM, "Tried to initialize pool %s to be larger than "
+                          "the max size of %d elements", m_name,
+                          USHRT_MAX-1);
+        }
+        if (count == 0) {
+            count = 1;
+            m_tail = 0;
+            // m_objects and m_indicies will have already bumped from 0 to 1
+        }
+        _initialize_freelist(count);
     }
-    Pool(Pool const& other) :
-        m_name(other.m_name),
-        _m_object_region_name(other._m_object_region_name),
-        _m_index_region_name(other._m_index_region_name),
-        m_objects(other.m_objects),
-        m_indices(other.m_indices),
-        m_head(other.m_head),
-        m_tail(other.m_tail) { }
-    Pool& operator=(Pool const& other) {
-        m_name = other.m_name;
+    Pool(Pool const& other)
+        : id(other.id)
+        , m_head(other.m_head)
+        , m_tail(other.m_tail)
+        , _m_object_region_name(other._m_object_region_name)
+        , _m_index_region_name(other._m_index_region_name)
+        , m_objects(other.m_objects)
+        , m_indices(other.m_indices)
+        , m_name(other.m_name)
+    { }
+    Pool& operator=(Pool const& other)
+    {
+        id = other.id;
+        m_head = other.m_head;
+        m_tail = other.m_tail;
         _m_object_region_name = other._m_object_region_name;
         _m_index_region_name = other._m_index_region_name;
         m_objects = other.m_objects;
         m_indices = other.m_indices;
+        m_name = other.m_name;
+        return *this;
+    }
+    Pool(Pool&& other)
+        : id(other.id)
+        , m_head(other.m_head)
+        , m_tail(other.m_tail)
+        , _m_object_region_name(std::move(other._m_object_region_name))
+        , _m_index_region_name(std::move(other._m_index_region_name))
+        , m_objects(std::move(other.m_objects))
+        , m_indices(std::move(other.m_indices))
+        , m_name(other.m_name)
+    { }
+    Pool& operator=(Pool&& other)
+    {
+        id = other.id;
         m_head = other.m_head;
         m_tail = other.m_tail;
-    }
-    Pool(Pool&& other) :
-        m_name(other.m_name),
-        _m_object_region_name(std::move(other._m_object_region_name)),
-        _m_index_region_name(std::move(other._m_index_region_name)),
-        m_objects(std::move(other.m_objects)),
-        m_indices(std::move(other.m_indices)),
-        m_head(other.m_head),
-        m_tail(other.m_tail) { }
-    Pool& operator=(Pool&& other) {
-        m_name = other.m_name;
         _m_object_region_name = std::move(other._m_object_region_name);
         _m_index_region_name = std::move(other._m_index_region_name);
         m_objects = std::move(other.m_objects);
         m_indices = std::move(other.m_indices);
-        m_head = other.m_head;
-        m_tail = other.m_tail;
+        m_name = other.m_name;
+        return *this;
     }
     ~Pool() = default;
 
@@ -152,7 +174,7 @@ public:
     }
 
     // Random-access via id through index array
-    inline T& lookup(ID id) {
+    inline T& lookup(ID id) const {
         #if defined(DEBUG_MEMORY)
             if (!contains(id)) {
                 CRASH(EFAULT, "Memory pool bounds-check failed; id %d "
@@ -162,7 +184,7 @@ public:
         #endif
         return m_objects[m_indices[id & INDEX_MASK].index];
     }
-    inline T& operator[](ID id) { return lookup(id); }
+    inline T& operator[](ID id) const { return lookup(id); }
 
     // Iterator-access for underlying object region
     inline T* begin(void) { return m_objects.begin(); }
@@ -193,7 +215,7 @@ public:
     }
 
     // Query an ID to see if the entry is valid.
-    inline bool contains(ID id) {
+    inline bool contains(ID id) const {
         #if defined(DEBUG_MEMORY)
             // If no object entries are used, all IDs are invalid
             if (m_objects.used() == 0) return false;
@@ -421,17 +443,6 @@ public:
     }
 
 protected:
-    uint16_t m_head, m_tail;
-
-    // These, annoyingly, need to be before the memory regions to initialize
-    // them to store region names before the regions are initialized. *sigh*
-    std::string _m_object_region_name, _m_index_region_name;
-
-    Region<T, IsResizable> m_objects;
-    Region<PoolIndex, IsResizable> m_indices;
-
-    char const* m_name;
-
     // Initialization logic for overlaying a freelist on the pool index table
     inline void _initialize_freelist(uint16_t count, uint16_t start = 0) {
         #if defined(DEBUG_MEMORY)
