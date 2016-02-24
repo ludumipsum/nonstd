@@ -55,7 +55,7 @@ struct StepStat {
           too. */
 struct GameState {
   /* Scratch memory, cleared every frame */
-  Region<u8[4096], true> frame_arena;
+  // Region<u8[4096], true> frame_arena;
 
   /* Game entity pool */
   Pool<Entity, true> entities;
@@ -90,15 +90,33 @@ struct GameState {
     }
   } input;
 
-  /* We assume 48KHz Stereo i16 for all sound. Platform code may convert it
-     for you behind the scenes, but you should always use that format. */
-  struct SoundData {
-    AudioSourceState audio_sources;
+  /* Contains pointers to master buffer, read and write heads.
+     Contains actual audio resources and audio sources pools.
+     (buffer and read/write heads are static globals defined in
+      platform_audio.cc)
+  */
+  struct AudioData {
+    /* Gamecode audio buffer */
+    Region<u8, true> buffer;
+    /* The number of bytes SDL has consumed this frame (NB: this is GameState's
+     * record of sdl_consume; platform has its own record) */
+    u16 sdl_consume;
+    /* Loaded audio resources */
+    Pool<Region<u8, true>> resources;
+    std::unordered_map<std::string, ID> resource_map;
+    /* Audio sources */
+    AudioSourceState sources;
+    // Pool<AudioSource> sources;
+    std::unordered_map<std::string, ID> source_map;
     inline u64 size() {
       return sizeof(*this)
-           + audio_sources.total_bytes();
+           + buffer.capacity_bytes()
+           + resources.total_bytes()
+           + resource_map.size()
+           + sources.total_bytes()
+           + source_map.size();
     }
-  } sound;
+  } audio;
 
   struct GraphicsData {
     Pool<UIControl, true> gui;
@@ -140,11 +158,11 @@ struct GameState {
   } functions;
 
   inline u64 size() {
-    return frame_arena.capacity_bytes()
-         + entities.total_bytes()
+    return /*frame_arena.capacity_bytes()
+         + */entities.total_bytes()
          + timing.size()
          + input.size()
-         + sound.size()
+         + audio.size()
          + graphics.size()
          + debug.size()
          + functions.size();
@@ -155,7 +173,7 @@ struct GameState {
 /* GameState Member Types */
 using TimingData = GameState::TimingData;
 using InputData = GameState::InputData;
-using SoundData = GameState::SoundData;
+using AudioData = GameState::AudioData;
 using GraphicsData = GameState::GraphicsData;
 using DebugData = GameState::DebugData;
 using PlatformFunctions = GameState::PlatformFunctions;

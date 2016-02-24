@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <unordered_map>
 
 
 /* Symbol Stringifyer
@@ -383,9 +384,11 @@ inline int CAPTURE_CRASH(std::function<void(void)> test) {
 }
 #endif
 
-#define N2ASSERT(COND, ERRNO, MESSAGE, ...)                                    \
-  ((COND) ? true :                                                             \
-    CRASH(ERRNO, "Assertion Failed (" #COND "): " #MESSAGE , ##__VA_ARGS__))
+#if defined(DEBUG)
+  #define N2ASSERT(COND, ERRNO, MESSAGE, ...)                                  \
+    ((COND) ? true :                                                           \
+      CRASH(ERRNO, "Assertion Failed (" #COND "): " #MESSAGE , ##__VA_ARGS__))
+#endif
 
 // Alias the appropriate free function for destroying underlying buffers. This
 // utility function is necessary because the visual C runtime differentiates
