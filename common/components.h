@@ -34,10 +34,25 @@
 
 #include "component_state.h"
 
-/* Defines a source of audio associated with a game entity */
+ /* Audio Datatypes
+   ===============
+   Audio sources contain a pointer to an audio resource, a playhead, and flags
+   to indicate playing and looping.
+   Audio resources contain a region (the buffer) and an ID.
+*/
+#define N2_AUDIO_BUFFER_LENGTH 44100
+
+//NB. This is the combination of the AudioSource struct from `add_sound`'s
+//    audio.h file, and the AudioSource Component soidified in `master`. It
+//    doesn't work as either, really. So nuts to that.
 COMPONENT(AudioSource) {
-    ID id;
-    ID wav_id;
-    u64 start_time, run_time, cursor;
-    bool loop;
+    ID   id;
+    ID   resource_id;
+    u32  playhead;
+    bool playing;
+    bool looping;
+
+    static AudioSource defaultInstance;
 };
+
+AudioSource AudioSource::defaultInstance = AudioSource { 0 };
