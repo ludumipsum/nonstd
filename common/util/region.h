@@ -398,9 +398,9 @@ public:
     inline T* region_end(void) const { return m_buffer + m_size; }
 
     // General-purpose map over all active elements
-    inline void map(std::function<T&(T&)> fn) {
-        for (T* iter : this) {
-            *iter = fn(*iter);
+    inline void map(std::function<void(T&)> fn) {
+        for (T* iter = begin(); iter != end(); ++iter) {
+            fn(*iter);
         }
     }
 
@@ -416,14 +416,16 @@ public:
         return ret;
     }
 
-    // Drop all elements of the region without reinitializing memory
+    /* Drop all elements of the region without reinitializing memory.
+     * NB: this forwards to _drop; visual studio chokes on enable_if directly */
+    inline void drop() { _drop(); }
     TEMPLATE_ENABLE(std::is_pod<T>::value, T)
-    inline void drop() {
+    inline void _drop() {
         m_next = 0;
     }
 
     TEMPLATE_ENABLE(!std::is_pod<T>::value, T)
-    inline void drop() {
+    inline void _drop() {
         for (auto& entry : *this) {
             entry.~T();
         }
