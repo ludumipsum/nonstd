@@ -7,19 +7,19 @@
 
 #pragma once
 
-/***************
- * Basic Types *
- ***************/
-typedef uint8_t u8;
+/* Basic Types
+   ===========
+*/
+typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
-typedef float f32;
-typedef double f64;
+typedef int8_t   i8;
+typedef int16_t  i16;
+typedef int32_t  i32;
+typedef int64_t  i64;
+typedef float    f32;
+typedef double   f64;
 
 typedef u32 ID;
 
@@ -42,9 +42,10 @@ typedef u32 ID;
 #define MS_PER_SEC 1000
 
 
-/**********
- * Colors *
- **********/
+/* COLORS
+   ======
+   Simple 4-vector of u8s used to represent RGB colors.
+*/
 struct Color {
     union {
         u8 rgba[4];
@@ -70,11 +71,11 @@ Color make_color() { return Color {0}; }
 /* Construct from 4 numeric parameters */
 template <class T, class U, class V, class W>
 Color make_color(T r, U g, V b, W a) {
-  return Color {(u8)r, (u8)g, (u8)b, (u8)a};
+    return Color {(u8)r, (u8)g, (u8)b, (u8)a};
 }
 template <class T>
 Color make_color(T i[4]) {
-  return Color {(u8)i[0], (u8)i[1], (u8)i[2], (u8)i[3]};
+    return Color {(u8)i[0], (u8)i[1], (u8)i[2], (u8)i[3]};
 }
 
 /* Construct from 3 numeric parameters */
