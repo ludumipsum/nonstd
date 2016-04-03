@@ -129,10 +129,10 @@ struct VGCommand {
         };
         struct { /* VG_COMMAND_TYPE_RENDER_* */
             union {
-                Color           color;
-                f32             miter_limit;
-                f32             stroke_width;
-                f32             global_alpha;
+                Color color;
+                f32   miter_limit;
+                f32   stroke_width;
+                f32   global_alpha;
             };
         };
     };
