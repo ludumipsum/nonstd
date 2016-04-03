@@ -365,8 +365,6 @@ public:
                               "elsewhere?)", m_name);
             }
         #endif
-        //TODO: Verify that this is actually a good idea, and doesn't just sound
-        // good in my head.
         if(position == m_next) {
             return construct(std::forward<ctor_arg_types>(_ctor_args)...);
         } else if (position > m_next) {

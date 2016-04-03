@@ -174,7 +174,8 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
    value of four adjacent ASCII characters.
    NOTE: FOURCC is also defined in the winapi used in our testing framework, so
          we need to wrap it in the `!defined(N2_TEST)`.
-   TODO: Consider if there's a better way to do this?
+   TODO: Consider if there's a better way to do this? Or simply removing the
+         functions, as it's not used anywhere in the code.
 */
 #if !defined(N2_TEST)
 inline u32 FOURCC(u8 a, u8 b, u8 c, u8 d) {
