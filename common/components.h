@@ -35,11 +35,11 @@
 #include "component_state.h"
 
  /* Audio Datatypes
-   ===============
+    ===============
 
-   Audio sources contain a pointer to an audio resource, a playhead, and flags
-   to indicate playing and looping.
-   Audio resources contain a region (the buffer) and an ID.
+    Audio sources contain a pointer to an audio resource, a playhead, and flags
+    to indicate playing and looping.
+    Audio resources contain a region (the buffer) and an ID.
 */
 #define N2_AUDIO_BUFFER_LENGTH 44100
 
