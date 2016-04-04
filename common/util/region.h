@@ -94,7 +94,7 @@ public:
 
         // Allocate the whole region in one go
         if (m_aligned) {
-            #if !defined(_MSC_VER)
+            #if !defined(_MSC_VER) && !defined(__MINGW32__)
                 auto err_number = posix_memalign((void**)&m_buffer,
                                                  alignof(T),
                                                  m_size * sizeof(T));
@@ -251,7 +251,7 @@ public:
         auto old_buffer = m_buffer;
         m_buffer = nullptr;
         if (m_aligned) {
-            #if !defined(_MSC_VER)
+            #if !defined(_MSC_VER) && !defined(__MINGW32__)
                 auto err_number = posix_memalign((void**)&m_buffer,
                                                  alignof(T),
                                                  new_size * sizeof(T));
