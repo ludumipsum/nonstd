@@ -7,8 +7,10 @@
 
 #pragma once
 
+#include "batteries_included.h"
+
 /* Basic Types
-   ===========
+   -----------
 */
 typedef uint8_t  u8;
 typedef uint16_t u16;
@@ -24,8 +26,8 @@ typedef double   f64;
 typedef u32 ID;
 
 /* Power-of-two Byte Prefixes
- * NB. these implicitly cast the provided value to 64-bit int
- */
+   NB. these implicitly cast the provided value to 64-bit int
+*/
 #define KBYTES(N) ((i64)N*1024)
 #define MBYTES(N) ((i64)N*1024*1024)
 #define GBYTES(N) ((i64)N*1024*1024*1024)
@@ -43,7 +45,7 @@ typedef u32 ID;
 
 
 /* COLORS
-   ======
+   ------
    Simple 4-vector of u8s used to represent RGB colors.
 */
 struct Color {
@@ -66,22 +68,22 @@ struct Color {
 
 
 /* Construct empty */
-Color make_color() { return Color {0}; }
+Color color() { return Color {0}; }
 
 /* Construct from 4 numeric parameters */
 template <class T, class U, class V, class W>
-Color make_color(T r, U g, V b, W a) {
-    return Color {(u8)r, (u8)g, (u8)b, (u8)a};
+Color color(T r, U g, V b, W a) {
+    return Color { (u8)r, (u8)g, (u8)b, (u8)a };
 }
 template <class T>
-Color make_color(T i[4]) {
-    return Color {(u8)i[0], (u8)i[1], (u8)i[2], (u8)i[3]};
+Color color(T i[4]) {
+    return Color { (u8)i[0], (u8)i[1], (u8)i[2], (u8)i[3] };
 }
 
 /* Construct from 3 numeric parameters */
 template <class T, class U, class V>
-Color make_color(T r, U g, V b) { return make_color(r, g, b, 0xFF); }
+Color color(T r, U g, V b) { return color(r, g, b, 0xFF); }
 
 /* Construct from 1 numeric parameter */
 template <class T>
-Color make_color(T c) { return make_color(c, c, c); }
+Color color(T c) { return color(c, c, c); }

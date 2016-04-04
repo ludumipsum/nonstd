@@ -3,13 +3,15 @@
   Freelist-based static size object pool based on Region<T>
 */
 #pragma once
+
+#include "batteries_included.h"
+#include "primitive_types.h"
+
+#include "logging.h"
 #include "region.h"
-#include <stdlib.h>
-#include <limits.h>
-#include <inttypes.h>
-#include <string>
-#include <assert.h>
 #include <algorithm>
+
+#include "../platform/crash.h"
 
 // Bit pattern to select the index portion of an ID
 #define INDEX_MASK 0xffff
@@ -51,14 +53,14 @@ public:
     char const*                    m_name;
 
     Pool(uint16_t count, char const* name)
-        : id(0)
-        , m_head(0)
-        , m_tail(count-1)
-        , _m_object_region_name(std::string(name) + "/Region")
-        , _m_index_region_name(std::string(name) + "/Index")
-        , m_objects(count, _m_object_region_name.c_str())
-        , m_indices(count, _m_index_region_name.c_str())
-        , m_name(name)
+        : id                    ( 0                                    )
+        , m_head                ( 0                                    )
+        , m_tail                ( count-1                              )
+        , _m_object_region_name ( std::string(name) + "/Region"        )
+        , _m_index_region_name  ( std::string(name) + "/Index"         )
+        , m_objects             ( count, _m_object_region_name.c_str() )
+        , m_indices             ( count, _m_index_region_name.c_str()  )
+        , m_name                ( name                                 )
     {
         if (count == USHRT_MAX) {
             CRASH(ENOMEM, "Tried to initialize pool %s to be larger than "
@@ -73,47 +75,47 @@ public:
         _initialize_freelist(count);
     }
     Pool(Pool const& other)
-        : id(other.id)
-        , m_head(other.m_head)
-        , m_tail(other.m_tail)
-        , _m_object_region_name(other._m_object_region_name)
-        , _m_index_region_name(other._m_index_region_name)
-        , m_objects(other.m_objects)
-        , m_indices(other.m_indices)
-        , m_name(other.m_name)
+        : id                    ( other.id                    )
+        , m_head                ( other.m_head                )
+        , m_tail                ( other.m_tail                )
+        , _m_object_region_name ( other._m_object_region_name )
+        , _m_index_region_name  ( other._m_index_region_name  )
+        , m_objects             ( other.m_objects             )
+        , m_indices             ( other.m_indices             )
+        , m_name                ( other.m_name                )
     { }
     Pool& operator=(Pool const& other)
     {
-        id = other.id;
-        m_head = other.m_head;
-        m_tail = other.m_tail;
-        _m_object_region_name = other._m_object_region_name;
-        _m_index_region_name = other._m_index_region_name;
-        m_objects = other.m_objects;
-        m_indices = other.m_indices;
-        m_name = other.m_name;
+        id                      = other.id;
+        m_head                  = other.m_head;
+        m_tail                  = other.m_tail;
+        _m_object_region_name   = other._m_object_region_name;
+        _m_index_region_name    = other._m_index_region_name;
+        m_objects               = other.m_objects;
+        m_indices               = other.m_indices;
+        m_name                  = other.m_name;
         return *this;
     }
     Pool(Pool&& other)
-        : id(other.id)
-        , m_head(other.m_head)
-        , m_tail(other.m_tail)
-        , _m_object_region_name(std::move(other._m_object_region_name))
-        , _m_index_region_name(std::move(other._m_index_region_name))
-        , m_objects(std::move(other.m_objects))
-        , m_indices(std::move(other.m_indices))
-        , m_name(other.m_name)
+        : id                    ( other.id                               )
+        , m_head                ( other.m_head                           )
+        , m_tail                ( other.m_tail                           )
+        , _m_object_region_name ( std::move(other._m_object_region_name) )
+        , _m_index_region_name  ( std::move(other._m_index_region_name)  )
+        , m_objects             ( std::move(other.m_objects)             )
+        , m_indices             ( std::move(other.m_indices)             )
+        , m_name                ( other.m_name                           )
     { }
     Pool& operator=(Pool&& other)
     {
-        id = other.id;
-        m_head = other.m_head;
-        m_tail = other.m_tail;
-        _m_object_region_name = std::move(other._m_object_region_name);
-        _m_index_region_name = std::move(other._m_index_region_name);
-        m_objects = std::move(other.m_objects);
-        m_indices = std::move(other.m_indices);
-        m_name = other.m_name;
+        id                      = other.id;
+        m_head                  = other.m_head;
+        m_tail                  = other.m_tail;
+        _m_object_region_name   = std::move(other._m_object_region_name);
+        _m_index_region_name    = std::move(other._m_index_region_name);
+        m_objects               = std::move(other.m_objects);
+        m_indices               = std::move(other.m_indices);
+        m_name                  = other.m_name;
         return *this;
     }
     ~Pool() = default;

@@ -1,44 +1,36 @@
-/* UTILITY MACROS & FUNCTIONS
-   ==========================
+/* C Standard Library Includes
+   ===========================
 
-   Universally included header that provides a foundational set of functionality
-   to both the Platform- and Game- portions of N2. The provided functionality
-   includes standard library includes, homogenization of *nix and MSDN compiler
-   macros/functions, logging logic, etc., etc..
+   This file contains all C standard library includes we use. It is the first
+   file included in common.h, and provides these symbols to everything else in
+   the project.
 
-   This file is designed to be the single basic header that needs to be included
-   in every other file in this project. As such all headers located inside the
-   util/ directory will be included in the last section of this file.
-*/
+   It is also the home for a collection of macros and utility functions which
+   make C++ more comfortable to work in and closer to homogenous across our
+   target platforms. If you would have put something in `util.h` in the old
+   world, there's a good chance it should live here.
+
+   All files under common/ should also include this header.
+   */
 
 #pragma once
 
-/* C Standard Library Components
-   =============================
-*/
-//TODO: At some point, we're going to need to move through our code, get a firm
-//      understanding of our include graph, and clean it up.
-//      We probably want to keep most-to-all of the system includes here.
-#include <stdint.h>
-#include <limits.h>
-#include <string>
-#include <functional>
-#include <cassert>
-#include <cstdarg>
-#include <cstdio>
-#include <cstring>
+/* # C Standard Library Includes */
+#include <assert.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <inttypes.h>
+#include <limits.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+/* # C++ Standard Library Includes */
+#include <functional>
+#include <string>
 #include <unordered_map>
-
-//TODO: Move this... somewhere more correct? Maybe?
-#if defined(_MSC_VER)
-    static const char path_delimiter = '\\';
-#else
-    static const char path_delimiter = '/';
-#endif
-
 
 
 /* Primitive Type Definitions
@@ -51,7 +43,7 @@
 
 
 /* Symbol Stringifyer
-   ==================
+   ------------------
    Uses the preprocessor to create a static string version of the passed symbol
    or macro. Usage:
        char const* msg = "This is a string literal defined at "
@@ -62,7 +54,7 @@
 
 
 /* struct/class type_traits Assertions
-   ===================================
+   -----------------------------------
    A macro to cause compile-time failures when we incorrectly build non-POD
    datatypes.
  */
@@ -78,9 +70,6 @@
 #endif
 
 
-#include "util/primitive_types.h"
-
-
 
 /* Platform Homogenization Macros
    ==============================
@@ -92,15 +81,23 @@
 
 
 /* __PRETTY_FUNCTION__
-   ===============================
+   -------------------
    Use the same prettier function signature macro everywhere.
 */
 #if defined(_MSC_VER)
 # define __PRETTY_FUNCTION__ __FUNCSIG__
 #endif
 
+/* Stringifcation Functions
+   ------------------------
+   for easy printf-ing.
+*/
+inline char const* const bool2string(bool b) {
+    return b ? "true" : "false";
+};
+
 /* Alignment Macro
-   ===============
+   ---------------
    Force alignment of a given instance or datatype.
 */
 #ifndef alignof
@@ -113,7 +110,7 @@
 #endif
 
 /* BREAKPOINT
-   ==========
+   ----------
    Programmatically force a breakpoint on X86
 */
 #ifdef _MSC_VER
@@ -130,7 +127,7 @@
 #define BREAKPOINT { _debug_break_impl; }
 
 /* ALIGNMENT CORRECT FREE
-   ======================
+   ----------------------
    Alias the appropriate free function for destroying underlying buffers. This
    utility function is necessary because the visual C runtime differentiates
    aligned from unaligned buffers in terms of how they're freed, unlike POSIX.
@@ -148,7 +145,7 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
 }
 
 /* Min/Max Macros
-   ==============
+   --------------
    Both type- and compiler-safe.
 */
 #ifndef n2max
@@ -162,20 +159,20 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
 
 
 /* General Utility Macros
-   ======================
+   ----------------------
 
    Macros that are designed for general quality-of-life improvements.
 */
 
 
 /* UNUSED()
-   ========
+   --------
    Utility macro for marking variables deliberately-unused. Nixes warnings.
 */
 #define UNUSED(_var) do { (void)(true ? (void)0 : ( (void)(_var) ) ); } while(0)
 
 /* FOURCC Construction Shorthand
-   =============================
+   -----------------------------
    Many data file formats, especially microsoft ones, use four-character-codes
    to identify segments. These are represented as a 32-bit integer with the
    value of four adjacent ASCII characters.
@@ -185,20 +182,23 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
          functions, as it's not used anywhere in the code.
 */
 #if !defined(N2_TEST)
-inline u32 FOURCC(u8 a, u8 b, u8 c, u8 d) {
-  return ( (u32) (((d)<<24) | (u32(c)<<16) | (u32(b)<<8) | u32(a)) );
+inline uint32_t FOURCC(uint8_t a, uint8_t b, uint8_t c, uint8_t d) {
+    return (uint32_t)( (uint32_t(d) << 24 )
+                     | (uint32_t(c) << 16 )
+                     | (uint32_t(b) <<  8 )
+                     | (uint32_t(a)       ));
 }
-inline u32 FOURCC(char const* code) {
-  return ( (u32) (((code[3])<<24)
-             | (u32(code[2])<<16)
-             | (u32(code[1])<<8)
-             |  u32(code[0])) );
+inline uint32_t FOURCC(char const* code) {
+    return (uint32_t)( (uint32_t(code[3]) << 24)
+                     | (uint32_t(code[2]) << 16)
+                     | (uint32_t(code[1]) <<  8)
+                     | (uint32_t(code[0])      ));
 }
 #endif
 
 /* C++ Default Constructor Removal
-   ===============================
-   A macro to disallow the copy constructor and operator= functions
+   -------------------------------
+   A macro to disallow the copy constructor and operator- functions
    This should be used in the private: declarations for a class
 */
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
@@ -208,7 +208,7 @@ inline u32 FOURCC(char const* code) {
 
 
 /* TEMPLATE_ENABLE
-   ===============
+   ---------------
 
    std::enable_if convenience wrapper.
    Utility tools for easily enabling/disabling functions in templated
@@ -232,88 +232,3 @@ using enable_if_t = typename std::enable_if<B,T>::type;
 #define TEMPLATE_ENABLE(Cond, T)                        \
     template<typename _TEMPLATE_ENABLE_DEPENDENCY_=T,   \
     enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
-
-
-
-/* Hashing Logic
-   =============
-
-   Sha1, CRC, and DJB2.
-*/
-
-/* Sha1 gets its own file. */
-#include "util/sha1.h"
-
-/* DJB2 Hash -- Simple bytestring to 64bit integer hash */
-inline u64 djb2(char const* str) {
-  u64 hash = 5381;
-  i32 c;
-  while ((c=*str++))
-      hash = ((hash << 5) + hash) + c;
-  return hash;
-};
-
-/* Define HASH as something useful. */
-//TODO: provide some method of choosing which hashing method to use.
-#define HASH djb2
-
-
-
-/* SCOPE TIMER
-   ===========
-
-   Tiny utility for timing segments of code. Given a now function which reports
-   nanoseconds, this defaults to microseconds.
-*/
-class ScopeTimer {
-public:
-    u64 start, unit_divisor;
-    u64 &target;
-    u64 (*now)(void);
-
-    ScopeTimer(u64& target, u64 (*now)(void), u64 unit_divisor = NS_PER_US)
-              : start        ( now()        )
-              , unit_divisor ( unit_divisor )
-              , target       ( target       )
-              , now          ( now          ) { }
-
-  ~ScopeTimer() { target = (now() - start) / unit_divisor; }
-  ScopeTimer(ScopeTimer const&) = delete;
-  ScopeTimer& operator=(ScopeTimer const&) = delete;
-  ScopeTimer(ScopeTimer&&) = delete;
-  ScopeTimer& operator=(ScopeTimer&&) = delete;
-};
-
-// Easymode macro for the above. Designed to be used when opening a scope. Ex:
-//      /* Handle incoming inputs */
-//      { TIME_SCOPE_US(step_stat.input_poll_usec, state.functions.now);
-//          handleInput(state);
-//      }
-#define TIME_SCOPE(target, now_function) ScopeTimer st(target, now_function)
-#define TIME_SCOPE_NS(target, now_function) ScopeTimer st(target, now_function, 1)
-#define TIME_SCOPE_US(target, now_function) ScopeTimer st(target, now_function, NS_PER_US)
-#define TIME_SCOPE_MS(target, now_function) ScopeTimer st(target, now_function, NS_PER_MS)
-#define TIME_SCOPE_SEC(target, now_function) ScopeTimer st(target, now_function, NS_PER_SEC)
-
-
-
-/* UTLITY SUB-HEADER INCLUDES
-   ==========================
-
-   All files located under the util/ directory should be include here to allow
-   for this file's universal, single-header-include pattern.
-*/
-
-//FIXME: We're including shit from platform here. Because refactoring. And gross
-#include "../platform/crash.h"
-
-#include "util/logging.h"
-#include "util/cvar.h"
-#include "util/itertools.h"
-#include "util/region.h"
-#include "util/pool.h"
-#include "util/ring.h"
-#include "util/sdl_keymap.h"
-
-#include "util/gui_builder.h"
-#include "util/vg_builder.h"

@@ -1,7 +1,56 @@
-#include <stdint.h>
-#include <string.h>
+/* HASH FUNCTIONS
+   ==============
 
-// We don't currently support any big-endian platforms
+   General-purpose hash functions. You probably already know which one you want.
+*/
+
+#pragma once
+
+#include "batteries_included.h"
+#include "primitive_types.h"
+
+inline u64 djb2(char const* str);
+inline void sha1(u8 const*const data, u64 num_bytes, u8* sha_out);
+
+
+/* Default String Hash
+   -------------------
+   Our default string hash is djb2.
+
+   TODO: Write hash verifier to make sure our resources directory doesn't
+         produce djb2 collisions on any filename.
+*/
+#define HASH djb2
+
+
+/* DJB2 Hash
+   ---------
+   Simple bytestring to 64bit integer hash function. It's blazing fast and
+   probably won't corrupt your data. Probably.
+*/
+inline u64 djb2(char const* str) {
+  u64 hash = 5381;
+  i32 c;
+  while ((c=*str++))
+      hash = ((hash << 5) + hash) + c;
+  return hash;
+};
+
+
+/* SHA1
+   ----
+   Use this API for slower hashes where you're super freaked out about
+   collisions or cryptographic manipulation by foreign dictators (hi nsa).
+
+   This code is also shamelessly stolen from the internet. It appears to produce
+   the same hashes as the sha1 binary on the computer I used to steal it, but
+   I can't vouch for it beyond that. It may contain snakes, dragons, or stuxnet.
+*/
+
+/* Macros to make stolen code build better */
+
+namespace stolen {
+
 #ifndef __LITTLE_ENDIAN__
 #define __LITTLE_ENDIAN__ true
 #endif
@@ -21,11 +70,11 @@
 # endif
 #endif
 
-
-/* header */
-
 #define HASH_LENGTH 20
 #define BLOCK_LENGTH 64
+
+
+/* Shamelessly Stolen Types */
 
 typedef struct sha1nfo {
     uint32_t buffer[BLOCK_LENGTH/4];
@@ -36,29 +85,9 @@ typedef struct sha1nfo {
     uint8_t innerHash[HASH_LENGTH];
 } sha1nfo;
 
-/* public API - prototypes - TODO: doxygen*/
 
-/**
- */
-void sha1_init(sha1nfo *s);
-/**
- */
-void sha1_writebyte(sha1nfo *s, uint8_t data);
-/**
- */
-void sha1_write(sha1nfo *s, const char *data, size_t len);
-/**
- */
-uint8_t* sha1_result(sha1nfo *s);
-/**
- */
-void sha1_initHmac(sha1nfo *s, const uint8_t* key, int keyLength);
-/**
- */
-uint8_t* sha1_resultHmac(sha1nfo *s);
+/* Shamelessly Stolen Implementation */
 
-
-/* code */
 #define SHA1_K0  0x5a827999
 #define SHA1_K20 0x6ed9eba1
 #define SHA1_K40 0x8f1bbcdc
@@ -207,4 +236,26 @@ inline uint8_t* sha1_resultHmac(sha1nfo *s) {
     for (i=0; i<BLOCK_LENGTH; i++) sha1_writebyte(s, s->keyBuffer[i] ^ HMAC_OPAD);
     for (i=0; i<HASH_LENGTH; i++) sha1_writebyte(s, s->innerHash[i]);
     return sha1_result(s);
+}
+
+} /* namespace stolen */
+
+/* Hash `num_bytes` from `data` into 41 bytes at sha_out. This is done by
+   representing the 20-byte sha1 as 40 bytes in the ASCII range -- it's the same
+   format you get from git, for example.
+
+   TODO: Use a more flexible string representation to return the hash instead of
+         the c-style unowned-return-pointer-as-parameter
+*/
+inline void sha1(u8 const*const data, u64 num_bytes, u8* sha_out) {
+    using namespace stolen;
+    sha1nfo si;
+    u8* bin_hash;
+    sha1_init(&si);
+    sha1_write(&si, (char const*)data, num_bytes);
+    bin_hash = sha1_result(&si);
+    for (u8 i=0; i<20; ++i) {
+        sprintf((char*)sha_out+(2*i), "%02x", bin_hash[i]);
+    }
+    sha_out[40] = '\0';
 }

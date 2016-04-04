@@ -19,6 +19,11 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
+#pragma once
+
+#include "batteries_included.h"
+#include "primitive_types.h"
+
 /* Heinously egregious copypasta of SDL keycode and scancode headers */
 
 #ifndef _SDL_keycode_h

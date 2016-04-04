@@ -19,17 +19,13 @@
        to our crash dump/reporter instead of MSFT's watson.
 */
 #pragma once
-#include <stdlib.h>
-#include <inttypes.h>
 
-// Used for ceil(int)
-#include <cmath>
+#include "batteries_included.h"
+#include "primitive_types.h"
 
-// Used for memcpy
-#include <cstring>
+#include "logging.h"
 
-// Used for std::function in sort-by-predicate
-#include <functional>
+#include "../platform/crash.h"
 
 template<typename T, bool IsResizable> class Region;
 template<typename T, bool IsResizable> class Pool;

@@ -13,7 +13,9 @@
 */
 
 #pragma once
-#include "util.h"
+
+#include "batteries_included.h"
+#include "primitive_types.h"
 
 /* Vector Graphics commandlist type set */
 enum VGCommandType {

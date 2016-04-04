@@ -11,15 +11,19 @@
 
 #pragma once
 
-#include "util.h"
+#include "batteries_included.h"
+#include "primitive_types.h"
 
-#include "gui.h"
-#include "2dgfx.h"
-#include "components.h"
+#include "deprecated/region.h"
+#include "deprecated/pool.h"
+#include "deprecated/ring.h"
 
-extern "C" {
+#include "cvar.h"
+#include "data/ui_command.h"
+#include "data/vg_command.h"
+#include "data/input_event.h"
 
-#include "input.h"
+// TODO: extern "C" the whole API file
 
 struct Entity {
     ID id;
@@ -109,22 +113,18 @@ struct GameState {
         /* Loaded audio resources */
         Pool<Region<u8, true>> resources;
         std::unordered_map<std::string, ID> resource_map;
-        /* Audio sources */
-        AudioSourceState sources;
-        // Pool<AudioSource> sources;
         std::unordered_map<std::string, ID> source_map;
         inline u64 size() {
             return sizeof(*this)
                  + buffer.capacity_bytes()
                  + resources.total_bytes()
                  + resource_map.size()
-                 + sources.total_bytes()
                  + source_map.size();
         }
     } audio;
 
     struct GraphicsData {
-        Pool<UIControl, true> gui;
+        Pool<UICommand, true> gui;
         Pool<VGCommand, true> vector2d;
         /* Width of the viewport */
         u16 width;
@@ -190,6 +190,8 @@ using PlatformFunctions = GameState::PlatformFunctions;
    game loop to generate data the platform layer needs per frame.
 */
 
+extern "C" {
+
 /* Simulation Step
    Given the current game state, step it forward once.
 */
@@ -201,4 +203,4 @@ void step(GameState const& prev, GameState& state);
 */
 void beginPlay(GameState& state);
 
-}
+} /* extern "C" */

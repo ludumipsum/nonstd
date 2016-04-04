@@ -6,13 +6,20 @@
    extern or by-name lookup. Can also be watched by a single std::function.
 */
 
+#pragma once
 
-#include <functional>
+#include "batteries_included.h"
+#include "primitive_types.h"
+#include "debug.h"
 
+/* Return the value contained in `some_cvar` */
 #define CV(some_cvar) ((some_cvar).value())
+/* Return the value contained in the pointed-to cvar, or nullstr / zero */
 #define SCV(some_cvar_p) ((some_cvar_p != NULL) ? some_cvar_p->value() : NULL)
 
+
 // TODO: config file generator from defined CVars
+// TODO: cvars auto-exposed as command line flags
 
 template<typename VALUE_TYPE>
 class CVar {

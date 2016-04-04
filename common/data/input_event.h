@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include "batteries_included.h"
+#include "primitive_types.h"
+
 /* Tag for InputEvent types */
 enum InputType {
     N2_INPUT_KEYBOARD    = 1,
@@ -31,7 +34,7 @@ struct InputEvent {
         f64 f;
     } data2;
     ID id;
-};
+}; ENFORCE_POD(InputEvent);
 
 /* Platform-abstracted mouse input type */
 struct MouseState {
@@ -46,4 +49,4 @@ struct MouseState {
                button_5 : 1;
         };
     };
-};
+}; ENFORCE_POD(MouseState);

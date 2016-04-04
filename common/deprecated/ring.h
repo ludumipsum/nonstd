@@ -3,13 +3,12 @@
    Basic object ring-buffer based on Region<T>
 */
 #pragma once
-#include "region.h"
-#include <stdlib.h>
-#include <limits.h>
-#include <inttypes.h>
-#include <string>
-#include <assert.h>
 
+#include "batteries_included.h"
+#include "primitive_types.h"
+
+#include "logging.h"
+#include "region.h"
 
 //TODO: Come up with a better name than "bounds checked"
 //TODO: Consider expanding the range of behaviors when pushing when `used ==
