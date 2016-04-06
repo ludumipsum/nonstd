@@ -88,3 +88,17 @@ Color color(T r, U g, V b) { return color(r, g, b, 0xFF); }
 /* Construct from 1 numeric parameter */
 template <class T>
 Color color(T c) { return color(c, c, c); }
+
+/* Mode flags for controlling game buffer clear behavior */
+enum BufferClearMode {
+    CLEARMODE_PASS = 0,
+    CLEARMODE_COPY = 1,
+    CLEARMODE_ZERO = 2,
+};
+/* Buffer for storing game data */
+struct BufferDescriptor {
+    void*             data;
+    void*             cursor;
+    u64               size;
+    BufferClearMode   clear_mode;
+}; ENFORCE_POD(BufferDescriptor);

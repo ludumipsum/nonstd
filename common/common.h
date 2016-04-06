@@ -33,6 +33,7 @@
 #include "hash.h"
 #include "itertools.h"
 #include "logging.h"
+#include "buffer.h"
 
 /* Data Interchange Definitions */
 #include "data/input_event.h"
