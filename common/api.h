@@ -32,7 +32,7 @@ struct Entity {
 }; ENFORCE_POD(Entity);
 
 struct SimulationStat {
-    u64 sim_frame;
+    u64 step;
     u64 tick_usec,
         post_tick_usec,
         total_usec;
@@ -55,96 +55,57 @@ struct StepStat {
    platform resources, timing information, and so on.
 */
 
-/* TODO: Split GameState into three:
-            * platform handles (texture IDs etc)
-            * debug data
-            * actual game state
-          Eventually the actual game state portion will need some more
-          cleverness around what gets network replicated and what doesn't
-          too. */
 struct GameState {
-    /* Scratch memory, cleared every frame */
-    // Region<u8[4096], true> frame_arena;
+    /* Memory backing all game buffers */
+    struct Memory {
+        void* map;
+        BufferDescriptor (*create)  (void* map, cstr name,
+                                     u64 size, BufferClearMode clear_mode);
+        BufferDescriptor (*lookup)  (void* map, cstr name);
+        BufferDescriptor (*resize)  (void* map, u64 new_size);
+        void             (*destroy) (void* map, cstr name);
+        BufferDescriptor (*clear)   (void* map, cstr name);
+    } memory;
 
-    /* Game entity pool */
-    Pool<Entity, true> entities;
-
-    struct TimingData {
-        /* Variable-timing (rendering) frame number */
-        u64 frame;
+    /* Read-only data populated by the platform */
+    struct IncomingData {
+        /* Stream of input events since the last frame. */
+        BufferDescriptor events;
+        /* Number of audio bytes consumed by the platform since the
+           last frame. */
+        u16 audio_bytes_consumed;
         /* Wall time since the last frame began */
-        u64 time_since_last_frame;
-        /* Sequence number of the current simulation iteration */
-        u64 simulation_frame;
-        /* Blend factor for how far between simulation states we are */
-        f32 simulation_alpha;
-        /* Fraction of a frame period left over after rendering the current frame */
-        f32 accumulator;
-        /* Period at which simulation & logic updates occur */
-        u32 fixed_timestep_ns;
+        u64 delta_ns;
         /* High clamp for time elapsed between frames -- constrained to reduce
            physical simulation insanity/instability. */
-        u32 max_timestep_ns;
-        inline u64 size() {
-            return sizeof(*this);
-        }
-    } timing;
+        u32 max_delta_ns;
+        /* Period at which simulation & logic updates occur */
+        u32 fixed_delta_ns;
+        /* Width of the render target, in pixels */
+        u16 window_width;
+        /* Height of the render target, in pixels */
+        u16 window_height;
+    } in;
 
-    struct InputData {
-        Pool<InputEvent> events;
-        MouseState mouse;
-        inline u64 size() {
-            return sizeof(*this)
-                 + events.total_bytes();
-        }
-    } input;
+    struct OutgoingData {
+        /* ID of the buffer used to output debug events */
+        cstr stepstat_bid;
+        /* ID of the buffer used to output debug events */
+        cstr simstat_bid;
+        /* ID of the buffer used to output UI commands */
+        cstr ui_command_bid;
+        /* ID of the buffer used to output vector graphics commands */
+        cstr vg_command_bid;
+    } out;
 
-    /* Contains pointers to master buffer, read and write heads.
-       Contains actual audio resources and audio sources pools.
-       (buffer and read/write heads are static globals defined in
-        platform_audio.cc)
-    */
-    struct AudioData {
-        /* Gamecode audio buffer */
-        Region<u8, true> buffer;
-        /* The number of bytes SDL has consumed this frame (NB: this is GameState's
-         * record of sdl_consume; platform has its own record) */
-        u16 sdl_consume;
-        /* Loaded audio resources */
-        Pool<Region<u8, true>> resources;
-        std::unordered_map<std::string, ID> resource_map;
-        std::unordered_map<std::string, ID> source_map;
-        inline u64 size() {
-            return sizeof(*this)
-                 + buffer.capacity_bytes()
-                 + resources.total_bytes()
-                 + resource_map.size()
-                 + source_map.size();
-        }
-    } audio;
-
-    struct GraphicsData {
-        Pool<UICommand, true> gui;
-        Pool<VGCommand, true> vector2d;
-        /* Width of the viewport */
-        u16 width;
-        /* Height of the viewport */
-        u16 height;
-        inline u64 size() {
-            return sizeof(*this)
-                 + gui.total_bytes();
-        }
-    } graphics;
-
-    struct DebugData {
-        Ring<SimulationStat> simulation_stats;
-        Ring<StepStat> step_stats;
-        inline u64 size() {
-            return sizeof(*this)
-                 + simulation_stats.capacity_bytes()
-                 + step_stats.capacity_bytes();
-        }
-    } debug;
+    /* Variable-timing (rendering) frame number */
+    u64 frame;
+    /* Sequence number of the current simulation iteration */
+    u64 step;
+    /* Blend factor for how far between simulation states we are */
+    f32 simulation_alpha;
+    /* Fraction of a frame period left over after rendering the current frame */
+    f32 accumulator;
 
     /* Platform functions exposed directly to gamecode */
     struct PlatformFunctions {
@@ -156,32 +117,9 @@ struct GameState {
 
         /* Get the current time */
         u64 (*now)();
-
-        // TODO: File IO
-        // TOOD: Network IO
-        inline u64 size() { return sizeof(*this); }
     } functions;
-
-    inline u64 size() {
-        return /*frame_arena.capacity_bytes()
-             + */entities.total_bytes()
-             + timing.size()
-             + input.size()
-             + audio.size()
-             + graphics.size()
-             + debug.size()
-             + functions.size();
-    }
 };
 
-
-/* GameState Member Types */
-using TimingData = GameState::TimingData;
-using InputData = GameState::InputData;
-using AudioData = GameState::AudioData;
-using GraphicsData = GameState::GraphicsData;
-using DebugData = GameState::DebugData;
-using PlatformFunctions = GameState::PlatformFunctions;
 
 /* Platform Hooks
    ==============

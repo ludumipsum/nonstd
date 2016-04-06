@@ -5,10 +5,11 @@
 
 #include "vg_command.h"
 
+#include "api.h"
+
 class VG {
 protected:
-    using VGCommandList = Pool<VGCommand, true>;
-    friend class VGStateContext;
+    using VGCommandList = Buffer<VGCommand>;
     VGCommand m_current;
     VGCommandList& m_vgcl;
 
@@ -19,7 +20,7 @@ protected:
 
     inline void commit() {
         if (m_current.type != VG_COMMAND_TYPE_NONE) {
-            m_vgcl.create(m_current);
+            m_vgcl.push(m_current);
         }
         m_current = {0};
         m_current.type = VG_COMMAND_TYPE_NONE;
@@ -29,6 +30,41 @@ public:
     inline VG(VGCommandList& vgcl)
         : m_current      ( { 0 } )
         , m_vgcl         ( vgcl  )
+        , m_fill         ( false )
+        , m_fill_color   ( { 0 } )
+        , m_stroke       ( false )
+        , m_stroke_color ( { 0 } )
+        , m_stroke_width ( 0     )
+        , path           ( *this )
+        , shape          ( *this )
+    {
+        m_current.type = VG_COMMAND_TYPE_META_STATE_FRAME_PUSH;
+        commit();
+    }
+    inline VG(void* buffer, u64 size)
+        : m_current      ( { 0 } )
+        , m_vgcl(VGCommandList(BufferDescriptor {
+            (VGCommand*)buffer,
+            (VGCommand*)buffer,
+            size,
+            CLEARMODE_PASS
+          }))
+        , m_fill         ( false )
+        , m_fill_color   ( { 0 } )
+        , m_stroke       ( false )
+        , m_stroke_color ( { 0 } )
+        , m_stroke_width ( 0     )
+        , path           ( *this )
+        , shape          ( *this )
+    {
+        m_current.type = VG_COMMAND_TYPE_META_STATE_FRAME_PUSH;
+        commit();
+    }
+    inline VG(GameState& state)
+        : m_current      ( { 0 } )
+        , m_vgcl(VGCommandList(
+            state.memory.lookup(state.memory.map, state.out.vg_command_bid)
+          ))
         , m_fill         ( false )
         , m_fill_color   ( { 0 } )
         , m_stroke       ( false )

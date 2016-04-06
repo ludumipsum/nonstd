@@ -5,13 +5,15 @@
 
 #include "ui_command.h"
 
-using UICommandList = Pool<UICommand, true>;
+#include "api.h"
+
+using UICommandList = Buffer<UICommand>;
 class UI {
     UICommand current;
-    UICommandList& uicl;
+    UICommandList uicl;
     inline void commit() {
         if (current.type != UI_TYPE_NONE) {
-            uicl.create(current);
+            uicl.push(current);
         }
         current = {0};
         current.type = UI_TYPE_NONE;
@@ -20,6 +22,17 @@ class UI {
     }
 public:
     inline UI(UICommandList& uicl) : current({0}), uicl(uicl) { }
+    inline UI(void* buffer, u64 size)
+        : current({0})
+        , uicl(UICommandList(BufferDescriptor {
+            (UICommand*)buffer, (UICommand*)buffer, size, CLEARMODE_PASS
+        })) { }
+    inline UI(GameState& state)
+        : current({0})
+        , uicl(UICommandList(
+            state.memory.lookup(state.memory.map, state.out.ui_command_bid)
+          ))
+    { }
     inline ~UI() { commit(); }
 
     inline UI& label() { commit(); current.type = UI_TYPE_LABEL; return *this;}

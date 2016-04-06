@@ -10,7 +10,7 @@
 #include "primitive_types.h"
 
 inline u64 djb2(char const* str);
-inline void sha1(u8 const*const data, u64 num_bytes, char const* sha_out);
+inline void sha1(u8 const*const data, u64 num_bytes, char* sha_out);
 
 
 /* Default String Hash
@@ -247,7 +247,7 @@ inline uint8_t* sha1_resultHmac(sha1nfo *s) {
    TODO: Use a more flexible string representation to return the hash instead of
          the c-style unowned-return-pointer-as-parameter
 */
-inline void sha1(u8 const*const data, u64 num_bytes, u8* sha_out) {
+inline void sha1(u8 const*const data, u64 num_bytes, char* sha_out) {
     using namespace stolen;
     sha1nfo si;
     u8* bin_hash;
