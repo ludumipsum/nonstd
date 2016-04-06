@@ -10,7 +10,7 @@
 #include "primitive_types.h"
 
 inline u64 djb2(char const* str);
-inline void sha1(u8 const*const data, u64 num_bytes, u8* sha_out);
+inline void sha1(u8 const*const data, u64 num_bytes, char const* sha_out);
 
 
 /* Default String Hash

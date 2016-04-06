@@ -28,6 +28,8 @@
 
 #ifndef _SDL_keycode_h
 #ifndef _SDL_scancode_h
+#define _SDL_keycode_h
+#define _SDL_scancode_h
 
 /**
  *  \brief The SDL keyboard scancode representation.
