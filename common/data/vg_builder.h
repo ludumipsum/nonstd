@@ -8,10 +8,11 @@
 #include "api.h"
 
 class VG {
-protected:
     using VGCommandList = Buffer<VGCommand>;
-    VGCommand m_current;
-    VGCommandList& m_vgcl;
+
+protected:
+    VGCommand     m_current;
+    VGCommandList m_vgcl;
 
     /* Retained state */
     bool m_fill, m_stroke;
@@ -43,12 +44,14 @@ public:
     }
     inline VG(void* buffer, u64 size)
         : m_current      ( { 0 } )
-        , m_vgcl(VGCommandList(BufferDescriptor {
-            (VGCommand*)buffer,
-            (VGCommand*)buffer,
-            size,
-            CLEARMODE_PASS
-          }))
+        , m_vgcl         (
+            VGCommandList(BufferDescriptor {
+                (VGCommand*)buffer,
+                (VGCommand*)buffer,
+                size,
+                CLEARMODE_PASS
+            })
+          )
         , m_fill         ( false )
         , m_fill_color   ( { 0 } )
         , m_stroke       ( false )
@@ -62,9 +65,7 @@ public:
     }
     inline VG(GameState& state)
         : m_current      ( { 0 } )
-        , m_vgcl(VGCommandList(
-            state.memory.lookup(state.memory.map, state.out.vg_command_bid)
-          ))
+        , m_vgcl         ( VGCommandList { state, state.out.vg_command_bid } )
         , m_fill         ( false )
         , m_fill_color   ( { 0 } )
         , m_stroke       ( false )

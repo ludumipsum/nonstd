@@ -22,13 +22,15 @@ class Buffer {
 protected:
     GameState        *m_state;
     BufferDescriptor  m_bd;
+
 public:
     Buffer(BufferDescriptor bd)
-        : m_state(nullptr)
-        , m_bd(bd) { }
+          : m_state ( nullptr )
+          , m_bd    ( bd      ) { }
     Buffer(GameState& state, cstr name)
-        : m_state(&state)
-        , m_bd(state.memory.lookup(state.memory.map, name)) { }
+          : m_state ( &state  )
+          , m_bd    ( state.memory.lookup(state.memory.map, name) ) { }
+
 
     void resize(u64 bytes) {
         if (m_state) {
@@ -72,15 +74,16 @@ public:
     inline T& emplace(u64 offset, ctor_arg_types && ... _ctor_args) {
         if (offset > m_bd.size) {
             resize((offset * sizeof(T) - m_bd.size) * 1.2f);
-            return emplace(offset, _ctor_args);
+            return emplace(offset,
+                           std::forward<ctor_arg_types>(_ctor_args)...);
         }
         return *(::new (((T*)m_bd.cursor) + offset)
                       T(std::forward<ctor_arg_types>(_ctor_args)...));
     }
 
     /* Iterator access to support range-based for */
-    inline T* begin(void) const { return (T*)m_bd.data; }
-    inline T* end(void) const { return (T*)m_bd.cursor; }
+    inline T* begin(void) const      { return (T*)m_bd.data; }
+    inline T* end(void) const        { return (T*)m_bd.cursor; }
     inline T* buffer_end(void) const {
         return (T*)((u8*)m_bd.data + m_bd.size);
     }
@@ -98,5 +101,5 @@ public:
         m_bd.cursor = m_bd.data;
     }
 
-    inline u64 size() { return m_size; }
+    inline u64 size() { return m_bd.size; }
 };

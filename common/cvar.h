@@ -20,14 +20,22 @@
 #include "primitive_types.h"
 #include "debug.h"
 
+/* Return the value contained in the pointed-to cvar, or nullstr / zero */
+#define SCV(some_cvar_p) ((some_cvar_p == NULL) ? some_cvar_p->value() : NULL)
 /* Return the value contained in `some_cvar` */
 #define CV(some_cvar) ((some_cvar).value())
-/* Return the value contained in the pointed-to cvar, or nullstr / zero */
-#define SCV(some_cvar_p) ((some_cvar_p != NULL) ? some_cvar_p->value() : NULL)
 
 
 // TODO: config file generator from defined CVars
 // TODO: cvars auto-exposed as command line flags
+
+template<typename VALUE_TYPE> class CVar;
+
+typedef CVar<double>      CVar_f;
+typedef CVar<int64_t>     CVar_i;
+typedef CVar<bool>        CVar_b;
+typedef CVar<char const*> CVar_s;
+
 
 template<typename VALUE_TYPE>
 class CVar {
@@ -117,32 +125,34 @@ private:
     std::string m_storage;
 };
 
-typedef CVar<double>      CVar_f;
-typedef CVar<int64_t>     CVar_i;
-typedef CVar<bool>        CVar_b;
-typedef CVar<char const*> CVar_s;
+/* Forward declarations of explicit specializations */
+template<> CVar_f* CVar_f::find(char const* name);
+template<> CVar_i* CVar_i::find(char const* name);
+template<> CVar_b* CVar_b::find(char const* name);
+template<> CVar_s* CVar_s::find(char const* name);
+
 
 /* Locate a cvar by name and return its value by reference */
 // template<typename T>
 // inline T& FINDCV(char const* some_cvar_name, T default_value);
 
-inline i64& FINDCVi(char const* some_cvar_name, i64 default_value){
+inline i64& FINDCVi(char const* some_cvar_name, i64 default_value) {
     CVar_i* ptr = CVar_i::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;
 }
-inline f64& FINDCVf(char const* some_cvar_name, f64 default_value){
+inline f64& FINDCVf(char const* some_cvar_name, f64 default_value) {
     CVar_f* ptr = CVar_f::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;
 }
-inline bool& FINDCVb(char const* some_cvar_name, bool default_value){
+inline bool& FINDCVb(char const* some_cvar_name, bool default_value) {
     CVar_b* ptr = CVar_b::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;
 }
 inline char const*& FINDCVs(char const* some_cvar_name,
-                            char const* default_value){
+                            char const* default_value) {
     CVar_s* ptr = CVar_s::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;
