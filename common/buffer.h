@@ -5,6 +5,39 @@
 
 #include "api.h"
 
+/* Buffer Descriptors
+   ==================
+
+   BufferDescriptors provide descriptions of memory locations that are available
+   to be used by game code but created and maintained by the platform layer.
+   Game code requests buffers from the platform layer via `state.memory.create`
+   or `state.memory.lookup`, both of which yield a pointer to a BufferDescriptor
+   created by the platform layer. Game code can then either directly modify the
+   data location described by the BufferDescriptor, or create a typed BufferView
+   over it to operate on individual objects.
+
+   NB. As there is no real guarantee of what the platform layer will or won't do
+   to your game's pointers between frames -- or even if your game state is
+   actually "between" frames; think of state loads, A-B repeats, state shared
+   across networks, etc. -- only Trivially Copyable data should be stored in
+   retained buffers. BufferDescriptor existence (name, properties, and presence
+   in the platform's lookup table) will remain valid between frames but there is
+   _never_ a guarantee that the same memory location will be retained between
+   frames.
+
+   You can play as fast and as loose with pointers within a frame, but expect
+   last frame's pointers, and pointers to other data locations, will be in
+   "interesting" states by the time the next frame starts.
+*/
+
+struct BufferDescriptor {
+    void*       data;
+    void*       cursor;
+    u64         size;
+    BufferFlags clear_mode;
+}; ENFORCE_POD(BufferDescriptor);
+
+
 /* Typed Buffer Views
    ==================
 
@@ -18,23 +51,25 @@
    previous frame's state, which is unlikely to be quite what you want.
 */
 template<typename T>
-class Buffer {
+class BufferView {
 protected:
     GameState        *m_state;
-    BufferDescriptor  m_bd;
+    BufferDescriptor &m_bd;
 
 public:
-    Buffer(BufferDescriptor bd)
-          : m_state ( nullptr )
-          , m_bd    ( bd      ) { }
-    Buffer(GameState& state, cstr name)
-          : m_state ( &state  )
-          , m_bd    ( state.memory.lookup(state.memory.map, name) ) { }
-
+    BufferView(BufferDescriptor* bd)
+              : m_state ( nullptr )
+              , m_bd    ( *bd     ) { }
+    BufferView(BufferDescriptor& bd)
+              : m_state ( nullptr )
+              , m_bd    ( bd      ) { }
+    BufferView(GameState& state, cstr name)
+              : m_state ( &state  )
+              , m_bd    ( *state.memory.lookup(state.memory.map, name) ) { }
 
     void resize(u64 bytes) {
         if (m_state) {
-            m_bd = m_state->memory.resize(m_state->memory.map, bytes);
+            m_state->memory.resize(m_state->memory.map, bytes);
         } else {
             BREAKPOINT;
         }
@@ -97,6 +132,7 @@ public:
 
     /* Drop all elements of the region without reinitializing memory.
        NB: this forwards to _drop; visual studio chokes on enable_if directly */
+    /*FIXME: The above is a lie. Should it be a lie? Should we fix the below? */
     inline void drop() {
         m_bd.cursor = m_bd.data;
     }

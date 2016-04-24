@@ -23,6 +23,10 @@
 #include "data/vg_command.h"
 #include "data/input_event.h"
 
+
+/* Forward declaration; defined and used in buffer.h */
+struct BufferDescriptor;
+
 // TODO: extern "C" the whole API file
 
 struct Entity {
@@ -59,18 +63,18 @@ struct GameState {
     /* Memory backing all game buffers */
     struct Memory {
         void* map;
-        BufferDescriptor (*create)  (void* map, cstr name,
-                                     u64 size, BufferClearMode clear_mode);
-        BufferDescriptor (*lookup)  (void* map, cstr name);
-        BufferDescriptor (*resize)  (void* map, u64 new_size);
-        void             (*destroy) (void* map, cstr name);
-        BufferDescriptor (*clear)   (void* map, cstr name);
+        BufferDescriptor* (*create)  (void* map, cstr name,
+                                      u64 size, BufferFlags flags);
+        BufferDescriptor* (*lookup)  (void* map, cstr name);
+        void              (*resize)  (void* map, u64 new_size);
+        void              (*destroy) (void* map, cstr name);
+        BufferDescriptor* (*clear)   (void* map, cstr name);
     } memory;
 
     /* Read-only data populated by the platform */
     struct IncomingData {
         /* Stream of input events since the last frame. */
-        BufferDescriptor events;
+        BufferDescriptor* events;
         /* Number of audio bytes consumed by the platform since the
            last frame. */
         u16 audio_bytes_consumed;

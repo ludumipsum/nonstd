@@ -46,6 +46,24 @@ typedef u32 ID;
 #define MS_PER_SEC 1000
 
 
+/* Buffer Clear Flags
+   ------------------
+   Mode flags for controlling buffer clear behavior between frames.
+   NB. Unless BUFFER_PERSIST is set, there is _no guarantee_ that data will be
+       retained between frames.
+*/
+enum BufferFlags {
+    /* The buffer's cursor shall be set to 0 between every frame. */
+    BUFFER_CLEAR_CURSOR = (1 << 0),
+    /* The buffer's data shall be cleared to 0 between every frame. */
+    BUFFER_CLEAR_DATA   = (1 << 1),
+    /* The buffer shall be persisted between frames, and previous frame's data
+       shall be accessible for... some number of frames?
+       TODO: Figure out how long we retain persisted buffers. */
+    BUFFER_PERSIST      = (1 << 2),
+};
+
+
 /* COLORS
    ------
    Simple 4-vector of u8s used to represent RGB colors.
@@ -90,16 +108,3 @@ Color color(T r, U g, V b) { return color(r, g, b, 0xFF); }
 template <class T>
 Color color(T c) { return color(c, c, c); }
 
-/* Mode flags for controlling game buffer clear behavior */
-enum BufferClearMode {
-    CLEARMODE_PASS = 0,
-    CLEARMODE_COPY = 1,
-    CLEARMODE_ZERO = 2,
-};
-/* Buffer for storing game data */
-struct BufferDescriptor {
-    void*             data;
-    void*             cursor;
-    u64               size;
-    BufferClearMode   clear_mode;
-}; ENFORCE_POD(BufferDescriptor);
