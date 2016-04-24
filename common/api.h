@@ -14,10 +14,6 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
-#include "deprecated/region.h"
-#include "deprecated/pool.h"
-#include "deprecated/ring.h"
-
 #include "cvar.h"
 #include "data/ui_command.h"
 #include "data/vg_command.h"

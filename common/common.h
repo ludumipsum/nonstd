@@ -42,11 +42,3 @@
 #include "data/ui_command.h"
 #include "data/vg_builder.h"
 #include "data/vg_command.h"
-
-/* Collections & Views */
-// #include "buffer_view.h"
-
-/* Please to be fucking off */
-#include "deprecated/region.h"
-#include "deprecated/pool.h"
-#include "deprecated/ring.h"
