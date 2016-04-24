@@ -114,10 +114,10 @@ struct GameState {
     /* Platform functions exposed directly to gamecode */
     struct PlatformFunctions {
         /* Configuration variable accessors */
-        CVar_i* (*find_cvar_i)(char const* name);
-        CVar_f* (*find_cvar_f)(char const* name);
-        CVar_b* (*find_cvar_b)(char const* name);
-        CVar_s* (*find_cvar_s)(char const* name);
+        CVar_i* (*find_cvar_i)(c_cstr name);
+        CVar_f* (*find_cvar_f)(c_cstr name);
+        CVar_b* (*find_cvar_b)(c_cstr name);
+        CVar_s* (*find_cvar_s)(c_cstr name);
 
         /* Get the current time */
         u64 (*now)();

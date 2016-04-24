@@ -9,8 +9,8 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
-inline u64 djb2(char const* str);
-inline void sha1(u8 const*const data, u64 num_bytes, char* sha_out);
+inline u64 djb2(c_cstr str);
+inline void sha1(u8 const*const data, u64 num_bytes, cstr sha_out);
 
 
 /* Default String Hash
@@ -28,7 +28,7 @@ inline void sha1(u8 const*const data, u64 num_bytes, char* sha_out);
    Simple bytestring to 64bit integer hash function. It's blazing fast and
    probably won't corrupt your data. Probably.
 */
-inline u64 djb2(char const* str) {
+inline u64 djb2(c_cstr str) {
   u64 hash = 5381;
   i32 c;
   while ((c=*str++))
@@ -163,7 +163,7 @@ inline void sha1_writebyte(sha1nfo *s, uint8_t data) {
     sha1_addUncounted(s, data);
 }
 
-inline void sha1_write(sha1nfo *s, const char *data, size_t len) {
+inline void sha1_write(sha1nfo *s, c_cstr data, size_t len) {
     for (;len--;) sha1_writebyte(s, (uint8_t) *data++);
 }
 
@@ -247,15 +247,15 @@ inline uint8_t* sha1_resultHmac(sha1nfo *s) {
    TODO: Use a more flexible string representation to return the hash instead of
          the c-style unowned-return-pointer-as-parameter
 */
-inline void sha1(u8 const*const data, u64 num_bytes, char* sha_out) {
+inline void sha1(u8 const*const data, u64 num_bytes, cstr sha_out) {
     using namespace stolen;
     sha1nfo si;
     u8* bin_hash;
     sha1_init(&si);
-    sha1_write(&si, (char const*)data, num_bytes);
+    sha1_write(&si, (c_cstr)data, num_bytes);
     bin_hash = sha1_result(&si);
     for (u8 i=0; i<20; ++i) {
-        sprintf((char*)sha_out+(2*i), "%02x", bin_hash[i]);
+        sprintf((cstr)sha_out+(2*i), "%02x", bin_hash[i]);
     }
     sha_out[40] = '\0';
 }

@@ -100,11 +100,11 @@ public:
     inline UI& y_end(f32 y_end) { m_current.y_end = y_end; return *this; }
 
     /* Set the text associated with this control */
-    inline UI& text(char const* text) { m_current.text_0 = text; return *this; }
+    inline UI& text(c_cstr text) { m_current.text_0 = text; return *this; }
     /* Set the secondary text associated with this control. This is used for
          controls which have both a title and a caption, or a label and a value.
          For example, the label & value of a slider or numberField. */
-    inline UI& secondary_text(char const* stext) {
+    inline UI& secondary_text(c_cstr stext) {
         m_current.text_1 = stext;
         return *this;
     }

@@ -30,7 +30,7 @@ struct PoolIndex {
     // say, a stale ID used to access position in the index array that has been
     // reused will (correctly) error out).
     ID id;
-    uint16_t index, next;
+    u16 index, next;
 }; ENFORCE_POD(PoolIndex);
 
 
@@ -42,17 +42,17 @@ template<typename T, bool IsResizable=false>
 class Pool {
 public:
     ID                             id;
-    uint16_t                       m_head;
-    uint16_t                       m_tail;
+    u16                            m_head;
+    u16                            m_tail;
     // These, annoyingly, need to be before the memory regions to initialize
     // them to store region names before the regions are initialized. *sigh*
     std::string                    _m_object_region_name;
     std::string                    _m_index_region_name;
     Region<T, IsResizable>         m_objects;
     Region<PoolIndex, IsResizable> m_indices;
-    char const*                    m_name;
+    c_cstr                         m_name;
 
-    Pool(uint16_t count, char const* name)
+    Pool(u16 count, c_cstr name)
         : id                    ( 0                                    )
         , m_head                ( 0                                    )
         , m_tail                ( count-1                              )
@@ -125,12 +125,12 @@ public:
 
     // MSVC has an internal compiler error if things outside the class
     // definition call _resize directly. This, otoh, works.
-    void resize(uint16_t new_size) {
+    void resize(u16 new_size) {
         _resize(new_size);
     }
 
     TEMPLATE_ENABLE((IsResizable == false), T)
-    inline void _resize(uint16_t new_size) {
+    inline void _resize(u16 new_size) {
         UNUSED(new_size);
         CRASH(ENOMEM, "Pool %s is non-resizable. Attempted resize from " PRIu64
                       " to " PRIu64 ".",
@@ -138,8 +138,8 @@ public:
     }
 
     TEMPLATE_ENABLE(IsResizable, T)
-    inline void _resize(uint16_t new_size) {
-        uint16_t old_size = (uint16_t) m_indices.capacity();
+    inline void _resize(u16 new_size) {
+        u16 old_size = (u16) m_indices.capacity();
 
         // Early-Out conditions
         if (new_size == old_size) return;
@@ -242,7 +242,7 @@ public:
     inline ID create(ctor_arg_types && ... _ctor_args) {
         // If the pool is full, attempt a resize
         if (m_head == USHRT_MAX) {
-            uint16_t new_size = n2min(m_indices.capacity() * 1.2f + 1,
+            u16 new_size = n2min(m_indices.capacity() * 1.2f + 1,
                                     USHRT_MAX - 1);
             _resize(new_size);
         }
@@ -265,7 +265,7 @@ public:
         idx.id += OBJECT_LSB;
 
         // Fetch the next available entry in the object region
-        idx.index = (uint16_t) m_objects.used();
+        idx.index = (u16) m_objects.used();
 
         // Construct the object in-place
         T& object = m_objects.construct(std::forward<ctor_arg_types>(_ctor_args)...);
@@ -294,7 +294,7 @@ public:
         // If we're being asked to create an entity for an ID past the end of
         // our useful range, grow the index array
         if ((id & INDEX_MASK) >= m_indices.capacity()) {
-            uint16_t new_size = n2min((id & INDEX_MASK) * 1.2f, USHRT_MAX - 1);
+            u16 new_size = n2min((id & INDEX_MASK) * 1.2f, USHRT_MAX - 1);
             _resize(new_size);
         }
 
@@ -336,7 +336,7 @@ public:
         // Update the index entry and create the object
         PoolIndex& idx = m_indices[id & INDEX_MASK];
         idx.id = id;
-        idx.index = (uint16_t) m_objects.used();
+        idx.index = (u16) m_objects.used();
         T& object = m_objects.construct(std::forward<ctor_arg_types>(_ctor_args)...);
         object.id = idx.id;
         return object.id;
@@ -396,27 +396,27 @@ public:
         m_indices.drop();
         m_objects.drop();
         m_head = 0;
-        m_tail = (uint16_t) m_indices.capacity() - 1;
-        _initialize_freelist((uint16_t) m_indices.capacity());
+        m_tail = (u16) m_indices.capacity() - 1;
+        _initialize_freelist((u16) m_indices.capacity());
     }
 
     // This pool's name
-    inline char const* name() { return m_name; }
+    inline c_cstr name() { return m_name; }
 
     // The number of objects currently alive in this pool
-    inline uint16_t used() { return (uint16_t) m_objects.used(); }
+    inline u16 used() { return (u16) m_objects.used(); }
 
     // The maximum number of objects this pool can contain
-    inline uint16_t capacity() { return (uint16_t) m_indices.capacity(); }
+    inline u16 capacity() { return (u16) m_indices.capacity(); }
 
     // The number of bytes used by live objects in the pool
-    inline uint64_t used_bytes() { return m_objects.bytes_used(); }
+    inline u64 used_bytes() { return m_objects.bytes_used(); }
 
     // The number of bytes used for pool bookkeeping
-    inline uint64_t overhead_bytes() { return sizeof(decltype(*this)); }
+    inline u64 overhead_bytes() { return sizeof(decltype(*this)); }
 
     // Total bytes allocated for this pool
-    inline uint64_t total_bytes() { return sizeof(decltype(*this)) + m_indices.capacity_bytes() + m_objects.capacity_bytes(); }
+    inline u64 total_bytes() { return sizeof(decltype(*this)) + m_indices.capacity_bytes() + m_objects.capacity_bytes(); }
 
     // Log this pool's memory stats at the provided severity
     // TODO: Move to generating a struct instead of "lol print it"
@@ -446,7 +446,7 @@ public:
 
 protected:
     // Initialization logic for overlaying a freelist on the pool index table
-    inline void _initialize_freelist(uint16_t count, uint16_t start = 0) {
+    inline void _initialize_freelist(u16 count, u16 start = 0) {
         #if defined(DEBUG_MEMORY)
             if (count + start > m_indices.capacity()) {
                 CRASH(EFAULT, "Tried to initialize pool freelist with an "
@@ -454,8 +454,8 @@ protected:
             }
         #endif
 
-        uint16_t end = start + count;
-        for (uint16_t i = start; i < end; /**/) {
+        u16 end = start + count;
+        for (u16 i = start; i < end; /**/) {
             m_indices.construct(PoolIndex{ i, 0, ++i });
         }
 

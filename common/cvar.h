@@ -34,13 +34,13 @@ template<typename VALUE_TYPE> class CVar;
 typedef CVar<double>      CVar_f;
 typedef CVar<int64_t>     CVar_i;
 typedef CVar<bool>        CVar_b;
-typedef CVar<char const*> CVar_s;
+typedef CVar<c_cstr>      CVar_s;
 
 
 template<typename VALUE_TYPE>
 class CVar {
 public:
-    CVar(char const* name, char const* synopsis, VALUE_TYPE value)
+    CVar(c_cstr name, c_cstr synopsis, VALUE_TYPE value)
         : m_next           ( nullptr  )
         , m_name           ( name     )
         , m_synopsis       ( synopsis )
@@ -52,8 +52,8 @@ public:
     {
         addToList();
     }
-    CVar(char const* name,
-         char const* synopsis,
+    CVar(c_cstr name,
+         c_cstr synopsis,
          VALUE_TYPE value,
          VALUE_TYPE min,
          VALUE_TYPE max)
@@ -70,7 +70,7 @@ public:
     }
 
     // Transparent assignment as VALUE_TYPE
-    using is_str = std::is_same<char const*, VALUE_TYPE>;
+    using is_str = std::is_same<c_cstr, VALUE_TYPE>;
     TEMPLATE_ENABLE(!is_str::value, VALUE_TYPE)
     inline CVar<VALUE_TYPE>& operator=(VALUE_TYPE value) {
         // If min=max, no clamping, just assign
@@ -81,7 +81,7 @@ public:
         }
         return *this;
     }
-    inline CVar<char const*>& operator=(char const* value) {
+    inline CVar<c_cstr>& operator=(c_cstr value) {
         m_storage = value;
         m_value = m_storage.c_str();
         return *this;
@@ -99,7 +99,7 @@ public:
         m_watch_callback = callback;
     }
 
-    static CVar<VALUE_TYPE>* find(char const* name);
+    static CVar<VALUE_TYPE>* find(c_cstr name);
 
 private:
     inline VALUE_TYPE clampValue(VALUE_TYPE value) {
@@ -116,8 +116,8 @@ private:
     void addToList(void);
     CVar<VALUE_TYPE>* m_next;
 
-    char const* m_name;
-    char const* m_synopsis;
+    c_cstr m_name;
+    c_cstr m_synopsis;
     VALUE_TYPE m_value;
     decltype(m_value) m_min;
     decltype(m_value) m_max;
@@ -126,33 +126,33 @@ private:
 };
 
 /* Forward declarations of explicit specializations */
-template<> CVar_f* CVar_f::find(char const* name);
-template<> CVar_i* CVar_i::find(char const* name);
-template<> CVar_b* CVar_b::find(char const* name);
-template<> CVar_s* CVar_s::find(char const* name);
+template<> CVar_f* CVar_f::find(c_cstr name);
+template<> CVar_i* CVar_i::find(c_cstr name);
+template<> CVar_b* CVar_b::find(c_cstr name);
+template<> CVar_s* CVar_s::find(c_cstr name);
 
 
 /* Locate a cvar by name and return its value by reference */
 // template<typename T>
-// inline T& FINDCV(char const* some_cvar_name, T default_value);
+// inline T& FINDCV(c_cstr some_cvar_name, T default_value);
 
-inline i64& FINDCVi(char const* some_cvar_name, i64 default_value) {
+inline i64& FINDCVi(c_cstr some_cvar_name, i64 default_value) {
     CVar_i* ptr = CVar_i::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;
 }
-inline f64& FINDCVf(char const* some_cvar_name, f64 default_value) {
+inline f64& FINDCVf(c_cstr some_cvar_name, f64 default_value) {
     CVar_f* ptr = CVar_f::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;
 }
-inline bool& FINDCVb(char const* some_cvar_name, bool default_value) {
+inline bool& FINDCVb(c_cstr some_cvar_name, bool default_value) {
     CVar_b* ptr = CVar_b::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;
 }
-inline char const*& FINDCVs(char const* some_cvar_name,
-                            char const* default_value) {
+inline c_cstr& FINDCVs(c_cstr some_cvar_name,
+                       c_cstr default_value) {
     CVar_s* ptr = CVar_s::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;

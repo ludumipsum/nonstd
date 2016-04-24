@@ -17,7 +17,7 @@
 template<typename T, bool BoundsChecked=false>
 class Ring {
 public:
-    Ring(u64 count, char const * _name) :
+    Ring(u64 count, c_cstr _name) :
         _object_name(std::string(_name) + "/Objects"),
         _objects(count, this->_object_name.c_str()),
         _name(_name),
@@ -64,14 +64,14 @@ public:
 public:
     std::string  _object_name;
     Region<T>    _objects;
-    char const * _name;
+    c_cstr       _name;
     u64          _head;
     u64          _tail;
     u64          _used;
 
-    inline char const * name()     { return this->_name; }
-    inline u64          used()     { return this->_used; }
-    inline u64          capacity() { return this->_objects.capacity(); }
+    inline c_cstr name()     { return this->_name; }
+    inline u64    used()     { return this->_used; }
+    inline u64    capacity() { return this->_objects.capacity(); }
 
     inline u64    used_bytes()     { return (this->_used * sizeof(T)); }
     inline u64    capacity_bytes() { return this->_objects.capacity_bytes(); }

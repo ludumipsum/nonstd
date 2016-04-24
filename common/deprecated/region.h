@@ -50,12 +50,12 @@ template<typename T, bool IsResizable> class Pool;
 template<typename T, bool IsResizable=false>
 class Region {
 public:
-    ID           id;
-    bool         m_aligned;
-    uint64_t     m_next;
-    uint64_t     m_size;
-    T *          m_buffer;
-    char const * m_name;
+    ID     id;
+    bool   m_aligned;
+    u64    m_next;
+    u64    m_size;
+    T *    m_buffer;
+    c_cstr m_name;
 
 protected:
     friend class Pool<T, IsResizable>;
@@ -64,7 +64,7 @@ public:
     // ### Region Lifespan Management
 
     // Create a new memory region to hold a given
-    Region(uint64_t count, char const* name)
+    Region(u64 count, c_cstr name)
         : id(0)
         , m_aligned(false)
         , m_next(0)
@@ -208,7 +208,7 @@ public:
 
     // MSVC has an internal compiler error if things outside the class
     // definition call _reserve directly. This, otoh, works.
-    void reserve(uint64_t new_size) {
+    void reserve(u64 new_size) {
       _reserve(new_size);
     }
 
@@ -220,7 +220,7 @@ public:
     // invalid access that would arise from the assumption that the reserve
     // succeeded.
     TEMPLATE_ENABLE(false == IsResizable, void)
-    inline void _reserve(uint64_t new_size) {
+    inline void _reserve(u64 new_size) {
         CRASH(ENOMEM, "%" PRIu64 "B %s region %s is non-resizable. Attempted "
                       "resize from " PRIu64 " to " PRIu64 ".",
                       m_size*sizeof(T), (m_aligned ? "aligned" : "unaligned"),
@@ -233,7 +233,7 @@ public:
     // one, then copy over all the data from the old buffer. Finally, fix up the
     // region state to reflect the new buffer address and size.
     TEMPLATE_ENABLE(true == IsResizable, void)
-    inline void _reserve(uint64_t new_size) {
+    inline void _reserve(u64 new_size) {
         if (m_size == new_size) return;
         if (new_size == 0) {
             LOG("Tried to shrink Region \"%s\" down to 0. Zero-sized Regions "
@@ -295,7 +295,7 @@ public:
     // Get a buffer of n consecutive elements in the region. Always includes
     // bounds-check branch, but will silently no-op and return a pointer to a
     // memory region of insufficient length if bounds-checking is disabled.
-    inline T* consume(uint64_t count=1) {
+    inline T* consume(u64 count=1) {
         #if defined(DEBUG_MEMORY)
             if(m_buffer == nullptr) {
                 CRASH(ENOMEM, "Attempted to acquire memory from an "
@@ -326,7 +326,7 @@ public:
             }
         #endif
         if(m_next >= m_size) {
-            _reserve(m_size + (uint64_t) ceil(m_size*0.2f));
+            _reserve(m_size + (u64) ceil(m_size*0.2f));
         }
         return *(::new (m_buffer + m_next++) T(std::forward<ctor_arg_types>(_ctor_args)...));
     }
@@ -342,7 +342,7 @@ public:
             }
         #endif
         if(m_next >= m_size) {
-            _reserve(m_size + (uint64_t) ceil(m_size*0.2f));
+            _reserve(m_size + (u64) ceil(m_size*0.2f));
         }
         return *(m_buffer + m_next++);
     }
@@ -353,7 +353,7 @@ public:
     // avoid creating "holes" in their object array, as contiguity of data is a
     // guarantee of the Region.
     template<typename ...ctor_arg_types>
-    inline T& emplace(uint64_t position, ctor_arg_types && ... _ctor_args) {
+    inline T& emplace(u64 position, ctor_arg_types && ... _ctor_args) {
         #if defined(DEBUG_MEMORY)
             if(m_buffer == nullptr) {
                 CRASH(ENOMEM, "Attempted to acquire memory from an invalid "
@@ -375,7 +375,7 @@ public:
 
     // #### Access, Query, and Drop
     // Random-access lookup within the region
-    inline T& operator[](uint64_t index) const {
+    inline T& operator[](u64 index) const {
         #if defined(DEBUG_MEMORY)
         if (index >= m_size) {
             CRASH(EFAULT, "Memory region bounds-check failed; %" PRIu64
@@ -439,15 +439,15 @@ public:
                      std::function<void(T& a, T& b)> swap) {
         // In-place quicksort partition algorithm from wikipedia
         auto partition = [&predicate, &swap](T* buffer,
-                                             uint64_t left,
-                                             uint64_t right,
-                                             uint64_t pivot) {
+                                             u64 left,
+                                             u64 right,
+                                             u64 pivot) {
             // Stow the pivot out of the way
             T pivotObj = buffer[pivot];
             swap(buffer[pivot], buffer[right]);
 
-            uint64_t idx = left;
-            for(uint64_t i = left; i<right; ++i) {
+            u64 idx = left;
+            for(u64 i = left; i<right; ++i) {
                 // If the value under inspection passes the predicate
                 // swap it left and move the left index forward.
                 if (predicate(buffer[i], pivotObj)) {
@@ -462,10 +462,10 @@ public:
             return idx;
         };
 
-        std::function<void(T*, uint64_t, uint64_t)> qs;
-        qs = [&qs, &predicate, &partition](T* buffer, uint64_t left, uint64_t right) {
+        std::function<void(T*, u64, u64)> qs;
+        qs = [&qs, &predicate, &partition](T* buffer, u64 left, u64 right) {
             if (left < right) {
-                uint64_t pivot = left + (right-left)/2;
+                u64 pivot = left + (right-left)/2;
                 pivot = partition(buffer, left, right, pivot);
                 qs(buffer, left, (pivot) ? pivot - 1 : 0);
                 qs(buffer, pivot + 1, right);
@@ -477,22 +477,22 @@ public:
     // ### Memory Statistics
 
     // This region's name
-    inline char const* name(void) const { return m_name; }
+    inline c_cstr name(void) const { return m_name; }
 
     // The number of object slots currently occupied
-    inline uint64_t used(void) const { return m_next; }
+    inline u64 used(void) const { return m_next; }
 
     // The number of object slots available
-    inline uint64_t capacity(void) const { return m_size; }
+    inline u64 capacity(void) const { return m_size; }
 
     // The byte-alignment of elements in this structure, or 0 if unaligned
-    inline uint64_t alignment(void) const { return m_aligned ? alignof(T) : 0; }
+    inline u64 alignment(void) const { return m_aligned ? alignof(T) : 0; }
 
     // Bytes used by objects in the pool
-    inline uint64_t used_bytes(void) const { return m_next * sizeof(T); }
+    inline u64 used_bytes(void) const { return m_next * sizeof(T); }
 
     // Total bytes allocated for the pool
-    inline uint64_t capacity_bytes (void) const { return m_size * sizeof(T); }
+    inline u64 capacity_bytes (void) const { return m_size * sizeof(T); }
 
     // Log this pool's vitals at the provided severity
     inline void logStats() const {
