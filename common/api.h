@@ -23,6 +23,10 @@
 #include "data/vg_command.h"
 #include "data/input_event.h"
 
+
+/* Forward declaration; defined and used in buffer.h */
+struct BufferDescriptor;
+
 // TODO: extern "C" the whole API file
 
 struct Entity {
@@ -59,18 +63,18 @@ struct GameState {
     /* Memory backing all game buffers */
     struct Memory {
         void* map;
-        BufferDescriptor (*create)  (void* map, cstr name,
-                                     u64 size, BufferClearMode clear_mode);
-        BufferDescriptor (*lookup)  (void* map, cstr name);
-        BufferDescriptor (*resize)  (void* map, u64 new_size);
-        void             (*destroy) (void* map, cstr name);
-        BufferDescriptor (*clear)   (void* map, cstr name);
+        BufferDescriptor* (*create)  (void* map, c_cstr name,
+                                      u64 size, BufferFlags flags);
+        BufferDescriptor* (*lookup)  (void* map, c_cstr name);
+        void              (*resize)  (void* map, u64 new_size);
+        void              (*destroy) (void* map, c_cstr name);
+        BufferDescriptor* (*clear)   (void* map, c_cstr name);
     } memory;
 
     /* Read-only data populated by the platform */
     struct IncomingData {
         /* Stream of input events since the last frame. */
-        BufferDescriptor events;
+        BufferDescriptor* events;
         /* Number of audio bytes consumed by the platform since the
            last frame. */
         u16 audio_bytes_consumed;
@@ -89,13 +93,13 @@ struct GameState {
 
     struct OutgoingData {
         /* ID of the buffer used to output debug events */
-        cstr stepstat_bid;
+        c_cstr stepstat_bid;
         /* ID of the buffer used to output debug events */
-        cstr simstat_bid;
+        c_cstr simstat_bid;
         /* ID of the buffer used to output UI commands */
-        cstr ui_command_bid;
+        c_cstr ui_command_bid;
         /* ID of the buffer used to output vector graphics commands */
-        cstr vg_command_bid;
+        c_cstr vg_command_bid;
     } out;
 
     /* Variable-timing (rendering) frame number */
@@ -110,10 +114,10 @@ struct GameState {
     /* Platform functions exposed directly to gamecode */
     struct PlatformFunctions {
         /* Configuration variable accessors */
-        CVar_i* (*find_cvar_i)(char const* name);
-        CVar_f* (*find_cvar_f)(char const* name);
-        CVar_b* (*find_cvar_b)(char const* name);
-        CVar_s* (*find_cvar_s)(char const* name);
+        CVar_i* (*find_cvar_i)(c_cstr name);
+        CVar_f* (*find_cvar_f)(c_cstr name);
+        CVar_b* (*find_cvar_b)(c_cstr name);
+        CVar_s* (*find_cvar_s)(c_cstr name);
 
         /* Get the current time */
         u64 (*now)();

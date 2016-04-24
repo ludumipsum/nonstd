@@ -584,6 +584,6 @@ struct UICommand {
     UIState state, state_end;
     f32 color_0[4], color_1[4];
     bool vertical, mirror;
-    char const* text_0;
-    char const* text_1;
+    c_cstr text_0;
+    c_cstr text_1;
 }; ENFORCE_POD(UICommand);

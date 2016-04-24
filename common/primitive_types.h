@@ -12,17 +12,18 @@
 /* Basic Types
    -----------
 */
-typedef uint8_t  u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef int8_t   i8;
-typedef int16_t  i16;
-typedef int32_t  i32;
-typedef int64_t  i64;
-typedef float    f32;
-typedef double   f64;
-typedef char *   cstr;
+typedef uint8_t       u8;
+typedef uint16_t     u16;
+typedef uint32_t     u32;
+typedef uint64_t     u64;
+typedef int8_t        i8;
+typedef int16_t      i16;
+typedef int32_t      i32;
+typedef int64_t      i64;
+typedef float        f32;
+typedef double       f64;
+typedef char *       cstr;
+typedef char const * c_cstr;
 
 typedef u32 ID;
 
@@ -43,6 +44,24 @@ typedef u32 ID;
 #define US_PER_SEC 1000000
 
 #define MS_PER_SEC 1000
+
+
+/* Buffer Clear Flags
+   ------------------
+   Mode flags for controlling buffer clear behavior between frames.
+   NB. Unless BUFFER_PERSIST is set, there is _no guarantee_ that data will be
+       retained between frames.
+*/
+enum BufferFlags {
+    /* The buffer's cursor shall be set to 0 between every frame. */
+    BUFFER_CLEAR_CURSOR = (1 << 0),
+    /* The buffer's data shall be cleared to 0 between every frame. */
+    BUFFER_CLEAR_DATA   = (1 << 1),
+    /* The buffer shall be persisted between frames, and previous frame's data
+       shall be accessible for... some number of frames?
+       TODO: Figure out how long we retain persisted buffers. */
+    BUFFER_PERSIST      = (1 << 2),
+};
 
 
 /* COLORS
@@ -89,16 +108,3 @@ Color color(T r, U g, V b) { return color(r, g, b, 0xFF); }
 template <class T>
 Color color(T c) { return color(c, c, c); }
 
-/* Mode flags for controlling game buffer clear behavior */
-enum BufferClearMode {
-    CLEARMODE_PASS = 0,
-    CLEARMODE_COPY = 1,
-    CLEARMODE_ZERO = 2,
-};
-/* Buffer for storing game data */
-struct BufferDescriptor {
-    void*             data;
-    void*             cursor;
-    u64               size;
-    BufferClearMode   clear_mode;
-}; ENFORCE_POD(BufferDescriptor);

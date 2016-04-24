@@ -21,7 +21,7 @@
    http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
    but also: http://stackoverflow.com/questions/7825648/vscprintf-equivalent-on-android/
 */
-inline std::string _variadicExpand(char const* message, ...)
+inline std::string _variadicExpand(c_cstr message, ...)
 {
     va_list format_args;
 
@@ -33,7 +33,7 @@ inline std::string _variadicExpand(char const* message, ...)
     expanded.resize(size + 1);
 
     va_start(format_args, message);
-    vsnprintf(const_cast<char*>(expanded.c_str()), size + 1,
+    vsnprintf(const_cast<cstr>(expanded.c_str()), size + 1,
                                 message, format_args);
     va_end(format_args);
 
@@ -44,17 +44,17 @@ inline std::string _variadicExpand(char const* message, ...)
    ----------------------
    Actually emit text from calls made with LOG(...)
 */
-inline i32 _logMessage(char const* message,
-                       char const* file,
-                       i32  const  line,
-                       char const* function)
+inline i32 _logMessage(c_cstr    message,
+                       c_cstr    file,
+                       i32 const line,
+                       c_cstr    function)
 {
     #if defined(_MSC_VER)
         static const char path_delimiter = '\\';
     #else
         static const char path_delimiter = '/';
     #endif
-    char* filename = (char*)strrchr(file, path_delimiter);
+    cstr filename = (cstr)strrchr(file, path_delimiter);
     if (filename==NULL) {
         return printf("%s:%d %s -- %s\n",
                       file, line,
