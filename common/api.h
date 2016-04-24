@@ -63,12 +63,12 @@ struct GameState {
     /* Memory backing all game buffers */
     struct Memory {
         void* map;
-        BufferDescriptor* (*create)  (void* map, cstr name,
+        BufferDescriptor* (*create)  (void* map, c_cstr name,
                                       u64 size, BufferFlags flags);
-        BufferDescriptor* (*lookup)  (void* map, cstr name);
+        BufferDescriptor* (*lookup)  (void* map, c_cstr name);
         void              (*resize)  (void* map, u64 new_size);
-        void              (*destroy) (void* map, cstr name);
-        BufferDescriptor* (*clear)   (void* map, cstr name);
+        void              (*destroy) (void* map, c_cstr name);
+        BufferDescriptor* (*clear)   (void* map, c_cstr name);
     } memory;
 
     /* Read-only data populated by the platform */
@@ -93,13 +93,13 @@ struct GameState {
 
     struct OutgoingData {
         /* ID of the buffer used to output debug events */
-        cstr stepstat_bid;
+        c_cstr stepstat_bid;
         /* ID of the buffer used to output debug events */
-        cstr simstat_bid;
+        c_cstr simstat_bid;
         /* ID of the buffer used to output UI commands */
-        cstr ui_command_bid;
+        c_cstr ui_command_bid;
         /* ID of the buffer used to output vector graphics commands */
-        cstr vg_command_bid;
+        c_cstr vg_command_bid;
     } out;
 
     /* Variable-timing (rendering) frame number */

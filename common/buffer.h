@@ -63,7 +63,7 @@ public:
     BufferView(BufferDescriptor& bd)
               : m_state ( nullptr )
               , m_bd    ( bd      ) { }
-    BufferView(GameState& state, cstr name)
+    BufferView(GameState& state, c_cstr name)
               : m_state ( &state  )
               , m_bd    ( *state.memory.lookup(state.memory.map, name) ) { }
 
