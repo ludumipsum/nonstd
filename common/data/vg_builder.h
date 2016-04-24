@@ -46,9 +46,9 @@ public:
     }
     inline VG(void* buffer, u64 size)
         : m_current      ( { 0 } )
-        , m_vgcl         (VGCommandList(BufferDescriptor { buffer,
-                                                           buffer,
-                                                           size } )
+        , m_vgcl         ( VGCommandList( BufferDescriptor { buffer,
+                                                             buffer,
+                                                             size } )
         )
         , m_fill         ( false )
         , m_fill_color   ( { 0 } )
