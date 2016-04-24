@@ -12,7 +12,6 @@ protected:
     using UICommandList = BufferView<UICommand>;
 
     UICommand        m_current;
-    BufferDescriptor m_bd;
     UICommandList    m_uicl;
 
     inline void commit() {
@@ -27,16 +26,15 @@ protected:
 public:
     inline UI(UICommandList uicl)
              : m_current ( { 0 } )
-             , m_bd      ( { 0 } )
              , m_uicl    ( uicl  ) { }
     inline UI(void* buffer, u64 size)
              : m_current ( { 0 } )
-             , m_bd      ( BufferDescriptor { buffer, buffer, size } )
-             , m_uicl    ( UICommandList( &m_bd ) )
-             { }
+             , m_uicl    ( UICommandList( BufferDescriptor { buffer,
+                                                             buffer,
+                                                             size } )
+             ) { }
     inline UI(GameState& state)
              : m_current ( { 0 } )
-             , m_bd      ( { 0 } )
              , m_uicl    ( UICommandList { state, state.out.ui_command_bid } )
              { }
 

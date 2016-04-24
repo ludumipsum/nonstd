@@ -60,7 +60,7 @@ public:
     BufferView(BufferDescriptor* bd)
               : m_state ( nullptr )
               , m_bd    ( *bd     ) { }
-    BufferView(BufferDescriptor& bd)
+    BufferView(BufferDescriptor bd)
               : m_state ( nullptr )
               , m_bd    ( bd      ) { }
     BufferView(GameState& state, c_cstr name)
