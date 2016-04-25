@@ -136,23 +136,23 @@ template<> CVar_s* CVar_s::find(c_cstr name);
 // template<typename T>
 // inline T& FINDCV(c_cstr some_cvar_name, T default_value);
 
-inline i64& FINDCVi(c_cstr some_cvar_name, i64 default_value) {
+inline i64& FINDCVi(c_cstr some_cvar_name, i64&& default_value) {
     CVar_i* ptr = CVar_i::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;
 }
-inline f64& FINDCVf(c_cstr some_cvar_name, f64 default_value) {
+inline f64& FINDCVf(c_cstr some_cvar_name, f64&& default_value) {
     CVar_f* ptr = CVar_f::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;
 }
-inline bool& FINDCVb(c_cstr some_cvar_name, bool default_value) {
+inline bool& FINDCVb(c_cstr some_cvar_name, bool&& default_value) {
     CVar_b* ptr = CVar_b::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;
 }
 inline c_cstr& FINDCVs(c_cstr some_cvar_name,
-                       c_cstr default_value) {
+                       c_cstr&& default_value) {
     CVar_s* ptr = CVar_s::find(some_cvar_name);
     if (ptr && *ptr) return ptr->value();
     else             return default_value;
