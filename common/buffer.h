@@ -69,7 +69,7 @@ public:
 
     void resize(u64 bytes) {
         if (m_state) {
-            m_state->memory.resize(m_state->memory.map, bytes);
+            m_state->memory.resize(m_state->memory.map, m_bd, bytes);
         } else {
             BREAKPOINT;
         }
