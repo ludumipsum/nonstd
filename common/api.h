@@ -62,7 +62,7 @@ struct GameState {
         BufferDescriptor* (*create)  (void* map, c_cstr name,
                                       u64 size, BufferFlags flags);
         BufferDescriptor* (*lookup)  (void* map, c_cstr name);
-        void              (*resize)  (void* map, u64 new_size);
+        void              (*resize)  (void* map, c_cstr name, u64 new_size);
         void              (*destroy) (void* map, c_cstr name);
         BufferDescriptor* (*clear)   (void* map, c_cstr name);
     } memory;
