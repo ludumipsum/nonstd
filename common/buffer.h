@@ -34,7 +34,7 @@ struct BufferDescriptor {
     void*       data;
     void*       cursor;
     u64         size;
-    BufferFlags clear_mode;
+    BufferFlags flags;
 }; ENFORCE_POD(BufferDescriptor);
 
 
