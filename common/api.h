@@ -64,8 +64,7 @@ struct GameState {
         void              (*resize)  (void* map, BufferDescriptor& bd,
                                       u64 new_size);
         void              (*destroy) (void* map, BufferDescriptor& bd);
-        BufferDescriptor& (*clear)   (void* map, BufferDescriptor& bd);
-        BufferDescriptor& (*lookup)  (void* map, c_cstr name);
+        BufferDescriptor* (*lookup)  (void* map, c_cstr name);
     } memory;
 
     /* Read-only data populated by the platform */
