@@ -43,7 +43,7 @@ struct BufferDescriptor {
         , cursor ( cursor )
         , size   ( size   )
         , flags  ( flags  ) { }
-private:
+protected:
     friend BufferDescriptor make_buffer(void*, u64, BufferFlags);
     BufferDescriptor(BufferDescriptor const&) = default;
     BufferDescriptor(BufferDescriptor &&) = default;
