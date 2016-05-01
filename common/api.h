@@ -59,13 +59,13 @@ struct GameState {
     /* Memory backing all game buffers */
     struct Memory {
         void* map;
-        BufferDescriptor* (*create)  (void* map, c_cstr name,
+        BufferDescriptor& (*create)  (void* map, c_cstr name,
                                       u64 size, BufferFlags flags);
         void              (*resize)  (void* map, BufferDescriptor& bd,
                                       u64 new_size);
         void              (*destroy) (void* map, BufferDescriptor& bd);
-        BufferDescriptor* (*clear)   (void* map, BufferDescriptor& bd);
-        BufferDescriptor* (*lookup)  (void* map, c_cstr name);
+        BufferDescriptor& (*clear)   (void* map, BufferDescriptor& bd);
+        BufferDescriptor& (*lookup)  (void* map, c_cstr name);
     } memory;
 
     /* Read-only data populated by the platform */
