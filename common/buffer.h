@@ -86,7 +86,7 @@ public:
               , m_bd       ( bd      ) { }
     BufferView(GameState& state, c_cstr name)
               : m_state    ( &state  )
-              , m_bd       ( state.memory.lookup(state.memory.map, name) ) { }
+              , m_bd       ( *state.memory.lookup(state.memory.map, name) ) { }
 
     inline void resize(u64 size_bytes) {
         if (m_state) {
