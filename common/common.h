@@ -28,6 +28,7 @@
 #include "primitive_types.h"
 
 /* Should-be-standard Library */
+#include "optional.h"
 #include "cvar.h"
 #include "debug.h"
 #include "hash.h"

@@ -71,7 +71,7 @@ struct GameState {
     /* Read-only data populated by the platform */
     struct IncomingData {
         /* Stream of input events since the last frame. */
-        BufferDescriptor* events;
+        c_cstr events_buffer_id;
         /* Number of audio bytes consumed by the platform since the
            last frame. */
         u16 audio_bytes_consumed;
@@ -90,13 +90,13 @@ struct GameState {
 
     struct OutgoingData {
         /* ID of the buffer used to output debug events */
-        c_cstr stepstat_bid;
+        c_cstr stepstat_buffer_id;
         /* ID of the buffer used to output debug events */
-        c_cstr simstat_bid;
+        c_cstr simstat_buffer_id;
         /* ID of the buffer used to output UI commands */
-        c_cstr ui_command_bid;
+        c_cstr ui_command_buffer_id;
         /* ID of the buffer used to output vector graphics commands */
-        c_cstr vg_command_bid;
+        c_cstr vg_command_buffer_id;
     } out;
 
     /* Variable-timing (rendering) frame number */

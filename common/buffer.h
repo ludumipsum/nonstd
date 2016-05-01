@@ -35,8 +35,28 @@ struct BufferDescriptor {
     void*       cursor;
     u64         size;
     BufferFlags flags;
-}; ENFORCE_POD(BufferDescriptor);
 
+#if !defined(NDEBUG) || defined(DEBUG)
+    BufferDescriptor() = default;
+    BufferDescriptor(void* data, void* cursor, u64 size, BufferFlags flags)
+        : data   ( data   )
+        , cursor ( cursor )
+        , size   ( size   )
+        , flags  ( flags  ) { }
+private:
+    friend BufferDescriptor make_buffer(void*, u64, BufferFlags);
+    BufferDescriptor(BufferDescriptor const&) = default;
+    BufferDescriptor(BufferDescriptor &&) = default;
+#else
+    ENFORCE_POD(BufferDescriptor);
+#endif
+};
+
+inline BufferDescriptor make_buffer(void* ptr,
+                                    u64 size,
+                                    BufferFlags flags = BUFFER_CLEAR_CURSOR) {
+    return BufferDescriptor { ptr, ptr, size, flags };
+}
 
 /* Typed Buffer Views
    ==================
@@ -56,20 +76,21 @@ protected:
     GameState        *m_state;
     BufferDescriptor &m_bd;
 
+
 public:
     BufferView(BufferDescriptor* bd)
               : m_state ( nullptr )
               , m_bd    ( *bd     ) { }
-    BufferView(BufferDescriptor bd)
-              : m_state ( nullptr )
-              , m_bd    ( bd      ) { }
+    BufferView(BufferDescriptor& bd)
+              : m_state    ( nullptr )
+              , m_bd       ( bd      ) { }
     BufferView(GameState& state, c_cstr name)
-              : m_state ( &state  )
-              , m_bd    ( *state.memory.lookup(state.memory.map, name) ) { }
+              : m_state    ( &state  )
+              , m_bd       ( *state.memory.lookup(state.memory.map, name) ) { }
 
-    void resize(u64 bytes) {
+    inline void resize(u64 size_bytes) {
         if (m_state) {
-            m_state->memory.resize(m_state->memory.map, m_bd, bytes);
+            m_state->memory.resize(m_state->memory.map, m_bd, size_bytes);
         } else {
             BREAKPOINT;
         }
