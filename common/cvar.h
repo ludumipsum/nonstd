@@ -18,7 +18,7 @@
 
 #include "batteries_included.h"
 #include "primitive_types.h"
-#include "debug.h"
+#include "optional.h"
 
 /* Return the value contained in the pointed-to cvar, or nullstr / zero */
 #define SCV(some_cvar_p) ((some_cvar_p == NULL) ? some_cvar_p->value() : NULL)
@@ -131,31 +131,59 @@ template<> CVar_i* CVar_i::find(c_cstr name);
 template<> CVar_b* CVar_b::find(c_cstr name);
 template<> CVar_s* CVar_s::find(c_cstr name);
 
-
-/* Locate a cvar by name and return its value by reference */
-// template<typename T>
-// inline T& FINDCV(c_cstr some_cvar_name, T default_value);
-
+/* Find an integer cvar, if it exists. If the cvar can't be found,
+   return default_value */
 inline i64& FINDCVi(c_cstr some_cvar_name, i64&& default_value) {
     CVar_i* ptr = CVar_i::find(some_cvar_name);
-    if (ptr && *ptr) return ptr->value();
-    else             return default_value;
+    if (ptr) return ptr->value();
+    else     return default_value;
 }
+/* Find a floating point cvar, if it exists. If the cvar can't be found,
+   return default_value */
 inline f64& FINDCVf(c_cstr some_cvar_name, f64&& default_value) {
     CVar_f* ptr = CVar_f::find(some_cvar_name);
-    if (ptr && *ptr) return ptr->value();
-    else             return default_value;
+    if (ptr) return ptr->value();
+    else     return default_value;
 }
+/* Find a boolean cvar, if it exists. If the cvar can't be found,
+   return default_value */
 inline bool& FINDCVb(c_cstr some_cvar_name, bool&& default_value) {
     CVar_b* ptr = CVar_b::find(some_cvar_name);
-    if (ptr && *ptr) return ptr->value();
-    else             return default_value;
+    if (ptr) return ptr->value();
+    else     return default_value;
 }
+/* Find a string, if it exists. If the cvar can't be found,
+   return default_value */
 inline c_cstr& FINDCVs(c_cstr some_cvar_name,
                        c_cstr&& default_value) {
     CVar_s* ptr = CVar_s::find(some_cvar_name);
-    if (ptr && *ptr) return ptr->value();
-    else             return default_value;
+    if (ptr) return ptr->value();
+    else     return default_value;
+}
+
+/* Find an integer cvar */
+inline Optional<CVar_i*> REQUIRECVi(c_cstr name) {
+    auto ptr = CVar_i::find(name);
+    if (ptr == nullptr) return none<CVar_i*>();
+    else                return just(ptr);
+}
+/* Find a floating point cvar */
+inline Optional<CVar_f*> REQUIRECVf(c_cstr name) {
+    auto ptr = CVar_f::find(name);
+    if (ptr == nullptr) return none<CVar_f*>();
+    else                return just(ptr);
+}
+/* Find a boolean cvar */
+inline Optional<CVar_b*> REQUIRECVb(c_cstr name) {
+    auto ptr = CVar_b::find(name);
+    if (ptr == nullptr) return none<CVar_b*>();
+    else                return just(ptr);
+}
+/* Find a string cvar */
+inline Optional<CVar_s*> REQUIRECVs(c_cstr name) {
+    auto ptr = CVar_s::find(name);
+    if (ptr == nullptr) return none<CVar_s*>();
+    else                return just(ptr);
 }
 
 /* Convenience function for toggling boolean cvars from pointers */
