@@ -117,7 +117,7 @@ struct GameState {
         /* Get the current time */
         u64 (*now)();
     } functions;
-};
+}; ENFORCE_POD(GameState);
 
 
 /* Platform Hooks

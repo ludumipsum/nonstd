@@ -53,6 +53,8 @@ typedef u32 ID;
        retained between frames.
 */
 enum BufferFlags {
+    /* Default behavior — pass the buffer unaltered to the next frame */
+    BUFFER_PASS = 0,
     /* The buffer's cursor shall be set to 0 between every frame. */
     BUFFER_CLEAR_CURSOR = (1 << 0),
     /* The buffer's data shall be cleared to 0 between every frame. */

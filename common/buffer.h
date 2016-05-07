@@ -89,6 +89,7 @@ public:
               , m_bd       ( *state.memory.lookup(name) ) { }
 
     inline void resize(u64 size_bytes) {
+        LOG("BufferView triggering resize from %d to %d", m_bd.size, size_bytes);
         if (m_state) {
             m_state->memory.resize(m_bd, size_bytes);
         } else {
@@ -99,10 +100,8 @@ public:
     /* Get a pointer to `count` consecutive elements in the view, resizing
        if necessary. No initialization is done on this data. */
     inline T* consume(u64 count=1) {
-        if (((T*)m_bd.cursor) + count + 1 <= ((T*)m_bd.data) + m_bd.size) {
-            resize(sizeof(T) * m_bd.size);
-        } else {
-            resize((m_bd.size + count + 1) * ceil(m_bd.size * 0.2f));
+        if (((T*)m_bd.cursor) + count + 1 > ((T*)m_bd.data) + m_bd.size) {
+            resize((m_bd.size + (count + 1) * sizeof(T)) * 0.2f);
         }
         T* ret = (T*)m_bd.cursor;
         m_bd.cursor = (void*) ( ((T*)m_bd.cursor) + count );
