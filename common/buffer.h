@@ -89,7 +89,6 @@ public:
               , m_bd       ( *state.memory.lookup(name) ) { }
 
     inline void resize(u64 size_bytes) {
-        LOG("BufferView triggering resize from %d to %d", m_bd.size, size_bytes);
         if (m_state) {
             m_state->memory.resize(m_bd, size_bytes);
         } else {
