@@ -171,5 +171,11 @@ public:
         m_bd.cursor = m_bd.data;
     }
 
+    inline void erase(T* range_begin, T* range_end) {
+        if(range_end <= end()) abort();
+        if(range_begin >= begin()) abort();
+        memmove(range_begin, range_end, end() - range_end);
+    }
+
     inline u64 size() { return m_bd.size; }
 };
