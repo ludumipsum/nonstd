@@ -175,6 +175,7 @@ public:
         if(range_end <= end()) abort();
         if(range_begin >= begin()) abort();
         memmove(range_begin, range_end, end() - range_end);
+        m_bd.cursor = range_end;
     }
 
     inline u64 size() { return m_bd.size; }
