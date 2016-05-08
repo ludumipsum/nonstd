@@ -99,9 +99,17 @@ public:
     /* Get a pointer to `count` consecutive elements in the view, resizing
        if necessary. No initialization is done on this data. */
     inline T* consume(u64 count=1) {
-        if (((T*)m_bd.cursor) + count + 1 > ((T*)m_bd.data) + m_bd.size) {
-            resize((m_bd.size + (count + 1) * sizeof(T)) * 0.2f);
+        // Compute the buffer endpoint, and the end of the memory we want
+        T *region_end    = (T*)( (u8*) m_bd.data + m_bd.size   ),
+          *requested_end = (T*)( (T*)  m_bd.cursor + count + 1 );
+
+        // Resize if this consume call would stretch past the end of the buffer
+        if (requested_end > region_end) {
+            u64 new_size = m_bd.size + sizeof(T) * (count + 1) * 1.2f;
+            resize(new_size);
         }
+
+        // Return the address of the requested amount of space
         T* ret = (T*)m_bd.cursor;
         m_bd.cursor = (void*) ( ((T*)m_bd.cursor) + count );
         return ret;
@@ -109,7 +117,7 @@ public:
 
     /* Push a value on the back of the Buffer */
     inline T& push(T value) {
-        T* mem = consume(1);
+        T* mem = consume();
         *mem = value;
         return *mem;
     }
@@ -118,7 +126,7 @@ public:
     /* Construct a value in place at the back of the buffer */
     template<typename ...ctor_arg_types>
     inline T& emplace_back(ctor_arg_types && ... _ctor_args) {
-        T* mem = consume(1);
+        T* mem = consume();
         return *(::new (mem)
                       T(std::forward<ctor_arg_types>(_ctor_args)...));
     }
