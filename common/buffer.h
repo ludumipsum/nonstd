@@ -123,6 +123,13 @@ public:
     }
     inline T& push_back(T value) { return push(value); }
 
+    inline T& push_ring(T value) {
+        if ((T*)m_bd.cursor - (T*)m_bd.data >= m_bd.size) {
+            m_bd.cursor = m_bd.data;
+        }
+        return push(value);
+    }
+
     /* Construct a value in place at the back of the buffer */
     template<typename ...ctor_arg_types>
     inline T& emplace_back(ctor_arg_types && ... _ctor_args) {
