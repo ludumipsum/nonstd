@@ -125,7 +125,13 @@ inline char const* const bool2string(bool b) {
 # define _debug_break_impl { raise(SIGINT); } // GCC x86/64
 #endif
 
-#define BREAKPOINT { _debug_break_impl; }
+#define BREAKPOINT() { _debug_break_impl; }
+
+#if defined(DEBUG)
+# define DEBUG_BREAKPOINT() { _debug_break_impl; }
+#else
+# define DEBUG_BREAKPOINT()
+#endif
 
 /* ALIGNMENT CORRECT FREE
    ----------------------

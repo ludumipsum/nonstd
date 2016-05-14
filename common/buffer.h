@@ -95,7 +95,7 @@ public:
         if (m_state) {
             m_state->memory.resize(m_bd, size_bytes);
         } else {
-            BREAKPOINT;
+            BREAKPOINT();
         }
     }
 
