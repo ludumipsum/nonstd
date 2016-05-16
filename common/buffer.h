@@ -34,9 +34,32 @@ struct BufferDescriptor {
     void*       data;
     void*       cursor;
     u64         size;
-    BufferFlags clear_mode;
-}; ENFORCE_POD(BufferDescriptor);
+    BufferFlags flags;
+    c_cstr      name;
 
+#if !defined(NDEBUG) || defined(DEBUG)
+    BufferDescriptor() = default;
+    BufferDescriptor(void* data, void* cursor, u64 size,
+                     BufferFlags flags, c_cstr name)
+        : data   ( data   )
+        , cursor ( cursor )
+        , size   ( size   )
+        , flags  ( flags  )
+        , name   ( name   ) { }
+protected:
+    friend BufferDescriptor make_buffer(void*, u64, BufferFlags);
+    BufferDescriptor(BufferDescriptor const&) = default;
+    BufferDescriptor(BufferDescriptor &&) = default;
+#else
+    ENFORCE_POD(BufferDescriptor);
+#endif
+};
+
+inline BufferDescriptor make_buffer(void* ptr,
+                                    u64 size,
+                                    BufferFlags flags = BUFFER_CLEAR_CURSOR) {
+    return BufferDescriptor { ptr, ptr, size, flags, "transient_buffer" };
+}
 
 /* Typed Buffer Views
    ==================
@@ -56,33 +79,40 @@ protected:
     GameState        *m_state;
     BufferDescriptor &m_bd;
 
+
 public:
     BufferView(BufferDescriptor* bd)
               : m_state ( nullptr )
               , m_bd    ( *bd     ) { }
-    BufferView(BufferDescriptor bd)
-              : m_state ( nullptr )
-              , m_bd    ( bd      ) { }
+    BufferView(BufferDescriptor& bd)
+              : m_state    ( nullptr )
+              , m_bd       ( bd      ) { }
     BufferView(GameState& state, c_cstr name)
-              : m_state ( &state  )
-              , m_bd    ( *state.memory.lookup(state.memory.map, name) ) { }
+              : m_state    ( &state  )
+              , m_bd       ( *state.memory.lookup(name) ) { }
 
-    void resize(u64 bytes) {
+    inline void resize(u64 size_bytes) {
         if (m_state) {
-            m_state->memory.resize(m_state->memory.map, bytes);
+            m_state->memory.resize(m_bd, size_bytes);
         } else {
-            BREAKPOINT;
+            BREAKPOINT();
         }
     }
 
     /* Get a pointer to `count` consecutive elements in the view, resizing
        if necessary. No initialization is done on this data. */
     inline T* consume(u64 count=1) {
-        if (((T*)m_bd.cursor) + count + 1 <= ((T*)m_bd.data) + m_bd.size) {
-            resize(sizeof(T) * m_bd.size);
-        } else {
-            resize((m_bd.size + count + 1) * ceil(m_bd.size * 0.2f));
+        // Compute the buffer endpoint, and the end of the memory we want
+        T *region_end    = (T*)( (u8*) m_bd.data + m_bd.size   ),
+          *requested_end = (T*)( (T*)  m_bd.cursor + count + 1 );
+
+        // Resize if this consume call would stretch past the end of the buffer
+        if (requested_end > region_end) {
+            u64 new_size = m_bd.size + sizeof(T) * (count + 1) * 1.2f;
+            resize(new_size);
         }
+
+        // Return the address of the requested amount of space
         T* ret = (T*)m_bd.cursor;
         m_bd.cursor = (void*) ( ((T*)m_bd.cursor) + count );
         return ret;
@@ -90,16 +120,23 @@ public:
 
     /* Push a value on the back of the Buffer */
     inline T& push(T value) {
-        T* mem = consume(1);
+        T* mem = consume();
         *mem = value;
         return *mem;
     }
     inline T& push_back(T value) { return push(value); }
 
+    inline T& push_ring(T value) {
+        if ((T*)m_bd.cursor - (T*)m_bd.data >= m_bd.size) {
+            m_bd.cursor = m_bd.data;
+        }
+        return push(value);
+    }
+
     /* Construct a value in place at the back of the buffer */
     template<typename ...ctor_arg_types>
     inline T& emplace_back(ctor_arg_types && ... _ctor_args) {
-        T* mem = consume(1);
+        T* mem = consume();
         return *(::new (mem)
                       T(std::forward<ctor_arg_types>(_ctor_args)...));
     }
@@ -135,6 +172,13 @@ public:
     /*FIXME: The above is a lie. Should it be a lie? Should we fix the below? */
     inline void drop() {
         m_bd.cursor = m_bd.data;
+    }
+
+    inline void erase(T* range_begin, T* range_end) {
+        if(range_end <= end()) abort();
+        if(range_begin >= begin()) abort();
+        memmove(range_begin, range_end, end() - range_end);
+        m_bd.cursor = range_end;
     }
 
     inline u64 size() { return m_bd.size; }

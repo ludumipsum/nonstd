@@ -58,19 +58,18 @@ struct StepStat {
 struct GameState {
     /* Memory backing all game buffers */
     struct Memory {
-        void* map;
-        BufferDescriptor* (*create)  (void* map, c_cstr name,
-                                      u64 size, BufferFlags flags);
-        BufferDescriptor* (*lookup)  (void* map, c_cstr name);
-        void              (*resize)  (void* map, u64 new_size);
-        void              (*destroy) (void* map, c_cstr name);
-        BufferDescriptor* (*clear)   (void* map, c_cstr name);
+        BufferDescriptor& (*create)         (c_cstr name, u64 size,
+                                             BufferFlags flags);
+        u64               (*resize)         (BufferDescriptor& bd, u64 new_size);
+        void              (*destroy)        (BufferDescriptor& bd);
+        BufferDescriptor* (*lookup)         (c_cstr name);
+        BufferDescriptor* (*lookupHistoric) (c_cstr name, u64 frame);
     } memory;
 
     /* Read-only data populated by the platform */
     struct IncomingData {
         /* Stream of input events since the last frame. */
-        BufferDescriptor* events;
+        c_cstr events_buffer_id;
         /* Number of audio bytes consumed by the platform since the
            last frame. */
         u16 audio_bytes_consumed;
@@ -89,13 +88,13 @@ struct GameState {
 
     struct OutgoingData {
         /* ID of the buffer used to output debug events */
-        c_cstr stepstat_bid;
+        c_cstr stepstat_buffer_id;
         /* ID of the buffer used to output debug events */
-        c_cstr simstat_bid;
+        c_cstr simstat_buffer_id;
         /* ID of the buffer used to output UI commands */
-        c_cstr ui_command_bid;
+        c_cstr ui_command_buffer_id;
         /* ID of the buffer used to output vector graphics commands */
-        c_cstr vg_command_bid;
+        c_cstr vg_command_buffer_id;
     } out;
 
     /* Variable-timing (rendering) frame number */
@@ -118,7 +117,7 @@ struct GameState {
         /* Get the current time */
         u64 (*now)();
     } functions;
-};
+}; ENFORCE_POD(GameState);
 
 
 /* Platform Hooks

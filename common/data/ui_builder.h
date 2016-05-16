@@ -3,6 +3,7 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
+#include "buffer.h"
 #include "ui_command.h"
 
 #include "api.h"
@@ -24,19 +25,12 @@ protected:
         m_current.state = UI_STATE_DEFAULT;
     }
 public:
-    inline UI(UICommandList uicl)
-             : m_current ( { 0 } )
-             , m_uicl    ( uicl  ) { }
-    inline UI(void* buffer, u64 size)
-             : m_current ( { 0 } )
-             , m_uicl    ( UICommandList( BufferDescriptor { buffer,
-                                                             buffer,
-                                                             size } )
-             ) { }
+    inline UI(BufferDescriptor& buffer)
+             : m_current ( { 0 }  )
+             , m_uicl    ( buffer ) { }
     inline UI(GameState& state)
-             : m_current ( { 0 } )
-             , m_uicl    ( UICommandList { state, state.out.ui_command_bid } )
-             { }
+             : m_current ( { 0 }                                 )
+             , m_uicl    ( state, state.out.ui_command_buffer_id ) { }
 
     inline ~UI() { commit(); }
 

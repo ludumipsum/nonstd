@@ -3,6 +3,7 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
+#include "buffer.h"
 #include "vg_command.h"
 
 #include "api.h"
@@ -30,47 +31,30 @@ protected:
     }
 
 public:
-    inline VG(VGCommandList vgcl)
-        : m_current      ( { 0 } )
-        , m_vgcl         ( vgcl  )
-        , m_fill         ( false )
-        , m_fill_color   ( { 0 } )
-        , m_stroke       ( false )
-        , m_stroke_color ( { 0 } )
-        , m_stroke_width ( 0     )
-        , path           ( *this )
-        , shape          ( *this )
-    {
-        m_current.type = VG_COMMAND_TYPE_META_STATE_FRAME_PUSH;
-        commit();
-    }
-    inline VG(void* buffer, u64 size)
-        : m_current      ( { 0 } )
-        , m_vgcl         ( VGCommandList( BufferDescriptor { buffer,
-                                                             buffer,
-                                                             size } )
-        )
-        , m_fill         ( false )
-        , m_fill_color   ( { 0 } )
-        , m_stroke       ( false )
-        , m_stroke_color ( { 0 } )
-        , m_stroke_width ( 0     )
-        , path           ( *this )
-        , shape          ( *this )
+    inline VG(BufferDescriptor& buffer)
+        : m_current      ( { 0 }  )
+        , m_vgcl         ( buffer )
+        , m_fill         ( false  )
+        , m_fill_color   ( { 0 }  )
+        , m_stroke       ( false  )
+        , m_stroke_color ( { 0 }  )
+        , m_stroke_width ( 0      )
+        , path           ( *this  )
+        , shape          ( *this  )
     {
         m_current.type = VG_COMMAND_TYPE_META_STATE_FRAME_PUSH;
         commit();
     }
     inline VG(GameState& state)
-        : m_current      ( { 0 } )
-        , m_vgcl         ( VGCommandList { state, state.out.vg_command_bid } )
-        , m_fill         ( false )
-        , m_fill_color   ( { 0 } )
-        , m_stroke       ( false )
-        , m_stroke_color ( { 0 } )
-        , m_stroke_width ( 0     )
-        , path           ( *this )
-        , shape          ( *this )
+        : m_current      ( { 0 }                                 )
+        , m_vgcl         ( state, state.out.vg_command_buffer_id )
+        , m_fill         ( false                                 )
+        , m_fill_color   ( { 0 }                                 )
+        , m_stroke       ( false                                 )
+        , m_stroke_color ( { 0 }                                 )
+        , m_stroke_width ( 0                                     )
+        , path           ( *this                                 )
+        , shape          ( *this                                 )
     {
         m_current.type = VG_COMMAND_TYPE_META_STATE_FRAME_PUSH;
         commit();
