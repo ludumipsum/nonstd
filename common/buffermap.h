@@ -45,18 +45,17 @@ public:
     BufferView<T> lookupOrCreate(c_cstr key) {
         BREAKPOINT();
     }
+    void create(c_cstr name, u64 size) {
+        BREAKPOINT();
+    }
 
 protected:
     struct Cell {
-        union {
-            struct {
-                u64  id;
-                u64  offset;
-                u64  size      : 62;
-                bool used      : 1;
-                bool tombstone : 1;
-            };
-        };
+        u64  id;
+        u64  offset;
+        u64  size      : 62;
+        bool used      : 1;
+        bool tombstone : 1;
     };
     struct Metadata {
         u32  magic;
