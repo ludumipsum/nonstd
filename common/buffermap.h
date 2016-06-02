@@ -33,6 +33,9 @@ public:
         if (m_state) {
             m_state->memory.resize(m_bd, size_bytes);
         } else {
+            LOG("Unable to resize a BufferMap that was created from a view "
+                "directly. Please create this map from a State if you need "
+                "dynamic resizing.");
             BREAKPOINT();
         }
     }
@@ -41,21 +44,44 @@ public:
     BufferView<T> lookup(c_cstr key) {
         BREAKPOINT();
     }
-    template<typename T>
-    BufferView<T> lookupOrCreate(c_cstr key) {
-        BREAKPOINT();
-    }
     void create(c_cstr name, u64 size) {
-        BREAKPOINT();
+        auto const& bucket_count = m_metadata->bucket_count;
+        auto& map = m_metadata->map;
+        auto keyhash = HASH(name);
+
+        /* Scan for an open cell starting at the hash of the given name */
+        auto cell_index = keyhash % bucket_count;
+        const auto final_cellid = (cell_index - 1) % bucket_count;
+        while (cell_index != final_cellid && map[cell_index].used) {
+            cell_index += 1;
+        }
+        // Error out if the map is full. TODO: something better.
+        if (map[cell_index].used) BREAKPOINT();
+
+        /* Set up the new cell's metadata */
+        Cell& cell = map[cell_index];
+        cell.used = true;
+        cell.id = keyhash;
+        cell.size = size;
+
+        /* Reserve memory for this entry */
+        auto const& base = (u8*)m_bd.data;
+        auto const& capacity = m_bd.size;
+        auto const& brk = (u8*)m_bd.cursor;
+        auto required_size = brk + size - base;
+        if (required_size > capacity) {
+            resize(required_size * 1.2f);
+        }
+        cell.offset = brk - base;
+        m_bd.cursor = brk + size;
     }
 
 protected:
     struct Cell {
         u64  id;
         u64  offset;
-        u64  size      : 62;
+        u64  size      : 63;
         bool used      : 1;
-        bool tombstone : 1;
     };
     struct Metadata {
         u32  magic;
@@ -96,6 +122,7 @@ protected:
             m_metadata->magic = 0xDEADC0DE;
             m_metadata->bucket_count = bucket_count;
             memset(&m_metadata->map, '\0', sizeof(Cell) * bucket_count);
+            m_bd.cursor = &m_metadata->map[0];
         }
         /* If the number of buckets in the call differs, complain. */
         if (bucket_count && m_metadata->bucket_count != bucket_count) {
