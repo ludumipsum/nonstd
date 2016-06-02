@@ -36,6 +36,7 @@ typedef u32 ID;
 #define TBYTES(N) ((i64)N*1024*1024*1024*1024)
 
 /* Human-readable temporal unit conversions */
+#define NS_PER_NS  1
 #define NS_PER_US  1000
 #define NS_PER_MS  1000000
 #define NS_PER_SEC 1000000000
