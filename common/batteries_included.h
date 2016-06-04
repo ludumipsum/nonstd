@@ -134,7 +134,7 @@ inline char const* const bool2string(bool b) {
 
 #define BREAKPOINT() { _debug_break_impl; }
 
-#if defined(DEBUG)
+#if defined(DEBUG) || !defined(NDEBUG)
 # define DEBUG_BREAKPOINT() { _debug_break_impl; }
 #else
 # define DEBUG_BREAKPOINT()

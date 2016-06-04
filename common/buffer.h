@@ -127,7 +127,8 @@ public:
     inline T& push_back(T value) { return push(value); }
 
     inline T& push_ring(T value) {
-        if ((T*)m_bd.cursor - (T*)m_bd.data >= m_bd.size) {
+        u64 bytes_required = (u8*)m_bd.cursor - (u8*)m_bd.data + sizeof(T);
+        if (bytes_required > m_bd.size) {
             m_bd.cursor = m_bd.data;
         }
         return push(value);

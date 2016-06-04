@@ -24,7 +24,7 @@ public:
         initialize(bucket_count);
     }
     BufferMap(GameState& state, c_cstr name, u32 bucket_count=0)
-              : m_state    ( &state  )
+              : m_state    ( &state )
               , m_bd       ( *state.memory.lookup(name) ) {
         initialize(bucket_count);
     }
@@ -40,14 +40,30 @@ public:
         }
     }
 
-    template<typename T>
-    BufferView<T> lookup(c_cstr key) {
-        BREAKPOINT();
+    BufferDescriptor *const lookup(c_cstr key) {
+        auto const bucket_count = m_metadata->bucket_count;
+        auto& map = m_metadata->map;
+        auto keyhash = HASH(key);
+
+        auto cell_index = keyhash % bucket_count;
+        const auto final_cellid = (cell_index - 1) % bucket_count;
+        while(cell_index != final_cellid && map[cell_index].used) {
+            Cell& cell = map[cell_index];
+            if (cell.id == keyhash) {
+                return (BufferDescriptor*)((u8*)m_bd.data + cell.offset);
+            }
+            cell_index += 1;
+        }
+
+        return nullptr;
     }
-    void create(c_cstr name, u64 size) {
-        auto const& bucket_count = m_metadata->bucket_count;
+    BufferDescriptor *const create(c_cstr name, u64 size) {
+        /* Consume a cell with metadata, and allocate `size` bytes, plus enough
+           space for a bufferdescriptor. */
+        auto const bucket_count = m_metadata->bucket_count;
         auto& map = m_metadata->map;
         auto keyhash = HASH(name);
+        auto full_size = size + sizeof(BufferDescriptor);
 
         /* Scan for an open cell starting at the hash of the given name */
         auto cell_index = keyhash % bucket_count;
@@ -62,18 +78,29 @@ public:
         Cell& cell = map[cell_index];
         cell.used = true;
         cell.id = keyhash;
-        cell.size = size;
+        cell.size = full_size;
 
         /* Reserve memory for this entry */
-        auto const& base = (u8*)m_bd.data;
-        auto const& capacity = m_bd.size;
-        auto const& brk = (u8*)m_bd.cursor;
-        auto required_size = brk + size - base;
+        u64 capacity = m_bd.size;
+        u8 const*const base = (u8*)m_bd.data;
+        u8 const*const brk = (u8*)m_bd.cursor;
+        u64 required_size = brk + full_size - base;
         if (required_size > capacity) {
             resize(required_size * 1.2f);
         }
         cell.offset = brk - base;
-        m_bd.cursor = brk + size;
+        m_bd.cursor = (void*)(brk + full_size);
+
+        /* Set up the BufferDescriptor for this block */
+        u8 const*const block_begin = base + cell.offset;
+        BufferDescriptor* desc = (BufferDescriptor*)block_begin;
+        desc->data = desc + 1;
+        desc->cursor = desc->data;
+        desc->size = cell.size;
+        desc->flags = BUFFER_PASS;
+        desc->name = name;
+
+        return desc;
     }
 
 protected:
@@ -122,7 +149,7 @@ protected:
             m_metadata->magic = 0xDEADC0DE;
             m_metadata->bucket_count = bucket_count;
             memset(&m_metadata->map, '\0', sizeof(Cell) * bucket_count);
-            m_bd.cursor = &m_metadata->map[0];
+            m_bd.cursor = &m_metadata->map[0] + sizeof(Cell) * bucket_count;
         }
         /* If the number of buckets in the call differs, complain. */
         if (bucket_count && m_metadata->bucket_count != bucket_count) {
