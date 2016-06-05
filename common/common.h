@@ -34,6 +34,7 @@
 #include "itertools.h"
 #include "logging.h"
 #include "buffer.h"
+#include "buffer_view.h"
 #include "buffermap.h"
 
 /* Data Interchange Definitions */

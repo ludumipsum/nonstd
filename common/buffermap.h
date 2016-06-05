@@ -12,23 +12,81 @@
    BufferMaps provide key/value storage backed by gameplay buffers.
 */
 class BufferMap {
+protected:
+    struct Cell {
+        u64  id;
+        u64  offset;
+        u64  size      : 63;
+        bool used      : 1;
+    };
+    struct Metadata {
+        u32  magic;
+        u32  bucket_count;
+        Cell map[];
+    };
+
+    Metadata         *      m_metadata;
+    GameState        *      m_state;
+    BufferDescriptor *const m_bd;
+
 public:
-    BufferMap(BufferDescriptor* bd, u32 bucket_count=0)
-              : m_state ( nullptr )
-              , m_bd    ( *bd     ) {
-        initialize(bucket_count);
-    }
-    BufferMap(BufferDescriptor& bd, u32 bucket_count=0)
-              : m_state    ( nullptr )
-              , m_bd       ( bd      ) {
+    BufferMap(BufferDescriptor *const bd, u32 bucket_count=0)
+              : m_metadata ( nullptr )
+              , m_state    ( nullptr )
+              , m_bd       ( bd      )
+    {
         initialize(bucket_count);
     }
     BufferMap(GameState& state, c_cstr name, u32 bucket_count=0)
-              : m_state    ( &state )
-              , m_bd       ( *state.memory.lookup(name) ) {
+              : m_metadata ( nullptr)
+              , m_state    ( &state )
+              , m_bd       ( state.memory.lookup(name) )
+    {
         initialize(bucket_count);
     }
 
+protected:
+    /* Set up the metadata structure at the start of the data segment */
+    inline void initialize(u32 bucket_count) {
+        m_metadata = (Metadata*) m_bd->data;
+        /* If the map hasn't been used before, or is corrupted, reset all the
+           memory used for metadata. */
+        if (m_metadata->magic != 0xDEADC0DE) {
+            if (m_metadata->magic) {
+                LOG("WARNING: Buffermap corruption detected, clearing all "
+                    "associated data and reinitializing the map. Underlying "
+                    "buffer is named %s, and is located at %p. Corruption "
+                    "detected by magic number (%x is neither 0 nor 0xDEADC0DE)",
+                    m_bd->name, m_bd, m_metadata->magic);
+                DEBUG_BREAKPOINT();
+            }
+            /* Sanity check -- don't iniaizlie without a size */
+            if (bucket_count == 0) {
+                LOG("ERROR: Unable to initialize a buffermap for the first "
+                    "time without a nonzero number of buckets.");
+                BREAKPOINT();
+            }
+            // Resize if necessary
+            auto metadata_size = sizeof(Metadata) + sizeof(Cell) * bucket_count;
+            if (m_bd->size < metadata_size) {
+                resize(metadata_size);
+            }
+            // Initialize metadata
+            m_metadata->magic = 0xDEADC0DE;
+            m_metadata->bucket_count = bucket_count;
+            memset(&m_metadata->map, '\0', sizeof(Cell) * bucket_count);
+            m_bd->cursor = &m_metadata->map[0] + sizeof(Cell) * bucket_count;
+        }
+        /* If the number of buckets in the call differs, complain. */
+        if (bucket_count && m_metadata->bucket_count != bucket_count) {
+            LOG("WARNING: Caller expects the map to contain %d cells, but "
+                "metadata shows it was initailized with %d.",
+                bucket_count, m_metadata->bucket_count);
+            DEBUG_BREAKPOINT();
+        }
+    }
+
+public:
     inline void resize(u64 size_bytes) {
         if (m_state) {
             m_state->memory.resize(m_bd, size_bytes);
@@ -50,7 +108,7 @@ public:
         while(cell_index != final_cellid && map[cell_index].used) {
             Cell& cell = map[cell_index];
             if (cell.id == keyhash) {
-                return (BufferDescriptor*)((u8*)m_bd.data + cell.offset);
+                return (BufferDescriptor *const)((u8*)m_bd->data + cell.offset);
             }
             cell_index += 1;
         }
@@ -81,19 +139,19 @@ public:
         cell.size = full_size;
 
         /* Reserve memory for this entry */
-        u64 capacity = m_bd.size;
-        u8 const*const base = (u8*)m_bd.data;
-        u8 const*const brk = (u8*)m_bd.cursor;
+        u64 capacity = m_bd->size;
+        u8 const*const base = (u8*)m_bd->data;
+        u8 const*const brk = (u8*)m_bd->cursor;
         u64 required_size = brk + full_size - base;
         if (required_size > capacity) {
             resize(required_size * 1.2f);
         }
         cell.offset = brk - base;
-        m_bd.cursor = (void*)(brk + full_size);
+        m_bd->cursor = (void*)(brk + full_size);
 
         /* Set up the BufferDescriptor for this block */
         u8 const*const block_begin = base + cell.offset;
-        BufferDescriptor* desc = (BufferDescriptor*)block_begin;
+        BufferDescriptor *const desc = (BufferDescriptor *const)block_begin;
         desc->data = desc + 1;
         desc->cursor = desc->data;
         desc->size = cell.size;
@@ -102,62 +160,4 @@ public:
 
         return desc;
     }
-
-protected:
-    struct Cell {
-        u64  id;
-        u64  offset;
-        u64  size      : 63;
-        bool used      : 1;
-    };
-    struct Metadata {
-        u32  magic;
-        u32  bucket_count;
-        Cell map[];
-    };
-
-    Metadata         *m_metadata;
-    GameState        *m_state;
-    BufferDescriptor &m_bd;
-
-    /* Set up the metadata structure at the start of the data segment */
-    inline void initialize(u32 bucket_count) {
-        m_metadata = (Metadata*) m_bd.data;
-        /* If the map hasn't been used before, or is corrupted, reset all the
-           memory used for metadata. */
-        if (m_metadata->magic != 0xDEADC0DE) {
-            if (m_metadata->magic) {
-                LOG("WARNING: Buffermap corruption detected, clearing all "
-                    "associated data and reinitializing the map. Underlying "
-                    "buffer is named %s, and begins at %p. Corruption detected "
-                    "by magic number (%x is neither 0 nor 0xDEADC0DE).",
-                    m_bd.name, m_bd.data, m_metadata->magic);
-                DEBUG_BREAKPOINT();
-            }
-            /* Sanity check -- don't iniaizlie without a size */
-            if (bucket_count == 0) {
-                LOG("ERROR: Unable to initialize a buffermap for the first "
-                    "time without a nonzero number of buckets.");
-                BREAKPOINT();
-            }
-            // Resize if necessary
-            auto metadata_size = sizeof(Metadata) + sizeof(Cell) * bucket_count;
-            if (m_bd.size < metadata_size) {
-                resize(metadata_size);
-            }
-            // Initialize metadata
-            m_metadata->magic = 0xDEADC0DE;
-            m_metadata->bucket_count = bucket_count;
-            memset(&m_metadata->map, '\0', sizeof(Cell) * bucket_count);
-            m_bd.cursor = &m_metadata->map[0] + sizeof(Cell) * bucket_count;
-        }
-        /* If the number of buckets in the call differs, complain. */
-        if (bucket_count && m_metadata->bucket_count != bucket_count) {
-            LOG("WARNING: Caller expects the map to contain %d cells, but "
-                "metadata shows it was initailized with %d.",
-                bucket_count, m_metadata->bucket_count);
-            DEBUG_BREAKPOINT();
-        }
-    }
-
 };

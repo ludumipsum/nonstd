@@ -4,6 +4,7 @@
 #include "primitive_types.h"
 
 #include "buffer.h"
+#include "buffer_view.h"
 #include "vg_command.h"
 
 #include "api.h"
@@ -31,7 +32,7 @@ protected:
     }
 
 public:
-    inline VG(BufferDescriptor& buffer)
+    inline VG(BufferDescriptor *const buffer)
         : m_current      ( { 0 }  )
         , m_vgcl         ( buffer )
         , m_fill         ( false  )
