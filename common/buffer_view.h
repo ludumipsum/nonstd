@@ -50,8 +50,10 @@ public:
 
         // Resize if this consume call would stretch past the end of the buffer
         if (requested_end > region_end) {
-            u64 new_size = m_bd->size + ( sizeof(T) * (count + 1) * 1.2f );
-            resize(new_size);
+            u64 requested_size = m_bd->size + ( sizeof(T) * count );
+            u64 padded_size = n2max((u64)(1.2f * requested_size),
+                                    requested_size + sizeof(T));
+            resize(padded_size);
         }
 
         // Return the address of the requested amount of space
@@ -69,8 +71,11 @@ public:
     inline T& push_back(T value) { return push(value); }
 
     inline T& push_ring(T value) {
-        u64 bytes_required = (u8*)m_bd->cursor - (u8*)m_bd->data + sizeof(T);
-        if (bytes_required > m_bd->size) {
+        auto buffer_start   = (u8*)m_bd->data,
+             buffer_end     = (u8*)m_bd->cursor;
+        u64  currently_used = buffer_end - buffer_start;
+        u64  currently_free = m_bd->size - currently_used;
+        if (currently_free < sizeof(T)) {
             m_bd->cursor = m_bd->data;
         }
         return push(value);

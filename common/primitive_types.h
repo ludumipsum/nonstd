@@ -24,6 +24,7 @@ typedef float        f32;
 typedef double       f64;
 typedef char *       cstr;
 typedef char const * c_cstr;
+typedef ptrdiff_t    ptrdiff;
 
 typedef u32 ID;
 

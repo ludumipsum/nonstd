@@ -14,10 +14,10 @@
 class BufferMap {
 protected:
     struct Cell {
-        u64  id;
-        u64  offset;
-        u64  size      : 63;
-        bool used      : 1;
+        u64     id;
+        ptrdiff offset;
+        u64     size : 63;
+        bool    used : 1;
     };
     struct Metadata {
         u32  magic;
