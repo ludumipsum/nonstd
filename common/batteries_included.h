@@ -53,6 +53,13 @@
 #define __STRING_SECONDPASS(X) #X
 #define STRING(X) __STRING_SECONDPASS(X)
 
+/* Symbol Concatenator
+   ------------------
+   Mushes two symbols together into one at the preprocessor level.
+*/
+#define CONCAT_SYMBOL(a, b) CONCAT_SYMBOL_I(a, b)
+#define CONCAT_SYMBOL_I(a, b) CONCAT_SYMBOL_II(~, a ## b)
+#define CONCAT_SYMBOL_II(p, res) res
 
 /* struct/class type_traits Assertions
    -----------------------------------
@@ -127,7 +134,7 @@ inline char const* const bool2string(bool b) {
 
 #define BREAKPOINT() { _debug_break_impl; }
 
-#if defined(DEBUG)
+#if defined(DEBUG) || !defined(NDEBUG)
 # define DEBUG_BREAKPOINT() { _debug_break_impl; }
 #else
 # define DEBUG_BREAKPOINT()

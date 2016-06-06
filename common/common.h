@@ -30,11 +30,12 @@
 /* Should-be-standard Library */
 #include "optional.h"
 #include "cvar.h"
-#include "debug.h"
 #include "hash.h"
 #include "itertools.h"
 #include "logging.h"
 #include "buffer.h"
+#include "buffer_view.h"
+#include "buffer_map.h"
 
 /* Data Interchange Definitions */
 #include "data/input_event.h"

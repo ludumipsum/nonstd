@@ -17,8 +17,8 @@ struct Optional {
     Optional(T value) : value(value), just(true) { }
     Optional() : just(false) { }
 
-    inline operator bool() const { return just; }
-    inline operator T&() { return value; }
+    explicit inline operator bool() const { return just; }
+    explicit inline operator T&() { return value; }
     inline T& operator *  () { return value; }
     inline T& operator () () { return value; }
 };

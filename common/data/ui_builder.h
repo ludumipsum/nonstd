@@ -4,6 +4,7 @@
 #include "primitive_types.h"
 
 #include "buffer.h"
+#include "buffer_view.h"
 #include "ui_command.h"
 
 #include "api.h"
@@ -25,7 +26,7 @@ protected:
         m_current.state = UI_STATE_DEFAULT;
     }
 public:
-    inline UI(BufferDescriptor& buffer)
+    inline UI(BufferDescriptor *const buffer)
              : m_current ( { 0 }  )
              , m_uicl    ( buffer ) { }
     inline UI(GameState& state)

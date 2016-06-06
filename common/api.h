@@ -58,12 +58,13 @@ struct StepStat {
 struct GameState {
     /* Memory backing all game buffers */
     struct Memory {
-        BufferDescriptor& (*create)         (c_cstr name, u64 size,
-                                             BufferFlags flags);
-        u64               (*resize)         (BufferDescriptor& bd, u64 new_size);
-        void              (*destroy)        (BufferDescriptor& bd);
-        BufferDescriptor* (*lookup)         (c_cstr name);
-        BufferDescriptor* (*lookupHistoric) (c_cstr name, u64 frame);
+        BufferDescriptor *const (*create)         (c_cstr name, u64 size,
+                                                   BufferFlags flags);
+        u64                     (*resize)         (BufferDescriptor *const bd,
+                                                   u64 new_size);
+        void                    (*destroy)        (BufferDescriptor *const bd);
+        BufferDescriptor *const (*lookup)         (c_cstr name);
+        BufferDescriptor *const (*lookupHistoric) (c_cstr name, u64 frame);
     } memory;
 
     /* Read-only data populated by the platform */
@@ -87,10 +88,6 @@ struct GameState {
     } in;
 
     struct OutgoingData {
-        /* ID of the buffer used to output debug events */
-        c_cstr stepstat_buffer_id;
-        /* ID of the buffer used to output debug events */
-        c_cstr simstat_buffer_id;
         /* ID of the buffer used to output UI commands */
         c_cstr ui_command_buffer_id;
         /* ID of the buffer used to output vector graphics commands */
@@ -132,7 +129,7 @@ extern "C" {
 /* Simulation Step
    Given the current game state, step it forward once.
 */
-void step(GameState const& prev, GameState& state);
+void step(GameState const & prev, GameState& state);
 
 //TODO: notion of worlds and world start vs whole game initialization
 /* Start of Play Hook
