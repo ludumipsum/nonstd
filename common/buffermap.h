@@ -154,7 +154,7 @@ public:
         BufferDescriptor *const desc = (BufferDescriptor *const)block_begin;
         desc->data = desc + 1;
         desc->cursor = desc->data;
-        desc->size = cell.size;
+        desc->size = cell.size - sizeof(BufferDescriptor);
         desc->flags = BUFFER_PASS;
         desc->name = name;
 
