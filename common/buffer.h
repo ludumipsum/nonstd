@@ -36,24 +36,7 @@ struct BufferDescriptor {
     u64         size;
     BufferFlags flags;
     c_cstr      name;
-
-#if !defined(NDEBUG) || defined(DEBUG)
-    BufferDescriptor() = default;
-    BufferDescriptor(void* data, void* cursor, u64 size,
-                     BufferFlags flags, c_cstr name)
-        : data   ( data   )
-        , cursor ( cursor )
-        , size   ( size   )
-        , flags  ( flags  )
-        , name   ( name   ) { }
-protected:
-    friend BufferDescriptor make_buffer(void*, u64, BufferFlags);
-    BufferDescriptor(BufferDescriptor const &) = default;
-    BufferDescriptor(BufferDescriptor &&) = default;
-#else
-    ENFORCE_POD(BufferDescriptor);
-#endif
-};
+}; ENFORCE_POD(BufferDescriptor);
 
 inline BufferDescriptor make_buffer(void* ptr,
                                     u64 size,
