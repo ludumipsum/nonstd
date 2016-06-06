@@ -109,6 +109,7 @@ public:
         while(cell_index != final_cellid && map[cell_index].used) {
             Cell& cell = map[cell_index];
             if (cell.id == keyhash && 0 == strcmp(cell.name, key)) {
+                //TODO: Check if this strcmp is too slow
                 return (BufferDescriptor *const)((u8*)m_bd->data + cell.offset);
             }
             cell_index += 1;
