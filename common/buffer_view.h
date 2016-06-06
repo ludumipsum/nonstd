@@ -46,7 +46,7 @@ public:
     inline T* consume(u64 count=1) {
         // Compute the buffer endpoint, and the end of the memory we want
         T *region_end    = (T*)( (u8*) m_bd->data + m_bd->size   ),
-          *requested_end = (T*)( (T*)  m_bd->cursor + count + 1 );
+          *requested_end = (T*)( (T*)  m_bd->cursor + count );
 
         // Resize if this consume call would stretch past the end of the buffer
         if (requested_end > region_end) {
