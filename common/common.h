@@ -35,7 +35,7 @@
 #include "logging.h"
 #include "buffer.h"
 #include "buffer_view.h"
-#include "buffermap.h"
+#include "buffer_map.h"
 
 /* Data Interchange Definitions */
 #include "data/input_event.h"
