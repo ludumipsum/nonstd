@@ -18,6 +18,7 @@ protected:
         ptrdiff offset;
         u64     size : 63;
         bool    used : 1;
+        c_cstr  name;
     };
     struct Metadata {
         u32  magic;
@@ -107,7 +108,7 @@ public:
         const auto final_cellid = (cell_index - 1) % bucket_count;
         while(cell_index != final_cellid && map[cell_index].used) {
             Cell& cell = map[cell_index];
-            if (cell.id == keyhash) {
+            if (cell.id == keyhash && 0 == strcmp(cell.name, key)) {
                 return (BufferDescriptor *const)((u8*)m_bd->data + cell.offset);
             }
             cell_index += 1;
@@ -136,6 +137,7 @@ public:
         /* Set up the new cell's metadata */
         Cell& cell = map[cell_index];
         cell.used = true;
+        cell.name = name;
         cell.id = keyhash;
         cell.size = full_size;
 
