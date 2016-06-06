@@ -88,10 +88,6 @@ struct GameState {
     } in;
 
     struct OutgoingData {
-        /* ID of the buffer used to output debug events */
-        c_cstr stepstat_buffer_id;
-        /* ID of the buffer used to output debug events */
-        c_cstr simstat_buffer_id;
         /* ID of the buffer used to output UI commands */
         c_cstr ui_command_buffer_id;
         /* ID of the buffer used to output vector graphics commands */
