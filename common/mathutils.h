@@ -30,8 +30,8 @@ inline template<typename T>
 T rescale(T value, decltype(value) domain_min, decltype(value) domain_max,
                    decltype(value) range_min,  decltype(value) range_max) {
     T range_size = range_max - range_min;
-    return range_min + range_size * (   (    value   - domain_min )
-                                      / ( domain_max - domain_min ) );
+    T domain_size = domain_max - domain_min;
+    return range_min + range_size * (value - domain_min) / domain_size;
 }
 
 inline template<typename T>
