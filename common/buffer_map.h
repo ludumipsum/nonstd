@@ -16,9 +16,9 @@ protected:
     struct Cell {
         u64     id;
         ptrdiff offset;
-        u64     size : 63;
-        bool    used : 1;
+        u64     size;
         c_cstr  name;
+        bool    used;
     };
     struct Metadata {
         u32  magic;
