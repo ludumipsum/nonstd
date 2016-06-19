@@ -24,7 +24,7 @@ public:
     BufferRing(GameState& state, c_cstr name) : BufferView<T>(state, name) { }
 
     inline T& push(T value) {
-        if (this->m_bd == nullptr) return;
+        if (this->m_bd == nullptr) return T;
         u64* frameno = (u64*)&value;
         f64* data = (f64*)(frameno + 1);
         auto buffer_start   = (u8*)this->m_bd->data,
