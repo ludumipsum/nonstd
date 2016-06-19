@@ -158,18 +158,6 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
     #endif
 }
 
-/* Min/Max Macros
-   --------------
-   Both type- and compiler-safe.
-*/
-#ifndef n2max
-#define n2max(a,b) (((a) > (b)) ? (a) : (b))
-#endif
-#ifndef n2min
-#define n2min(a,b) (((a) < (b)) ? (a) : (b))
-#endif
-
-
 
 
 /* General Utility Macros

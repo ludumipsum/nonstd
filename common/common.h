@@ -36,6 +36,7 @@
 #include "buffer.h"
 #include "buffer_view.h"
 #include "buffer_map.h"
+#include "mathutils.h"
 
 /* Data Interchange Definitions */
 #include "data/input_event.h"

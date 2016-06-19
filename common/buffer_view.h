@@ -2,6 +2,7 @@
 
 #include "batteries_included.h"
 #include "primitive_types.h"
+#include "mathutils.h"
 
 #include "api.h"
 #include "buffer.h"
