@@ -15,7 +15,11 @@ struct Optional {
     bool just;
 
     Optional(T value) : value(value), just(true) { }
+
+    TEMPLATE_ENABLE(!std::is_pointer<T>::value, T)
     Optional() : just(false) { }
+    TEMPLATE_ENABLE(std::is_pointer<T>::value, T)
+    Optional() : value(nullptr), just(false) { }
 
     explicit inline operator bool() const { return just; }
     explicit inline operator T&() { return value; }
