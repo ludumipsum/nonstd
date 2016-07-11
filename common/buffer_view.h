@@ -71,17 +71,6 @@ public:
     }
     inline T& push_back(T value) { return push(value); }
 
-    inline T& push_ring(T value) {
-        auto buffer_start   = (u8*)m_bd->data,
-             buffer_end     = (u8*)m_bd->cursor;
-        u64  currently_used = buffer_end - buffer_start;
-        u64  currently_free = m_bd->size - currently_used;
-        if (currently_free < sizeof(T)) {
-            m_bd->cursor = m_bd->data;
-        }
-        return push(value);
-    }
-
     /* Construct a value in place at the back of the buffer */
     template<typename ...ctor_arg_types>
     inline T& emplace_back(ctor_arg_types && ... _ctor_args) {
@@ -107,6 +96,15 @@ public:
         return (T*)((u8*)m_bd->data + m_bd->size);
     }
 
+    inline T& operator[](u64 index) {
+        if (index > length()) {
+            LOG("Out of bounds access via BufferView: entry %d is past the "
+                "end of the %d-long buffer %s.", index, length(), m_bd->name);
+            BREAKPOINT();
+        }
+        return *((T*)m_bd->data + index);
+    }
+
     // General-purpose map over all active elements
     inline void map(std::function<void(T&)> fn) {
         for (T* iter = begin(); iter != end(); ++iter) {
@@ -128,5 +126,6 @@ public:
         m_bd->cursor = range_end;
     }
 
-    inline u64 size() { return m_bd->size; }
+    inline u64 size() { return (m_bd) ? m_bd->size : 0; }
+    inline u64 length() { return size() / sizeof(T); }
 };

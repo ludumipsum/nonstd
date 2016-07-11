@@ -26,15 +26,16 @@
    ---------------
    Take a value in a given domain and rescale it to the provided range.
 */
-template<typename T>
-inline T rescale(T value, T domain_min, T domain_max,
-                   T range_min,  T range_max) {
+template<typename T> inline
+T rescale(T value, decltype(value) domain_min, decltype(value) domain_max,
+                   decltype(value) range_min,  decltype(value) range_max) {
     T range_size = range_max - range_min;
-    return range_min + range_size * (   (    value   - domain_min )
-                                      / ( domain_max - domain_min ) );
+    T domain_size = domain_max - domain_min;
+    return range_min + range_size * (value - domain_min) / domain_size;
 }
 
-template<typename T>
-inline T rescale(T value, T domain_max, T range_max) {
+template<typename T> inline
+T rescale(T value, decltype(value) domain_max,
+                   decltype(value) range_max) {
     return rescale(value, (T)0, domain_max, (T)0, range_max);
 }

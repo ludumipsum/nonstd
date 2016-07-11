@@ -16,9 +16,9 @@ protected:
     struct Cell {
         u64     id;
         ptrdiff offset;
-        u64     size : 63;
-        bool    used : 1;
+        u64     size;
         c_cstr  name;
+        bool    used;
     };
     struct Metadata {
         u32  magic;
@@ -52,12 +52,12 @@ protected:
         m_metadata = (Metadata*) m_bd->data;
         /* If the map hasn't been used before, or is corrupted, reset all the
            memory used for metadata. */
-        if (m_metadata->magic != 0xDEADC0DE) {
+        if (m_metadata->magic != 0xBADC0DE) {
             if (m_metadata->magic) {
                 LOG("WARNING: Buffermap corruption detected, clearing all "
                     "associated data and reinitializing the map. Underlying "
                     "buffer is named %s, and is located at %p. Corruption "
-                    "detected by magic number (%x is neither 0 nor 0xDEADC0DE)",
+                    "detected by magic number (%x is neither 0 nor 0xBADC0DE)",
                     m_bd->name, m_bd, m_metadata->magic);
                 DEBUG_BREAKPOINT();
             }
@@ -73,7 +73,7 @@ protected:
                 resize(metadata_size);
             }
             // Initialize metadata
-            m_metadata->magic = 0xDEADC0DE;
+            m_metadata->magic = 0xBADC0DE;
             m_metadata->bucket_count = bucket_count;
             memset(&m_metadata->map, '\0', sizeof(Cell) * bucket_count);
             m_bd->cursor = &m_metadata->map[0] + sizeof(Cell) * bucket_count;
