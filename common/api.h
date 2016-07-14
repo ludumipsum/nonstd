@@ -65,6 +65,7 @@ struct GameState {
         void                    (*destroy)        (BufferDescriptor *const bd);
         BufferDescriptor *const (*lookup)         (c_cstr name);
         BufferDescriptor *const (*lookupHistoric) (c_cstr name, u64 frame);
+        c_cstr strings_buffer_id;
     } memory;
 
     /* Read-only data populated by the platform */
