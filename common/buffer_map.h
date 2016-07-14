@@ -76,7 +76,7 @@ protected:
             m_metadata->magic = 0xBADC0DE;
             m_metadata->bucket_count = bucket_count;
             memset(&m_metadata->map, '\0', sizeof(Cell) * bucket_count);
-            m_bd->cursor = &m_metadata->map[0] + sizeof(Cell) * bucket_count;
+            m_bd->cursor = &m_metadata->map[0] + bucket_count;
         }
         /* If the number of buckets in the call differs, complain. */
         if (bucket_count && m_metadata->bucket_count != bucket_count) {
@@ -87,10 +87,31 @@ protected:
         }
     }
 
+    Cell* lookup_cell(c_cstr key) {
+        auto const bucket_count = m_metadata->bucket_count;
+        auto& map = m_metadata->map;
+        auto keyhash = HASH(key);
+
+        auto cell_index = keyhash % bucket_count;
+        const auto final_cellid = (cell_index - 1) % bucket_count;
+        while(cell_index != final_cellid && map[cell_index].used) {
+            Cell& cell = map[cell_index];
+            if (cell.id == keyhash && cell.name
+                                   && 0 == strcmp(cell.name, key)) {
+                //TODO: Check if this strcmp is too slow
+                return &cell;
+            }
+            cell_index += 1;
+        }
+
+        return nullptr;
+    }
+
 public:
     inline void resize(u64 size_bytes) {
         if (m_state) {
             m_state->memory.resize(m_bd, size_bytes);
+            m_metadata = (Metadata*) m_bd->data;
         } else {
             LOG("Unable to resize a BufferMap that was created from a view "
                 "directly. Please create this map from a State if you need "
@@ -100,25 +121,29 @@ public:
     }
 
     BufferDescriptor *const lookup(c_cstr key) {
-        auto const bucket_count = m_metadata->bucket_count;
-        auto& map = m_metadata->map;
-        auto keyhash = HASH(key);
-
-        auto cell_index = keyhash % bucket_count;
-        const auto final_cellid = (cell_index - 1) % bucket_count;
-        while(cell_index != final_cellid && map[cell_index].used) {
-            Cell& cell = map[cell_index];
-            if (cell.id == keyhash && 0 == strcmp(cell.name, key)) {
-                //TODO: Check if this strcmp is too slow
-                return (BufferDescriptor *const)((u8*)m_bd->data + cell.offset);
-            }
-            cell_index += 1;
+        Cell* cellptr = lookup_cell(key);
+        if (cellptr != nullptr) {
+            return (BufferDescriptor *const)
+                   ((u8*)m_bd->data + cellptr->offset);
         }
-
         return nullptr;
     }
 
     BufferDescriptor *const create(c_cstr name, u64 size) {
+        /* Determine if the underlying buffer has enough space and resize it
+           if necessary */ {
+            u64 capacity = m_bd->size;
+            u8 const*const base = (u8*)m_bd->data;
+            u8 const*const brk = (u8*)m_bd->cursor;
+            auto full_size = size + sizeof(BufferDescriptor);
+            u64 required_size = brk - base + full_size;
+            if (required_size > capacity) {
+                resize(required_size * 1.2f);
+                LOG("Grew live buffer map %s from %dB to %dB",
+                    m_bd->name, capacity, required_size * 1.2f);
+            }
+        }
+
         /* Consume a cell with metadata, and allocate `size` bytes, plus enough
            space for a bufferdescriptor. */
         auto const bucket_count = m_metadata->bucket_count;
