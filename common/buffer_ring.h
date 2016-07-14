@@ -23,7 +23,7 @@ public:
     BufferRing(BufferDescriptor *const bd) : BufferView<T>(bd) { }
     BufferRing(GameState& state, c_cstr name) : BufferView<T>(state, name) { }
 
-    inline T& push(T value) {
+    inline T& push(T& value) {
         if (this->m_bd == nullptr) return value;
         u64* frameno = (u64*)&value;
         f64* data = (f64*)(frameno + 1);
