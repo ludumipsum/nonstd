@@ -76,7 +76,7 @@ protected:
             m_metadata->magic = 0xBADC0DE;
             m_metadata->bucket_count = bucket_count;
             memset(&m_metadata->map, '\0', sizeof(Cell) * bucket_count);
-            m_bd->cursor = &m_metadata->map[0] + sizeof(Cell) * bucket_count;
+            m_bd->cursor = &m_metadata->map[0] + bucket_count;
         }
         /* If the number of buckets in the call differs, complain. */
         if (bucket_count && m_metadata->bucket_count != bucket_count) {
