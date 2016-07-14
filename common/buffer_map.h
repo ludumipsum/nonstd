@@ -87,6 +87,26 @@ protected:
         }
     }
 
+    Cell* lookup_cell(c_cstr key) {
+        auto const bucket_count = m_metadata->bucket_count;
+        auto& map = m_metadata->map;
+        auto keyhash = HASH(key);
+
+        auto cell_index = keyhash % bucket_count;
+        const auto final_cellid = (cell_index - 1) % bucket_count;
+        while(cell_index != final_cellid && map[cell_index].used) {
+            Cell& cell = map[cell_index];
+            if (cell.id == keyhash && cell.name
+                                   && 0 == strcmp(cell.name, key)) {
+                //TODO: Check if this strcmp is too slow
+                return &cell;
+            }
+            cell_index += 1;
+        }
+
+        return nullptr;
+    }
+
 public:
     inline void resize(u64 size_bytes) {
         if (m_state) {
@@ -101,19 +121,10 @@ public:
     }
 
     BufferDescriptor *const lookup(c_cstr key) {
-        auto const bucket_count = m_metadata->bucket_count;
-        auto& map = m_metadata->map;
-        auto keyhash = HASH(key);
-
-        auto cell_index = keyhash % bucket_count;
-        const auto final_cellid = (cell_index - 1) % bucket_count;
-        while(cell_index != final_cellid && map[cell_index].used) {
-            Cell& cell = map[cell_index];
-            if (cell.id == keyhash && 0 == strcmp(cell.name, key)) {
-                //TODO: Check if this strcmp is too slow
-                return (BufferDescriptor *const)((u8*)m_bd->data + cell.offset);
-            }
-            cell_index += 1;
+        Cell* cellptr = lookup_cell(key);
+        if (cellptr != nullptr) {
+            return (BufferDescriptor *const)
+                   ((u8*)m_bd->data + cellptr->offset);
         }
         return nullptr;
     }
