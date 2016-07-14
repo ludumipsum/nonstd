@@ -91,6 +91,7 @@ public:
     inline void resize(u64 size_bytes) {
         if (m_state) {
             m_state->memory.resize(m_bd, size_bytes);
+            m_metadata = (Metadata*) m_bd->data;
         } else {
             LOG("Unable to resize a BufferMap that was created from a view "
                 "directly. Please create this map from a State if you need "
