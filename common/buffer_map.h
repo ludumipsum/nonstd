@@ -115,11 +115,24 @@ public:
             }
             cell_index += 1;
         }
-
         return nullptr;
     }
 
     BufferDescriptor *const create(c_cstr name, u64 size) {
+        /* Determine if the underlying buffer has enough space and resize it
+           if necessary */ {
+            u64 capacity = m_bd->size;
+            u8 const*const base = (u8*)m_bd->data;
+            u8 const*const brk = (u8*)m_bd->cursor;
+            auto full_size = size + sizeof(BufferDescriptor);
+            u64 required_size = brk - base + full_size;
+            if (required_size > capacity) {
+                resize(required_size * 1.2f);
+                LOG("Grew live buffer map %s from %dB to %dB",
+                    m_bd->name, capacity, required_size * 1.2f);
+            }
+        }
+
         /* Consume a cell with metadata, and allocate `size` bytes, plus enough
            space for a bufferdescriptor. */
         auto const bucket_count = m_metadata->bucket_count;
