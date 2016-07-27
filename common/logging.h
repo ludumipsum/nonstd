@@ -1,4 +1,4 @@
-/* LOGGIN' UTILITIES
+/* Loggin' Utilities
    =================
 
    Utility functions and macros for logging, variadic printf-expansion, and

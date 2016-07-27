@@ -1,5 +1,5 @@
-/* OPTIONAL TYPE
-   =============
+/* Optional (Maybe) Type
+   =====================
 
    Utility type for representing maybe-a-value.
 */

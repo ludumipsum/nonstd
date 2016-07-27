@@ -1,4 +1,4 @@
-/* PRIMITIVE TYPES
+/* Primitive Types
    ===============
 
    Defines some basic types used across different pieces of game and platform
