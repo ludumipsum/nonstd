@@ -1,3 +1,9 @@
+/* Buffer Hash Map
+   ===============
+
+   BufferMaps provide key/value storage backed by gameplay buffers.
+*/
+
 #pragma once
 
 #include "batteries_included.h"
@@ -6,11 +12,6 @@
 #include "api.h"
 #include "buffer.h"
 
-/* Buffer Hash Map
-   ===============
-
-   BufferMaps provide key/value storage backed by gameplay buffers.
-*/
 class BufferMap {
 protected:
     struct Cell {

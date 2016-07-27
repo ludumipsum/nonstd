@@ -1,12 +1,3 @@
-#pragma once
-
-#include "batteries_included.h"
-#include "primitive_types.h"
-#include "mathutils.h"
-
-#include "api.h"
-#include "buffer.h"
-
 /* Typed Buffer Views
    ==================
 
@@ -19,6 +10,15 @@
    trying to accomplish by doing that -- it will refer to a buffer backed by a
    previous frame's state, which is unlikely to be quite what you want.
 */
+
+#pragma once
+
+#include "batteries_included.h"
+#include "primitive_types.h"
+#include "mathutils.h"
+
+#include "api.h"
+#include "buffer.h"
 
 template<typename T>
 class BufferView {
