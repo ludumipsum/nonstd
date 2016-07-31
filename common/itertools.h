@@ -88,12 +88,12 @@ public:
 };
 
 /* Lazily yield Ts in the range provided. Emulates python 3's range() */
-template<typename T>
+template<typename T> inline
 Range<T> range(T begin, T end, T step = 1) {
     return Range<T>(begin, end, step);
 }
 /* Lazily yield Ts in the range provided. Emulates python 3's range() */
-template<typename T>
+template<typename T> inline
 Range<T> range(T end) { return Range<T>(0, end, 1); }
 
 
@@ -106,11 +106,11 @@ public:
     T*  stop;
     u64 stride;
 
-    Slice(T* data, u64 count, u64 stride = 1)
+    inline Slice(T* data, u64 count, u64 stride = 1)
         : start  ( data       )
         , stop   ( data+count )
         , stride ( stride     ) { }
-    Slice(void* data, u64 count, u64 stride = 1)
+    inline Slice(void* data, u64 count, u64 stride = 1)
         : start  ( (T*)data           )
         , stop   ( ((T*)data) + count )
         , stride ( stride             ) { }
@@ -179,7 +179,7 @@ public:
 };
 
 /* Create a lazy iterator over `count` elements from the typed pointer `data`. */
-template<typename T>
+template<typename T> inline
 Slice<T> slice(T* data, u64 count, u64 stride = 1) {
     return Slice<T>(data, count, stride);
 }

@@ -195,3 +195,96 @@ inline bool SCV_TOGGLE(CVar_b *cv_ptr) {
     return false;
 }
 
+// list management global state
+extern CVar_f *head_f,
+              *tail_f;
+extern CVar_i *head_i,
+              *tail_i;
+extern CVar_b *head_b,
+              *tail_b;
+extern CVar_s *head_s,
+              *tail_s;
+
+// list management implementations
+template<> inline
+void CVar_f::addToList(void) {
+  if(head_f) {
+    tail_f->m_next = this;
+    tail_f = this;
+  } else {
+    head_f = this;
+    tail_f = this;
+  }
+}
+template<> inline
+void CVar_i::addToList(void) {
+  if(head_i) {
+    tail_i->m_next = this;
+    tail_i = this;
+  } else {
+    head_i = this;
+    tail_i = this;
+  }
+}
+template<> inline
+void CVar_b::addToList(void) {
+  if(head_b) {
+    tail_b->m_next = this;
+    tail_b = this;
+  } else {
+    head_b = this;
+    tail_b = this;
+  }
+}
+template<> inline
+void CVar_s::addToList(void) {
+  if(head_s) {
+    tail_s->m_next = this;
+    tail_s = this;
+  } else {
+    head_s = this;
+    tail_s = this;
+  }
+}
+
+// cvar search (linear scan)
+template<> inline
+CVar_f* CVar_f::find(c_cstr name) {
+  CVar_f *cur = head_f;
+  while (cur != nullptr && strcmp(name, cur->m_name)) {
+    if (0 == strcmp(name, cur->m_name)) break;
+    if (cur == tail_f) return nullptr;
+    cur = cur->m_next;
+  }
+  return cur;
+}
+template<> inline
+CVar_i* CVar_i::find(c_cstr name) {
+  CVar_i* cur = head_i;
+  while (cur != nullptr) {
+    if (0 == strcmp(name, cur->m_name)) break;
+    if (cur == tail_i) return nullptr;
+    cur = cur->m_next;
+  }
+  return cur;
+}
+template<> inline
+CVar_b* CVar_b::find(c_cstr name) {
+  CVar_b* cur = head_b;
+  while (cur != nullptr && strcmp(name, cur->m_name)) {
+    if (0 == strcmp(name, cur->m_name)) break;
+    if (cur == tail_b) return nullptr;
+    cur = cur->m_next;
+  }
+  return cur;
+}
+template<> inline
+CVar_s* CVar_s::find(c_cstr name) {
+  CVar_s* cur = head_s;
+  while (cur != nullptr && strcmp(name, cur->m_name)) {
+    if (0 == strcmp(name, cur->m_name)) break;
+    if (cur == tail_s) return nullptr;
+    cur = cur->m_next;
+  }
+  return cur;
+}
