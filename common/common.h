@@ -1,5 +1,5 @@
-/* COMMON CODE API MASTER
-   ======================
+/* Common Include Master
+   =====================
 
    Inlcude this file to get all common/ functionality in your module.
 

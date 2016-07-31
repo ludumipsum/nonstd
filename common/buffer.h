@@ -1,10 +1,3 @@
-#pragma once
-
-#include "batteries_included.h"
-#include "primitive_types.h"
-
-#include "api.h"
-
 /* Buffer Descriptors
    ==================
 
@@ -29,6 +22,13 @@
    last frame's pointers, and pointers to other data locations, will be in
    "interesting" states by the time the next frame starts.
 */
+
+#pragma once
+
+#include "batteries_included.h"
+#include "primitive_types.h"
+
+#include "api.h"
 
 struct BufferDescriptor {
     void*       data;

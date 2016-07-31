@@ -1,12 +1,3 @@
-#pragma once
-
-#include "batteries_included.h"
-#include "primitive_types.h"
-#include "mathutils.h"
-
-#include "buffer.h"
-#include "buffer_view.h"
-
 /* Typed Rings Over Buffers
    ========================
 
@@ -16,6 +7,15 @@
    Like all Buffer* abstractions, these are meant to be lightweight, created
    on demand
 */
+
+#pragma once
+
+#include "batteries_included.h"
+#include "primitive_types.h"
+#include "mathutils.h"
+
+#include "buffer.h"
+#include "buffer_view.h"
 
 template<typename T>
 class BufferRing : protected BufferView<T> {

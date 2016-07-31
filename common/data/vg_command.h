@@ -1,4 +1,4 @@
-/* VECTOR GRAPHICS API
+/* Vector Graphics Api
    ===================
 
    NanoVG primitives, and some more logic built on top of them, are defined as

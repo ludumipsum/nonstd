@@ -1,4 +1,4 @@
-/* HASH FUNCTIONS
+/* Hash Functions
    ==============
 
    General-purpose hash functions. You probably already know which one you want.
