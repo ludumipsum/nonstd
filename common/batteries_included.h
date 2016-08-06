@@ -235,3 +235,12 @@ using n2_enable_if_t = typename std::enable_if<B,T>::type;
     template<typename _TEMPLATE_ENABLE_DEPENDENCY_=T,   \
     n2_enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
 
+/* Shim for mktemp
+   ------------------------------------
+
+   On the windows runtimes, the posix function mktemp requires some
+   goofy shimming.
+*/
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#include <io.h>
+#endif
