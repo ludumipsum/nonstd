@@ -230,7 +230,8 @@ inline uint32_t FOURCC(char const* code) {
    man's pattern match.
 */
 template< bool B, class T = void >
-using enable_if_t = typename std::enable_if<B,T>::type;
+using n2_enable_if_t = typename std::enable_if<B,T>::type;
 #define TEMPLATE_ENABLE(Cond, T)                        \
     template<typename _TEMPLATE_ENABLE_DEPENDENCY_=T,   \
-    enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
+    n2_enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
+
