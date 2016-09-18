@@ -114,6 +114,11 @@ struct GameState {
 
         /* Get the current time */
         u64 (*now)();
+
+        /* Signal the platform that the game has encountered an unrecoverable
+           error. The platform may or may not itself die in response. */
+        void (*crash)(i32 error_number, c_cstr reason,
+                      c_cstr file, u64 line, c_cstr funcsig);
     } functions;
 }; ENFORCE_POD(GameState);
 
