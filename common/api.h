@@ -135,12 +135,13 @@ extern "C" {
 /* Simulation Step
    Given the current game state, step it forward once.
 */
-void step(GameState const & prev, GameState& state);
+void onStep(GameState const & prev, GameState& state);
 
-//TODO: notion of worlds and world start vs whole game initialization
-/* Start of Play Hook
-   Initialize the current play session
+/* Library Load/Init Hook
+   Give each gamecode library a chance to initialize the state it needs when
+   it's first loaded. Implementers of this function can expect at least one
+   call to it, possibly more, and so should take action idempotently.
 */
-void beginPlay(GameState& state);
+void onLoadLibrary(GameState& state);
 
 } /* extern "C" */
