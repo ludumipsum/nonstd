@@ -1,7 +1,10 @@
-/* Buffer Hash Map
-   ===============
+/* Buffer:Buffer Hash Map
+   ======================
 
-   BufferMaps provide key/value storage backed by gameplay buffers.
+   BufferMaps build a table of BufferDescriptor+data blocks accessible by hashed
+   strings.
+
+   TODO: Come up with a better name for this
 */
 
 #pragma once
