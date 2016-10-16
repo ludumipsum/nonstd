@@ -32,7 +32,8 @@ typedef ptrdiff_t    ptrdiff;
 typedef u64 ID;
 enum ReservedIDs {
     ID_NOTFOUND = 0,
-    ID_FIRST = 10,
+    ID_DELETED  = 9,
+    ID_FIRST,
 };
 
 /* Power-of-two Byte Prefixes

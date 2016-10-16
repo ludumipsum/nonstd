@@ -116,7 +116,7 @@ protected:
         //     uninitialized cell will be returned.
         //  3. We've found an initialized cell associated with the given `id` --
         //     an initialized cell will be returned.
-        while(cell_index != final_cellid && map[cell_index].id > ID_FIRST) {
+        while(cell_index != final_cellid && map[cell_index].id >= ID_DELETED) {
             Cell& cell = map[cell_index];
             if (cell.id == id) {
                 ptr = &cell;
@@ -160,7 +160,7 @@ public:
     void destroy(ID id) {
         Cell *const cell = lookup_cell(id);
         if (cell != nullptr) {
-            cell->id = ID_NOTFOUND;
+            cell->id = ID_DELETED;
             cell->index = 0;
         }
     }
