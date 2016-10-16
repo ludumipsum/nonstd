@@ -37,6 +37,7 @@
 #include "buffer_view.h"
 #include "buffer_map.h"
 #include "buffer_ring.h"
+#include "buffer_hashtable.h"
 #include "mathutils.h"
 
 /* Data Interchange Definitions */
