@@ -26,7 +26,14 @@ typedef char *       cstr;
 typedef char const * c_cstr;
 typedef ptrdiff_t    ptrdiff;
 
-typedef u32 ID;
+/* IDs uniquely identify game entities. We reserve the bottom few for special
+   meanings in our container types (unset, deleted, etc).
+*/
+typedef u64 ID;
+enum ReservedIDs {
+    ID_NOTFOUND = 0,
+    ID_FIRST = 10,
+};
 
 /* Power-of-two Byte Prefixes
    NB. these implicitly cast the provided value to 64-bit int
