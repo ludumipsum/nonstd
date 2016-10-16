@@ -9,6 +9,7 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
+inline u64 shift64(u64 key);
 inline u64 djb2(c_cstr str);
 inline void sha1(u8 const*const data, u64 num_bytes, cstr sha_out);
 
@@ -21,6 +22,22 @@ inline void sha1(u8 const*const data, u64 num_bytes, cstr sha_out);
          produce djb2 collisions on any filename.
 */
 #define HASH djb2
+
+
+/* Integer hash based on bitshifts and xors, taken from
+   [here](https://gist.github.com/badboy/6267743).
+*/
+u64 shift64(u64 key)
+{
+    key = (~key) + (key << 21); // key = (key << 21) - key - 1;
+    key = key ^ (key >> 24);
+    key = (key + (key << 3)) + (key << 8); // key * 265
+    key = key ^ (key >> 14);
+    key = (key + (key << 2)) + (key << 4); // key * 21
+    key = key ^ (key >> 28);
+    key = key + (key << 31);
+    return key;
+}
 
 
 /* DJB2 Hash
