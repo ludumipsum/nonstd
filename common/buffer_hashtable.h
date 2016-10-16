@@ -1,8 +1,7 @@
-/* Buffer:Buffer Hash Map
-   ======================
+/* Buffer:Buffer Hash Table
+   ========================
 
-   BufferHashTables build a table of BufferDescriptor+data blocks accessible by
-   hashed strings.
+   TODO: Document me
 */
 
 #pragma once
@@ -52,6 +51,10 @@ public:
     }
 
 protected:
+    inline void rehash(f32 growth_factor) {
+        BREAKPOINT();
+    }
+
     /* Set up the metadata structure at the start of the data segment */
     inline void initialize(u32 cell_count, u64 miss_tolerance) {
         m_metadata = (Metadata*) m_bd->data;
@@ -76,7 +79,7 @@ protected:
             // Resize if necessary
             auto metadata_size = sizeof(Metadata) + sizeof(Cell) * cell_count;
             if (m_bd->size < metadata_size) {
-                resize(metadata_size);
+                rehash(n2min(metadata_size/(f64)m_bd->size, 1.2f));
             }
             // Initialize metadata
             m_metadata->magic = 0xBADB33F;
@@ -123,6 +126,10 @@ protected:
             misses += 1;
         }
 
+        if (cell_index != final_cellid) {
+            ptr = &map[cell_index];
+        }
+
         if (misses > m_metadata->miss_tolerance) {
             LOG("EINVAL, Rehashes aren't implemented yet.");
             BREAKPOINT();
@@ -150,7 +157,7 @@ public:
         return { index };
     }
 
-    void delete(ID id) {
+    void destroy(ID id) {
         Cell *const cell = lookup_cell(id);
         if (cell != nullptr) {
             cell->id = ID_NOTFOUND;
