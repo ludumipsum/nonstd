@@ -116,7 +116,7 @@ enum VGCommandType {
 };
 
 struct VGCommand {
-    ID id;
+    u64 id;
     VGCommandType type;
     union {
         struct { /* VG_COMMAND_TYPE_PATH_<TYPE> */

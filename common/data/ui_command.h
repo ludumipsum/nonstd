@@ -572,7 +572,7 @@ enum UIIcon {
 
 /* TODO: Optimize this by unioning away things that will never occur together */
 struct UICommand {
-    ID id;
+    u64 id;
     UIWidgetType type;
     f32 x, y;
     f32 w, h;
