@@ -95,6 +95,15 @@ public:
     // Explicit value cast
     inline VALUE_TYPE& value(void) { return m_value; }
 
+    // Accessor for the name string
+    inline c_cstr name(void) { return m_name; }
+
+    // Accessor for the synopsis string
+    inline c_cstr synopsis(void) { return m_synopsis; }
+
+    // Accessor for the next entry in the per-type list
+    inline CVar<VALUE_TYPE>* next(void) { return m_next; }
+
     // Register a callback to take some action when this setting is changed.
     // NB. Only one such callback may be registered per cvar.
     inline void watch(std::function<void(VALUE_TYPE)> const& callback) {
