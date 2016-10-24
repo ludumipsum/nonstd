@@ -36,6 +36,8 @@ typedef CVar<int64_t>     CVar_i;
 typedef CVar<bool>        CVar_b;
 typedef CVar<c_cstr>      CVar_s;
 
+extern bool save_cvars(c_cstr filename="cvars.ini");
+extern bool load_cvars(c_cstr filename="cvars.ini");
 
 template<typename VALUE_TYPE>
 class CVar {
