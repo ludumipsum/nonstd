@@ -53,9 +53,6 @@ public:
     inline void rehash_to(u64 cell_count);
 
 protected:
-    inline void rehash(f32 growth_factor) {
-        rehash_to(growth_factor * m_metadata->cell_count);
-    }
 
     /* Set up the metadata structure at the start of the data segment */
     inline void initialize(u32 cell_count, u64 miss_tolerance) {
@@ -81,7 +78,7 @@ protected:
             // Resize if necessary
             auto metadata_size = sizeof(Metadata) + sizeof(Cell) * cell_count;
             if (m_bd->size < metadata_size) {
-                rehash(n2min(metadata_size/(f64)m_bd->size, 1.2f));
+                rehash_by(n2min(metadata_size/(f64)m_bd->size, 1.2f));
             }
             // Initialize metadata
             m_metadata->magic = 0xBADB33F;
@@ -133,7 +130,7 @@ protected:
         }
 
         if (misses > m_metadata->miss_tolerance) {
-            rehash(1.2f);
+            rehash_by(1.2f);
         }
 
         return ptr;
@@ -143,6 +140,10 @@ public:
     inline void rehash_to(u64 cell_count) {
         LOG("ERROR: Rehashes aren't implemented yet.");
         BREAKPOINT();
+    }
+
+    inline void rehash_by(f32 growth_factor) {
+        rehash_to(growth_factor * m_metadata->cell_count);
     }
 
     inline Optional<u32> lookup(ID id) {
