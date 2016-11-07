@@ -12,6 +12,8 @@
 #include "api.h"
 #include "buffer.h"
 
+#define DEFAULT_BHT_CELL_COUNT 64
+
 class BufferHashTable {
 protected:
     struct Cell {
@@ -31,9 +33,9 @@ protected:
 
 public:
     BufferHashTable(BufferDescriptor *const bd, u32 cell_count=0)
-              : m_metadata ( nullptr )
-              , m_state    ( nullptr )
-              , m_bd       ( bd      )
+        : m_metadata ( nullptr )
+        , m_state    ( nullptr )
+        , m_bd       ( bd      )
     {
         // Since instances created with this constructor can't be resized, we
         // set the miss_tolerance to something that can never be reached: one
@@ -42,9 +44,9 @@ public:
     }
     BufferHashTable(GameState& state, c_cstr name,
                     u32 cell_count=0, u64 miss_tolerance=32)
-              : m_metadata ( nullptr)
-              , m_state    ( &state )
-              , m_bd       ( state.memory.lookup(name) )
+        : m_metadata ( nullptr)
+        , m_state    ( &state )
+        , m_bd       ( state.memory.lookup(name) )
     {
         miss_tolerance = n2min(cell_count, miss_tolerance);
         initialize(cell_count, miss_tolerance);
@@ -67,16 +69,14 @@ protected:
                     m_bd->name, m_bd, m_metadata->magic);
                 DEBUG_BREAKPOINT();
             }
-            /* Sanity check -- don't iniaizlie without a size */
+            // Default size if none is specified
             if (cell_count == 0) {
-                LOG("ERROR: Unable to initialize a BufferHashTable for the "
-                    "first time without a nonzero number of buckets.");
-                BREAKPOINT();
+                cell_count = DEFAULT_BHT_CELL_COUNT;
             }
             // Resize if necessary
             auto metadata_size = sizeof(Metadata) + sizeof(Cell) * cell_count;
             if (m_bd->size < metadata_size) {
-                rehash_by(n2min(metadata_size/(f64)m_bd->size, 1.2f));
+                m_state->memory.resize(m_bd, metadata_size);
             }
             // Initialize metadata
             m_metadata->magic = 0xBADB33F;
@@ -136,8 +136,40 @@ protected:
 
 public:
     inline void rehash_to(u64 cell_count) {
-        LOG("ERROR: Rehashes aren't implemented yet.");
-        BREAKPOINT();
+        if (m_state == nullptr) {
+            LOG("ERROR: Can't resize a hashtable without a state ref.");
+            BREAKPOINT();
+        }
+
+        // Copy all the data aside
+        // TODO: REPLACE ME WITH SCRATCH BUFFER USAGE
+        auto intermediate = malloc(m_bd->size);
+        // TODO: AUGH MALLOC SADNESS
+        if (intermediate == nullptr) BREAKPOINT();
+        memset(intermediate, 0xFF, m_bd->size);
+        auto intermediate_bd = make_buffer(intermediate, m_bd->size);
+        memcpy(intermediate_bd.data, m_bd->data, m_bd->size);
+        ptrdiff cur_offset = (u8*)m_bd->cursor - m_bd->data;
+		intermediate_bd.cursor = (u8*)intermediate_bd.data + cur_offset;
+        BufferHashTable src(&intermediate_bd);
+
+        // Resize the backing buffer
+        auto needed_bytes = sizeof(Metadata) + sizeof(Cell) * cell_count;
+        m_state->memory.resize(m_bd, needed_bytes);
+        m_metadata->cell_count = cell_count;
+        m_bd->cursor = &m_metadata->map[0] + cell_count;
+
+        // Rehash the table
+        Cell* final_cell = src.m_metadata->map + src.m_metadata->cell_count;
+        for(Cell *scell = src.m_metadata->map,
+                 *final_cell = src.m_metadata->map + src.m_metadata->cell_count;
+            scell <= final_cell;
+            scell++) {
+            create(scell->id, scell->index);
+        }
+
+        // Discard temporary space (TODO: replace with scratch)
+        free(intermediate);
     }
 
     inline void rehash_by(f32 growth_factor) {
