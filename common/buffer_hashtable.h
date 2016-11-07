@@ -50,8 +50,6 @@ public:
         initialize(cell_count, miss_tolerance);
     }
 
-    inline void rehash_to(u64 cell_count);
-
 protected:
 
     /* Set up the metadata structure at the start of the data segment */
