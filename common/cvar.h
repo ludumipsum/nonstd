@@ -36,8 +36,8 @@ typedef CVar<int64_t>     CVar_i;
 typedef CVar<bool>        CVar_b;
 typedef CVar<c_cstr>      CVar_s;
 
-extern bool save_cvars(c_cstr filename="cvars.ini");
-extern bool load_cvars(c_cstr filename="cvars.ini");
+extern u64 saveCvars(c_cstr filename="cvars.ini");
+extern u64 loadCvars(c_cstr filename="cvars.ini");
 
 template<typename VALUE_TYPE>
 class CVar {
@@ -109,6 +109,12 @@ public:
     inline void watch(std::function<void(VALUE_TYPE)> const& callback) {
         m_watch_callback = callback;
     }
+
+    inline bool hasConstraints(void) { return m_min != m_max; }
+
+    inline VALUE_TYPE min(void) { return m_min; }
+
+    inline VALUE_TYPE max(void) { return m_max; }
 
     static CVar<VALUE_TYPE>* find(c_cstr name);
 
