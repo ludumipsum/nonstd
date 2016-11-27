@@ -80,7 +80,7 @@ protected:
             m_metadata->magic = 0xBADC0DE;
             m_metadata->bucket_count = bucket_count;
             memset(&m_metadata->map, '\0', sizeof(Cell) * bucket_count);
-            m_bd->cursor = &m_metadata->map[0] + bucket_count;
+            m_bd->cursor = (ptr)( &m_metadata->map[0] + bucket_count );
         }
         /* If the number of buckets in the call differs, complain. */
         if (bucket_count && m_metadata->bucket_count != bucket_count) {
@@ -136,15 +136,12 @@ public:
     BufferDescriptor *const create(c_cstr name, u64 size) {
         /* Determine if the underlying buffer has enough space and resize it
            if necessary */ {
-            u64 capacity = m_bd->size;
-            u8 const*const base = (u8*)m_bd->data;
-            u8 const*const brk = (u8*)m_bd->cursor;
             auto full_size = size + sizeof(BufferDescriptor);
-            u64 required_size = brk - base + full_size;
-            if (required_size > capacity) {
+            u64 required_size = m_bd->cursor - m_bd->data + full_size;
+            if (required_size > m_bd->size) {
                 resize(required_size * 1.2f);
                 LOG("Grew live buffer map %s from %dB to %dB",
-                    m_bd->name, capacity, required_size * 1.2f);
+                    m_bd->name, m_bd->size, required_size * 1.2f);
             }
         }
 
@@ -172,20 +169,17 @@ public:
         cell.size = full_size;
 
         /* Reserve memory for this entry */
-        u64 capacity = m_bd->size;
-        u8 const*const base = (u8*)m_bd->data;
-        u8 const*const brk = (u8*)m_bd->cursor;
-        u64 required_size = brk + full_size - base;
-        if (required_size > capacity) {
+        u64 required_size = m_bd->cursor - m_bd->data + full_size;
+        if (required_size > m_bd->size) {
             resize(required_size * 1.2f);
         }
-        cell.offset = brk - base;
-        m_bd->cursor = (void*)(brk + full_size);
+        cell.offset = m_bd->cursor - m_bd->data;
+        m_bd->cursor = m_bd->cursor + full_size;
 
         /* Set up the BufferDescriptor for this block */
-        u8 const*const block_begin = base + cell.offset;
+        u8 const*const block_begin = m_bd->data + cell.offset;
         BufferDescriptor *const desc = (BufferDescriptor *const)block_begin;
-        desc->data = desc + 1;
+        desc->data = (ptr)( desc + 1 );
         desc->cursor = desc->data;
         desc->size = size;
         desc->flags = BUFFER_PASS;

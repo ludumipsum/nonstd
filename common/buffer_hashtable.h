@@ -83,7 +83,7 @@ protected:
             m_metadata->cell_count = cell_count;
             m_metadata->miss_tolerance = miss_tolerance;
             memset(&m_metadata->map, '\0', sizeof(Cell) * cell_count);
-            m_bd->cursor = &m_metadata->map[0] + cell_count;
+            m_bd->cursor = (ptr)( &m_metadata->map[0] + cell_count );
         }
         /* If the number of buckets in the call differs, complain. */
         if (cell_count && m_metadata->cell_count != cell_count) {
@@ -143,21 +143,21 @@ public:
 
         // Copy all the data aside
         // TODO: REPLACE ME WITH SCRATCH BUFFER USAGE
-        auto intermediate = malloc(m_bd->size);
+        ptr intermediate = n2malloc(m_bd->size);
         // TODO: AUGH MALLOC SADNESS
         if (intermediate == nullptr) BREAKPOINT();
         memset(intermediate, 0xFF, m_bd->size);
         auto intermediate_bd = make_buffer(intermediate, m_bd->size);
         memcpy(intermediate_bd.data, m_bd->data, m_bd->size);
-        ptrdiff cur_offset = (u8*)m_bd->cursor - m_bd->data;
-		intermediate_bd.cursor = (u8*)intermediate_bd.data + cur_offset;
+        ptrdiff cur_offset = m_bd->cursor - m_bd->data;
+        intermediate_bd.cursor = intermediate_bd.data + cur_offset;
         BufferHashTable src(&intermediate_bd);
 
         // Resize the backing buffer
         auto needed_bytes = sizeof(Metadata) + sizeof(Cell) * cell_count;
         m_state->memory.resize(m_bd, needed_bytes);
         m_metadata->cell_count = cell_count;
-        m_bd->cursor = &m_metadata->map[0] + cell_count;
+        m_bd->cursor = (ptr)( &m_metadata->map[0] + cell_count );
 
         // Rehash the table
         Cell* final_cell = src.m_metadata->map + src.m_metadata->cell_count;
@@ -169,7 +169,7 @@ public:
         }
 
         // Discard temporary space (TODO: replace with scratch)
-        free(intermediate);
+        n2free(intermediate);
     }
 
     inline void rehash_by(f32 growth_factor) {

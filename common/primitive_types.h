@@ -25,6 +25,16 @@ typedef double       f64;
 typedef char *       cstr;
 typedef char const * c_cstr;
 typedef ptrdiff_t    ptrdiff;
+typedef uint8_t *       ptr;
+typedef uint8_t const * c_ptr;
+
+inline ptr  n2malloc(size_t size)         { return (ptr)(malloc(size)); }
+inline ptr  n2realloc(ptr p, size_t size) { return (ptr)(realloc(p, size)); }
+inline void n2free(ptr p)                 { free( (void *)( p ) ); }
+
+inline void n2alignment_correct_free(ptr p, bool aligned) {
+    alignment_correct_free( (void *)( p ), aligned);
+}
 
 /* IDs uniquely identify game entities. We reserve the bottom few for special
    meanings in our container types (unset, deleted, etc).

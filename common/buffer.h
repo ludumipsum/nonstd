@@ -31,15 +31,15 @@
 #include "api.h"
 
 struct BufferDescriptor {
-    void*       data;
-    void*       cursor;
+    ptr         data;
+    ptr         cursor;
     u64         size;
     BufferFlags flags;
     c_cstr      name;
 }; ENFORCE_POD(BufferDescriptor);
 
-inline BufferDescriptor make_buffer(void* ptr,
+inline BufferDescriptor make_buffer(ptr p,
                                     u64 size,
                                     BufferFlags flags = BUFFER_CLEAR_CURSOR) {
-    return BufferDescriptor { ptr, ptr, size, flags, "transient_buffer" };
+    return BufferDescriptor { p, p, size, flags, "transient_buffer" };
 }
