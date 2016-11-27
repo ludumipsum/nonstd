@@ -28,9 +28,11 @@ typedef ptrdiff_t       ptrdiff;
 typedef uint8_t *       ptr;
 typedef uint8_t const * c_ptr;
 
-inline ptr  n2malloc(size_t size)         { return (ptr)(malloc(size)); }
-inline ptr  n2realloc(ptr p, size_t size) { return (ptr)(realloc(p, size)); }
-inline void n2free(ptr p)                 { free( (void *)( p ) ); }
+inline ptr  n2malloc(size_t size)           { return (ptr)(malloc(size)); }
+inline ptr  n2alloca(size_t size)           { return (ptr)(alloca(size)); }
+inline ptr  n2realloc(ptr p, size_t size)   { return (ptr)(realloc(p, size)); }
+inline ptr  n2calloc(size_t n, size_t size) { return (ptr)(calloc(n, size)); }
+inline void n2free(ptr p)                   { free( (void *)( p ) ); }
 
 inline void n2alignment_correct_free(ptr p, bool aligned) {
     alignment_correct_free( (void *)( p ), aligned);
