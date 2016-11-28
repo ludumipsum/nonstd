@@ -59,7 +59,7 @@ public:
 
         // Return the address of the requested amount of space
         T* ret = (T*) m_bd->cursor;
-        m_bd->cursor = (void*) ( ((T*) m_bd->cursor) + count );
+        m_bd->cursor = (ptr) ( ((T*) m_bd->cursor) + count );
         return ret;
     }
 

@@ -12,19 +12,31 @@
 /* Basic Types
    -----------
 */
-typedef uint8_t       u8;
-typedef uint16_t     u16;
-typedef uint32_t     u32;
-typedef uint64_t     u64;
-typedef int8_t        i8;
-typedef int16_t      i16;
-typedef int32_t      i32;
-typedef int64_t      i64;
-typedef float        f32;
-typedef double       f64;
-typedef char *       cstr;
-typedef char const * c_cstr;
-typedef ptrdiff_t    ptrdiff;
+typedef uint8_t          u8;
+typedef uint16_t        u16;
+typedef uint32_t        u32;
+typedef uint64_t        u64;
+typedef int8_t           i8;
+typedef int16_t         i16;
+typedef int32_t         i32;
+typedef int64_t         i64;
+typedef float           f32;
+typedef double          f64;
+typedef char *          cstr;
+typedef char const *    c_cstr;
+typedef ptrdiff_t       ptrdiff;
+typedef uint8_t *       ptr;
+typedef uint8_t const * c_ptr;
+
+inline ptr  n2malloc(size_t size)           { return (ptr)(malloc(size)); }
+inline ptr  n2alloca(size_t size)           { return (ptr)(alloca(size)); }
+inline ptr  n2realloc(ptr p, size_t size)   { return (ptr)(realloc(p, size)); }
+inline ptr  n2calloc(size_t n, size_t size) { return (ptr)(calloc(n, size)); }
+inline void n2free(ptr p)                   { free( (void *)( p ) ); }
+
+inline void n2alignment_correct_free(ptr p, bool aligned) {
+    alignment_correct_free( (void *)( p ), aligned);
+}
 
 /* IDs uniquely identify game entities. We reserve the bottom few for special
    meanings in our container types (unset, deleted, etc).
