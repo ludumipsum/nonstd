@@ -77,6 +77,7 @@ protected:
             auto metadata_size = sizeof(Metadata) + sizeof(Cell) * cell_count;
             if (m_bd->size < metadata_size) {
                 m_state->memory.resize(m_bd, metadata_size);
+                m_metadata = (Metadata*) m_bd->data;
             }
             // Initialize metadata
             m_metadata->magic = 0xBADB33F;
