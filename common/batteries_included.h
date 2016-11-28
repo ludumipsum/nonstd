@@ -16,7 +16,6 @@
 #pragma once
 
 /* # C Standard Library Includes */
-#include <alloca.h>
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -33,6 +32,14 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
+
+
+/* Platform specific includes */
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#include <malloc.h>     // alloca
+#else
+#include <alloca.h>     // alloca
+#endif
 
 
 /* Primitive Type Definitions
