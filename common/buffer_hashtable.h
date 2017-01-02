@@ -120,7 +120,7 @@ protected:
                 ptr = &cell;
                 break;
             }
-            cell_index += 1;
+            cell_index = (1 + cell_index) % cell_count;
             misses += 1;
         }
 
