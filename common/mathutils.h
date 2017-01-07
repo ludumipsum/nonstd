@@ -20,6 +20,9 @@
 #ifndef n2min
 #define n2min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
+#ifndef n2clamp
+#define n2clamp(v, a, b) (n2min((b), (((v) > (a)) ? v : a)))
+#endif
 
 
 /* Range Rescaling
