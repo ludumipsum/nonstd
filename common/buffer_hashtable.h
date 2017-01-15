@@ -24,6 +24,7 @@ protected:
         u32  magic;
         u32  cell_count;
         u64  miss_tolerance;
+        bool rehash_in_progress;
         Cell map[];
     };
 
@@ -128,8 +129,12 @@ protected:
             ptr = &map[cell_index];
         }
 
-        if (misses > m_metadata->miss_tolerance) {
+        bool rehash_allowed = ! m_metadata->rehash_in_progress;
+        if (misses > m_metadata->miss_tolerance && rehash_allowed) {
             rehash_by(1.2f);
+        } else if (! rehash_allowed && cell_index == final_cellid) {
+            LOG("ERROR: Table is full, and I can't resize.");
+            BREAKPOINT();
         }
 
         return ptr;
@@ -141,6 +146,15 @@ public:
             LOG("ERROR: Can't resize a hashtable without a state ref.");
             BREAKPOINT();
         }
+
+        // Mark this hashtable as already in a rehash, so lookup_cell may not
+        // heuristically trigger another rehash if we get unlucky
+        m_metadata->rehash_in_progress = true;
+
+        // FIXME: This is a super dumb hack to deal with our cell lookup code
+        //        not being the most robust thing ever. Also to deal with the
+        //        interface being kinda bad.
+        cell_count = n2max(16, cell_count);
 
         // Copy all the data aside
         // TODO: REPLACE ME WITH SCRATCH BUFFER USAGE
@@ -171,6 +185,9 @@ public:
 
         // Discard temporary space (TODO: replace with scratch)
         n2free(intermediate);
+
+        // Mark the rehash complete
+        m_metadata->rehash_in_progress = false;
     }
 
     inline void rehash_by(f32 growth_factor) {

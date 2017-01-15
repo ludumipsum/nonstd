@@ -210,7 +210,6 @@ inline uint32_t N2FOURCC(char const* code) {
     void operator=(const TypeName&)
 
 
-
 /* TEMPLATE_ENABLE
    ---------------
 
