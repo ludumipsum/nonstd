@@ -18,8 +18,8 @@
 template<typename T>
 class IDMap {
 protected:
-    BufferHashTable m_index;
-    BufferView      m_data;
+    buffer::HashTable m_index;
+    buffer::Slice     m_data;
 
 public:
     IDMap(GameState& state)

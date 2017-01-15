@@ -4,14 +4,14 @@
 #include "primitive_types.h"
 
 #include "buffer.h"
-#include "buffer_view.h"
+#include "buffer/slice.h"
 #include "vg_command.h"
 
 #include "api.h"
 
 class VG {
 protected:
-    using VGCommandList = BufferView<VGCommand>;
+    using VGCommandList = buffer::Slice<VGCommand>;
 
     VGCommand        m_current;
     VGCommandList    m_vgcl;
@@ -32,7 +32,7 @@ protected:
     }
 
 public:
-    inline VG(BufferDescriptor *const buffer)
+    inline VG(Buffer *const buffer)
         : m_current      ( { 0 }  )
         , m_vgcl         ( buffer )
         , m_fill         ( false  )

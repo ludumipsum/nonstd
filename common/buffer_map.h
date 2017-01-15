@@ -1,10 +1,12 @@
 /* Buffer:Buffer Hash Map
    ======================
 
-   BufferMaps build a table of BufferDescriptor+data blocks accessible by hashed
+   BufferMaps build a table of buffer::Descriptor+data blocks accessible by hashed
    strings.
 
    TODO: Come up with a better name for this
+   TODO: Refactor this out of the project. It's too complicated, too hard to
+         maintain, and contray to the newer style of buffer management.
 */
 
 #pragma once
@@ -32,10 +34,10 @@ protected:
 
     Metadata         *      m_metadata;
     GameState        *      m_state;
-    BufferDescriptor *const m_bd;
+    buffer::Descriptor *const m_bd;
 
 public:
-    BufferMap(BufferDescriptor *const bd, u32 bucket_count=0)
+    BufferMap(buffer::Descriptor *const bd, u32 bucket_count=0)
               : m_metadata ( nullptr )
               , m_state    ( nullptr )
               , m_bd       ( bd      )
@@ -124,19 +126,19 @@ public:
         }
     }
 
-    BufferDescriptor *const lookup(c_cstr key) {
+    buffer::Descriptor *const lookup(c_cstr key) {
         Cell* cellptr = lookup_cell(key);
         if (cellptr != nullptr) {
-            return (BufferDescriptor *const)
+            return (buffer::Descriptor *const)
                    ((u8*)m_bd->data + cellptr->offset);
         }
         return nullptr;
     }
 
-    BufferDescriptor *const create(c_cstr name, u64 size) {
+    buffer::Descriptor *const create(c_cstr name, u64 size) {
         /* Determine if the underlying buffer has enough space and resize it
            if necessary */ {
-            auto full_size = size + sizeof(BufferDescriptor);
+            auto full_size = size + sizeof(buffer::Descriptor);
             u64 required_size = m_bd->cursor - m_bd->data + full_size;
             if (required_size > m_bd->size) {
                 resize(required_size * 1.2f);
@@ -146,11 +148,11 @@ public:
         }
 
         /* Consume a cell with metadata, and allocate `size` bytes, plus enough
-           space for a bufferdescriptor. */
+           space for a ::bufferdescriptor. */
         auto const bucket_count = m_metadata->bucket_count;
         auto& map = m_metadata->map;
         auto keyhash = HASH(name);
-        auto full_size = size + sizeof(BufferDescriptor);
+        auto full_size = size + sizeof(buffer::Descriptor);
 
         /* Scan for an open cell starting at the hash of the given name */
         auto cell_index = keyhash % bucket_count;
@@ -176,13 +178,13 @@ public:
         cell.offset = m_bd->cursor - m_bd->data;
         m_bd->cursor = m_bd->cursor + full_size;
 
-        /* Set up the BufferDescriptor for this block */
+        /* Set up the buffer::Descriptor for this block */
         u8 const*const block_begin = m_bd->data + cell.offset;
-        BufferDescriptor *const desc = (BufferDescriptor *const)block_begin;
+        buffer::Descriptor *const desc = (buffer::Descriptor *const)block_begin;
         desc->data = (ptr)( desc + 1 );
         desc->cursor = desc->data;
         desc->size = size;
-        desc->flags = BUFFER_PASS;
+        desc->flags = buffer::PASS;
         desc->name = name;
 
         return desc;

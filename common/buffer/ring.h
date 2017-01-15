@@ -1,27 +1,30 @@
 /* Typed Rings Over Buffers
-   ========================
-
-   BufferRings are a variant of BufferViews which expose a ring buffer
-   as a view over a BufferDescriptor. Imagine that.
-
-   Like all Buffer* abstractions, these are meant to be lightweight, created
-   on demand
-*/
+ * ========================
+ *
+ * Buffer Rings are a variant of Buffer Slices, which expose a ring buffer
+ * as a view over a Descriptor. Imagine that.
+ *
+ * Like all Buffer views, these are meant to be lightweight, created  on demand.
+ */
 
 #pragma once
 
 #include "batteries_included.h"
 #include "primitive_types.h"
 #include "mathutils.h"
+#include "logging.h"
 
 #include "buffer.h"
-#include "buffer_view.h"
+#include "buffer/slice.h"
+
+
+namespace buffer {
 
 template<typename T>
-class BufferRing : protected BufferView<T> {
+class Ring : protected Slice<T> {
 public:
-    BufferRing(BufferDescriptor *const bd) : BufferView<T>(bd) { }
-    BufferRing(GameState& state, c_cstr name) : BufferView<T>(state, name) { }
+    Ring(Descriptor *const bd) : Slice<T>(bd) { }
+    Ring(GameState& state, c_cstr name) : Slice<T>(state, name) { }
 
     inline T& push(T& value) {
         if (this->m_bd == nullptr) return value;
@@ -34,22 +37,22 @@ public:
         if (currently_free < sizeof(T)) {
             this->m_bd->cursor = this->m_bd->data;
         }
-        return BufferView<T>::push(value);
+        return Slice<T>::push(value);
     }
 
-    inline void drop()  { return BufferView<T>::drop();   }
-    inline u64 size()   { return BufferView<T>::size();   }
-    inline u64 length() { return BufferView<T>::length(); }
+    inline void drop()  { return Slice<T>::drop();   }
+    inline u64 size()   { return Slice<T>::size();   }
+    inline u64 length() { return Slice<T>::length(); }
 
     /* Iterator respecting extents modulo ring size */
     class iterator {
     public:
         typedef std::output_iterator_tag iterator_category;
 
-        BufferRing &ring;
+        Ring &ring;
         ptrdiff     offset;
 
-        iterator(BufferRing& ring, u64 offset=0)
+        iterator(Ring& ring, u64 offset=0)
             : ring(ring)
             , offset(offset) { }
 
@@ -112,3 +115,5 @@ public:
         return iterator(*this, offset);
     }
 };
+
+} /* namespace buffer */

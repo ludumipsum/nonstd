@@ -1,38 +1,44 @@
-/* Typed Buffer Views
-   ==================
-
-   BufferViews provide a simple abstraction over game memory buffers, allowing
-   their use as iterable containers of a given type. Since game buffers are
-   not stored with a type, take some care to not use buffer views of different
-   types over the same buffer, or you're likely to get "interesting" results.
-
-   Do not retain a buffer view across frames unless you really know what you're
-   trying to accomplish by doing that -- it will refer to a buffer backed by a
-   previous frame's state, which is unlikely to be quite what you want.
-*/
+/* Typed Buffer Slice
+ * ==================
+ *
+ * Buffer Slices provide simple, std::array-like abstraction over game memory
+ * buffers, allowing their use as iterable containers of a given type. Since
+ * game buffers are not stored with a type, take some care to not use slices of
+ * different types over the same buffer, or you're likely to get
+ * "interesting" results.
+ *
+ * Do not retain a buffer slice across frames unless you really know what you're
+ * trying to accomplish by doing that --- it will, _at best_  refer to a buffer
+ * backed by a previous frame's state, which is unlikely to be quite what
+ * you want.
+ */
 
 #pragma once
 
 #include "batteries_included.h"
 #include "primitive_types.h"
 #include "mathutils.h"
+#include "logging.h"
 
 #include "api.h"
 #include "buffer.h"
 
+
+namespace buffer {
+
 template<typename T>
-class BufferView {
+class Slice {
 protected:
-    GameState        *      m_state;
-    BufferDescriptor *const m_bd;
+    GameState  *      m_state;
+    Descriptor *const m_bd;
 
 public:
-    BufferView(BufferDescriptor *const bd)
-              : m_state ( nullptr )
-              , m_bd    ( bd      ) { }
-    BufferView(GameState& state, c_cstr name)
-              : m_state    ( &state  )
-              , m_bd       ( state.memory.lookup(name) ) { }
+    Slice(Descriptor *const bd)
+          : m_state ( nullptr )
+          , m_bd    ( bd      ) { }
+    Slice(GameState& state, c_cstr name)
+          : m_state ( &state  )
+          , m_bd    ( state.memory.lookup(name) ) { }
 
     inline void resize(u64 size_bytes) {
         if (m_state) {
@@ -129,3 +135,5 @@ public:
     inline u64 size() { return (m_bd) ? m_bd->size : 0; }
     inline u64 length() { return size() / sizeof(T); }
 };
+
+} /* namespace buffer */

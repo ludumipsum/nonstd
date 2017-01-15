@@ -27,17 +27,19 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
+/* N2 memory managment classes */
+#include "buffer.h"
+#include "buffer/slice.h"
+#include "buffer/ring.h"
+#include "buffer/hashtable.h"
+#include "buffer_map.h" //TODO: Refactor this out.
+
 /* Should-be-standard Library */
 #include "optional.h"
 #include "cvar.h"
 #include "hash.h"
 #include "itertools.h"
 #include "logging.h"
-#include "buffer.h"
-#include "buffer_view.h"
-#include "buffer_map.h"
-#include "buffer_ring.h"
-#include "buffer_hashtable.h"
 #include "mathutils.h"
 
 /* Data Interchange Definitions */

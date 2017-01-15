@@ -1,24 +1,29 @@
-/* Buffer:Buffer Hash Table
-   ========================
-
-   Map from an entity ID to a 32-bit unsigned index.
-*/
+/* Buffer: Hash Table
+ * ========================
+ *
+ * Map from an entity ID to a 32-bit unsigned index.
+ */
 
 #pragma once
 
 #include "batteries_included.h"
 #include "primitive_types.h"
+#include "hash.h"
+#include "logging.h"
 
 #include "api.h"
 #include "buffer.h"
 
+
+namespace buffer {
+
 #define DEFAULT_BHT_CELL_COUNT 64
 
-class BufferHashTable {
+class HashTable {
 protected:
     struct Cell {
-        ID      id;
-        u32     index;
+        ID   id;
+        u32  index;
     };
     struct Metadata {
         u32  magic;
@@ -28,12 +33,12 @@ protected:
         Cell map[];
     };
 
-    Metadata         *      m_metadata;
-    GameState        *      m_state;
-    BufferDescriptor *const m_bd;
+    Metadata   *      m_metadata;
+    GameState  *      m_state;
+    Descriptor *const m_bd;
 
 public:
-    BufferHashTable(BufferDescriptor *const bd, u32 cell_count=0)
+    HashTable(Descriptor *const bd, u32 cell_count=0)
         : m_metadata ( nullptr )
         , m_state    ( nullptr )
         , m_bd       ( bd      )
@@ -43,8 +48,8 @@ public:
         // more than the number of cells in the table
         initialize(cell_count, cell_count + 1);
     }
-    BufferHashTable(GameState& state, c_cstr name,
-                    u32 cell_count=0, u64 miss_tolerance=32)
+    HashTable(GameState& state, c_cstr name,
+              u32 cell_count=0, u64 miss_tolerance=32)
         : m_metadata ( nullptr)
         , m_state    ( &state )
         , m_bd       ( state.memory.lookup(name) )
@@ -62,7 +67,7 @@ protected:
            memory used for metadata. */
         if (m_metadata->magic != 0xBADB33F) {
             if (m_metadata->magic) {
-                LOG("WARNING: BufferHashTable corruption detected, clearing "
+                LOG("WARNING: Buffer HashTable corruption detected, clearing "
                     "all associated data and reinitializing the map. "
                     "Underlying buffer is named %s, and is located at %p. "
                     "Corruption detected by magic number (%x is neither 0 "
@@ -166,7 +171,7 @@ public:
         memcpy(intermediate_bd.data, m_bd->data, m_bd->size);
         ptrdiff cur_offset = m_bd->cursor - m_bd->data;
         intermediate_bd.cursor = intermediate_bd.data + cur_offset;
-        BufferHashTable src(&intermediate_bd);
+        HashTable src(&intermediate_bd);
 
         // Resize the backing buffer
         auto needed_bytes = sizeof(Metadata) + sizeof(Cell) * cell_count;
@@ -220,3 +225,5 @@ public:
         }
     }
 };
+
+} /* namespace buffer */

@@ -14,14 +14,13 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
+#include "buffer.h"
+
 #include "cvar.h"
 #include "data/ui_command.h"
 #include "data/vg_command.h"
 #include "data/input_event.h"
 
-
-/* Forward declaration; defined and used in buffer.h */
-struct BufferDescriptor;
 
 // TODO: extern "C" the whole API file
 
@@ -58,13 +57,13 @@ struct StepStat {
 struct GameState {
     /* Memory backing all game buffers */
     struct Memory {
-        BufferDescriptor *const (*create)         (c_cstr name, u64 size,
-                                                   BufferFlags flags);
-        u64                     (*resize)         (BufferDescriptor *const bd,
-                                                   u64 new_size);
-        void                    (*destroy)        (BufferDescriptor *const bd);
-        BufferDescriptor *const (*lookup)         (c_cstr name);
-        BufferDescriptor *const (*lookupHistoric) (c_cstr name, u64 frame);
+        Buffer *const (*create)         (c_cstr name, u64 size,
+                                         buffer::Flags flags);
+        u64           (*resize)         (Buffer *const bd,
+                                         u64 new_size);
+        void          (*destroy)        (Buffer *const bd);
+        Buffer *const (*lookup)         (c_cstr name);
+        Buffer *const (*lookupHistoric) (c_cstr name, u64 frame);
         c_cstr strings_buffer_id;
     } memory;
 
