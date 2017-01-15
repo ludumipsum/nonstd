@@ -36,6 +36,8 @@ typedef CVar<int64_t>     CVar_i;
 typedef CVar<bool>        CVar_b;
 typedef CVar<c_cstr>      CVar_s;
 
+extern u64 saveCvars(c_cstr filename="cvars.ini");
+extern u64 loadCvars(c_cstr filename="cvars.ini");
 
 template<typename VALUE_TYPE>
 class CVar {
@@ -93,11 +95,26 @@ public:
     // Explicit value cast
     inline VALUE_TYPE& value(void) { return m_value; }
 
+    // Accessor for the name string
+    inline c_cstr name(void) { return m_name; }
+
+    // Accessor for the synopsis string
+    inline c_cstr synopsis(void) { return m_synopsis; }
+
+    // Accessor for the next entry in the per-type list
+    inline CVar<VALUE_TYPE>* next(void) { return m_next; }
+
     // Register a callback to take some action when this setting is changed.
     // NB. Only one such callback may be registered per cvar.
     inline void watch(std::function<void(VALUE_TYPE)> const& callback) {
         m_watch_callback = callback;
     }
+
+    inline bool hasConstraints(void) { return m_min != m_max; }
+
+    inline VALUE_TYPE min(void) { return m_min; }
+
+    inline VALUE_TYPE max(void) { return m_max; }
 
     static CVar<VALUE_TYPE>* find(c_cstr name);
 
