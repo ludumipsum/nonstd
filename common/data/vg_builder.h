@@ -48,7 +48,10 @@ public:
     }
     inline VG(GameState& state)
         : m_current      ( { 0 }                                 )
-        , m_vgcl         ( state, state.out.vg_command_buffer_id )
+        , m_vgcl (
+            state.memory.lookup(state.out.vg_command_buffer_id),
+            state.memory.resize
+        )
         , m_fill         ( false                                 )
         , m_fill_color   ( { 0 }                                 )
         , m_stroke       ( false                                 )

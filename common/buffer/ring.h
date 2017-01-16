@@ -23,7 +23,7 @@ namespace buffer {
 template<typename T>
 class Ring : protected Slice<T> {
 public:
-    Ring(Descriptor *const bd) : Slice<T>(bd) { }
+    Ring(Descriptor *const bd) : Slice<T>(bd, nullptr) { }
     Ring(GameState& state, c_cstr name) : Slice<T>(state, name) { }
 
     inline T& push(T& value) {
@@ -42,7 +42,7 @@ public:
 
     inline void drop()  { return Slice<T>::drop();   }
     inline u64 size()   { return Slice<T>::size();   }
-    inline u64 length() { return Slice<T>::length(); }
+    inline u64 count()  { return Slice<T>::count();  }
 
     /* Iterator respecting extents modulo ring size */
     class iterator {
@@ -66,18 +66,18 @@ public:
 
         // Pre-increment — step forward and return this
         inline iterator& operator++() {
-            offset = (offset + 1) % ring.length();
+            offset = (offset + 1) % ring.count();
             return *this;
         }
         // Post-increment — return a copy created before stepping forward
         inline iterator operator++(int) {
             iterator copy = *this;
-            offset = (offset + 1) % ring.length();
+            offset = (offset + 1) % ring.count();
             return copy;
         }
         template<typename U>
         inline iterator& operator+=(U n) {
-            offset = (offset + n) % ring.length();
+            offset = (offset + n) % ring.count();
             return *this;
         }
         template<typename U>
@@ -96,7 +96,7 @@ public:
     inline iterator end() {
         if (this->m_bd == nullptr) { return iterator(*this, 0); }
         ptrdiff offset = (T*)this->m_bd->cursor - (T*)this->m_bd->data;
-        if (offset >= length()) {
+        if (offset >= count()) {
             offset = 0;
         }
         return iterator(*this, offset);
@@ -106,7 +106,7 @@ public:
     inline iterator begin() {
         if (this->m_bd == nullptr) { return end(); }
         T* iter_begin = (T*)this->m_bd->cursor + 1;
-        T const* wrap_at = (T*)this->m_bd->data + length();
+        T const* wrap_at = (T*)this->m_bd->data + count();
         if (iter_begin >= wrap_at) {
             iter_begin = (T*)this->m_bd->data;
         }

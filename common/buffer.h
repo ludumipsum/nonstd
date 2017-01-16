@@ -82,3 +82,5 @@ inline Descriptor make_buffer(ptr p, u64 size,
 } /* namespace buffer */
 
 typedef buffer::Descriptor Buffer;
+
+typedef u64 (*BufferResizeFn) (Buffer *const, u64);
