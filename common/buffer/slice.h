@@ -138,6 +138,7 @@ public:
         erase(((T*)(m_bd->data) + index_begin), ((T*)(m_bd->data) + index_end));
     }
 
+    // TODO: Consider memoizing `count`, `max_count`?
     /* Return the size of the Slice in bytes. */
     inline u64 size()      { return m_bd->size; }
     /* Return the number of objects currently stored in the Slice. */

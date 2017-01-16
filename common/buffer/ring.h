@@ -4,7 +4,32 @@
  * Buffer Rings are a variant of Buffer Slices, which expose a ring buffer
  * as a view over a Descriptor. Imagine that.
  *
+ * This Ring is being written s.t. resizes never automatically occur; writes
+ * past the object `count()` will cause the oldest object in the ring to
+ * be overwritten. This also means we need some way of storing the current Head
+ * and Tail between frames (read: outside of the Ring view). Currently, I'm
+ * subverting the buffer Descriptor's cursor for this task. See below for
+ * ASCII-art visual aids.
+ *
  * Like all Buffer views, these are meant to be lightweight, created  on demand.
+ *
+ *
+ *
+ * |.data                             |(.data + .size)
+ * |----------------------------------|
+ * |Tail{0}                    Head{N}|.cursor{= 0}
+ *
+ *
+ * |.data                             |(.data + .size)
+ * |Head{0}                           |
+ * ||---------------------------------|=|
+ * =|Tail{1}                            |.cursor{= sizeof(T)*1}
+ *
+ *
+ * |.data                   Head{N-1}||(.data + .size)
+ * |---------------------------------||===================================|
+ * ===================================|Tail{N}       .cursor{=sizeof(T)*N}|
+ *
  */
 
 #pragma once
@@ -23,97 +48,127 @@ namespace buffer {
 template<typename T>
 class Ring : protected Slice<T> {
 public:
-    Ring(Descriptor *const bd) : Slice<T>(bd, nullptr) { }
-    Ring(GameState& state, c_cstr name) : Slice<T>(state, name) { }
-
-    inline T& push(T& value) {
-        if (this->m_bd == nullptr) return value;
-        u64* frameno = (u64*)&value;
-        f64* data = (f64*)(frameno + 1);
-        auto buffer_start   = (u8*)this->m_bd->data,
-             buffer_end     = (u8*)this->m_bd->cursor;
-        u64  currently_used = buffer_end - buffer_start;
-        u64  currently_free = this->m_bd->size - currently_used;
-        if (currently_free < sizeof(T)) {
-            this->m_bd->cursor = this->m_bd->data;
-        }
-        return Slice<T>::push(value);
+    inline static u64 precomputeSize() {
+        return Slice<T>::precomputeSize();
     }
 
-    inline void drop()  { return Slice<T>::drop();   }
-    inline u64 size()   { return Slice<T>::size();   }
-    inline u64 count()  { return Slice<T>::count();  }
+protected:
+    /* Indexes of the write-head and read-tail. */
+    u64 m_head;
+    u64 m_tail;
+
+
+    /* Helper function to correctly increment Ring indexes. */
+    inline u64 increment(u64 index, u64 n = 1) {
+        // TODO: Potential divide-by-zero error
+        return ((index + n) % count());
+    }
+    /* Helper function to correctly decrement Ring indexes */
+    inline u64 decrement(u64 index, u64 n = 1) {
+        if (index >= n) { return (index - n); }
+        u64 past_zero = n - index;
+        return (count() - past_zero);
+    }
+
+public:
+    Ring(Descriptor *const bd,
+         BufferResizeFn resize = nullptr)
+        : Slice<T>(bd, resize)
+        , m_head ( 0 )
+        , m_tail ( 0 )
+    {
+        ptr buffer_end = this->m_bd->data + this->m_bd->size;
+        if (this->m_bd->cursor > buffer_end) {
+            // We're in a full ring.
+            ptrdiff tail_offset = this->m_bd->cursor - buffer_end;
+            m_tail = tail_offset / sizeof(T);
+            m_head = decrement(m_tail);
+        } else {
+            // The ring isn't full, and we're essentially in a Slice.
+            ptrdiff head_offset = this->m_bd->cursor - this->m_bd->data;
+            m_tail = 0;
+            m_head = head_offset / sizeof(T);
+        }
+    }
+
+    inline T& push(T& value) {
+        /* If the ring is full, overwrite the element at `m_tail`. */
+        if (count() == Slice<T>::max_count()) {
+            this[m_tail] = value;
+            /* Increment `m_head` and `m_tail` by one (wrapping when necessary)
+             * and set the Descriptor's cursor past the end of the buffer based
+             * on the calculated value of `m_tail`. */
+            increment(m_head);
+            increment(m_tail);
+            this->m_bd->cursor = this->m_bd->data +
+                                 this->m_bd->size +
+                                 (sizeof(T) * m_tail);
+        } else {
+            return Slice<T>::push(value);
+            m_head++;
+        }
+    }
+
+    /* Return the number of objects currently stored in the Ring. */
+    inline u64 count() {
+        ptr buffer_end = this->m_bd->data + this->m_bd->size;
+        // Ring is full, count == max_count
+        if (this->m_bd->cursor > buffer_end) { return Slice<T>::max_count(); }
+        return Slice<T>::count();
+    }
 
     /* Iterator respecting extents modulo ring size */
     class iterator {
     public:
         typedef std::output_iterator_tag iterator_category;
 
-        Ring &ring;
-        ptrdiff     offset;
+        Ring& ring;
+        u64   index;
 
-        iterator(Ring& ring, u64 offset=0)
-            : ring(ring)
-            , offset(offset) { }
+        iterator(Ring& ring,
+                 u64 index=0)
+            : ring  ( ring   )
+            , index ( index ) { }
 
         inline bool operator==(const iterator& other) const {
-            return &ring  == &other.ring
-                && offset ==  other.offset;
+            return &ring == &other.ring && index == other.index;
         }
         inline bool operator!=(const iterator& other) const {
-            return ! (*this == other);
+            return !(*this == other);
         }
 
-        // Pre-increment — step forward and return this
+        // Pre-increment -- step forward and return `this`.
         inline iterator& operator++() {
-            offset = (offset + 1) % ring.count();
+            index = ring.increment(index);
             return *this;
         }
-        // Post-increment — return a copy created before stepping forward
+        // Post-increment -- return a copy created before stepping forward.
         inline iterator operator++(int) {
             iterator copy = *this;
-            offset = (offset + 1) % ring.count();
+            index = ring.increment(index);
             return copy;
         }
-        template<typename U>
-        inline iterator& operator+=(U n) {
-            offset = (offset + n) % ring.count();
+        // Increment and assign -- step forward by `n` and return `this`.
+        inline iterator& operator+=(u64 n) {
+            index = (index + n) % ring.count();
             return *this;
         }
-        template<typename U>
-        inline iterator operator+(U n) {
+        // Arithmetic increment -- return an incremented copy.
+        inline iterator operator+(u64 n) {
             iterator copy = *this;
             copy += n;
             return copy;
         }
 
-        inline T& operator*() const { return ring[offset]; }
+        // Dereference -- return the current value.
+        inline T& operator*() const { return ring[index]; }
     };
 
 
-    /* When we've rolled through the entire loop and wound up at the current
-       cursor location, we're done cycling through the ring */
-    inline iterator end() {
-        if (this->m_bd == nullptr) { return iterator(*this, 0); }
-        ptrdiff offset = (T*)this->m_bd->cursor - (T*)this->m_bd->data;
-        if (offset >= count()) {
-            offset = 0;
-        }
-        return iterator(*this, offset);
-    }
-    /* Grab the start of the iteration range, respecting the modulus at the
-       end of the ring */
-    inline iterator begin() {
-        if (this->m_bd == nullptr) { return end(); }
-        T* iter_begin = (T*)this->m_bd->cursor + 1;
-        T const* wrap_at = (T*)this->m_bd->data + count();
-        if (iter_begin >= wrap_at) {
-            iter_begin = (T*)this->m_bd->data;
-        }
-        /* Build an iterator object from the computed start point */
-        ptrdiff offset = iter_begin - (T*)this->m_bd->data;
-        return iterator(*this, offset);
-    }
+    /* The first element the iterator should touch is at `m_tail`. */
+    inline iterator begin() { return iterator(*this, m_tail); }
+    /* The last element the iterator should touch is at `m_head`. */
+    inline iterator end()   { return iterator(*this, m_head); }
 };
 
 } /* namespace buffer */
