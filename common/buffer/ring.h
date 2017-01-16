@@ -94,15 +94,16 @@ public:
     inline T& push(T& value) {
         /* If the ring is full, overwrite the element at `m_tail`. */
         if (count() == Slice<T>::max_count()) {
-            this[m_tail] = value;
+            (*this)[m_tail] = value;
             /* Increment `m_head` and `m_tail` by one (wrapping when necessary)
              * and set the Descriptor's cursor past the end of the buffer based
              * on the calculated value of `m_tail`. */
-            increment(m_head);
-            increment(m_tail);
+            m_head = increment(m_head);
+            m_tail = increment(m_tail);
             this->m_bd->cursor = this->m_bd->data +
                                  this->m_bd->size +
                                  (sizeof(T) * m_tail);
+            return value;
         } else {
             return Slice<T>::push(value);
             m_head++;
@@ -150,7 +151,7 @@ public:
         }
         // Increment and assign -- step forward by `n` and return `this`.
         inline iterator& operator+=(u64 n) {
-            index = (index + n) % ring.count();
+            index = ring.increment(index, n);
             return *this;
         }
         // Arithmetic increment -- return an incremented copy.
