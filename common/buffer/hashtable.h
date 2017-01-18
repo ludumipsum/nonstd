@@ -10,6 +10,7 @@
 #include "primitive_types.h"
 #include "hash.h"
 #include "logging.h"
+#include "mathutils.h"
 
 #include "api.h"
 #include "buffer.h"
