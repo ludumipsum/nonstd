@@ -39,11 +39,14 @@
 
 namespace buffer {
 
+/* NB. This can only handle 63 bits of addressing, so if you have more than
+ *     9.2 Exabytes of data in one Ring, rethink life.
+ */
 template<typename T>
 class Ring {
 public:
-    inline static u64 precomputeSize() {
-        return Slice<T>::precomputeSize();
+    inline static u64 precomputeSize(u64 count) {
+        return count * sizeof(T);
     }
 
 protected:
@@ -81,7 +84,7 @@ public:
         BREAKPOINT();
     }
 
-    inline T& operator[](u64 index) {
+    inline T& operator[](i64 index) {
 #if defined(DEBUG)
         // TODO: Better logging
         if (index >= capacity()) {
@@ -90,22 +93,21 @@ public:
             BREAKPOINT();
         }
 #endif
-        u64 target_index = increment(m_write_head, (1 + index));
+        u64 target_index = increment(m_write_head, (index));
         return *((T*)(m_bd->data) + target_index);
     }
 
-    inline T& push(T& value) {
-        m_write_head = increment(m_write_head);
+    inline T& push(T value) {
         T* mem       = (T*)(m_bd->data) + m_write_head;
         *mem         = value;
-        m_bd->cursor = (ptr)mem;
+        m_write_head = increment(m_write_head);
+        m_bd->cursor = (ptr)((T*)(m_bd->data) + m_write_head);
         return *mem;
     }
 
-
     class iterator;
-    inline iterator begin() { return iterator(*this, increment(m_write_head)); }
-    inline iterator end()   { return iterator(*this, m_write_head);  }
+    inline iterator begin() { return iterator(*this, m_write_head); }
+    inline iterator end()   { return iterator(*this, increment(m_write_head)); }
 
     class iterator {
     public:
@@ -155,15 +157,24 @@ public:
 
 
 protected:
-    inline u64 increment(u64 index, u64 n = 1) {
-        // TODO: Potential divide-by-zero error
-        return ((index + n) % capacity());
+    inline u64 increment(u64 index, i64 n = 1) {
+        if (n >= 0) {
+            // TODO: Potential divide-by-zero error
+            return ((index + n) % capacity());
+        } else {
+            return decrement(index, -n);
+        }
     }
 
-    inline u64 decrement(u64 index, u64 n = 1) {
-        if (index >= n) { return (index - n); }
-        u64 past_zero = n - index;
-        return (capacity() - past_zero);
+    inline u64 decrement(u64 index, i64 n = 1) {
+        if (n >= 0) {
+            while (index < n) {
+                index += capacity();
+            }
+            return index - n;
+        } else {
+            return increment(index, -n);
+        }
     }
 };
 
