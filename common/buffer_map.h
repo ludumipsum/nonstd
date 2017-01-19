@@ -130,7 +130,7 @@ public:
         Cell* cellptr = lookup_cell(key);
         if (cellptr != nullptr) {
             return (buffer::Descriptor *const)
-                   ((u8*)m_bd->data + cellptr->offset);
+                   ((u8*)(m_bd->data) + cellptr->offset);
         }
         return nullptr;
     }
