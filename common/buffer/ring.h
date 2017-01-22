@@ -106,16 +106,16 @@ public:
     }
 
     class iterator;
-    inline iterator begin() { return iterator(*this, m_write_head); }
-    inline iterator end()   { return iterator(*this, m_write_head, capacity()); }
+    inline iterator begin() { return { *this, m_write_head }; }
+    inline iterator end()   { return { *this, m_write_head, capacity() }; }
 
     class iterator {
     public:
         typedef std::output_iterator_tag iterator_category;
 
-        Ring& ring      /*< The ring being iterated. */
-        u64   index     /*< The index this iterator is "referencing". */
-        u64   traversed /*< How far through the ring this iterator has moved. */
+        Ring& ring;      /*< The ring being iterated. */
+        u64   index;     /*< The index this iterator is "referencing". */
+        u64   traversed; /*< How far through the ring this iterator has moved. */
 
         iterator(Ring& ring,
                  u64   index,
@@ -147,6 +147,7 @@ public:
             return copy;
         }
         // Increment and assign -- step forward by `n` and return `this`.
+        // TODO: Verify we don't increment past the end of the ring.
         inline iterator& operator+=(u64 n) {
             index = ring.increment(index, n);
             traversed += n;

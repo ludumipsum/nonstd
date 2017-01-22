@@ -27,6 +27,18 @@ typedef char const *    c_cstr;
 typedef ptrdiff_t       ptrdiff;
 typedef uint8_t *       ptr;
 typedef uint8_t const * c_ptr;
+typedef void *          print_ptr;
+
+#define  Fu8     "%"  PRIu8
+#define Fu16     "%" PRIu16
+#define Fu32     "%" PRIu32
+#define Fu64     "%" PRIu64
+#define  Fi8     "%"  PRId8
+#define Fi16     "%" PRId16
+#define Fi32     "%" PRId32
+#define Fi64     "%" PRId64
+#define Fptr     "%p"
+#define Fptrdiff "%td"
 
 inline ptr  n2malloc(size_t size)           { return (ptr)(malloc(size)); }
 inline ptr  n2alloca(size_t size)           { return (ptr)(alloca(size)); }
