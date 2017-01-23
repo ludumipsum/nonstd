@@ -42,6 +42,8 @@ protected:
     static const u32 magic = 0xDEFACED;
     struct Metadata {
         u32 magic;
+        u64 capacity;
+        u64 count;
         u64 write_head;
         u64 read_head;
         T   data[];
@@ -53,16 +55,19 @@ public:
     }
 
     inline static void initializeBuffer(Descriptor *const bd) {
-        Metadata metadata = (Metadata*)bd->data;
+        Metadata * metadata = (Metadata*)bd->data;
         if (metadata->magic && metadata->magic != magic) {
             LOG("WARNING: Buffer Stream corruption detected.\n"
                 "Underlying buffer is named %s, and is located at %p. Magic "
                 "number was expected to be %x, but is %x.\n"
-                "Clearing all associated data and reinitializing the Stream",
-                bd->name, bd, magic, metadata->magic);
+                "Clearing all associated data (" Fu64 " elements) and "
+                "reinitializing the Stream",
+                bd->name, bd, magic, metadata->magic, metadata->count);
             DEBUG_BREAKPOINT();
         }
         metadata->magic      = magic;
+        metadata->count      = 0;
+        metadata->capacity   = (bd->size - sizeof(Metadata)) / sizeof(T);
         metadata->write_head = 0;
         metadata->read_head  = 0;
         memset(metadata->data, '\0', (bd->size - sizeof(Metadata)));
@@ -97,27 +102,20 @@ public:
     }
 
     inline void drop() {
-        m_metadata->read_head = m_metadata->write_head = 0;
+        m_metadata->read_head = m_metadata->write_head = m_metadata->count = 0;
     }
 
     inline u64 size() {
         return m_bd->size;
     }
 
-    /* Returns the number of objects currently accessible in the Stream.
-     * Let's draw a picture.
-     *     0       1       2       3       4       5       6       7
-     *                     | Read ------------------ Write |          | (6-2)
-     *     >-------- Write |                               | Read -<  | (7-6)+2
-     */
+    /* Returns the number of objects currently accessible in the Stream. */
     inline u64 count() {
-        if (m_metadata->write_head > m_metadata->read_head)
-            return (m_metadata->write_head - m_metadata->read_head);
-        return (capacity() - m_metadata->read_head) + m_metadata->write_head;
+        return m_metadata->count;
     }
 
     inline u64 capacity() {
-        return (m_bd->size - sizeof(Metadata)) / sizeof(T);
+        return m_metadata->capacity;
     }
 
 
@@ -135,7 +133,7 @@ public:
             BREAKPOINT();
         } else if (index > count()) {
             LOG("buffer::Stream -- invalid data requested. %d / %d in %s."
-                index, capacity(), m_bd->name);
+                index, count(), m_bd->name);
             BREAKPOINT();
         }
 #endif
@@ -143,18 +141,22 @@ public:
         return m_metadata->data[target_index];
     }
 
-    inline T& push(T& value) {
+    inline T& push(T value) {
+        T* mem = m_metadata->data + m_metadata->write_head;
+        *mem = value;
         m_metadata->write_head = increment(m_metadata->write_head);
-        (*this)[m_metadata->write_head] = value;
-        if (m_metadata->write_head == m_metadata->read_head)
+        if (count() == capacity()) {
             m_metadata->read_head = increment(m_metadata->read_head);
-        return m_metadata->data[m_metadata->write_head];
+        } else {
+            m_metadata->count += 1;
+        }
+        return *mem;
     }
 
 
     class iterator;
-    inline iterator begin() { return iterator(*this, m_metadata->read_head);  }
-    inline iterator end()   { return iterator(*this, m_metadata->write_head); }
+    inline iterator begin() { return { *this }; }
+    inline iterator end()   { return { *this, count() }; }
 
     class iterator {
     public:
@@ -164,31 +166,33 @@ public:
         u64     index;
 
         iterator(Stream& stream,
-                 u64 index=0)
-            : stream  ( stream   )
-            , index ( index ) { }
+                 u64     index = 0)
+            : stream ( stream )
+            , index  ( index  ) { }
 
         inline bool operator==(const iterator& other) const {
             return &stream == &other.stream && index == other.index;
         }
+
         inline bool operator!=(const iterator& other) const {
             return !(*this == other);
         }
 
         // Pre-increment -- step forward and return `this`.
         inline iterator& operator++() {
-            index = stream.increment(index);
+            index += 1;
             return *this;
         }
         // Post-increment -- return a copy created before stepping forward.
         inline iterator operator++(int) {
             iterator copy = *this;
-            index = stream.increment(index);
+            index += 1;
             return copy;
         }
         // Increment and assign -- step forward by `n` and return `this`.
+        // TODO: Verify we don't increment past the end of the stream.
         inline iterator& operator+=(u64 n) {
-            index = stream.increment(index, n);
+            index += n;
             return *this;
         }
         // Arithmetic increment -- return an incremented copy.
