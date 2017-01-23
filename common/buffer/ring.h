@@ -106,8 +106,8 @@ public:
     }
 
     class iterator;
-    inline iterator begin() { return { *this, m_write_head }; }
-    inline iterator end()   { return { *this, m_write_head, capacity() }; }
+    inline iterator begin() { return { *this }; }
+    inline iterator end()   { return { *this,  capacity() }; }
 
     class iterator {
     public:
@@ -115,19 +115,14 @@ public:
 
         Ring& ring;      /*< The ring being iterated. */
         u64   index;     /*< The index this iterator is "referencing". */
-        u64   traversed; /*< How far through the ring this iterator has moved. */
 
         iterator(Ring& ring,
-                 u64   index,
-                 u64   traversed = 0)
-            : ring      ( ring      )
-            , index     ( index     )
-            , traversed ( traversed ) { }
+                 u64   index = 0)
+            : ring  ( ring  )
+            , index ( index ) { }
 
         inline bool operator==(const iterator& other) const {
-            return    &ring     == &other.ring
-                   && index     == other.index
-                   && traversed == other.traversed;
+            return &ring == &other.ring && index == other.index;
         }
         inline bool operator!=(const iterator& other) const {
             return !(*this == other);
@@ -135,22 +130,19 @@ public:
 
         // Pre-increment -- step forward and return `this`.
         inline iterator& operator++() {
-            index = ring.increment(index);
-            traversed += 1;
+            index += 1;
             return *this;
         }
         // Post-increment -- return a copy created before stepping forward.
         inline iterator operator++(int) {
             iterator copy = *this;
-            index = ring.increment(index);
-            traversed += 1;
+            index += 1;
             return copy;
         }
         // Increment and assign -- step forward by `n` and return `this`.
         // TODO: Verify we don't increment past the end of the ring.
         inline iterator& operator+=(u64 n) {
-            index = ring.increment(index, n);
-            traversed += n;
+            index += n;
             return *this;
         }
         // Arithmetic increment -- return an incremented copy.
