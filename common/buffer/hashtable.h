@@ -15,143 +15,134 @@
 #include "api.h"
 #include "buffer.h"
 
+/* HashTableKey.   To help kick-off the switch to a templated class. */
+#define HTK ID
+/* HashTableValue. To help kick-off the switch to a templated class. */
+#define HTV u32
 
 namespace buffer {
 
-#define DEFAULT_BHT_CELL_COUNT 64
-
 class HashTable {
-protected:
+protected: /*< ## Sub-Types */
+    static const u32 magic = 0xBADB33F;
     struct Cell {
-        ID   id;
-        u32  index;
+        HTK  key;
+        HTV  value;
     };
     struct Metadata {
         u32  magic;
-        u32  cell_count;
+        u64  cell_capacity;
         u64  miss_tolerance;
+        u64  cell_count;
         bool rehash_in_progress;
         Cell map[];
     };
 
-    Metadata   *      m_metadata;
-    GameState  *      m_state;
-    Descriptor *const m_bd;
 
-public:
-    HashTable(Descriptor *const bd, u32 cell_count=0)
-        : m_metadata ( nullptr )
-        , m_state    ( nullptr )
-        , m_bd       ( bd      )
-    {
-        // Since instances created with this constructor can't be resized, we
-        // set the miss_tolerance to something that can never be reached: one
-        // more than the number of cells in the table
-        initialize(cell_count, cell_count + 1);
-    }
-    HashTable(GameState& state, c_cstr name,
-              u32 cell_count=0, u64 miss_tolerance=32)
-        : m_metadata ( nullptr)
-        , m_state    ( &state )
-        , m_bd       ( state.memory.lookup(name) )
-    {
-        miss_tolerance = n2min(cell_count, miss_tolerance);
-        initialize(cell_count, miss_tolerance);
+public: /*< ## Class Methods */
+    inline static u64 precomputeSize(u64 capacity) {
+        return sizeof(Metadata) + sizeof(Cell) * capacity;
     }
 
-protected:
-
-    /* Set up the metadata structure at the start of the data segment */
-    inline void initialize(u32 cell_count, u64 miss_tolerance) {
-        m_metadata = (Metadata*) m_bd->data;
-        /* If the map hasn't been used before, or is corrupted, reset all the
-           memory used for metadata. */
-        if (m_metadata->magic != 0xBADB33F) {
-            if (m_metadata->magic) {
-                LOG("WARNING: Buffer HashTable corruption detected, clearing "
-                    "all associated data and reinitializing the map. "
-                    "Underlying buffer is named %s, and is located at %p. "
-                    "Corruption detected by magic number (%x is neither 0 "
-                    "nor 0xBADB33F)",
-                    m_bd->name, m_bd, m_metadata->magic);
-                DEBUG_BREAKPOINT();
-            }
-            // Default size if none is specified
-            if (cell_count == 0) {
-                cell_count = DEFAULT_BHT_CELL_COUNT;
-            }
-            // Resize if necessary
-            auto metadata_size = sizeof(Metadata) + sizeof(Cell) * cell_count;
-            if (m_bd->size < metadata_size) {
-                m_state->memory.resize(m_bd, metadata_size);
-                m_metadata = (Metadata*) m_bd->data;
-            }
-            // Initialize metadata
-            m_metadata->magic = 0xBADB33F;
-            m_metadata->cell_count = cell_count;
-            m_metadata->miss_tolerance = miss_tolerance;
-            memset(&m_metadata->map, '\0', sizeof(Cell) * cell_count);
-            m_bd->cursor = (ptr)( &m_metadata->map[0] + cell_count );
-        }
-        /* If the number of buckets in the call differs, complain. */
-        if (cell_count && m_metadata->cell_count != cell_count) {
-            LOG("WARNING: Caller expects the map to contain %d cells, but "
-                "metadata shows it was initailized with %d.",
-                cell_count, m_metadata->cell_count);
+    static const u64 default_cell_capacity  = 64;
+    static const u64 default_miss_tolerance = 16;
+    inline static void initializeBuffer(Descriptor *const bd,
+                                        u64 capacity = 0,
+                                        u64 miss_tolerance = 0) {
+        Metadata * metadata = (Metadata *)bd->data;
+        if (metadata->magic && metadata->magic != magic) {
+            LOG("WARNING: Buffer HashTable corruption detected.\n"
+                "Underlying buffer is named %s, and is located at %p.\n"
+                "Corruption detected by magic numer --- %x is neither 0 nor %x."
+                "If there's more information to print about this HashTable, we "
+                "should add it to the code that prints this message.\n"
+                "Clearing all associated data and reinitializing the map.",
+                bd->name, bd, metadata->magic, magic);
             DEBUG_BREAKPOINT();
         }
-    }
-
-    inline Cell *const lookup_cell(ID id) {
-        auto const cell_count = m_metadata->cell_count;
-        auto& map = m_metadata->map;
-        auto hash = shift64(id);
-
-        auto cell_index = hash % cell_count;
-        auto const final_cellid = (cell_index - 1) % cell_count;
-
-        Cell* ptr = nullptr;
-        u64 misses = 0;
-
-        // This loop will exit when either,
-        //  1. We've wrapped the entire cell table and no viable cell has been
-        //     found -- nullptr will be returned.
-        //  2. We've found no cell associated with the given `id`, but we have
-        //     found an empty cell that may be associated with the `id` -- an
-        //     uninitialized cell will be returned.
-        //  3. We've found an initialized cell associated with the given `id` --
-        //     an initialized cell will be returned.
-        while(cell_index != final_cellid && map[cell_index].id >= ID_DELETED) {
-            Cell& cell = map[cell_index];
-            if (cell.id == id) {
-                ptr = &cell;
-                break;
-            }
-            cell_index = (1 + cell_index) % cell_count;
-            misses += 1;
-        }
-
-        if (cell_index != final_cellid) {
-            ptr = &map[cell_index];
-        }
-
-        bool rehash_allowed = ! m_metadata->rehash_in_progress;
-        if (misses > m_metadata->miss_tolerance && rehash_allowed) {
-            rehash_by(1.2f);
-        } else if (! rehash_allowed && cell_index == final_cellid) {
-            LOG("ERROR: Table is full, and I can't resize.");
+        if (metadata->rehash_in_progress) {
+            LOG("ERROR: Buffer HashTable has been reinitialized while "
+                "`rehash_in_progress == true`. I don't know what to do here.\n"
+                "Underlying buffer is named %s, and it is located at %p.",
+                bd->name, bd);
             BREAKPOINT();
         }
-
-        return ptr;
+        metadata->magic              = 0xBADB33F;
+        metadata->cell_capacity      = capacity       ? capacity
+                                                      : default_cell_capacity;
+        metadata->miss_tolerance     = miss_tolerance ? miss_tolerance
+                                                      : default_miss_tolerance;
+        metadata->cell_count         = 0;
+        metadata->rehash_in_progress = false; /*< TODO: uhh... This? y/n? */
+        memset(&metadata->map, '\0', sizeof(Cell) * capacity);
     }
 
-public:
-    inline void rehash_to(u64 cell_count) {
-        if (m_state == nullptr) {
-            LOG("ERROR: Can't resize a hashtable without a state ref.");
-            BREAKPOINT();
+
+protected: /*< ## Public Member Variables */
+    Descriptor *const m_bd;
+    Metadata   *      m_metadata;
+    BufferResizeFn    m_resize;
+
+public: /*< ## Ctors, Detors, and Assignments */
+    HashTable(Descriptor *const bd,
+              BufferResizeFn resize = nullptr)
+        : m_bd       ( bd                      )
+        , m_metadata ( (Metadata*)(m_bd->data) )
+        , m_resize   ( resize                  ) { }
+
+public: /*< ## Public Memeber Methods */
+    // TODO: Error checking / reporting?
+    inline void resize(u64 capacity) {
+        _resize_to(capacity);
+    }
+
+    // TODO: Error checking / reporting?
+    inline void resize_by(f64 growth_factor) {
+        _resize_to((u64)(m_metadata->cell_capacity * growth_factor));
+    }
+
+    inline void drop() {
+        LOG("Does this function even make sense? Drop :allthethings:? ");
+        BREAKPOINT();
+    }
+
+    inline u64 size()           { return m_bd->size; }
+    inline u64 count()          { return m_metadata->cell_count; }
+    inline u64 capacity()       { return m_metadata->cell_capacity; }
+    inline u64 miss_tolerance() { return m_metadata->miss_tolerance; }
+
+    inline Optional<HTV> operator[](HTK key) { return lookup(key); }
+    inline Optional<HTV> lookup(HTK key) {
+        Cell *const cell = _lookup_cell(key);
+        if (cell == nullptr || cell->key != key) return { };
+        return { cell->value };
+    }
+
+    inline bool contains(HTK key) { return (bool)(lookup(key)); }
+
+    inline Optional<HTV> create(HTK key, HTV value) {
+        Cell *const cell = _lookup_cell(key);
+        if (cell == nullptr) return { }; /*< TODO: No room for a key? */
+        cell->key   = key;
+        cell->value = value;
+        return { value };
+    }
+
+    inline void destroy(HTK key) {
+        Cell *const cell = _lookup_cell(key);
+        if (cell != nullptr) {
+            cell->key   = ID_DELETED; /*< TODO: Use a HT-specific sentinel */
+            cell->value = 0;
         }
+    }
+
+
+protected: /*< Protected Member Methods */
+    inline void _resize_to(u64 capacity) {
+        LOG("This function is currently unimplemented.");
+        BREAKPOINT();
+
+        /* Below is what came... _Before_ */
 
         // Mark this hashtable as already in a rehash, so lookup_cell may not
         // heuristically trigger another rehash if we get unlucky
@@ -160,33 +151,34 @@ public:
         // FIXME: This is a super dumb hack to deal with our cell lookup code
         //        not being the most robust thing ever. Also to deal with the
         //        interface being kinda bad.
-        cell_count = n2max(16, cell_count);
+        capacity = n2max(16, capacity);
 
         // Copy all the data aside
         // TODO: REPLACE ME WITH SCRATCH BUFFER USAGE
         ptr intermediate = n2malloc(m_bd->size);
-        // TODO: AUGH MALLOC SADNESS
         if (intermediate == nullptr) BREAKPOINT();
+
         memset(intermediate, 0xFF, m_bd->size);
         auto intermediate_bd = make_buffer(intermediate, m_bd->size);
         memcpy(intermediate_bd.data, m_bd->data, m_bd->size);
-        ptrdiff cur_offset = m_bd->cursor - m_bd->data;
-        intermediate_bd.cursor = intermediate_bd.data + cur_offset;
+
+        // Create an intermediate HashTable using the data (and metadata) copied
+        // from the current HashTable.
         HashTable src(&intermediate_bd);
 
         // Resize the backing buffer
-        auto needed_bytes = sizeof(Metadata) + sizeof(Cell) * cell_count;
-        m_state->memory.resize(m_bd, needed_bytes);
-        m_metadata->cell_count = cell_count;
-        m_bd->cursor = (ptr)( &m_metadata->map[0] + cell_count );
+        m_resize(m_bd, HashTable::precomputeSize(capacity));
+        m_metadata->cell_capacity = capacity;
 
         // Rehash the table
-        Cell* final_cell = src.m_metadata->map + src.m_metadata->cell_count;
-        for(Cell *scell = src.m_metadata->map,
-                 *final_cell = src.m_metadata->map + src.m_metadata->cell_count;
+        // TODO: Drew, you should learn how this part works.
+        Cell* final_cell = src.m_metadata->map + src.m_metadata->cell_capacity;
+        for(Cell *scell     = src.m_metadata->map,
+                 *final_cell = src.m_metadata->map + src.m_metadata->cell_capacity;
             scell <= final_cell;
-            scell++) {
-            create(scell->id, scell->index);
+            scell++)
+        {
+            create(scell->key, scell->value);
         }
 
         // Discard temporary space (TODO: replace with scratch)
@@ -196,34 +188,53 @@ public:
         m_metadata->rehash_in_progress = false;
     }
 
-    inline void rehash_by(f32 growth_factor) {
-        rehash_to(growth_factor * m_metadata->cell_count);
-    }
+    inline Cell *const _lookup_cell(HTK key) {
+        auto const cell_capacity = m_metadata->cell_capacity;
+        auto& map  = m_metadata->map;
+        auto  hash = shift64(key);
 
-    inline Optional<u32> lookup(ID id) {
-        Cell *const cell = lookup_cell(id);
-        if (cell == nullptr || cell->id != id) return {};
-        return { cell->index };
-    }
+        /* Initial index for the given key. */
+        auto cell_index = hash % cell_capacity;
+        /* The last index that may terminate the below loop. */
+        auto const final_index = (cell_index - 1) % cell_capacity;
 
-    inline bool contains(ID id) {
-        return (bool)(lookup(id));
-    }
+        Cell* ptr = nullptr;
+        u64 misses = 0;
 
-    inline Optional<u64> create(ID id, u64 index) {
-        Cell *const cell = lookup_cell(id);
-        if (cell == nullptr) return {};
-        cell->id = id;
-        cell->index = index;
-        return { index };
-    }
-
-    inline void destroy(ID id) {
-        Cell *const cell = lookup_cell(id);
-        if (cell != nullptr) {
-            cell->id = ID_DELETED;
-            cell->index = 0;
+        // This loop will exit when either,
+        //  1. We've wrapped the entire cell table and no viable cell has been
+        //     found -- nullptr will be returned.
+        //  2. We've found no cell associated with the given `key`, but we have
+        //     found an empty cell that may be associated with the `key` -- an
+        //     uninitialized Cell will be returned.
+        //  3. We've found an initialized cell associated with the given `key`
+        //     -- an initialized Cell will be returned.
+        // NB. Any key with a value `< ID_DELETED` shall be considered empty,
+        //     and trigger the `break`.
+        while(cell_index != final_index && map[cell_index].key >= ID_DELETED) {
+            Cell& cell = map[cell_index];
+            if (cell.key == key) {
+                ptr = &cell;
+                break;
+            }
+            cell_index = (1 + cell_index) % cell_capacity;
+            misses += 1;
         }
+
+        if (cell_index != final_index) {
+            ptr = &map[cell_index];
+        }
+
+        bool exceeded_miss_tolerance = misses > m_metadata->miss_tolerance;
+        bool rehash_allowed = ! m_metadata->rehash_in_progress;
+        if (exceeded_miss_tolerance && rehash_allowed) {
+            resize_by(1.2f);
+        } else if (! rehash_allowed && cell_index == final_index) {
+            LOG("ERROR: Table is full, and I can't resize.");
+            BREAKPOINT();
+        }
+
+        return ptr;
     }
 };
 
