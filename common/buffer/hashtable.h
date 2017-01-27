@@ -111,15 +111,31 @@ public: /*< ## Public Memeber Methods */
     inline u64 capacity()       { return m_metadata->cell_capacity; }
     inline u64 miss_tolerance() { return m_metadata->miss_tolerance; }
 
-    inline Optional<HTV> operator[](HTK key) { return lookup(key); }
-    inline Optional<HTV> lookup(HTK key) {
+    /* Read/Write operation
+     * Returns valid Optional on key match and empty cell.
+     * TODO: This API is... not good. I don't think.
+     */
+    inline Optional<HTV> operator[](HTK key) {
         Cell *const cell = _lookup_cell(key);
-        if (cell == nullptr || cell->key != key) return { };
+        bool valid_key = cell->key == key || cell->key == 0;
+        if (cell == nullptr || ! valid_key) return { };
         return { cell->value };
     }
 
-    inline bool contains(HTK key) { return (bool)(lookup(key)); }
+    /* Read operation
+     * Returns valid Optional only on key match.
+     */
+    inline Optional<HTV> lookup(HTK key) {
+        Cell *const cell = _lookup_cell(key);
+        bool valid_key = cell->key == key;
+        if (cell == nullptr || ! valid_key) return { };
+        return { cell->value };
+    }
 
+    /* Write operation
+     * Happy to overwrite if a key already exists. Returns a valid Optional so
+     * long as there's room in the HashTable.
+     */
     inline Optional<HTV> create(HTK key, HTV value) {
         Cell *const cell = _lookup_cell(key);
         if (cell == nullptr) return { }; /*< TODO: No room for a key? */
@@ -135,6 +151,8 @@ public: /*< ## Public Memeber Methods */
             cell->value = 0;
         }
     }
+
+    inline bool contains(HTK key) { return (bool)(lookup(key)); }
 
 
 protected: /*< Protected Member Methods */
