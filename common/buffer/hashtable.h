@@ -47,7 +47,6 @@ public: /*< ## Class Methods */
     static const u64 default_cell_capacity  = 64;
     static const u64 default_miss_tolerance = 16;
     inline static void initializeBuffer(Descriptor *const bd,
-                                        u64 capacity = 0,
                                         u64 miss_tolerance = 0) {
         Metadata * metadata = (Metadata *)bd->data;
         if (metadata->magic && metadata->magic != magic) {
@@ -67,14 +66,15 @@ public: /*< ## Class Methods */
                 bd->name, bd);
             BREAKPOINT();
         }
+        u64 data_region_size = bd->size - sizeof(Metadata);
+        u64 capacity         = data_region_size / sizeof(Cell);
         metadata->magic              = magic;
-        metadata->cell_capacity      = capacity       ? capacity
-                                                      : default_cell_capacity;
+        metadata->cell_capacity      = capacity;
         metadata->miss_tolerance     = miss_tolerance ? miss_tolerance
                                                       : default_miss_tolerance;
         metadata->cell_count         = 0;
         metadata->rehash_in_progress = false; /*< TODO: uhh... This? y/n? */
-        memset(&metadata->map, '\0', sizeof(Cell) * capacity);
+        memset(&(metadata->map), '\0', data_region_size);
     }
 
 
