@@ -67,7 +67,7 @@ public: /*< ## Class Methods */
                 bd->name, bd);
             BREAKPOINT();
         }
-        metadata->magic              = 0xBADB33F;
+        metadata->magic              = magic;
         metadata->cell_capacity      = capacity       ? capacity
                                                       : default_cell_capacity;
         metadata->miss_tolerance     = miss_tolerance ? miss_tolerance
