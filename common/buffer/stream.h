@@ -124,6 +124,23 @@ public:
         BREAKPOINT();
     }
 
+    /**
+     * Subscript indexing for reading / writing values in the stream.
+     * @param  index Target element index, indexing from the last-written
+     *               element; `[0]` will always return the oldest element in the
+     *               stream, and `[count()-1]` will always return the newest.
+     * @return       A reference to the given element; assignments to the
+     *               returned element will be recorded in the Stream.
+     * If the element indexed is the first uninitialized element (if `count() <
+     * capacity()` and `index == count()`) `count` will be incremented using the
+     * same logic that governs `push()`.
+     * NOTE: This implementation may be deficient. It may be better to wrap the
+     * return of this function in a modified Optional. If `index` is the first
+     * uninitialized element, this Optional could "read" as `false`, but the
+     * write overload could correctly assign to the Stream and increment
+     * `count`. For a rough implementation of this sort of, see,
+     * http://stackoverflow.com/questions/3581981
+     */
     inline T& operator[](u64 index) {
 #if defined(DEBUG)
         // TODO: Better logging
@@ -138,7 +155,18 @@ public:
         }
 #endif
         u64 target_index = increment(m_metadata->read_head, index);
-        return m_metadata->data[target_index];
+        T& ret = m_metadata->data[target_index];
+
+        if (index == count()) { /*< We should increment the write head */
+            m_metadata->write_head = increment(m_metadata->write_head);
+            if (count() == capacity()) { /* We should increment the read head */
+                m_metadata->read_head = increment(m_metadata->read_head);
+            } else {
+                m_metadata->count += 1;
+            }
+        }
+
+        return ret;
     }
 
     inline T& push(T value) {
