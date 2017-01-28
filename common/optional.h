@@ -11,9 +11,11 @@
 /* Represents a Maybe-value -- either a value of type T, or nothing. */
 template<typename T>
 struct Optional {
+protected:
     T * value;
     bool just;
 
+public:
     Optional(T& value) : value(&value), just(true) { }
 
     inline T operator=(T _value) { *value = _value; return *value; }
