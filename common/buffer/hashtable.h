@@ -254,6 +254,11 @@ protected: /*< Protected Member Methods */
 
         return ptr;
     }
+
+
+    // Once we switch to a templated class, we should ensure POD.
+    // /* Ensure that only POD data is used in these views.*/
+    // ENFORCE_POD(T);
 };
 
 } /* namespace buffer */

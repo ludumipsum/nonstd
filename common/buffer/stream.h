@@ -217,6 +217,10 @@ protected:
         u64 past_zero = n - index;
         return (capacity() - past_zero);
     }
+
+
+    /* Ensure that only POD data is used in these views.*/
+    ENFORCE_POD(T);
 };
 
 } /* namespace buffer */

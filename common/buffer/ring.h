@@ -177,6 +177,10 @@ protected:
             return increment(index, -n);
         }
     }
+
+
+    /* Ensure that only POD data is used in these views.*/
+    ENFORCE_POD(T);
 };
 
 } /* namespace buffer */

@@ -147,6 +147,7 @@ public:
     inline u64 max_count() { return m_bd->size / sizeof(T); }
 
 
+    /* Ensure that only POD data is used in these views.*/
     ENFORCE_POD(T);
 };
 
