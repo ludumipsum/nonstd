@@ -40,12 +40,12 @@ protected: /*< ## Sub-Types */
 
 
 public: /*< ## Class Methods */
-    inline static u64 precomputeSize(u64 capacity) {
-        return sizeof(Metadata) + sizeof(Cell) * capacity;
-    }
-
     static const u64 default_cell_capacity  = 64;
     static const u64 default_miss_tolerance = 16;
+
+    inline static u64 precomputeSize(u64 capacity = default_cell_capacity) {
+        return sizeof(Metadata) + sizeof(Cell) * capacity;
+    }
     inline static void initializeBuffer(Descriptor *const bd,
                                         u64 miss_tolerance = 0) {
         Metadata * metadata = (Metadata *)bd->data;
