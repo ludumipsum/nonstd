@@ -141,7 +141,7 @@ public: /*< ## Public Memeber Methods */
         if (cell == nullptr) return { }; /*< TODO: No room for a key? */
         cell->key   = key;
         cell->value = value;
-        return { value };
+        return { cell->value };
     }
 
     inline void destroy(HTK key) {
