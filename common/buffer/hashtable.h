@@ -112,20 +112,16 @@ public: /*< ## Public Memeber Methods */
     inline u64 miss_tolerance() { return m_metadata->miss_tolerance; }
 
     /* Read/Write operation
-     * Returns valid Optional on key match and empty cell.
-     * TODO: This API is... not good. I don't think.
+     * Returns valid Optional on key match. Passthrough to get.
      */
-    inline Optional<HTV> operator[](HTK key) {
-        Cell *const cell = _lookup_cell(key);
-        bool valid_key = cell->key == key || cell->key == 0;
-        if (cell == nullptr || ! valid_key) return { };
-        return { cell->value };
+    inline Optional<HTV&> operator[](HTK key) {
+        return get(key);
     }
 
     /* Read operation
      * Returns valid Optional only on key match.
      */
-    inline Optional<HTV> lookup(HTK key) {
+    inline Optional<HTV&> get(HTK key) {
         Cell *const cell = _lookup_cell(key);
         bool valid_key = cell->key == key;
         if (cell == nullptr || ! valid_key) return { };
@@ -136,9 +132,18 @@ public: /*< ## Public Memeber Methods */
      * Happy to overwrite if a key already exists. Returns a valid Optional so
      * long as there's room in the HashTable.
      */
-    inline Optional<HTV> create(HTK key, HTV value) {
+    inline Optional<HTV&> set(HTK key, HTV value) {
         Cell *const cell = _lookup_cell(key);
         if (cell == nullptr) return { }; /*< TODO: No room for a key? */
+        cell->key   = key;
+        cell->value = value;
+        return { cell->value };
+    }
+
+    inline Optional<HTV&> create(HTK key, HTV value) {
+        Cell *const cell = _lookup_cell(key);
+        bool cell_taken = cell->key != 0;
+        if (cell == nullptr || cell_taken) return { };
         cell->key   = key;
         cell->value = value;
         return { cell->value };
@@ -152,7 +157,7 @@ public: /*< ## Public Memeber Methods */
         }
     }
 
-    inline bool contains(HTK key) { return (bool)(lookup(key)); }
+    inline bool contains(HTK key) { return (bool)(get(key)); }
 
 
 protected: /*< Protected Member Methods */
@@ -196,7 +201,7 @@ protected: /*< Protected Member Methods */
             scell <= final_cell;
             scell++)
         {
-            create(scell->key, scell->value);
+            set(scell->key, scell->value);
         }
 
         // Discard temporary space (TODO: replace with scratch)
