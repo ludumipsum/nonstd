@@ -16,6 +16,16 @@
 template<typename T>
 struct Optional {
 protected:
+    /* This anonymous-union-struct nesting is required to allow the compiler to
+     * generate a form of the optional that doesn't include a valid reference,
+     * which is otherwise in violation of the "never nullable" contract provided
+     * by reference variables. The inner struct is required on some compilers
+     * which would otherwise complain about reference members of a union since
+     * according to the standard, the storage required by a reference is
+     * implementation-specific, and it is therefore undefined behavior to rely
+     * on a particular size of a reference when sizing a struct, breaking the
+     * portability requirement of POD structs.
+     */
     union {
         struct { T value; };
         void *_junk;
