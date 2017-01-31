@@ -44,11 +44,9 @@ public:
     inline T& operator () ()      { return   this->operator*(); }
     inline T& operator *  ()      {
 #if N2_UNCHECKED_OPTIONALS
-        return value;
-#else
         if (!just) { BREAKPOINT(); }
-        return value;
 #endif
+        return value;
     }
 };
 
