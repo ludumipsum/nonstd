@@ -31,19 +31,19 @@ protected: /*< ## Sub-Types */
     };
     struct Metadata {
         u32  magic;
-        u64  cell_capacity;
+        u64  capacity;
+        u64  count;
         u64  miss_tolerance;
-        u64  cell_count;
         bool rehash_in_progress;
         Cell map[];
     };
 
 
 public: /*< ## Class Methods */
-    static const u64 default_cell_capacity  = 64;
-    static const u64 default_miss_tolerance = 16;
+    static const u64 default_capacity       = 64;
+    static const u64 default_miss_tolerance =  8;
 
-    inline static u64 precomputeSize(u64 capacity = default_cell_capacity) {
+    inline static u64 precomputeSize(u64 capacity = default_capacity) {
         return sizeof(Metadata) + sizeof(Cell) * capacity;
     }
     inline static void initializeBuffer(Descriptor *const bd,
@@ -61,7 +61,8 @@ public: /*< ## Class Methods */
         }
         if (metadata->rehash_in_progress) {
             LOG("ERROR: Buffer HashTable has been reinitialized while "
-                "`rehash_in_progress == true`. I don't know what to do here.\n"
+                "`rehash_in_progress == true`. This should not be possible. "
+                "Uhh... Imagine some explosion noises, or something.\n"
                 "Underlying buffer is named %s, and it is located at %p.",
                 bd->name, bd);
             BREAKPOINT();
@@ -69,11 +70,11 @@ public: /*< ## Class Methods */
         u64 data_region_size = bd->size - sizeof(Metadata);
         u64 capacity         = data_region_size / sizeof(Cell);
         metadata->magic              = magic;
-        metadata->cell_capacity      = capacity;
+        metadata->capacity           = capacity;
+        metadata->count              = 0;
         metadata->miss_tolerance     = miss_tolerance ? miss_tolerance
                                                       : default_miss_tolerance;
-        metadata->cell_count         = 0;
-        metadata->rehash_in_progress = false; /*< TODO: uhh... This? y/n? */
+        metadata->rehash_in_progress = false;
         memset(&(metadata->map), '\0', data_region_size);
     }
 
@@ -98,29 +99,24 @@ public: /*< ## Public Memeber Methods */
 
     // TODO: Error checking / reporting?
     inline void resize_by(f64 growth_factor) {
-        _resize((u64)(m_metadata->cell_capacity * growth_factor));
+        _resize((u64)(capacity() * growth_factor));
     }
 
+    /* Reset this HashTable to empty. */
     inline void drop() {
-        LOG("Does this function even make sense? Drop :allthethings:? ");
-        BREAKPOINT();
+        memset(m_metadata->map, '\0', (capacity() * sizeof(Cell)));
+        m_metadata->count = 0;
     }
 
     inline u64 size()           { return m_bd->size; }
-    inline u64 count()          { return m_metadata->cell_count; }
-    inline u64 capacity()       { return m_metadata->cell_capacity; }
+    inline u64 count()          { return m_metadata->count; }
+    inline u64 capacity()       { return m_metadata->capacity; }
     inline u64 miss_tolerance() { return m_metadata->miss_tolerance; }
-
-    /* Read/Write operation
-     * Returns valid Optional on key match. Passthrough to get.
-     */
-    inline Optional<HTV&> operator[](HTK key) {
-        return get(key);
-    }
 
     /* Read operation
      * Returns valid Optional only on key match.
      */
+    inline Optional<HTV&> operator[](HTK key) { return get(key); }
     inline Optional<HTV&> get(HTK key) {
         Cell *const cell = _lookup_cell(key);
         bool valid_key = cell->key == key;
@@ -208,14 +204,13 @@ protected: /*< Protected Member Methods */
     }
 
     inline Cell *const _lookup_cell(HTK key) {
-        auto const cell_capacity = m_metadata->cell_capacity;
         auto& map  = m_metadata->map;
         auto  hash = shift64(key);
 
         /* Initial index for the given key. */
-        auto cell_index = hash % cell_capacity;
+        auto cell_index = hash % capacity();
         /* The last index that may terminate the below loop. */
-        auto const final_index = (cell_index - 1) % cell_capacity;
+        auto const final_index = (cell_index - 1) % capacity();
 
         Cell* ptr = nullptr;
         u64 misses = 0;
@@ -236,7 +231,7 @@ protected: /*< Protected Member Methods */
                 ptr = &cell;
                 break;
             }
-            cell_index = (1 + cell_index) % cell_capacity;
+            cell_index = (1 + cell_index) % capacity();
             misses += 1;
         }
 
