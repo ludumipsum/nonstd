@@ -203,11 +203,14 @@ inline uint32_t N2FOURCC(char const* code) {
 /* C++ Default Constructor Removal
    -------------------------------
    A macro to disallow the copy constructor and operator- functions
-   This should be used in the private: declarations for a class
+   This should be used in the private: declarations for a class.
+   Note that if there is a user-defined Copy Ctor there will be no implcitly
+   defined Move Ctor (or Move Assignment Operator), so deleting those members
+   is, at best, redundant.
 */
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-    TypeName(const TypeName&);             \
-    void operator=(const TypeName&)
+#define DISALLOW_COPY_AND_ASSIGN(TypeName)   \
+    TypeName(const TypeName&) = delete;      \
+    void operator=(const TypeName&) = delete
 
 
 /* TEMPLATE_ENABLE
