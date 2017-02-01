@@ -48,7 +48,7 @@ public: /*< ## Class Methods */
     }
     inline static void initializeBuffer(Descriptor *const bd,
                                         u64 miss_tolerance = 0) {
-        Metadata * metadata = (Metadata *)bd->data;
+        Metadata * metadata = (Metadata *)(bd->data);
         if (metadata->magic && metadata->magic != magic) {
             LOG("WARNING: Buffer HashTable corruption detected.\n"
                 "Underlying buffer is named %s, and is located at %p.\n"
@@ -92,13 +92,13 @@ public: /*< ## Ctors, Detors, and Assignments */
 
 public: /*< ## Public Memeber Methods */
     // TODO: Error checking / reporting?
-    inline void resize(u64 capacity) {
-        _resize_to(capacity);
+    inline void resize_to(u64 capacity) {
+        _resize(capacity);
     }
 
     // TODO: Error checking / reporting?
     inline void resize_by(f64 growth_factor) {
-        _resize_to((u64)(m_metadata->cell_capacity * growth_factor));
+        _resize((u64)(m_metadata->cell_capacity * growth_factor));
     }
 
     inline void drop() {
@@ -161,54 +161,50 @@ public: /*< ## Public Memeber Methods */
 
 
 protected: /*< Protected Member Methods */
-    inline void _resize_to(u64 capacity) {
-        LOG("This function is currently unimplemented.");
-        BREAKPOINT();
-
-        /* Below is what came... _Before_ */
-
-        // Mark this hashtable as already in a rehash, so lookup_cell may not
-        // heuristically trigger another rehash if we get unlucky
-        m_metadata->rehash_in_progress = true;
-
-        // FIXME: This is a super dumb hack to deal with our cell lookup code
-        //        not being the most robust thing ever. Also to deal with the
-        //        interface being kinda bad.
-        capacity = n2max(16, capacity);
-
-        // Copy all the data aside
+    inline void _resize(u64 capacity) {
+        // Copy all current data aside to an intermediate `src` HashTable.
         // TODO: REPLACE ME WITH SCRATCH BUFFER USAGE
-        ptr intermediate = n2malloc(m_bd->size);
-        if (intermediate == nullptr) BREAKPOINT();
+        ptr intermediate_data = n2malloc(m_bd->size);
+        if (intermediate_data == nullptr) BREAKPOINT();
 
-        memset(intermediate, 0xFF, m_bd->size);
-        auto intermediate_bd = make_buffer(intermediate, m_bd->size);
+        memset(intermediate_data, 0xFF, m_bd->size);
+
+        Buffer intermediate_bd = make_buffer(intermediate_data, m_bd->size);
         memcpy(intermediate_bd.data, m_bd->data, m_bd->size);
 
-        // Create an intermediate HashTable using the data (and metadata) copied
-        // from the current HashTable.
         HashTable src(&intermediate_bd);
 
-        // Resize the backing buffer
-        m_resize(m_bd, HashTable::precomputeSize(capacity));
-        m_metadata->cell_capacity = capacity;
-
-        // Rehash the table
-        // TODO: Drew, you should learn how this part works.
-        Cell* final_cell = src.m_metadata->map + src.m_metadata->cell_capacity;
-        for(Cell *scell     = src.m_metadata->map,
-                 *final_cell = src.m_metadata->map + src.m_metadata->cell_capacity;
-            scell <= final_cell;
-            scell++)
-        {
-            set(scell->key, scell->value);
+        // Resize the backing buffer.
+        if (m_resize == nullptr) {
+            LOG("Attempting to resize a HashTable that has not had a resize "
+                "function associated. The backing Buffer's name is %s.\n",
+                m_bd->name);
+            BREAKPOINT();
         }
+        m_resize(m_bd, HashTable::precomputeSize(capacity));
 
-        // Discard temporary space (TODO: replace with scratch)
-        n2free(intermediate);
+        // Because the newly realloc'd data is potentially undefined, zero-out
+        // the backing buffer, and re-initialize `this` HashTable.
+        // The ::initializeBuffer call will zero-out the HashTable data, so we
+        // need only memset the Metadata portion here.
+        memset(m_bd->data, '\0', sizeof(Metadata));
+        HashTable::initializeBuffer(m_bd, src.miss_tolerance());
 
-        // Mark the rehash complete
+        // Re-seat the Metadata member.
+        m_metadata = (Metadata*)(m_bd->data);
+
+        // Copy all data from the `src` HashTable into `this`.
+        // Use `rehash_in_progress` to prevent the below `set` calls from
+        // triggering a rehash while this one is completing.
+        m_metadata->rehash_in_progress = true;
+        Cell * final_cell = src.m_metadata->map + src.capacity();
+        for (Cell * cell = src.m_metadata->map; cell <= final_cell; cell++) {
+            if (cell->key) { set(cell->key, cell->value); }
+        }
         m_metadata->rehash_in_progress = false;
+
+        // Discard temporary space.
+        n2free(intermediate_data);
     }
 
     inline Cell *const _lookup_cell(HTK key) {
