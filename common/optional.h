@@ -8,8 +8,8 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
-#if !defined(N2_UNCHECKED_OPTIONALS)
-#define N2_UNCHECKED_OPTIONALS false
+#if !defined(N2_CHECKED_OPTIONALS)
+#define N2_CHECKED_OPTIONALS false
 #endif
 
 /* Represents a Maybe-value -- either a value of type T, or nothing. */
@@ -43,7 +43,7 @@ public:
     inline auto operator -> ()    { return &(this->operator*()); }
     inline T& operator () ()      { return   this->operator*(); }
     inline T& operator *  ()      {
-#if N2_UNCHECKED_OPTIONALS
+#if N2_CHECKED_OPTIONALS
         if (!just) { BREAKPOINT(); }
 #endif
         return value;
