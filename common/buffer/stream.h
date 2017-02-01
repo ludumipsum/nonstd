@@ -38,7 +38,7 @@ namespace buffer {
 
 template<typename T>
 class Stream {
-protected:
+protected: /*< ## Sub-Types */
     static const u32 magic = 0xDEFACED;
     struct Metadata {
         u32 magic;
@@ -49,7 +49,7 @@ protected:
         T   data[];
     };
 
-public:
+public: /*< ## Class Methods */
     inline static u64 precomputeSize(u64 capacity) {
         return sizeof(Metadata) + sizeof(T) * capacity;
     }
@@ -66,20 +66,20 @@ public:
             DEBUG_BREAKPOINT();
         }
         metadata->magic      = magic;
-        metadata->count      = 0;
         metadata->capacity   = (bd->size - sizeof(Metadata)) / sizeof(T);
+        metadata->count      = 0;
         metadata->write_head = 0;
         metadata->read_head  = 0;
         memset(metadata->data, '\0', (bd->size - sizeof(Metadata)));
     }
 
 
-protected:
+protected: /*< ## Public Member Variables */
     Descriptor * const m_bd;
     Metadata   *       m_metadata;
     BufferResizeFn     m_resize;
 
-public:
+public: /*< ## Ctors, Detors, and Assignments */
     // TODO: Magic number check?
     Stream(Descriptor *const bd,
            BufferResizeFn resize = nullptr)
@@ -87,6 +87,15 @@ public:
         , m_metadata ( (Metadata*)(m_bd->data) )
         , m_resize   ( resize                  ) { }
 
+
+public: /*< ## Public Memeber Methods */
+    inline u64 size()     { return m_bd->size; }
+    inline u64 count()    { return m_metadata->count; }
+    inline u64 capacity() { return m_metadata->capacity; }
+
+    inline void drop() {
+        m_metadata->read_head = m_metadata->write_head = m_metadata->count = 0;
+    }
 
     inline u64 resize(u64 capacity) {
 #if 0
@@ -100,24 +109,6 @@ public:
         BREAKPOINT();
 
     }
-
-    inline void drop() {
-        m_metadata->read_head = m_metadata->write_head = m_metadata->count = 0;
-    }
-
-    inline u64 size() {
-        return m_bd->size;
-    }
-
-    /* Returns the number of objects currently accessible in the Stream. */
-    inline u64 count() {
-        return m_metadata->count;
-    }
-
-    inline u64 capacity() {
-        return m_metadata->capacity;
-    }
-
 
     inline T* consume(u64 count) {
         LOG("This function is currently unimplemented.");
@@ -182,6 +173,7 @@ public:
     }
 
 
+    /* ## Nested Iterorator class */
     class iterator;
     inline iterator begin() { return { *this }; }
     inline iterator end()   { return { *this, count() }; }
@@ -190,8 +182,8 @@ public:
     public:
         typedef std::output_iterator_tag iterator_category;
 
-        Stream& stream;
-        u64     index;
+        Stream& stream; /*< The stream being iterated.                */
+        u64     index;  /*< The index this iterator is "referencing". */
 
         iterator(Stream& stream,
                  u64     index = 0)
@@ -206,44 +198,54 @@ public:
             return !(*this == other);
         }
 
-        // Pre-increment -- step forward and return `this`.
+        /* Pre-increment -- step forward and return `this`. */
         inline iterator& operator++() {
             index += 1;
             return *this;
         }
-        // Post-increment -- return a copy created before stepping forward.
+        /* Post-increment -- return a copy created before stepping forward. */
         inline iterator operator++(int) {
             iterator copy = *this;
             index += 1;
             return copy;
         }
-        // Increment and assign -- step forward by `n` and return `this`.
+        /* Increment and assign -- step forward by `n` and return `this`. */
         // TODO: Verify we don't increment past the end of the stream.
         inline iterator& operator+=(u64 n) {
-            index += n;
+            index = n2min((index + n), stream.capacity());
             return *this;
         }
-        // Arithmetic increment -- return an incremented copy.
+        /* Arithmetic increment -- return an incremented copy. */
         inline iterator operator+(u64 n) {
             iterator copy = *this;
             copy += n;
             return copy;
         }
 
-        // Dereference -- return the current value.
+        /* Dereference -- return the current value. */
         inline T& operator*() const { return stream[index]; }
     };
 
 
-protected:
-    inline u64 increment(u64 index, u64 n = 1) {
-        // TODO: Potential divide-by-zero error
-        return ((index + n) % capacity());
+protected: /*< ## Protected Member Methods */
+    inline u64 increment(u64 index, i64 n = 1) {
+        if (n >= 0) {
+            // TODO: Potential divide-by-zero error
+            return ((index + n) % capacity());
+        } else {
+            return decrement(index, -n);
+        }
     }
-    inline u64 decrement(u64 index, u64 n = 1) {
-        if (n <= index) { return (index - n); }
-        u64 past_zero = n - index;
-        return (capacity() - past_zero);
+
+    inline u64 decrement(u64 index, i64 n = 1) {
+        if (n >= 0) {
+            while (index < n) {
+                index += capacity();
+            }
+            return index - n;
+        } else {
+            return increment(index, -n);
+        }
     }
 
 

@@ -28,19 +28,34 @@ namespace buffer {
 
 template<typename T>
 class Slice {
-public:
+public: /*< ## Class Methods */
     inline static u64 precomputeSize(u64 count) {
         return (sizeof(T) * count);
     }
 
-protected:
+
+protected: /*< ## Public Member Variables */
     Descriptor *const m_bd;
     BufferResizeFn    m_resize;
 
-public:
+public: /*< ## Ctors, Detors, and Assignments */
     Slice(Descriptor *const bd, BufferResizeFn resize = nullptr)
         : m_bd     ( bd      )
         , m_resize ( resize  ) { }
+
+
+public: /*< ## Public Memeber Methods */
+    /* Return the size of the Slice in bytes. */
+    inline u64 size()      { return m_bd->size; }
+    /* Return the number of objects currently stored in the Slice. */
+    inline u64 count()     { return (m_bd->data - m_bd->cursor) / sizeof(T); }
+    /* Return the maximum number of objects the Slice may store. */
+    inline u64 capacity()  { return m_bd->size / sizeof(T); }
+
+    /* Drop all elements of the region without reinitializing memory. */
+    inline void drop() {
+        m_bd->cursor = m_bd->data;
+    }
 
     inline void resize(u64 size_bytes) {
         if (m_resize) {
@@ -89,25 +104,20 @@ public:
     /* Direct index operator. */
     inline T& operator[](u64 index) {
 #if defined(DEBUG)
-        if (index > count() && index < max_count()) {
+        if (index > count() && index < capacity()) {
             LOG("Accessing uninitialized object in %s at slice[%d].\n"
                 "This will invalidate count() and range-based iterators."
                 "Please be sure you're remaining within the bounds of consumed "
                 "data in this Slice.", m_bd->name, index);
         }
-        if (index >= max_count()) {
+        if (index >= capacity()) {
             LOG("Out of bounds access via buffer::Slice: entry %d is past the "
                 "end of the %d-long buffer %s.",
-                index, max_count(), m_bd->name);
+                index, capacity(), m_bd->name);
             BREAKPOINT();
         }
 #endif
         return *((T*)(m_bd->data) + index);
-    }
-
-    /* Drop all elements of the region without reinitializing memory. */
-    inline void drop() {
-        m_bd->cursor = m_bd->data;
     }
 
     /* Erase a range of objects from this Slice.
@@ -137,14 +147,6 @@ public:
     inline void erase(u64 index_begin, u64 index_end) {
         erase(((T*)(m_bd->data) + index_begin), ((T*)(m_bd->data) + index_end));
     }
-
-    // TODO: Consider memoizing `count`, `max_count`?
-    /* Return the size of the Slice in bytes. */
-    inline u64 size()      { return m_bd->size; }
-    /* Return the number of objects currently stored in the Slice. */
-    inline u64 count()     { return (m_bd->data - m_bd->cursor) / sizeof(T); }
-    /* Return the maximum number of objects the Slice may store. */
-    inline u64 max_count() { return m_bd->size / sizeof(T); }
 
 
     /* Ensure that only POD data is used in these views.*/

@@ -44,40 +44,41 @@ namespace buffer {
  */
 template<typename T>
 class Ring {
-public:
+public: /*< ## Class Methods */
     inline static u64 precomputeSize(u64 count) {
         return count * sizeof(T);
     }
 
-protected:
+
+protected: /*< ## Public Member Variables */
     Descriptor * const m_bd;
     BufferResizeFn     m_resize;
     u64                m_capacity;
     u64                m_write_head;
 
-public:
+public: /*< ## Ctors, Detors, and Assignments */
     Ring(Descriptor *const bd,
          BufferResizeFn resize = nullptr)
         : m_bd         ( bd                   )
         , m_resize     ( resize               )
         , m_capacity   ( bd->size / sizeof(T) )
-        , m_write_head ( (bd->cursor - bd->data) / sizeof(T) )
-    { }
+        , m_write_head ( (bd->cursor - bd->data) / sizeof(T) ) { }
 
-    inline u64 resize(u64 capacity) {
-        LOG("This function is currently unimplemented.");
-        BREAKPOINT();
-    }
+
+public: /*< ## Public Memeber Methods */
+    inline u64 size()     { return m_bd->size; }
+    inline u64 capacity() { return m_capacity; }
+    inline u64 count()    { return m_capacity; }
 
     inline void drop() {
         memset(m_bd->data, '\0', m_bd->size);
         m_bd->cursor = m_bd->data;
     }
 
-    inline u64 size()     { return m_bd->size; }
-    inline u64 count()    { return m_capacity; }
-    inline u64 capacity() { return m_capacity; }
-
+    inline u64 resize(u64 capacity) {
+        LOG("This function is currently unimplemented.");
+        BREAKPOINT();
+    }
 
     inline T* consume(u64 count) {
         LOG("This function is currently unimplemented.");
@@ -105,6 +106,8 @@ public:
         return *mem;
     }
 
+
+    /* ## Nested Iterorator class */
     class iterator;
     inline iterator begin() { return { *this }; }
     inline iterator end()   { return { *this,  capacity() }; }
@@ -113,8 +116,8 @@ public:
     public:
         typedef std::output_iterator_tag iterator_category;
 
-        Ring& ring;      /*< The ring being iterated. */
-        u64   index;     /*< The index this iterator is "referencing". */
+        Ring& ring;  /*< The ring being iterated.                  */
+        u64   index; /*< The index this iterator is "referencing". */
 
         iterator(Ring& ring,
                  u64   index = 0)
@@ -125,39 +128,39 @@ public:
             return &ring == &other.ring && index == other.index;
         }
         inline bool operator!=(const iterator& other) const {
-            return !(*this == other);
+            return &ring != &other.ring || index != other.index;
         }
 
-        // Pre-increment -- step forward and return `this`.
+        /* Pre-increment -- step forward and return `this`. */
         inline iterator& operator++() {
             index += 1;
             return *this;
         }
-        // Post-increment -- return a copy created before stepping forward.
+        /* Post-increment -- return a copy created before stepping forward. */
         inline iterator operator++(int) {
             iterator copy = *this;
             index += 1;
             return copy;
         }
-        // Increment and assign -- step forward by `n` and return `this`.
-        // TODO: Verify we don't increment past the end of the ring.
+        /* Increment and assign -- step forward by `n` and return `this`.
+         * Be sure not to iterate past `end()`. */
         inline iterator& operator+=(u64 n) {
-            index += n;
+            index = n2min((index + n), ring.capacity());
             return *this;
         }
-        // Arithmetic increment -- return an incremented copy.
+        /* Arithmetic increment -- return an incremented copy. */
         inline iterator operator+(u64 n) {
             iterator copy = *this;
             copy += n;
             return copy;
         }
 
-        // Dereference -- return the current value.
+        /* Dereference -- return the current value. */
         inline T& operator*() const { return ring[index]; }
     };
 
 
-protected:
+protected: /*< ## Protected Member Methods */
     inline u64 increment(u64 index, i64 n = 1) {
         if (n >= 0) {
             // TODO: Potential divide-by-zero error

@@ -38,7 +38,6 @@ protected: /*< ## Sub-Types */
         Cell map[];
     };
 
-
 public: /*< ## Class Methods */
     static const u64 default_capacity       = 64;
     static const u64 default_miss_tolerance =  8;
@@ -92,16 +91,12 @@ public: /*< ## Ctors, Detors, and Assignments */
         , m_metadata ( (Metadata*)(m_bd->data) )
         , m_resize   ( resize                  ) { }
 
-public: /*< ## Public Memeber Methods */
-    // TODO: Error checking / reporting?
-    inline void resize_to(u64 capacity) {
-        _resize(capacity);
-    }
 
-    // TODO: Error checking / reporting?
-    inline void resize_by(f64 growth_factor) {
-        _resize((u64)(capacity() * growth_factor));
-    }
+public: /*< ## Public Memeber Methods */
+    inline u64 size()           { return m_bd->size; }
+    inline u64 capacity()       { return m_metadata->capacity; }
+    inline u64 count()          { return m_metadata->count; }
+    inline u64 miss_tolerance() { return m_metadata->miss_tolerance; }
 
     /* Reset this HashTable to empty. */
     inline void drop() {
@@ -109,34 +104,41 @@ public: /*< ## Public Memeber Methods */
         m_metadata->count = 0;
     }
 
-    inline u64 size()           { return m_bd->size; }
-    inline u64 count()          { return m_metadata->count; }
-    inline u64 capacity()       { return m_metadata->capacity; }
-    inline u64 miss_tolerance() { return m_metadata->miss_tolerance; }
+    inline void resize_to(u64 capacity) {
+        _resize(capacity);
+    }
 
-    /* Read operation
-     * Returns valid Optional only on key match.
-     */
+    inline void resize_by(f64 growth_factor) {
+        _resize((u64)(capacity() * growth_factor));
+    }
+
+    /* Search for the given key, returning an Optional. */
     inline Optional<HTV&> operator[](HTK key) { return get(key); }
     inline Optional<HTV&> get(HTK key) {
         Cell *const cell = _lookup_cell(key);
-        bool valid_key = cell->key == key;
-        if (cell == nullptr || ! valid_key) return { };
+        if (cell == nullptr || cell->key != key) return { };
         return { cell->value };
     }
 
-    /* Write operation
-     * Happy to overwrite if a key already exists. Returns a valid Optional so
-     * long as there's room in the HashTable.
-     */
+    /* Check for the existence of the given key. */
+    inline bool contains(HTK key) { return (bool)(get(key)); }
+
+    /* Write the given k/v pair, returning an Optional.
+     * The Optional will be only false if the HashTable is completely filled,
+     * and unable to resize. */
     inline Optional<HTV&> set(HTK key, HTV value) {
         Cell *const cell = _lookup_cell(key);
-        if (cell == nullptr) return { }; /*< TODO: No room for a key? */
+        if (cell == nullptr) return { };
         cell->key   = key;
         cell->value = value;
         return { cell->value };
     }
 
+    /* Write the given k/v pair if the given key has not yet been written,
+     * returning an Optional.
+     * The Optional will be false if the given key already exists in the
+     * HashTable, or if the HashTable is completely filled, and unable
+     * to resize. */
     inline Optional<HTV&> create(HTK key, HTV value) {
         Cell *const cell = _lookup_cell(key);
         bool cell_taken = cell->key != 0;
@@ -146,6 +148,8 @@ public: /*< ## Public Memeber Methods */
         return { cell->value };
     }
 
+    /* Remove the given key from the HashTable.
+     * No records are written if the key has not been previously written. */
     inline void destroy(HTK key) {
         Cell *const cell = _lookup_cell(key);
         if (cell != nullptr) {
@@ -154,11 +158,16 @@ public: /*< ## Public Memeber Methods */
         }
     }
 
-    inline bool contains(HTK key) { return (bool)(get(key)); }
 
-
-protected: /*< Protected Member Methods */
+protected: /*< ## Protected Member Methods */
     inline void _resize(u64 capacity) {
+        if (m_resize == nullptr) {
+            LOG("Attempting to resize a HashTable that has not had a resize "
+                "function associated. The backing Buffer's name is %s.\n",
+                m_bd->name);
+            BREAKPOINT();
+        }
+
         // Copy all current data aside to an intermediate `src` HashTable.
         // TODO: REPLACE ME WITH SCRATCH BUFFER USAGE
         ptr intermediate_data = n2malloc(m_bd->size);
@@ -172,12 +181,6 @@ protected: /*< Protected Member Methods */
         HashTable src(&intermediate_bd);
 
         // Resize the backing buffer.
-        if (m_resize == nullptr) {
-            LOG("Attempting to resize a HashTable that has not had a resize "
-                "function associated. The backing Buffer's name is %s.\n",
-                m_bd->name);
-            BREAKPOINT();
-        }
         m_resize(m_bd, HashTable::precomputeSize(capacity));
 
         // Because the newly realloc'd data is potentially undefined, zero-out
@@ -241,9 +244,12 @@ protected: /*< Protected Member Methods */
             ptr = &map[cell_index];
         }
 
+        bool have_resize_function = m_resize != nullptr;
         bool exceeded_miss_tolerance = misses > m_metadata->miss_tolerance;
         bool rehash_allowed = ! m_metadata->rehash_in_progress;
-        if (exceeded_miss_tolerance && rehash_allowed) {
+        if (    have_resize_function
+             && exceeded_miss_tolerance
+             && rehash_allowed ) {
             resize_by(1.2f);
         } else if (! rehash_allowed && cell_index == final_index) {
             LOG("ERROR: Table is full, and I can't resize.");
