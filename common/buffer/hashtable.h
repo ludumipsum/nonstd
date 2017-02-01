@@ -46,6 +46,7 @@ public: /*< ## Class Methods */
     inline static u64 precomputeSize(u64 capacity = default_capacity) {
         return sizeof(Metadata) + sizeof(Cell) * capacity;
     }
+
     inline static void initializeBuffer(Descriptor *const bd,
                                         u64 miss_tolerance = 0) {
         Metadata * metadata = (Metadata *)(bd->data);
@@ -194,7 +195,8 @@ protected: /*< Protected Member Methods */
         // triggering a rehash while this one is completing.
         m_metadata->rehash_in_progress = true;
         Cell * final_cell = src.m_metadata->map + src.capacity();
-        for (Cell * cell = src.m_metadata->map; cell <= final_cell; cell++) {
+        Cell * cell       = src.m_metadata->map;
+        for (  ; cell < final_cell; cell++) {
             if (cell->key) { set(cell->key, cell->value); }
         }
         m_metadata->rehash_in_progress = false;
