@@ -129,6 +129,7 @@ public: /*< ## Public Memeber Methods */
     inline Optional<HTV&> set(HTK key, HTV value) {
         Cell *const cell = _lookup_cell(key);
         if (cell == nullptr) return { };
+        if (cell->key == 0) { m_metadata->count += 1; }
         cell->key   = key;
         cell->value = value;
         return { cell->value };
@@ -141,8 +142,8 @@ public: /*< ## Public Memeber Methods */
      * to resize. */
     inline Optional<HTV&> create(HTK key, HTV value) {
         Cell *const cell = _lookup_cell(key);
-        bool cell_taken = cell->key != 0;
-        if (cell == nullptr || cell_taken) return { };
+        if (cell == nullptr || cell->key != 0) return { };
+        m_metadata->count += 1;
         cell->key   = key;
         cell->value = value;
         return { cell->value };
@@ -153,6 +154,7 @@ public: /*< ## Public Memeber Methods */
     inline void destroy(HTK key) {
         Cell *const cell = _lookup_cell(key);
         if (cell != nullptr) {
+            m_metadata->count -= 1;
             cell->key   = ID_DELETED; /*< TODO: Use a HT-specific sentinel */
             cell->value = 0;
         }
@@ -160,12 +162,23 @@ public: /*< ## Public Memeber Methods */
 
 
 protected: /*< ## Protected Member Methods */
+    /**
+     * Resize `this` HashTable to have room for exactly `capacity` elements.
+     * This function should be able to both upscale and downscale HashTables.
+     */
     inline void _resize(u64 capacity) {
         if (m_resize == nullptr) {
             LOG("Attempting to resize a HashTable that has not had a resize "
                 "function associated. The backing Buffer's name is %s.\n",
                 m_bd->name);
             BREAKPOINT();
+        }
+        if (capacity < count()) {
+            LOG("Resizing a HashTable such that the new capacity (" Fu64 ") is "
+                "less than the current count (" Fu64 "). This... is probably "
+                "okay? But maybe imagine some explosion noises.\n"
+                "The backing buffer's name is %s and it is located at %p.",
+                capacity, count(), m_bd->name, m_bd);
         }
 
         // Copy all current data aside to an intermediate `src` HashTable.
@@ -208,6 +221,11 @@ protected: /*< ## Protected Member Methods */
         n2free(intermediate_data);
     }
 
+    /**
+     * Lookup the given `key` and return a `Cell *`, which may have `key == 0`.
+     * If the HashTable is completely filled, `nullptr` will be returned,
+     * otherwise a deref'able `Cell *` will be returned.
+     */
     inline Cell *const _lookup_cell(HTK key) {
         auto& map  = m_metadata->map;
         auto  hash = shift64(key);
@@ -217,7 +235,7 @@ protected: /*< ## Protected Member Methods */
         /* The last index that may terminate the below loop. */
         auto const final_index = (cell_index - 1) % capacity();
 
-        Cell* ptr = nullptr;
+        Cell* ret = nullptr;
         u64 misses = 0;
 
         // This loop will exit when either,
@@ -232,31 +250,31 @@ protected: /*< ## Protected Member Methods */
         //     and trigger the `break`.
         while(cell_index != final_index && map[cell_index].key >= ID_DELETED) {
             Cell& cell = map[cell_index];
-            if (cell.key == key) {
-                ptr = &cell;
-                break;
-            }
+            if (cell.key == key) { break; }
             cell_index = (1 + cell_index) % capacity();
             misses += 1;
         }
 
+        // FIXME: I think this is wrong; `final_index` is a valid cell.
+        // Sill considering how to fix this.
         if (cell_index != final_index) {
-            ptr = &map[cell_index];
+            ret = &map[cell_index];
         }
 
-        bool have_resize_function = m_resize != nullptr;
+        bool have_resize_function    = m_resize != nullptr;
         bool exceeded_miss_tolerance = misses > m_metadata->miss_tolerance;
-        bool rehash_allowed = ! m_metadata->rehash_in_progress;
-        if (    have_resize_function
-             && exceeded_miss_tolerance
-             && rehash_allowed ) {
-            resize_by(1.2f);
-        } else if (! rehash_allowed && cell_index == final_index) {
-            LOG("ERROR: Table is full, and I can't resize.");
-            BREAKPOINT();
+        bool rehash_allowed          = ! m_metadata->rehash_in_progress;
+        bool should_resize = have_resize_function    &&
+                             exceeded_miss_tolerance &&
+                             rehash_allowed;
+        /* Expect that we won't need to resize, and return the target. */
+        if (! should_resize) {
+            return ret;
         }
 
-        return ptr;
+        /* If we do need to resize, do so, and re-enter the lookup function. */
+        resize_by(1.2f);
+        return _lookup_cell(key);
     }
 
 
