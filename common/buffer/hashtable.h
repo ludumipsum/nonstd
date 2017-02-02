@@ -232,10 +232,6 @@ protected: /*< ## Protected Member Methods */
 
         /* Initial index for the given key. */
         auto cell_index = hash % capacity();
-        /* The last index that may terminate the below loop. */
-        auto const final_index = (cell_index - 1) % capacity();
-
-        Cell* ret = nullptr;
         u64 misses = 0;
 
         // This loop will exit when either,
@@ -248,28 +244,32 @@ protected: /*< ## Protected Member Methods */
         //     -- an initialized Cell will be returned.
         // NB. Any key with a value `< ID_DELETED` shall be considered empty,
         //     and trigger the `break`.
-        while(cell_index != final_index && map[cell_index].key >= ID_DELETED) {
+        while(misses < capacity() && map[cell_index].key >= ID_DELETED) {
             Cell& cell = map[cell_index];
             if (cell.key == key) { break; }
             cell_index = (1 + cell_index) % capacity();
             misses += 1;
         }
 
-        // FIXME: I think this is wrong; `final_index` is a valid cell.
-        // Sill considering how to fix this.
-        if (cell_index != final_index) {
-            ret = &map[cell_index];
-        }
-
         bool have_resize_function    = m_resize != nullptr;
         bool exceeded_miss_tolerance = misses > m_metadata->miss_tolerance;
         bool rehash_allowed          = ! m_metadata->rehash_in_progress;
+        bool hashtable_is_full       = misses == capacity();
         bool should_resize = have_resize_function    &&
                              exceeded_miss_tolerance &&
                              rehash_allowed;
+
+#if defined(DEBUG)
+        if (! should_resize && hashtable_is_full) {
+            LOG("Table is full, but I'm not allowed to resize. Help?\n"
+                "The backing buffer's name is %s and is located at %p.",
+                m_bd->name, m_bd);
+            BREAKPOINT();
+        }
+#endif
         /* Expect that we won't need to resize, and return the target. */
         if (! should_resize) {
-            return ret;
+            return &map[cell_index];;
         }
 
         /* If we do need to resize, do so, and re-enter the lookup function. */
