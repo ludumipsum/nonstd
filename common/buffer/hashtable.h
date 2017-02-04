@@ -49,16 +49,17 @@ public: /*< ## Class Methods */
     inline static void initializeBuffer(Descriptor *const bd,
                                         u64 miss_tolerance = 0) {
         Metadata * metadata = (Metadata *)(bd->data);
+        /* If the type check is correct, no initialization is required. */
+        if (metadata->magic == magic) { return; }
         if (metadata->magic && metadata->magic != magic) {
-            LOG("WARNING: Buffer HashTable corruption detected.\n"
-                "Underlying buffer is named %s, and is located at %p.\n"
-                "Corruption detected by magic numer --- %x is neither 0 nor %x."
-                "If there's more information to print about this HashTable, we "
-                "should add it to the code that prints this message.\n"
-                "Clearing all associated data and reinitializing the map.",
-                bd->name, bd, metadata->magic, magic);
+            LOG("WARNING: Buffer HashTable corruption detected. Corruption "
+                "detected by magic number -- %x is neither 0 nor %x.\n"
+                "Clearing all associated data and reinitializing the map.\n"
+                "Underlying buffer is named %s, and is located at %p.",
+                metadata->magic, magic, bd->name, bd);
             DEBUG_BREAKPOINT();
         }
+#if defined(DEBUG)
         if (metadata->rehash_in_progress) {
             LOG("ERROR: Buffer HashTable has been reinitialized while "
                 "`rehash_in_progress == true`. This should not be possible. "
@@ -67,6 +68,14 @@ public: /*< ## Class Methods */
                 bd->name, bd);
             BREAKPOINT();
         }
+        if (bd->size < sizeof(Metadata)) {
+            LOG("ERROR: Buffer HashTable is being overlaid onto a Buffer that "
+                "is too small to fit the HashTable Metadata.\n"
+                "Underlying buffer is named %s, and it is located at %p.",
+                bd->name, bd);
+            BREAKPOINT();
+        }
+#endif
         u64 data_region_size = bd->size - sizeof(Metadata);
         u64 capacity         = data_region_size / sizeof(Cell);
         metadata->magic              = magic;
