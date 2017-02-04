@@ -176,9 +176,11 @@ protected: /*< ## Protected Member Methods */
         if (capacity < count()) {
             LOG("Resizing a HashTable such that the new capacity (" Fu64 ") is "
                 "less than the current count (" Fu64 "). This... is probably "
-                "okay? But maybe imagine some explosion noises.\n"
+                "not okay. Data should be `destroy`d or `drop`d before "
+                "downsizing.\n"
                 "The backing buffer's name is %s and it is located at %p.",
                 capacity, count(), m_bd->name, m_bd);
+            BREAKPOINT();
         }
 
         // Copy all current data aside to an intermediate `src` HashTable.
