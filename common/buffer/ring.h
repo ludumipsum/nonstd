@@ -45,8 +45,10 @@ namespace buffer {
 template<typename T>
 class Ring {
 public: /*< ## Class Methods */
-    inline static u64 precomputeSize(u64 count) {
-        return count * sizeof(T);
+    static const u64 default_capacity = 64;
+
+    inline static u64 precomputeSize(u64 capacity = default_capacity) {
+        return sizeof(T) * capacity;
     }
 
 
