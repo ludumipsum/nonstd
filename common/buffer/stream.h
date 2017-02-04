@@ -136,11 +136,11 @@ public: /*< ## Public Memeber Methods */
 #if defined(DEBUG)
         // TODO: Better logging
         if (index >= capacity()) {
-            LOG("buffer::Stream -- index out of bounds. %d / %d in %s."
+            LOG("buffer::Stream -- index out of bounds. %d / %d in %s.",
                 index, capacity(), m_bd->name);
             BREAKPOINT();
         } else if (index > count()) {
-            LOG("buffer::Stream -- invalid data requested. %d / %d in %s."
+            LOG("buffer::Stream -- invalid data requested. %d / %d in %s.",
                 index, count(), m_bd->name);
             BREAKPOINT();
         }

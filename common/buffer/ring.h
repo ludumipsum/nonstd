@@ -89,7 +89,7 @@ public: /*< ## Public Memeber Methods */
 #if defined(DEBUG)
         // TODO: Better logging
         if (index >= capacity()) {
-            LOG("buffer::Ring -- index out of bounds. %d / %d in %s."
+            LOG("buffer::Ring -- index out of bounds. %d / %d in %s.",
                 index, capacity(), m_bd->name);
             BREAKPOINT();
         }
