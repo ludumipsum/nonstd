@@ -84,14 +84,14 @@ public: /*< ## Class Methods */
         metadata->miss_tolerance     = miss_tolerance ? miss_tolerance
                                                       : default_miss_tolerance;
         metadata->rehash_in_progress = false;
-        memset(&(metadata->map), '\0', data_region_size);
+        memset(metadata->map, '\0', data_region_size);
     }
 
 
 protected: /*< ## Public Member Variables */
-    Descriptor *const m_bd;
-    Metadata   *      m_metadata;
-    BufferResizeFn    m_resize;
+    Descriptor * const m_bd;
+    Metadata   *       m_metadata;
+    BufferResizeFn     m_resize;
 
 public: /*< ## Ctors, Detors, and Assignments */
     HashTable(Descriptor *const bd,
@@ -114,11 +114,12 @@ public: /*< ## Public Memeber Methods */
     }
 
     inline void resize_to(u64 capacity) {
-        _resize(capacity);
+        _resize(HashTable::precomputeSize(capacity));
     }
 
     inline void resize_by(f64 growth_factor) {
-        _resize((u64)(capacity() * growth_factor));
+        u64 capacity = (u64)(this->capacity() * growth_factor);
+        _resize(HashTable::precomputeSize(capacity));
     }
 
     /* Search for the given key, returning an Optional. */
@@ -164,7 +165,7 @@ public: /*< ## Public Memeber Methods */
         Cell *const cell = _lookup_cell(key);
         if (cell != nullptr) {
             m_metadata->count -= 1;
-            cell->key   = ID_DELETED; /*< TODO: Use a HT-specific sentinel */
+            cell->key   = ID_DELETED; //< TODO: Use a HT-specific sentinel
             cell->value = 0;
         }
     }
@@ -175,22 +176,35 @@ protected: /*< ## Protected Member Methods */
      * Resize `this` HashTable to have room for exactly `capacity` elements.
      * This function should be able to both upscale and downscale HashTables.
      */
-    inline void _resize(u64 capacity) {
+    inline void _resize(u64 new_size) {
+        u64 data_region_size = new_size - sizeof(Metadata);
+        u64 new_capacity     = data_region_size / sizeof(Cell);
+
+#if defined(DEBUG)
         if (m_resize == nullptr) {
-            LOG("Attempting to resize a HashTable that has not had a resize "
-                "function associated. The backing Buffer's name is %s.\n",
-                m_bd->name);
+            LOG("ERROR: Attempting to resize a HashTable that has not had a "
+                "resize function associated.\n"
+                "Underlying buffer is named %s, and it is located at %p.",
+                m_bd->name, m_bd);
             BREAKPOINT();
         }
-        if (capacity < count()) {
-            LOG("Resizing a HashTable such that the new capacity (" Fu64 ") is "
-                "less than the current count (" Fu64 "). This... is probably "
-                "not okay. Data should be `destroy`d or `drop`d before "
-                "downsizing.\n"
-                "The backing buffer's name is %s and it is located at %p.",
-                capacity, count(), m_bd->name, m_bd);
+        if (m_bd->size < sizeof(Metadata)) {
+            LOG("ERROR: Buffer HashTable is being resized into a Buffer that "
+                "is too small to fit the HashTable Metadata.\n"
+                "Underlying buffer is named %s, and it is located at %p.",
+                m_bd->name, m_bd);
             BREAKPOINT();
         }
+        if (new_capacity < count()) {
+            LOG("ERROR: Resizing a HashTable such that the new capacity (" Fu64
+                ") is less than the current count (" Fu64 "). This... is "
+                "probably not okay. Data should be `destroy`d or `drop`d "
+                "before downsizing.\n"
+                "Underlying buffer is named %s, and it is located at %p.",
+                new_capacity, count(), m_bd->name, m_bd);
+            BREAKPOINT();
+        }
+#endif
 
         // Copy all current data aside to an intermediate `src` HashTable.
         // TODO: REPLACE ME WITH SCRATCH BUFFER USAGE
@@ -205,24 +219,27 @@ protected: /*< ## Protected Member Methods */
         HashTable src(&intermediate_bd);
 
         // Resize the backing buffer.
-        m_resize(m_bd, HashTable::precomputeSize(capacity));
+        // `realloc` "copies as much of the old data pointed to by `ptr` as will
+        // fit [in]to the new allocation". This function('s DEBUG checks)
+        // guarantee that we will have at least room enough for the previous
+        // allocation's Metadata. No guarantees are made about the state of the
+        // data region, or the current location of the Buffer.
+        m_resize(m_bd, new_size);
 
-        // Because the newly realloc'd data is potentially undefined, zero-out
-        // the backing buffer, and re-initialize `this` HashTable.
-        // The ::initializeBuffer call will zero-out the HashTable data, so we
-        // need only memset the Metadata portion here.
-        memset(m_bd->data, '\0', sizeof(Metadata));
-        HashTable::initializeBuffer(m_bd, src.miss_tolerance());
-
-        // Re-seat the Metadata member.
-        m_metadata = (Metadata*)(m_bd->data);
+        // Re-seat the Metadata member, re-set the Metadata members (save for
+        // miss_tolerance, which will remain correct), and zero-out the
+        // HashTable data region.
+        m_metadata           = (Metadata*)(m_bd->data);
+        m_metadata->count    = 0;
+        m_metadata->capacity = new_capacity;
+        memset(m_metadata->map, '\0', data_region_size);
 
         // Copy all data from the `src` HashTable into `this`.
         // Use `rehash_in_progress` to prevent the below `set` calls from
         // triggering a rehash while this one is completing.
         m_metadata->rehash_in_progress = true;
-        Cell * final_cell = src.m_metadata->map + src.capacity();
         Cell * cell       = src.m_metadata->map;
+        Cell * final_cell = src.m_metadata->map + src.capacity();
         for (  ; cell < final_cell; cell++) {
             if (cell->key) { set(cell->key, cell->value); }
         }
@@ -241,7 +258,7 @@ protected: /*< ## Protected Member Methods */
         auto& map  = m_metadata->map;
         auto  hash = shift64(key);
 
-        /* Initial index for the given key. */
+        // Initial index for the given key.
         auto cell_index = hash % capacity();
         u64 misses = 0;
 
@@ -278,12 +295,12 @@ protected: /*< ## Protected Member Methods */
             BREAKPOINT();
         }
 #endif
-        /* Expect that we won't need to resize, and return the target. */
+        // Expect that we won't need to resize, and return the target.
         if (! should_resize) {
             return &map[cell_index];;
         }
 
-        /* If we do need to resize, do so, and re-enter the lookup function. */
+        // If we do need to resize, do so, and re-enter the lookup function.
         resize_by(1.2f);
         return _lookup_cell(key);
     }
