@@ -18,7 +18,7 @@
  * Game code may `sate.memory.create/3` and `state.memory.lookup/1` named memory
  * regions to receive a `Descriptor` from platform code. That data may then be
  * directly modified via the `Descriptor->data` pointer, or a typed 'Buffer
- * View' may be overlain on top of the `Descriptor` to allow interaction with
+ * View' may be overlaid on top of the `Descriptor` to allow interaction with
  * individual objects.
  *
  * NB. As there is no real guarantee of what the platform layer will or won't do
