@@ -23,7 +23,7 @@
 namespace buffer {
 
 class HashTable {
-protected: /*< ## Sub-Types */
+protected: /*< ## Inner-Types */
     static const u32 magic = 0xBADB33F;
     struct Cell {
         HTK  key;

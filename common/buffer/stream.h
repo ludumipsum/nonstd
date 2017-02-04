@@ -38,7 +38,7 @@ namespace buffer {
 
 template<typename T>
 class Stream {
-protected: /*< ## Sub-Types */
+protected: /*< ## Innter-Types */
     static const u32 magic = 0xDEFACED;
     struct Metadata {
         u32 magic;
