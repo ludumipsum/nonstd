@@ -50,12 +50,16 @@ protected: /*< ## Innter-Types */
     };
 
 public: /*< ## Class Methods */
-    inline static u64 precomputeSize(u64 capacity) {
+    static const u64 default_capacity = 64;
+
+    inline static u64 precomputeSize(u64 capacity = default_capacity) {
         return sizeof(Metadata) + sizeof(T) * capacity;
     }
 
     inline static void initializeBuffer(Descriptor *const bd) {
         Metadata * metadata = (Metadata*)bd->data;
+        /* If the type check is correct, no initialization is required. */
+        if (metadata->magic == magic) { return; }
         if (metadata->magic && metadata->magic != magic) {
             LOG("WARNING: Buffer Stream corruption detected.\n"
                 "Underlying buffer is named %s, and is located at %p. Magic "
@@ -65,6 +69,15 @@ public: /*< ## Class Methods */
                 bd->name, bd, magic, metadata->magic, metadata->count);
             DEBUG_BREAKPOINT();
         }
+#if defined(DEBUG)
+        if (bd->size < sizeof(Metadata)) {
+            LOG("ERROR: Buffer Stream is being overlaid onto a Buffer that is "
+                "too small to fit the Stream Metadata.\n"
+                "Underlying buffer is named %s, and it is located at %p.",
+                bd->name, bd);
+            BREAKPOINT();
+        }
+#endif
         metadata->magic      = magic;
         metadata->capacity   = (bd->size - sizeof(Metadata)) / sizeof(T);
         metadata->count      = 0;
@@ -136,40 +149,44 @@ public: /*< ## Public Memeber Methods */
 #if defined(DEBUG)
         // TODO: Better logging
         if (index >= capacity()) {
-            LOG("buffer::Stream -- index out of bounds. %d / %d in %s.",
+            LOG("ERROR: Stream -- index out of bounds. %d / %d in %s.",
                 index, capacity(), m_bd->name);
             BREAKPOINT();
         } else if (index > count()) {
-            LOG("buffer::Stream -- invalid data requested. %d / %d in %s.",
+            LOG("ERROR: Stream -- invalid data requested. %d / %d in %s.",
                 index, count(), m_bd->name);
             BREAKPOINT();
         }
 #endif
         u64 target_index = increment(m_metadata->read_head, index);
-        T& ret = m_metadata->data[target_index];
+        T& mem = m_metadata->data[target_index];
 
-        if (index == count()) { /*< We should increment the write head */
+        // If the index that has been fetched is the "next" element -- the
+        // element that would be written to if `push()` were called -- we need
+        // to increment the write_head, and either increment the read head (if
+        // the Stream is full), or increment the current count.
+        if (index == count()) {
             m_metadata->write_head = increment(m_metadata->write_head);
-            if (count() == capacity()) { /* We should increment the read head */
+            if (count() == capacity()) {
                 m_metadata->read_head = increment(m_metadata->read_head);
             } else {
                 m_metadata->count += 1;
             }
         }
 
-        return ret;
+        return mem;
     }
 
     inline T& push(T value) {
-        T* mem = m_metadata->data + m_metadata->write_head;
-        *mem = value;
+        T& mem = m_metadata->data[m_metadata->write_head];
+        mem = value;
         m_metadata->write_head = increment(m_metadata->write_head);
         if (count() == capacity()) {
             m_metadata->read_head = increment(m_metadata->read_head);
         } else {
             m_metadata->count += 1;
         }
-        return *mem;
+        return mem;
     }
 
 
