@@ -22,6 +22,7 @@
 
 /* Platform <----> Gamecode API */
 #include "api.h"
+#include "crash.h"
 
 /* Base includes for allthethings */
 #include "batteries_included.h"
