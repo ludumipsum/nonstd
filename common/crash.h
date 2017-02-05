@@ -31,16 +31,40 @@ int crash(i32    error_number,
                    __LINE__,                                        \
                    __PRETTY_FUNCTION__)
 
-/* N2ASSERT Macro
- * --------------
- * Calls the above CRASH
+/* _IF / _UNLESS Macros & DEBUG-only N2ASSERT Macros
+ * -------------------------------------------------
+ * Wraping the above CRASH in condition checks.
  */
+#define CRASH_IF(COND, ERRNO, MESSAGE, ...)           \
+    ( (COND) ?                                        \
+      CRASH(ERRNO,                                    \
+            "Condition met ( " #COND " )\n" MESSAGE , \
+            ##__VA_ARGS__) :                          \
+      0 )
+#define CRASH_UNLESS(COND, ERRNO, MESSAGE, ...)           \
+    ( (COND) ?                                            \
+      0 :                                                 \
+      CRASH(ERRNO,                                        \
+            "Condition not met ( " #COND " )\n" MESSAGE , \
+            ##__VA_ARGS__) )
+
+
 #if defined(DEBUG)
-#define N2ASSERT(COND, ERRNO, MESSAGE, ...)                                  \
-  ((COND) ? 0 :                                                              \
-   CRASH(ERRNO, "Assertion Failed ( " #COND " )\n" MESSAGE , ##__VA_ARGS__))
+#define N2ASSERT(COND, ERRNO, MESSAGE, ...)              \
+    ( (COND) ?                                           \
+      0 :                                                \
+      CRASH(ERRNO,                                       \
+            "Assertion Failed ( " #COND " )\n" MESSAGE , \
+            ##__VA_ARGS__) )
+#define N2ASSERT_FALSE(COND, ERRNO, MESSAGE, ...)         \
+    ( (COND) ?                                            \
+      CRASH(ERRNO,                                        \
+            "Assertion Failed !( " #COND " )\n" MESSAGE , \
+            ##__VA_ARGS__) :                              \
+      0 )
 #else
 #define N2ASSERT(COND, ERRNO, MESSAGE, ...)
+#define N2ASSERT_FALSE(COND, ERRNO, MESSAGE, ...)
 #endif
 
 /* CAPTURE_CRASH Test Rigging
