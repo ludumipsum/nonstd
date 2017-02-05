@@ -13,11 +13,11 @@
 namespace crash {
 
 /* Kerplow */
-void crash(i32    error_number,
-           c_cstr reason,
-           c_cstr file,
-           u64    line,
-           c_cstr funcsig);
+int crash(i32    error_number,
+          c_cstr reason,
+          c_cstr file,
+          u64    line,
+          c_cstr funcsig);
 
 /* CRASH Macro
  * -----------
@@ -37,8 +37,8 @@ void crash(i32    error_number,
  */
 #if defined(DEBUG)
 #define N2ASSERT(COND, ERRNO, MESSAGE, ...)                                  \
-  ((COND) ? true :                                                           \
-    CRASH(ERRNO, "Assertion Failed (" #COND "): " #MESSAGE , ##__VA_ARGS__))
+  ((COND) ? 0 :                                                              \
+   CRASH(ERRNO, "Assertion Failed ( " #COND " )\n" MESSAGE , ##__VA_ARGS__))
 #else
 #define N2ASSERT(COND, ERRNO, MESSAGE, ...)
 #endif
