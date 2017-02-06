@@ -15,6 +15,7 @@
 #include "primitive_types.h"
 
 #include "buffer.h"
+#include "crash.h"
 
 #include "cvar.h"
 #include "data/ui_command.h"
@@ -116,7 +117,7 @@ struct GameState {
 
         /* Signal the platform that the game has encountered an unrecoverable
            error. The platform may or may not itself die in response. */
-        int (*crash)(i32 error_number, c_cstr reason,
+        int (*crash)(crash::Error error, c_cstr reason,
                      c_cstr file, u64 line, c_cstr funcsig);
     } functions;
 }; ENFORCE_POD(GameState);
