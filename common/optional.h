@@ -54,31 +54,31 @@ public:
 
 protected:
     /* Type aliases for T with and without lvalue-reference qualifiers. */
-    using T_REFERENCE=ADD_REFERENCE_TYPE(T);   /* T -> T&  and  T& -> T& */
-    using T_CONCRETE=REMOVE_REFERENCE_TYPE(T); /* T -> T   and  T& -> T  */
+    using T_AsReference=ADD_REFERENCE_TYPE(T);    /* T -> T&  and  T& -> T& */
+    using T_NoReference=REMOVE_REFERENCE_TYPE(T); /* T -> T   and  T& -> T  */
 
     /* Autodetect whether T is a reference or not, and compile the appropriate
      * version of _getValue based on that. */
     template<bool = IS_REFERENCE_TYPE(T)>
-    inline T_REFERENCE _getValue();
+    inline T_AsReference _getValue();
     template<> /* Accessor for option-by-reference instances */
-    inline T_REFERENCE _getValue<true>() {
+    inline T_AsReference _getValue<true>() {
         return *value_ptr;
     }
     template<> /* Accessor for option-by-value instances */
-    inline T_REFERENCE _getValue<false>() {
+    inline T_AsReference _getValue<false>() {
         return value;
     }
 
     /* Value setter templated on option-by-reference vs option-by-value */
     template<bool = IS_REFERENCE_TYPE(T)>
-    inline void _setValue(T_REFERENCE _value);
+    inline void _setValue(T_AsReference _value);
     template<> /* Setter for option-by-reference instances */
-    inline void _setValue<true>(T_REFERENCE _value) {
+    inline void _setValue<true>(T_AsReference _value) {
         value_ptr = (decltype(value_ptr))(&_value);
     }
     template<> /* Setter for option-by-value instances */
-    inline void _setValue<false>(T_REFERENCE _value) {
+    inline void _setValue<false>(T_AsReference _value) {
         value = _value;
     }
 };
