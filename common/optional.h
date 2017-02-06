@@ -25,39 +25,14 @@ protected:
      * to directly store one.
      */
     union {
-        n2_decay_t<T>  value;
-        n2_decay_t<T>* value_ptr;
+        DECAY_TYPE(T)  value;
+        DECAY_TYPE(T)* value_ptr;
         void *_junk;
     };
     bool just;
 
-    /* Autodetect whether T is a reference or not, and compile the appropriate
-     * version of _getValue based on that. */
-    template<bool = std::is_reference<T>::value>
-    T& _getValue();
-	template<> /* Accessor for option-by-reference instances */
-    T& _getValue<true>() {
-        return *value_ptr;
-    }
-	template<> /* Accessor for option-by-value instances */
-    T& _getValue<false>() {
-        return value;
-    }
-
-    /* Value setter templated on option-by-reference vs option-by-value */
-    template<bool = std::is_reference<T>::value>
-    void _setValue(T& _value);
-    template<> /* Setter for option-by-reference instances */
-    void _setValue<true>(T& _value) {
-        value_ptr = (decltype(value_ptr))(&_value);
-    }
-    template<> /* Setter for option-by-value instances */
-    void _setValue<false>(T& _value) {
-        value = _value;
-    }
-
 public:
-    Optional(T& _value) : _junk(nullptr), just(true) {
+    Optional(T _value) : _junk(nullptr), just(true) {
         _setValue(_value);
     }
 
@@ -70,11 +45,41 @@ public:
     /* Access operators */
     inline auto operator -> () { return &(this->operator*()); }
     inline auto operator () () { return   this->operator*();  }
-    inline T& operator * () {
+    inline T_REFERENCE operator * () {
 #if N2_CHECKED_OPTIONALS
         if (!just) { BREAKPOINT(); }
 #endif
         return _getValue();
+    }
+
+protected:
+    /* Type aliases for T with and without lvalue-reference qualifiers. */
+    using T_REFERENCE=ADD_REFERENCE_TYPE(T);   /* T -> T&  and  T& -> T& */
+    using T_CONCRETE=REMOVE_REFERENCE_TYPE(T); /* T -> T   and  T& -> T  */
+
+    /* Autodetect whether T is a reference or not, and compile the appropriate
+     * version of _getValue based on that. */
+    template<bool = IS_REFERENCE_TYPE(T)>
+    inline T_REFERENCE _getValue();
+    template<> /* Accessor for option-by-reference instances */
+    inline T_REFERENCE _getValue<true>() {
+        return *value_ptr;
+    }
+    template<> /* Accessor for option-by-value instances */
+    inline T_REFERENCE _getValue<false>() {
+        return value;
+    }
+
+    /* Value setter templated on option-by-reference vs option-by-value */
+    template<bool = IS_REFERENCE_TYPE(T)>
+    inline void _setValue(T_REFERENCE _value);
+    template<> /* Setter for option-by-reference instances */
+    inline void _setValue<true>(T_REFERENCE _value) {
+        value_ptr = (decltype(value_ptr))(&_value);
+    }
+    template<> /* Setter for option-by-value instances */
+    inline void _setValue<false>(T_REFERENCE _value) {
+        value = _value;
     }
 };
 

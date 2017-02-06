@@ -246,18 +246,18 @@ using n2_enable_if_t = typename std::enable_if<B,T>::type;
  */
 template< class T >
 using n2_remove_reference_t = typename std::remove_reference<T>::type;
-#define REMOVE_REFERENCE(T) (n2_remove_reference_t<T>)
+#define REMOVE_REFERENCE_TYPE(T) n2_remove_reference_t<T>
 template< class T >
 using n2_add_reference_t = typename std::add_lvalue_reference<T>::type;
-#define ADD_REFERENCE(T) (n2_add_reference_t<T>)
+#define ADD_REFERENCE_TYPE(T) n2_add_reference_t<T>
 
 /* IS_REFERENCE
  * ------------
  * Helper wrapping std::is_reference<T>::value to extract the referentiality
  * of an object. Answers the "Is this type a reference?" question.
  */
-#define IS_REFERENCE(T) (std::is_reference<T>::value)
-#define IS_NOT_REFERENCE(T) (!IS_REFERENCE(T))
+#define IS_REFERENCE_TYPE(T) (std::is_reference<T>::value)
+#define IS_NOT_REFERENCE_TYPE(T) (!IS_REFERENCE_TYPE(T))
 
 /* DECAY
  * -----
@@ -265,6 +265,7 @@ using n2_add_reference_t = typename std::add_lvalue_reference<T>::type;
  */
 template< class T >
 using n2_decay_t = typename std::decay<T>::type;
+#define DECAY_TYPE(T) n2_decay_t<T>
 
 /* Shim for mktemp
    ------------------------------------
