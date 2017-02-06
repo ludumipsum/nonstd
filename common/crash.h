@@ -19,12 +19,12 @@ int crash(i32    error_number,
           u64    line,
           c_cstr funcsig);
 
-/* CRASH Macro
+/* N2CRASH Macro
  * -----------
  * Used as a macro-ized passthrough to the above crash::boom function. This lets
  * us skip adding FILE and LINE macros to every invocation of crash::boom.
  */
-#define CRASH(ERROR_NUMBER, MESSAGE, ...)                           \
+#define N2CRASH(ERROR_NUMBER, MESSAGE, ...)                         \
     ::crash::crash(ERROR_NUMBER,                                    \
                    _variadicExpand(MESSAGE, ##__VA_ARGS__).c_str(), \
                    __FILE__,                                        \
@@ -33,18 +33,18 @@ int crash(i32    error_number,
 
 /* _IF / _UNLESS Macros & DEBUG-only N2ASSERT Macros
  * -------------------------------------------------
- * Wraping the above CRASH in condition checks.
+ * Wraping the above N2CRASH in condition checks.
  */
-#define CRASH_IF(COND, ERRNO, MESSAGE, ...)           \
+#define N2CRASH_IF(COND, ERRNO, MESSAGE, ...)         \
     ( (COND) ?                                        \
-      CRASH(ERRNO,                                    \
+      N2CRASH(ERRNO,                                  \
             "Condition met ( " #COND " )\n" MESSAGE , \
             ##__VA_ARGS__) :                          \
       0 )
-#define CRASH_UNLESS(COND, ERRNO, MESSAGE, ...)           \
+#define N2CRASH_UNLESS(COND, ERRNO, MESSAGE, ...)         \
     ( (COND) ?                                            \
       0 :                                                 \
-      CRASH(ERRNO,                                        \
+      N2CRASH(ERRNO,                                      \
             "Condition not met ( " #COND " )\n" MESSAGE , \
             ##__VA_ARGS__) )
 
@@ -53,12 +53,12 @@ int crash(i32    error_number,
 #define N2ASSERT(COND, ERRNO, MESSAGE, ...)              \
     ( (COND) ?                                           \
       0 :                                                \
-      CRASH(ERRNO,                                       \
+      N2CRASH(ERRNO,                                     \
             "Assertion Failed ( " #COND " )\n" MESSAGE , \
             ##__VA_ARGS__) )
 #define N2ASSERT_FALSE(COND, ERRNO, MESSAGE, ...)         \
     ( (COND) ?                                            \
-      CRASH(ERRNO,                                        \
+      N2CRASH(ERRNO,                                      \
             "Assertion Failed !( " #COND " )\n" MESSAGE , \
             ##__VA_ARGS__) :                              \
       0 )
