@@ -163,7 +163,7 @@ public: /*< ## Public Memeber Methods */
      * No records are written if the key has not been previously written. */
     inline void destroy(HTK key) {
         Cell *const cell = _lookup_cell(key);
-        if (cell != nullptr) {
+        if (cell != nullptr && cell->key != 0) {
             m_metadata->count -= 1;
             cell->key   = ID_DELETED; //< TODO: Use a HT-specific sentinel
             cell->value = 0;
