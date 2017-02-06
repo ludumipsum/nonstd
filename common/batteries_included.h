@@ -239,6 +239,33 @@ using n2_enable_if_t = typename std::enable_if<B,T>::type;
     template<typename _TEMPLATE_ENABLE_DEPENDENCY_=T,   \
     n2_enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
 
+/* Helpers for adding and removing references to types
+ * ---------------------------------------------------
+ * Not all our compilers support C++14 fully, so we can't rely on the STL helper
+ * for stripping references off and getting the type. So here we are.
+ */
+template< class T >
+using n2_remove_reference_t = typename std::remove_reference<T>::type;
+#define REMOVE_REFERENCE(T) (n2_remove_reference_t<T>)
+template< class T >
+using n2_add_reference_t = typename std::add_lvalue_reference<T>::type;
+#define ADD_REFERENCE(T) (n2_add_reference_t<T>)
+
+/* IS_REFERENCE
+ * ------------
+ * Helper wrapping std::is_reference<T>::value to extract the referentiality
+ * of an object. Answers the "Is this type a reference?" question.
+ */
+#define IS_REFERENCE(T) (std::is_reference<T>::value)
+#define IS_NOT_REFERENCE(T) (!IS_REFERENCE(T))
+
+/* DECAY
+ * -----
+ * Wrapper around std::decay<T>::type like the one defined in C++14
+ */
+template< class T >
+using n2_decay_t = typename std::decay<T>::type;
+
 /* Shim for mktemp
    ------------------------------------
 

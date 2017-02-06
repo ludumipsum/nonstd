@@ -16,37 +16,65 @@
 template<typename T>
 struct Optional {
 protected:
-    /* This anonymous-union-struct nesting is required to allow the compiler to
-     * generate a form of the optional that doesn't include a valid reference,
-     * which is otherwise in violation of the "never nullable" contract provided
-     * by reference variables. The inner struct is required on some compilers
-     * which would otherwise complain about reference members of a union since
-     * according to the standard, the storage required by a reference is
-     * implementation-specific, and it is therefore undefined behavior to rely
-     * on a particular size of a reference when sizing a struct, breaking the
-     * portability requirement of POD structs.
+    /* For reference types (i.e. T is a reference, something like u32&) we can't
+     * store the value in the usual enum directly, because reference sizes are
+     * undefined, and reference members in enums are illegal according to the
+     * standard. We therefore strip the referentiality off for those and store
+     * them as pointers that we then convert to in _getValue/_setValue, which
+     * preserves the API contract of operating on reference types without having
+     * to directly store one.
      */
     union {
-        struct { T value; };
+        n2_decay_t<T>  value;
+        n2_decay_t<T>* value_ptr;
         void *_junk;
     };
     bool just;
 
+    /* Autodetect whether T is a reference or not, and compile the appropriate
+     * version of _getValue based on that. */
+    template<bool = std::is_reference<T>::value>
+    T& _getValue();
+	template<> /* Accessor for option-by-reference instances */
+    T& _getValue<true>() {
+        return *value_ptr;
+    }
+	template<> /* Accessor for option-by-value instances */
+    T& _getValue<false>() {
+        return value;
+    }
+
+    /* Value setter templated on option-by-reference vs option-by-value */
+    template<bool = std::is_reference<T>::value>
+    void _setValue(T& _value);
+    template<> /* Setter for option-by-reference instances */
+    void _setValue<true>(T& _value) {
+        value_ptr = (decltype(value_ptr))(&_value);
+    }
+    template<> /* Setter for option-by-value instances */
+    void _setValue<false>(T& _value) {
+        value = _value;
+    }
+
 public:
-    Optional(T value) : value(value), just(true) { }
+    Optional(T& _value) : _junk(nullptr), just(true) {
+        _setValue(_value);
+    }
+
+    /* Constructor for empty (None) optionals */
     Optional() : _junk(nullptr), just(false) { }
 
     /* Coercion operators */
     explicit inline operator bool() const { return just; }
 
     /* Access operators */
-    inline auto operator -> ()    { return &(this->operator*()); }
-    inline T& operator () ()      { return   this->operator*(); }
-    inline T& operator *  ()      {
+    inline auto operator -> () { return &(this->operator*()); }
+    inline auto operator () () { return   this->operator*();  }
+    inline T& operator * () {
 #if N2_CHECKED_OPTIONALS
         if (!just) { BREAKPOINT(); }
 #endif
-        return value;
+        return _getValue();
     }
 };
 
