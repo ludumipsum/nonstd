@@ -49,6 +49,18 @@ public: /*< ## Class Methods */
     inline static void initializeBuffer(Descriptor *const bd,
                                         u64 miss_tolerance = 0) {
         Metadata * metadata = (Metadata *)(bd->data);
+#if defined(DEBUG)
+        N2CRASH_IF(bd->size < sizeof(Metadata), ENOMEM,
+            "Buffer HashTable is being overlaid onto a Buffer that is too "
+            "small (" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            bd->size, sizeof(Metadata), bd->name, bd);
+        N2CRASH_IF(metadata->rehash_in_progress, EDEADLK,
+            "Buffer HashTable has been reinitialized while "
+            "`rehash_in_progress == true`. This should not be possible.\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            bd->name, bd);
+#endif
         /* If the type check is correct, no initialization is required. */
         if (metadata->magic == magic) { return; }
         if (metadata->magic && metadata->magic != magic) {
@@ -59,23 +71,6 @@ public: /*< ## Class Methods */
                 metadata->magic, magic, bd->name, bd);
             DEBUG_BREAKPOINT();
         }
-#if defined(DEBUG)
-        if (metadata->rehash_in_progress) {
-            LOG("ERROR: Buffer HashTable has been reinitialized while "
-                "`rehash_in_progress == true`. This should not be possible. "
-                "Uhh... Imagine some explosion noises, or something.\n"
-                "Underlying buffer is named %s, and it is located at %p.",
-                bd->name, bd);
-            BREAKPOINT();
-        }
-        if (bd->size < sizeof(Metadata)) {
-            LOG("ERROR: Buffer HashTable is being overlaid onto a Buffer that "
-                "is too small to fit the HashTable Metadata.\n"
-                "Underlying buffer is named %s, and it is located at %p.",
-                bd->name, bd);
-            BREAKPOINT();
-        }
-#endif
         u64 data_region_size = bd->size - sizeof(Metadata);
         u64 capacity         = data_region_size / sizeof(Cell);
         metadata->magic              = magic;
@@ -181,29 +176,22 @@ protected: /*< ## Protected Member Methods */
         u64 new_capacity     = data_region_size / sizeof(Cell);
 
 #if defined(DEBUG)
-        if (m_resize == nullptr) {
-            LOG("ERROR: Attempting to resize a HashTable that has not had a "
-                "resize function associated.\n"
-                "Underlying buffer is named %s, and it is located at %p.",
-                m_bd->name, m_bd);
-            BREAKPOINT();
-        }
-        if (m_bd->size < sizeof(Metadata)) {
-            LOG("ERROR: Buffer HashTable is being resized into a Buffer that "
-                "is too small to fit the HashTable Metadata.\n"
-                "Underlying buffer is named %s, and it is located at %p.",
-                m_bd->name, m_bd);
-            BREAKPOINT();
-        }
-        if (new_capacity < count()) {
-            LOG("ERROR: Resizing a HashTable such that the new capacity (" Fu64
-                ") is less than the current count (" Fu64 "). This... is "
-                "probably not okay. Data should be `destroy`d or `drop`d "
-                "before downsizing.\n"
-                "Underlying buffer is named %s, and it is located at %p.",
-                new_capacity, count(), m_bd->name, m_bd);
-            BREAKPOINT();
-        }
+        N2CRASH_IF(m_resize == nullptr, ENOENT,
+            "Attempting to resize a HashTable that has no associated "
+            "resize function.\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            m_bd->name, m_bd);
+        N2CRASH_IF(m_bd->size < sizeof(Metadata), ENOMEM,
+            "Buffer HashTable is being resized into a Buffer that is too small "
+            "(" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            m_bd->size, sizeof(Metadata), m_bd->name, m_bd);
+        N2CRASH_IF(new_capacity < count(), ENOMEM,
+            "Resizing a HashTable such that the new capacity (" Fu64 ") is "
+            "less than the current count (" Fu64 "). This... is probbaly not "
+            "okay. Data should be `destroy`d or `drop`d before downsizing?\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            new_capacity, count(), m_bd->name, m_bd);
 #endif
 
         // Copy all current data aside to an intermediate `src` HashTable.
@@ -288,12 +276,10 @@ protected: /*< ## Protected Member Methods */
                              rehash_allowed;
 
 #if defined(DEBUG)
-        if (! should_resize && hashtable_is_full) {
-            LOG("Table is full, but I'm not allowed to resize. Help?\n"
-                "The backing buffer's name is %s and is located at %p.",
-                m_bd->name, m_bd);
-            BREAKPOINT();
-        }
+        N2CRASH_IF(hashtable_is_full && !should_resize, EPERM,
+            "Table is full, but I'm not allowed to resize. Halp?\n"
+            "The backing buffer's name is %s and is located at %p.",
+            m_bd->name, m_bd);
 #endif
         // Expect that we won't need to resize, and return the target.
         if (! should_resize) {

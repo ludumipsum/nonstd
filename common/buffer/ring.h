@@ -78,23 +78,20 @@ public: /*< ## Public Memeber Methods */
     }
 
     inline u64 resize(u64 capacity) {
-        LOG("This function is currently unimplemented.");
-        BREAKPOINT();
+        N2CRASH(ENOSYS, "This function is currently unimplemented.");
     }
 
     inline T* consume(u64 count) {
-        LOG("This function is currently unimplemented.");
-        BREAKPOINT();
+        N2CRASH(ENOSYS, "This function is currently unimplemented.");
     }
 
     inline T& operator[](i64 index) {
 #if defined(DEBUG)
         // TODO: Better logging
-        if (index >= capacity()) {
-            LOG("buffer::Ring -- index out of bounds. %d / %d in %s.",
-                index, capacity(), m_bd->name);
-            BREAKPOINT();
-        }
+        N2CRASH_IF(index >= capacity(), EINVAL,
+            "Out of bounds access; entry %d / %d.\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            index, capacity(), m_bd->name, m_bd);
 #endif
         u64 target_index = increment(m_write_head, (index));
         return *((T*)(m_bd->data) + target_index);
