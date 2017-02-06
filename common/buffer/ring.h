@@ -78,18 +78,18 @@ public: /*< ## Public Memeber Methods */
     }
 
     inline u64 resize(u64 capacity) {
-        N2CRASH(ENOSYS, "This function is currently unimplemented.");
+        N2CRASH(Unimplemented, "");
     }
 
     inline T* consume(u64 count) {
-        N2CRASH(ENOSYS, "This function is currently unimplemented.");
+        N2CRASH(Unimplemented, "");
     }
 
     inline T& operator[](i64 index) {
 #if defined(DEBUG)
         // TODO: Better logging
-        N2CRASH_IF(index >= capacity(), EINVAL,
-            "Out of bounds access; entry %d / %d.\n"
+        N2CRASH_IF(index >= capacity(), OutOfBounds,
+            "Entry %d / %d.\n"
             "Underlying buffer is named %s, and it is located at %p.",
             index, capacity(), m_bd->name, m_bd);
 #endif

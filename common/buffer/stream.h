@@ -70,7 +70,7 @@ public: /*< ## Class Methods */
             DEBUG_BREAKPOINT();
         }
 #if defined(DEBUG)
-        N2CRASH_IF(bd->size < sizeof(Metadata), ENOMEM,
+        N2CRASH_IF(bd->size < sizeof(Metadata), InsufficientMemory,
             "Buffer Stream is being overlaid onto a Buffer that is too small ("
             Fu64 ") to fit the Stream Metadata (" Fu64 ").\n"
             "Underlying buffer is named %s, and it is located at %p.",
@@ -116,11 +116,11 @@ public: /*< ## Public Memeber Methods */
         }
         else { BREAKPOINT(); }
 #endif
-        N2CRASH(ENOSYS, "This function is currently unimplemented.");
+        N2CRASH(Unimplemented, "");
     }
 
     inline T* consume(u64 count) {
-        N2CRASH(ENOSYS, "This function is currently unimplemented.");
+        N2CRASH(Unimplemented, "");
     }
 
     /**
@@ -143,13 +143,13 @@ public: /*< ## Public Memeber Methods */
     inline T& operator[](u64 index) {
 #if defined(DEBUG)
         // TODO: Better logging
-        N2CRASH_IF(index >= capacity(), EINVAL,
-            "Out of bounds access; entry %d / %d (%d maximum capacity).\n"
+        N2CRASH_IF(index >= capacity(), OutOfBounds,
+            "Entry %d / %d (%d maximum capacity).\n"
             "Underlying buffer is named %s, and it is located at %p.",
             index, count(), capacity(), m_bd->name, m_bd);
         /* NB. Access `index == count()` is valid behavior. */
-        N2CRASH_IF(index > count(), EINVAL,
-            "Invalid data access; entry %d / %d (%d maximum capacity).\n"
+        N2CRASH_IF(index > count(), Uninitialized,
+            "Invalid access of %d / %d (%d maximum capacity).\n"
             "Underlying buffer is named %s, and it is located at %p.",
             index, count(), capacity(), m_bd->name, m_bd);
 #endif

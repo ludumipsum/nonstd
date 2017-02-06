@@ -50,12 +50,12 @@ public: /*< ## Class Methods */
                                         u64 miss_tolerance = 0) {
         Metadata * metadata = (Metadata *)(bd->data);
 #if defined(DEBUG)
-        N2CRASH_IF(bd->size < sizeof(Metadata), ENOMEM,
+        N2CRASH_IF(bd->size < sizeof(Metadata), InsufficientMemory,
             "Buffer HashTable is being overlaid onto a Buffer that is too "
             "small (" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
             "Underlying buffer is named %s, and it is located at %p.",
             bd->size, sizeof(Metadata), bd->name, bd);
-        N2CRASH_IF(metadata->rehash_in_progress, EDEADLK,
+        N2CRASH_IF(metadata->rehash_in_progress, Unsupported,
             "Buffer HashTable has been reinitialized while "
             "`rehash_in_progress == true`. This should not be possible.\n"
             "Underlying buffer is named %s, and it is located at %p.",
@@ -176,17 +176,17 @@ protected: /*< ## Protected Member Methods */
         u64 new_capacity     = data_region_size / sizeof(Cell);
 
 #if defined(DEBUG)
-        N2CRASH_IF(m_resize == nullptr, ENOENT,
+        N2CRASH_IF(m_resize == nullptr, NullPtr,
             "Attempting to resize a HashTable that has no associated "
             "resize function.\n"
             "Underlying buffer is named %s, and it is located at %p.",
             m_bd->name, m_bd);
-        N2CRASH_IF(m_bd->size < sizeof(Metadata), ENOMEM,
+        N2CRASH_IF(m_bd->size < sizeof(Metadata), InsufficientMemory,
             "Buffer HashTable is being resized into a Buffer that is too small "
             "(" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
             "Underlying buffer is named %s, and it is located at %p.",
             m_bd->size, sizeof(Metadata), m_bd->name, m_bd);
-        N2CRASH_IF(new_capacity < count(), ENOMEM,
+        N2CRASH_IF(new_capacity < count(), Unsupported,
             "Resizing a HashTable such that the new capacity (" Fu64 ") is "
             "less than the current count (" Fu64 "). This... is probbaly not "
             "okay. Data should be `destroy`d or `drop`d before downsizing?\n"
@@ -276,7 +276,7 @@ protected: /*< ## Protected Member Methods */
                              rehash_allowed;
 
 #if defined(DEBUG)
-        N2CRASH_IF(hashtable_is_full && !should_resize, EPERM,
+        N2CRASH_IF(hashtable_is_full && !should_resize, Unsupported,
             "Table is full, but I'm not allowed to resize. Halp?\n"
             "The backing buffer's name is %s and is located at %p.",
             m_bd->name, m_bd);
