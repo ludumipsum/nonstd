@@ -43,9 +43,9 @@ public:
     explicit inline operator bool() const { return just; }
 
     /* Access operators */
-    inline auto operator -> () { return &(this->operator*()); }
-    inline auto operator () () { return   this->operator*();  }
-    inline T_REFERENCE operator * () {
+    inline auto  operator -> () { return &(this->operator*()); }
+    inline auto& operator () () { return   this->operator*();  }
+    inline auto& operator * () {
 #if N2_CHECKED_OPTIONALS
         if (!just) { BREAKPOINT(); }
 #endif
