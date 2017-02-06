@@ -4,14 +4,14 @@
 #include "primitive_types.h"
 
 #include "buffer.h"
-#include "buffer_view.h"
+#include "buffer/slice.h"
 #include "vg_command.h"
 
 #include "api.h"
 
 class VG {
 protected:
-    using VGCommandList = BufferView<VGCommand>;
+    using VGCommandList = buffer::Slice<VGCommand>;
 
     VGCommand        m_current;
     VGCommandList    m_vgcl;
@@ -32,7 +32,7 @@ protected:
     }
 
 public:
-    inline VG(BufferDescriptor *const buffer)
+    inline VG(Buffer *const buffer)
         : m_current      ( { 0 }  )
         , m_vgcl         ( buffer )
         , m_fill         ( false  )
@@ -48,7 +48,10 @@ public:
     }
     inline VG(GameState& state)
         : m_current      ( { 0 }                                 )
-        , m_vgcl         ( state, state.out.vg_command_buffer_id )
+        , m_vgcl (
+            state.memory.lookup(state.out.vg_command_buffer_id),
+            state.memory.resize
+        )
         , m_fill         ( false                                 )
         , m_fill_color   ( { 0 }                                 )
         , m_stroke       ( false                                 )

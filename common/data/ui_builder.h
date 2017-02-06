@@ -4,14 +4,14 @@
 #include "primitive_types.h"
 
 #include "buffer.h"
-#include "buffer_view.h"
+#include "buffer/slice.h"
 #include "ui_command.h"
 
 #include "api.h"
 
 class UI {
 protected:
-    using UICommandList = BufferView<UICommand>;
+    using UICommandList = buffer::Slice<UICommand>;
 
     UICommand        m_current;
     UICommandList    m_uicl;
@@ -26,12 +26,15 @@ protected:
         m_current.state = UI_STATE_DEFAULT;
     }
 public:
-    inline UI(BufferDescriptor *const buffer)
+    inline UI(Buffer *const buffer)
              : m_current ( { 0 }  )
              , m_uicl    ( buffer ) { }
     inline UI(GameState& state)
              : m_current ( { 0 }                                 )
-             , m_uicl    ( state, state.out.ui_command_buffer_id ) { }
+             , m_uicl    (
+                state.memory.lookup(state.out.ui_command_buffer_id),
+                state.memory.resize
+             ) { }
 
     inline ~UI() { commit(); }
 

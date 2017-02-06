@@ -27,6 +27,18 @@ typedef char const *    c_cstr;
 typedef ptrdiff_t       ptrdiff;
 typedef uint8_t *       ptr;
 typedef uint8_t const * c_ptr;
+typedef void *          print_ptr;
+
+#define  Fu8     "%"  PRIu8
+#define Fu16     "%" PRIu16
+#define Fu32     "%" PRIu32
+#define Fu64     "%" PRIu64
+#define  Fi8     "%"  PRId8
+#define Fi16     "%" PRId16
+#define Fi32     "%" PRId32
+#define Fi64     "%" PRId64
+#define Fptr     "%p"
+#define Fptrdiff "%td"
 
 inline ptr  n2malloc(size_t size)           { return (ptr)(malloc(size)); }
 inline ptr  n2alloca(size_t size)           { return (ptr)(alloca(size)); }
@@ -66,26 +78,6 @@ enum ReservedIDs {
 #define US_PER_SEC 1000000
 
 #define MS_PER_SEC 1000
-
-
-/* Buffer Clear Flags
-   ------------------
-   Mode flags for controlling buffer clear behavior between frames.
-   NB. Unless BUFFER_PERSIST is set, there is _no guarantee_ that data will be
-       retained between frames.
-*/
-enum BufferFlags {
-    /* Default behavior — pass the buffer unaltered to the next frame */
-    BUFFER_PASS         = (0     ),
-    /* The buffer's cursor shall be set to 0 between every frame. */
-    BUFFER_CLEAR_CURSOR = (1 << 0),
-    /* The buffer's data shall be cleared to 0 between every frame. */
-    BUFFER_CLEAR_DATA   = (1 << 1),
-    /* The buffer shall be persisted between frames, and previous frame's data
-       shall be accessible for... some number of frames?
-       TODO: Figure out how long we retain persisted buffers. */
-    BUFFER_PERSIST      = (1 << 2),
-};
 
 
 /* COLORS
