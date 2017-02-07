@@ -22,12 +22,19 @@
 
 namespace buffer {
 
+enum class State {
+    EMPTY,
+    DELETED,
+    USED,
+};
+
 class HashTable {
 protected: /*< ## Inner-Types */
     static const u32 magic = 0xBADB33F;
     struct Cell {
-        HTK  key;
-        HTV  value;
+        HTK   key;
+        HTV   value;
+        State state;
     };
     struct Metadata {
         u32  magic;
@@ -137,6 +144,7 @@ public: /*< ## Public Memeber Methods */
         if (cell->key == 0) { m_metadata->count += 1; }
         cell->key   = key;
         cell->value = value;
+        cell->state = State::USED;
         return { cell->value };
     }
 
@@ -151,6 +159,7 @@ public: /*< ## Public Memeber Methods */
         m_metadata->count += 1;
         cell->key   = key;
         cell->value = value;
+        cell->state = State::USED;
         return { cell->value };
     }
 
@@ -160,8 +169,9 @@ public: /*< ## Public Memeber Methods */
         Cell *const cell = _lookup_cell(key);
         if (cell != nullptr && cell->key != 0) {
             m_metadata->count -= 1;
-            cell->key   = ID_DELETED; //< TODO: Use a HT-specific sentinel
+            cell->key   = 0;
             cell->value = 0;
+            cell->state = State::DELETED;
         }
     }
 
@@ -258,9 +268,7 @@ protected: /*< ## Protected Member Methods */
         //     uninitialized Cell will be returned.
         //  3. We've found an initialized cell associated with the given `key`
         //     -- an initialized Cell will be returned.
-        // NB. Any key with a value `< ID_DELETED` shall be considered empty,
-        //     and trigger the `break`.
-        while(misses < capacity() && map[cell_index].key >= ID_DELETED) {
+        while(misses < capacity() && map[cell_index].state == State::USED) {
             Cell& cell = map[cell_index];
             if (cell.key == key) { break; }
             cell_index = (1 + cell_index) % capacity();
@@ -283,7 +291,8 @@ protected: /*< ## Protected Member Methods */
             m_bd->name, m_bd);
         // Expect that we won't need to resize, and return the target.
         if (! should_resize) {
-            return &map[cell_index];;
+            if (hashtable_is_full) { return nullptr; }
+            return &map[cell_index];
         }
 
         // If we do need to resize, do so, and re-enter the lookup function.
