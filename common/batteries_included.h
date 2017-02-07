@@ -212,6 +212,33 @@ inline uint32_t N2FOURCC(char const* code) {
     TypeName(const TypeName&) = delete;      \
     void operator=(const TypeName&) = delete
 
+/* Helpers for adding and removing references to types
+ * ---------------------------------------------------
+ * Not all our compilers support C++14 fully, so we can't rely on the STL helper
+ * for stripping references off and getting the type. So here we are.
+ */
+template< class T >
+using n2_remove_reference_t = typename std::remove_reference<T>::type;
+#define REMOVE_REFERENCE_TYPE(T) n2_remove_reference_t<T>
+template< class T >
+using n2_add_reference_t = typename std::add_lvalue_reference<T>::type;
+#define ADD_REFERENCE_TYPE(T) n2_add_reference_t<T>
+
+/* IS_REFERENCE
+ * ------------
+ * Helper wrapping std::is_reference<T>::value to extract the referentiality
+ * of an object. Answers the "Is this type a reference?" question.
+ */
+#define IS_REFERENCE_TYPE(T) (std::is_reference<T>::value)
+#define IS_NOT_REFERENCE_TYPE(T) (!IS_REFERENCE_TYPE(T))
+
+/* DECAY
+ * -----
+ * Wrapper around std::decay<T>::type like the one defined in C++14
+ */
+template< class T >
+using n2_decay_t = typename std::decay<T>::type;
+#define DECAY_TYPE(T) n2_decay_t<T>
 
 /* TEMPLATE_ENABLE
    ---------------
@@ -234,10 +261,10 @@ inline uint32_t N2FOURCC(char const* code) {
    man's pattern match.
 */
 template< bool B, class T = void >
-using n2_enable_if_t = typename std::enable_if<B,T>::type;
+using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
 #define TEMPLATE_ENABLE(Cond, T)                        \
     template<typename _TEMPLATE_ENABLE_DEPENDENCY_=T,   \
-    n2_enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
+             n2_enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
 
 /* Shim for mktemp
    ------------------------------------
