@@ -60,11 +60,14 @@ public: /*< ## Public Memeber Methods */
     }
 
     inline void resize(u64 size_bytes) {
-        if (m_resize) {
-            m_resize(m_bd, size_bytes);
-        } else {
-            BREAKPOINT();
-        }
+#if defined(DEBUG)
+        N2CRASH_IF(m_resize == nullptr, Error::NullPtr,
+            "Attempting to resize a Slice that has no associated "
+            "resize function.\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            m_bd->name, m_bd);
+#endif
+        m_resize(m_bd, size_bytes);
     }
 
     /* Get a pointer to `count` consecutive elements in the view, resizing
@@ -107,17 +110,17 @@ public: /*< ## Public Memeber Methods */
     inline T& operator[](u64 index) {
 #if defined(DEBUG)
         if (index > count() && index < capacity()) {
-            LOG("Accessing uninitialized object in %s at slice[%d].\n"
+            LOG("WARNING: Accessing an uninitialized object in a Slice at %d.\n"
                 "This will invalidate count() and range-based iterators."
                 "Please be sure you're remaining within the bounds of consumed "
-                "data in this Slice.", m_bd->name, index);
+                "data in this Slice.\n"
+                "Underlying buffer is named %s, and it is located at %p.",
+                index, m_bd->name, m_bd);
         }
-        if (index >= capacity()) {
-            LOG("Out of bounds access via buffer::Slice: entry %d is past the "
-                "end of the %d-long buffer %s.",
-                index, capacity(), m_bd->name);
-            BREAKPOINT();
-        }
+        N2CRASH_IF(index >= capacity(), Error::OutOfBounds,
+            "Entry %d / %d.\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            index, capacity(), m_bd->name, m_bd);
 #endif
         return *((T*)(m_bd->data) + index);
     }
@@ -134,13 +137,14 @@ public: /*< ## Public Memeber Methods */
             ends_before_beginning ||
             ends_after_buffer)
         {
-            LOG("Erasing invalid index ranges;\n"
+            N2CRASH(Error::OutOfBounds,
+                "Erasing invalid index ranges;\n"
                 "  begin       : %p\n"
                 "  range begin : %p\n"
                 "  range end   : %p\n"
                 "  end         : %p",
-                begin(), range_begin, range_end, end());
-            BREAKPOINT();
+                "Underlying buffer is named %s, and it is located at %p.",
+                begin(), range_begin, range_end, end(), m_bd->name, m_bd);
         }
 #endif
         memmove(range_begin, range_end, end() - range_end);
