@@ -212,33 +212,6 @@ inline uint32_t N2FOURCC(char const* code) {
     TypeName(const TypeName&) = delete;      \
     void operator=(const TypeName&) = delete
 
-
-/* TEMPLATE_ENABLE
-   ---------------
-
-   std::enable_if convenience wrapper.
-   Utility tools for easily enabling/disabling functions in templated
-   types based on a trait or boolean expression. Usage requires passing
-   in a parameter from the class template in the first variable of the
-   macro. For example, if you had:
-
-       template<bool ConfigBoolean, class T> MyClass { ... };
-
-   You'd use use the macro like so:
-
-       TEMPLATE_ENABLE(ConfigBoolean, T) void EitherOr() { ... };
-       TEMPLATE_ENABLE(!ConfigBoolean, T) void EitherOr() { ... };
-
-   Which will yield only the correct version of that function based
-   on the template parameter. Poor man's type-level overloading, poorer
-   man's pattern match.
-*/
-template< bool B, class T = void >
-using n2_enable_if_t = typename std::enable_if<B,T>::type;
-#define TEMPLATE_ENABLE(Cond, T)                        \
-    template<typename _TEMPLATE_ENABLE_DEPENDENCY_=T,   \
-    n2_enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
-
 /* Helpers for adding and removing references to types
  * ---------------------------------------------------
  * Not all our compilers support C++14 fully, so we can't rely on the STL helper
@@ -266,6 +239,32 @@ using n2_add_reference_t = typename std::add_lvalue_reference<T>::type;
 template< class T >
 using n2_decay_t = typename std::decay<T>::type;
 #define DECAY_TYPE(T) n2_decay_t<T>
+
+/* TEMPLATE_ENABLE
+   ---------------
+
+   std::enable_if convenience wrapper.
+   Utility tools for easily enabling/disabling functions in templated
+   types based on a trait or boolean expression. Usage requires passing
+   in a parameter from the class template in the first variable of the
+   macro. For example, if you had:
+
+       template<bool ConfigBoolean, class T> MyClass { ... };
+
+   You'd use use the macro like so:
+
+       TEMPLATE_ENABLE(ConfigBoolean, T) void EitherOr() { ... };
+       TEMPLATE_ENABLE(!ConfigBoolean, T) void EitherOr() { ... };
+
+   Which will yield only the correct version of that function based
+   on the template parameter. Poor man's type-level overloading, poorer
+   man's pattern match.
+*/
+template< bool B, class T = void >
+using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
+#define TEMPLATE_ENABLE(Cond, T)                        \
+    template<typename _TEMPLATE_ENABLE_DEPENDENCY_=T,   \
+             n2_enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
 
 /* Shim for mktemp
    ------------------------------------
