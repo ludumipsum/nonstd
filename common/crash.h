@@ -49,7 +49,7 @@ i32 crash(Error  error,
  */
 //TODO: Add a 1-arity crash macro s.t. the MESSAGE is optional?
 #define N2CRASH(ERROR, MESSAGE, ...)                                \
-    ::crash::crash(crash::Error::ERROR,                             \
+    ::crash::crash(crash::ERROR,                                    \
                    _variadicExpand(MESSAGE, ##__VA_ARGS__).c_str(), \
                    __FILE__,                                        \
                    __LINE__,                                        \

@@ -61,7 +61,7 @@ public: /*< ## Public Memeber Methods */
 
     inline void resize(u64 size_bytes) {
 #if defined(DEBUG)
-        N2CRASH_IF(m_resize == nullptr, NullPtr,
+        N2CRASH_IF(m_resize == nullptr, Error::NullPtr,
             "Attempting to resize a Slice that has no associated "
             "resize function.\n"
             "Underlying buffer is named %s, and it is located at %p.",
@@ -117,7 +117,7 @@ public: /*< ## Public Memeber Methods */
                 "Underlying buffer is named %s, and it is located at %p.",
                 index, m_bd->name, m_bd);
         }
-        N2CRASH_IF(index >= capacity(), OutOfBounds,
+        N2CRASH_IF(index >= capacity(), Error::OutOfBounds,
             "Entry %d / %d.\n"
             "Underlying buffer is named %s, and it is located at %p.",
             index, capacity(), m_bd->name, m_bd);
@@ -137,7 +137,7 @@ public: /*< ## Public Memeber Methods */
             ends_before_beginning ||
             ends_after_buffer)
         {
-            N2CRASH(OutOfBounds,
+            N2CRASH(Error::OutOfBounds,
                 "Erasing invalid index ranges;\n"
                 "  begin       : %p\n"
                 "  range begin : %p\n"
