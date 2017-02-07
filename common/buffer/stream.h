@@ -148,7 +148,7 @@ public: /*< ## Public Memeber Methods */
             "Underlying buffer is named %s, and it is located at %p.",
             index, count(), capacity(), m_bd->name, m_bd);
         /* NB. Access `index == count()` is valid behavior. */
-        N2CRASH_IF(index > count(), Uninitialized,
+        N2CRASH_IF(index > count(), UninitializedMemory,
             "Invalid access of %d / %d (%d maximum capacity).\n"
             "Underlying buffer is named %s, and it is located at %p.",
             index, count(), capacity(), m_bd->name, m_bd);

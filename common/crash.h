@@ -22,14 +22,16 @@ enum class Error {
     Unknown,
     System,
     Unimplemented,
-    Unsupported,
+    InvalidState,
     NullPtr,
     OutOfBounds,
     InUse,
     InsufficientMemory,
     InvalidMemory,
     ModuleNotStarted,
-    Uninitialized,
+    UninitializedMemory,
+    MissingData,
+    InvalidArguments,
 };
 
 
@@ -103,20 +105,26 @@ int CAPTURE_CRASH(std::function<void(void)> test);
 c_cstr n2strerr(Error err);
 
 static c_cstr error_strings[] = {
-    /* Success */            "No error. (Please update this to a clean exit).",
-    /* Undefined */          "Undefined error. (Please update crash.h and "
-                             "incorporate a descriptive Error.)",
-    /* Unknown */            "Unknown error.",
-    /* System */             "System error.",
-    /* Unimplemented */      "Entering unimplemented block.",
-    /* Unsupported */        "Unsupported state or operation.",
-    /* NullPtr */            "Dereferencing a `nullptr`.",
-    /* OutOfBounds */        "Out Of Bounds address or index.",
-    /* InUse */              "Address or Index already in use.",
-    /* InsufficientMemory */ "Insufficient memory for operation.",
-    /* InvalidMemory */      "Memory location or state is invalid.",
-    /* ModuleNotStarted */   "Using a Module that has not been started.",
-    /* Uninitialized */      "Accessing uninitialized data.",
+    /* Success */       "No error. (Please update this to a clean exit).",
+    /* Undefined */     "Undefined error. (Please update crash.h and "
+                        "incorporate a descriptive Error.)",
+    /* Unknown */       "Unknown error.",
+    /* System */        "System error.",
+    /* Unimplemented */ "Encountered unimplemented logic.",
+    /* InvalidState */  "Encountered invalid system state for operations.",
+    /* NullPtr */       "Dereferencing a `nullptr`.",
+    /* OutOfBounds */   "Accessing out of bounds address or index.",
+    /* InUse */         "Address or index already in use.",
+    /* InsufficientMemory */
+                        "Insufficient memory for operation.",
+    /* InvalidMemory */ "Memory location or system state is invalid.",
+    /* ModuleNotStarted */
+                        "Calling into a Module that has not been started.",
+    /* UninitializedMemory */
+                        "Accessing uninitialized data.",
+    /* MissingData */   "Expected data is unreachable or nonexistant.",
+    /* InvalidArguments */
+                        "Operation executed with invalid arguments.",
 };
 
 c_cstr n2strerr(Error err) {

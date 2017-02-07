@@ -55,7 +55,7 @@ public: /*< ## Class Methods */
             "small (" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
             "Underlying buffer is named %s, and it is located at %p.",
             bd->size, sizeof(Metadata), bd->name, bd);
-        N2CRASH_IF(metadata->rehash_in_progress, Unsupported,
+        N2CRASH_IF(metadata->rehash_in_progress, InvalidState,
             "Buffer HashTable has been reinitialized while "
             "`rehash_in_progress == true`. This should not be possible.\n"
             "Underlying buffer is named %s, and it is located at %p.",
@@ -186,7 +186,7 @@ protected: /*< ## Protected Member Methods */
             "(" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
             "Underlying buffer is named %s, and it is located at %p.",
             m_bd->size, sizeof(Metadata), m_bd->name, m_bd);
-        N2CRASH_IF(new_capacity < count(), Unsupported,
+        N2CRASH_IF(new_capacity < count(), InsufficientMemory,
             "Resizing a HashTable such that the new capacity (" Fu64 ") is "
             "less than the current count (" Fu64 "). This... is probbaly not "
             "okay. Data should be `destroy`d or `drop`d before downsizing?\n"
@@ -276,7 +276,7 @@ protected: /*< ## Protected Member Methods */
                              rehash_allowed;
 
 #if defined(DEBUG)
-        N2CRASH_IF(hashtable_is_full && !should_resize, Unsupported,
+        N2CRASH_IF(hashtable_is_full && !should_resize, InvalidState,
             "Table is full, but I'm not allowed to resize. Halp?\n"
             "The backing buffer's name is %s and is located at %p.",
             m_bd->name, m_bd);
