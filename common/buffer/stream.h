@@ -116,11 +116,11 @@ public: /*< ## Public Memeber Methods */
         }
         else { BREAKPOINT(); }
 #endif
-        N2CRASH(Error::Unimplemented, "");
+        N2CRASH(Error::UnimplementedCode, "");
     }
 
     inline T* consume(u64 count) {
-        N2CRASH(Error::Unimplemented, "");
+        N2CRASH(Error::UnimplementedCode, "");
     }
 
     /**

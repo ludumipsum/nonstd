@@ -78,11 +78,11 @@ public: /*< ## Public Memeber Methods */
     }
 
     inline u64 resize(u64 capacity) {
-        N2CRASH(Error::Unimplemented, "");
+        N2CRASH(Error::UnimplementedCode, "");
     }
 
     inline T* consume(u64 count) {
-        N2CRASH(Error::Unimplemented, "");
+        N2CRASH(Error::UnimplementedCode, "");
     }
 
     inline T& operator[](i64 index) {

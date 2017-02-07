@@ -55,7 +55,7 @@ public: /*< ## Class Methods */
             "small (" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
             "Underlying buffer is named %s, and it is located at %p.",
             bd->size, sizeof(Metadata), bd->name, bd);
-        N2CRASH_IF(metadata->rehash_in_progress, Error::InvalidState,
+        N2CRASH_IF(metadata->rehash_in_progress, Error::PEBCAK,
             "Buffer HashTable has been reinitialized while "
             "`rehash_in_progress == true`. This should not be possible.\n"
             "Underlying buffer is named %s, and it is located at %p.",
@@ -275,12 +275,12 @@ protected: /*< ## Protected Member Methods */
                              exceeded_miss_tolerance &&
                              rehash_allowed;
 
-#if defined(DEBUG)
-        N2CRASH_IF(hashtable_is_full && !should_resize, Error::InvalidState,
-            "Table is full, but I'm not allowed to resize. Halp?\n"
+        N2CRASH_IF(hashtable_is_full && !should_resize,
+            Error::InsufficientMemory,
+            "This HashTable is full -- and a lookup has failed -- but "
+            "increasing the size of the HashTable is currently disallowed.\n"
             "The backing buffer's name is %s and is located at %p.",
             m_bd->name, m_bd);
-#endif
         // Expect that we won't need to resize, and return the target.
         if (! should_resize) {
             return &map[cell_index];;

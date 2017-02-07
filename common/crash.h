@@ -18,11 +18,10 @@ namespace crash {
  */
 enum class Error {
     Success,
+    PEBCAK,
     Undefined,
-    Unknown,
     System,
-    Unimplemented,
-    InvalidState,
+    UnimplementedCode,
     NullPtr,
     OutOfBounds,
     InUse,
@@ -106,12 +105,13 @@ c_cstr n2strerr(Error err);
 
 static c_cstr error_strings[] = {
     /* Success */       "No error. (Please update this to a clean exit).",
+    /* PEBCAK */        "There is an unidentified problem somewhere between "
+                        "a chair and the nearest keybaord.",
     /* Undefined */     "Undefined error. (Please update crash.h and "
                         "incorporate a descriptive Error.)",
-    /* Unknown */       "Unknown error.",
     /* System */        "System error.",
-    /* Unimplemented */ "Encountered unimplemented logic.",
-    /* InvalidState */  "Encountered invalid system state for operations.",
+    /* UnimplementedCode */
+                        "Encountered unimplemented logic.",
     /* NullPtr */       "Dereferencing a `nullptr`.",
     /* OutOfBounds */   "Accessing out of bounds address or index.",
     /* InUse */         "Address or index already in use.",
