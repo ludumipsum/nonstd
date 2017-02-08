@@ -15,11 +15,6 @@
 #include "api.h"
 #include "buffer.h"
 
-/* HashTableKey.   To help kick-off the switch to a templated class. */
-#define HTK ID
-/* HashTableValue. To help kick-off the switch to a templated class. */
-#define HTV u32
-
 namespace buffer {
 
 enum class CellState {
@@ -28,12 +23,13 @@ enum class CellState {
     USED,
 };
 
+template<typename T_KEY, typename T_VAL>
 class HashTable {
 protected: /*< ## Inner-Types */
     static const u32 magic = 0xBADB33F;
     struct Cell {
-        HTK       key;
-        HTV       value;
+        T_KEY     key;
+        T_VAL     value;
         CellState state;
     };
     struct Metadata {
@@ -129,20 +125,20 @@ public: /*< ## Public Memeber Methods */
     }
 
     /* Search for the given key, returning an Optional. */
-    inline Optional<HTV&> operator[](HTK key) { return get(key); }
-    inline Optional<HTV&> get(HTK key) {
+    inline Optional<T_VAL&> operator[](T_KEY key) { return get(key); }
+    inline Optional<T_VAL&> get(T_KEY key) {
         Cell *const cell = _lookup_cell(key);
         if (cell == nullptr || cell->state != CellState::USED) return { };
         return { cell->value };
     }
 
     /* Check for the existence of the given key. */
-    inline bool contains(HTK key) { return (bool)(get(key)); }
+    inline bool contains(T_KEY key) { return (bool)(get(key)); }
 
     /* Write the given k/v pair, returning an Optional.
      * The Optional will be only false if the HashTable is completely filled,
      * and unable to resize. */
-    inline Optional<HTV&> set(HTK key, HTV value) {
+    inline Optional<T_VAL&> set(T_KEY key, T_VAL value) {
         Cell *const cell = _lookup_cell(key);
         if (cell == nullptr) return { };
         cell->key   = key;
@@ -159,7 +155,7 @@ public: /*< ## Public Memeber Methods */
      * The Optional will be false if the given key already exists in the
      * HashTable, or if the HashTable is completely filled, and unable
      * to resize. */
-    inline Optional<HTV&> create(HTK key, HTV value) {
+    inline Optional<T_VAL&> create(T_KEY key, T_VAL value) {
         Cell *const cell = _lookup_cell(key);
         if (cell == nullptr || cell->state != CellState::EMPTY) return { };
         cell->key   = key;
@@ -171,7 +167,7 @@ public: /*< ## Public Memeber Methods */
 
     /* Remove the given key from the HashTable.
      * No records are written if the key has not been previously written. */
-    inline void destroy(HTK key) {
+    inline void destroy(T_KEY key) {
         Cell *const cell = _lookup_cell(key);
         if (cell != nullptr && cell->state == CellState::USED) {
             cell->state = CellState::DELETED;
@@ -259,7 +255,7 @@ protected: /*< ## Protected Member Methods */
      * `state == CellState::EMPTY` or `state == CellState::USED`, (but _not_
      * `state == CellState::DELETED`).
      */
-    inline Cell *const _lookup_cell(HTK key) {
+    inline Cell *const _lookup_cell(T_KEY key) {
         auto&  map         = m_metadata->map;
         auto   hash        = shift64(key);
         // Initial index for the given key.
@@ -334,9 +330,9 @@ protected: /*< ## Protected Member Methods */
     }
 
 
-    // Once we switch to a templated class, we should ensure POD.
-    // /* Ensure that only POD data is used in these views.*/
-    // ENFORCE_POD(T);
+    /* Ensure that only POD data is used in these views.*/
+    ENFORCE_POD(T_KEY);
+    ENFORCE_POD(T_VAL);
 };
 
 } /* namespace buffer */
