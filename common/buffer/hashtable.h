@@ -132,7 +132,7 @@ public: /*< ## Public Memeber Methods */
     inline Optional<HTV&> operator[](HTK key) { return get(key); }
     inline Optional<HTV&> get(HTK key) {
         Cell *const cell = _lookup_cell(key);
-        if (cell == nullptr || cell->state == CellState::EMPTY) return { };
+        if (cell == nullptr || cell->state != CellState::USED) return { };
         return { cell->value };
     }
 
