@@ -22,7 +22,7 @@
 
 namespace buffer {
 
-enum class State {
+enum class CellState {
     EMPTY = 0, //< EMPTY _must be_ `0` s.t. explicitly-zero'd Cells are EMPTY.
     DELETED,
     USED,
@@ -32,9 +32,9 @@ class HashTable {
 protected: /*< ## Inner-Types */
     static const u32 magic = 0xBADB33F;
     struct Cell {
-        HTK   key;
-        HTV   value;
-        State state;
+        HTK       key;
+        HTV       value;
+        CellState state;
     };
     struct Metadata {
         u32  magic;
@@ -147,8 +147,8 @@ public: /*< ## Public Memeber Methods */
         if (cell == nullptr) return { };
         cell->key   = key;
         cell->value = value;
-        if (cell->state == State::EMPTY) {
-            cell->state = State::USED;
+        if (cell->state == CellState::EMPTY) {
+            cell->state = CellState::USED;
             m_metadata->count += 1;
         }
         return { cell->value };
@@ -161,10 +161,10 @@ public: /*< ## Public Memeber Methods */
      * to resize. */
     inline Optional<HTV&> create(HTK key, HTV value) {
         Cell *const cell = _lookup_cell(key);
-        if (cell == nullptr || cell->state != State::EMPTY) return { };
+        if (cell == nullptr || cell->state != CellState::EMPTY) return { };
         cell->key   = key;
         cell->value = value;
-        cell->state = State::USED;
+        cell->state = CellState::USED;
         m_metadata->count += 1;
         return { cell->value };
     }
@@ -173,8 +173,8 @@ public: /*< ## Public Memeber Methods */
      * No records are written if the key has not been previously written. */
     inline void destroy(HTK key) {
         Cell *const cell = _lookup_cell(key);
-        if (cell != nullptr && cell->state == State::USED) {
-            cell->state = State::DELETED;
+        if (cell != nullptr && cell->state == CellState::USED) {
+            cell->state = CellState::DELETED;
             m_metadata->count -= 1;
             m_metadata->invalid_count += 1;
         }
@@ -244,7 +244,7 @@ protected: /*< ## Protected Member Methods */
         Cell * cell       = src.m_metadata->map;
         Cell * final_cell = src.m_metadata->map + src.capacity();
         for (  ; cell < final_cell; cell++) {
-            if (cell->state == State::USED) { set(cell->key, cell->value); }
+            if (cell->state == CellState::USED) { set(cell->key, cell->value); }
         }
         m_metadata->rehash_in_progress = false;
 
@@ -256,8 +256,8 @@ protected: /*< ## Protected Member Methods */
      * Lookup the given `key` and return a `Cell *`.
      * If the HashTable is completely filled, `nullptr` will be returned,
      * otherwise a `Cell *` will be returned. The returned Cell may have
-     * `state == State::EMPTY` or `state == State::USED`, (but _not_
-     * `state == State::DELETED`).
+     * `state == CellState::EMPTY` or `state == CellState::USED`, (but _not_
+     * `state == CellState::DELETED`).
      */
     inline Cell *const _lookup_cell(HTK key) {
         auto&  map         = m_metadata->map;
@@ -281,8 +281,9 @@ protected: /*< ## Protected Member Methods */
         // the same key.
         while(misses < capacity()) {
             Cell& cell = map[cell_index];
-            bool cell_is_empty = cell.state == State::EMPTY;
-            bool match_found   = (cell.state == State::USED && cell.key == key);
+            bool cell_is_empty = cell.state == CellState::EMPTY;
+            bool match_found   = (cell.state  == CellState::USED
+                                  && cell.key == key);
 
             if (match_found || cell_is_empty) {
                 ret = &cell;
