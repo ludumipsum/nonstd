@@ -23,7 +23,7 @@
 namespace buffer {
 
 enum class State {
-    EMPTY,
+    EMPTY = 0, //< EMPTY _must be_ `0` s.t. explicitly-zero'd Cells are EMPTY.
     DELETED,
     USED,
 };
@@ -40,6 +40,7 @@ protected: /*< ## Inner-Types */
         u32  magic;
         u64  capacity;
         u64  count;
+        u64  invalid_count;
         u64  miss_tolerance;
         bool rehash_in_progress;
         Cell map[];
@@ -83,6 +84,7 @@ public: /*< ## Class Methods */
         metadata->magic              = magic;
         metadata->capacity           = capacity;
         metadata->count              = 0;
+        metadata->invalid_count      = 0;
         metadata->miss_tolerance     = miss_tolerance ? miss_tolerance
                                                       : default_miss_tolerance;
         metadata->rehash_in_progress = false;
@@ -107,12 +109,14 @@ public: /*< ## Public Memeber Methods */
     inline u64 size()           { return m_bd->size; }
     inline u64 capacity()       { return m_metadata->capacity; }
     inline u64 count()          { return m_metadata->count; }
+    inline u64 invalid_count()  { return m_metadata->invalid_count; }
     inline u64 miss_tolerance() { return m_metadata->miss_tolerance; }
 
     /* Reset this HashTable to empty. */
     inline void drop() {
         memset(m_metadata->map, '\0', (capacity() * sizeof(Cell)));
         m_metadata->count = 0;
+        m_metadata->invalid_count = 0;
     }
 
     inline void resize_to(u64 capacity) {
@@ -141,10 +145,12 @@ public: /*< ## Public Memeber Methods */
     inline Optional<HTV&> set(HTK key, HTV value) {
         Cell *const cell = _lookup_cell(key);
         if (cell == nullptr) return { };
-        if (cell->key == 0) { m_metadata->count += 1; }
         cell->key   = key;
         cell->value = value;
-        cell->state = State::USED;
+        if (cell->state == State::EMPTY) {
+            cell->state = State::USED;
+            m_metadata->count += 1;
+        }
         return { cell->value };
     }
 
@@ -155,11 +161,11 @@ public: /*< ## Public Memeber Methods */
      * to resize. */
     inline Optional<HTV&> create(HTK key, HTV value) {
         Cell *const cell = _lookup_cell(key);
-        if (cell == nullptr || cell->key != 0) return { };
-        m_metadata->count += 1;
+        if (cell == nullptr || cell->state != State::EMPTY) return { };
         cell->key   = key;
         cell->value = value;
         cell->state = State::USED;
+        m_metadata->count += 1;
         return { cell->value };
     }
 
@@ -167,11 +173,10 @@ public: /*< ## Public Memeber Methods */
      * No records are written if the key has not been previously written. */
     inline void destroy(HTK key) {
         Cell *const cell = _lookup_cell(key);
-        if (cell != nullptr && cell->key != 0) {
-            m_metadata->count -= 1;
-            cell->key   = 0;
-            cell->value = 0;
+        if (cell != nullptr && cell->state == State::USED) {
             cell->state = State::DELETED;
+            m_metadata->count -= 1;
+            m_metadata->invalid_count += 1;
         }
     }
 
@@ -239,7 +244,7 @@ protected: /*< ## Protected Member Methods */
         Cell * cell       = src.m_metadata->map;
         Cell * final_cell = src.m_metadata->map + src.capacity();
         for (  ; cell < final_cell; cell++) {
-            if (cell->key) { set(cell->key, cell->value); }
+            if (cell->state == State::USED) { set(cell->key, cell->value); }
         }
         m_metadata->rehash_in_progress = false;
 
@@ -248,56 +253,83 @@ protected: /*< ## Protected Member Methods */
     }
 
     /**
-     * Lookup the given `key` and return a `Cell *`, which may have `key == 0`.
+     * Lookup the given `key` and return a `Cell *`.
      * If the HashTable is completely filled, `nullptr` will be returned,
-     * otherwise a deref'able `Cell *` will be returned.
+     * otherwise a `Cell *` will be returned. The returned Cell may have
+     * `state == State::EMPTY` or `state == State::USED`, (but _not_
+     * `state == State::DELETED`).
      */
     inline Cell *const _lookup_cell(HTK key) {
-        auto& map  = m_metadata->map;
-        auto  hash = shift64(key);
-
+        auto&  map         = m_metadata->map;
+        auto   hash        = shift64(key);
         // Initial index for the given key.
-        auto cell_index = hash % capacity();
-        u64 misses = 0;
+        auto   cell_index  = hash % capacity();
+        // Counter for invalid cells checked.
+        u64    misses      = 0;
+        // Target Cell to return (may remain null).
+        Cell * ret = nullptr;
 
         // This loop will exit when either,
-        //  1. We've wrapped the entire cell table and no viable cell has been
-        //     found -- nullptr will be returned.
-        //  2. We've found no cell associated with the given `key`, but we have
-        //     found an empty cell that may be associated with the `key` -- an
-        //     uninitialized Cell will be returned.
-        //  3. We've found an initialized cell associated with the given `key`
-        //     -- an initialized Cell will be returned.
-        while(misses < capacity() && map[cell_index].state == State::USED) {
+        //  1. We've reached a `USED` Cell associated with the given key.
+        //  2. We've reached an `EMPTY` Cell (implying the given key has not yet
+        //     been used in this HashTable).
+        //  3. We've looked at every Cell in the HashTable an none match the
+        //     above criteria.
+        // If we loop in this section at least m_metadata->miss_tolerance times,
+        // we, rather than returning, will resize the entire HashTable (by 1.2
+        // times) (thereby rehashing all keys), then reenter this function with
+        // the same key.
+        while(misses < capacity()) {
             Cell& cell = map[cell_index];
-            if (cell.key == key) { break; }
-            cell_index = (1 + cell_index) % capacity();
-            misses += 1;
+            bool cell_is_empty = cell.state == State::EMPTY;
+            bool match_found   = (cell.state == State::USED && cell.key == key);
+
+            if (match_found || cell_is_empty) {
+                ret = &cell;
+                break;
+            }
+
+            cell_index  = (1 + cell_index) % capacity();
+            misses     += 1;
         }
 
-        bool have_resize_function    = m_resize != nullptr;
-        bool exceeded_miss_tolerance = misses > m_metadata->miss_tolerance;
-        bool rehash_allowed          = ! m_metadata->rehash_in_progress;
-        bool hashtable_is_full       = misses == capacity();
-        bool should_resize = have_resize_function    &&
-                             exceeded_miss_tolerance &&
-                             rehash_allowed;
+        bool should_resize      = misses >= n2min(miss_tolerance(), capacity());
+        bool rehash_in_progress = m_metadata->rehash_in_progress;
 
-        N2CRASH_IF(hashtable_is_full && !should_resize,
-            Error::InsufficientMemory,
-            "This HashTable is full -- and a lookup has failed -- but "
-            "increasing the size of the HashTable is currently disallowed.\n"
+        if (ret != nullptr && ! should_resize) {
+            return ret;
+        } else
+        if (should_resize && m_resize != nullptr) {
+            resize_by(1.2f);
+            return _lookup_cell(key);
+        } else
+        if (should_resize && m_resize == nullptr) {
+#if 0
+            LOG("WARNING: This HashTable is full -- and a lookup has failed -- "
+                "but increasing the size of the HashTable is disallowed.\n"
+                "Resize function ptr : %p\n"
+                "A resize is %s in progress.\n"
+                "Capacity: %d\n"
+                "Count: %d\n"
+                "Invalid Count: %d\n"
+                "Misses : %d (%d allowed)\n"
+                "The backing buffer's name is %s and is located at %p.",
+                m_resize, m_metadata->rehash_in_progress ? "currently" : "not",
+                capacity(), count(), invalid_count(), misses, miss_tolerance(),
+                m_bd->name, m_bd);
+#endif
+            return nullptr;
+        }
+
+#if defined(DEBUG)
+        N2CRASH(Error::PEBCAK,
+            "Whoever wrote this lookup function thought there was no way to "
+            "get to this portion of code. And yet here we are.\n"
             "The backing buffer's name is %s and is located at %p.",
             m_bd->name, m_bd);
-        // Expect that we won't need to resize, and return the target.
-        if (! should_resize) {
-            if (hashtable_is_full) { return nullptr; }
-            return &map[cell_index];
-        }
+#endif
 
-        // If we do need to resize, do so, and re-enter the lookup function.
-        resize_by(1.2f);
-        return _lookup_cell(key);
+        return nullptr;
     }
 
 
