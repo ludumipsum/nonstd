@@ -1,7 +1,10 @@
-/* Crash Handling
- * ==============
- * Defines the macro and datatypes used for to crashing.
- * The Platform and the Game TUs will define their own implementations.
+/* Crash Handling Interface
+ * ========================
+ * Defines the macros and datatypes used for to crashing.
+ * The Platform and Game binaries will each require a separate implementation of
+ * the interface defined in this file. For more code, see,
+ *   platform/modules/crash.cc
+ *   game/modules/crash.cc
  */
 
 #if !defined(IFACE_CRASH)
