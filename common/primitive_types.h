@@ -54,11 +54,6 @@ inline void n2alignment_correct_free(ptr p, bool aligned) {
    meanings in our container types (unset, deleted, etc).
 */
 typedef u64 ID;
-enum ReservedIDs {
-    ID_NOTFOUND = 0,
-    ID_DELETED  = 9,
-    ID_FIRST,
-};
 
 /* Power-of-two Byte Prefixes
    NB. these implicitly cast the provided value to 64-bit int
