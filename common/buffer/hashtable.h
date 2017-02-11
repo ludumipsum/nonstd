@@ -290,42 +290,80 @@ protected: /*< ## Protected Member Methods */
             misses     += 1;
         }
 
+        // The termination of this function is a pretty complicated piece of
+        // state checking. We expect the only outcomes to be,
+        // 1. Returning a  valid `Cell *`
+        // 2. Returning a `nullptr`
+        // 3. Resizing the HashTable, and re-entering this function.
+        //
+        // I was having a lot of trouble keeping the potential outcomes in my
+        // head, so I went ahead and whipped up this logic table.
+        //
+        //     | Outcome | ret | should_resize | m_resize | resize_in_progress |
+        //     |---------|-----|---------------|----------|--------------------|
+        //     | ret     | Yes | No            | No       | No                 |
+        //     | ret     | Yes | No            | Yes      | No                 |
+        //     | ret     | Yes | No            | Yes      | Yes                |
+        //     | ret     | Yes | Yes           | Yes      | Yes                |
+        //     | ret     | Yes | Yes           | No       | No                 |
+        //     | Resize  | Yes | Yes           | Yes      | No                 |
+        //     | nul     | No  | Yes           | No       | No                 |
+        //     | Resize  | No  | Yes           | Yes      | No                 |
+        //     | Error   | No  | Yes           | Yes      | Yes                |
+        //
+        // Note that all unlisted combinations are what I consider to be invalid
+        // states because,
+        // 1. `ret == nullptr` (ret == No) implies `should_resize`.
+        // 2. `resize_in_progress` implies `m_resize`.
+        //
+        // The below if-soup was written in an attempt to be optimistic; the
+        // most common results are (hopefully) written first. This was done
+        // assuming branch prediction will be optimistic, and that optimizing
+        // for correct branch predictions will meaningfully improve system
+        // performance.
         bool should_resize      = misses >= n2min(miss_tolerance(), capacity());
         bool rehash_in_progress = m_metadata->rehash_in_progress;
 
-        if (ret != nullptr && ! should_resize) {
-            return ret;
-        } else
-        if (should_resize && m_resize != nullptr) {
+        if (ret) {
+            if (! should_resize     ||
+                m_resize == nullptr ||
+                rehash_in_progress)
+            {
+                return ret;
+            }
             resize_by(1.2f);
             return _lookup_cell(key);
-        } else
-        if (should_resize && m_resize == nullptr) {
-#if 0
-            LOG("WARNING: This HashTable is full -- and a lookup has failed -- "
-                "but increasing the size of the HashTable is disallowed.\n"
-                "Resize function ptr : %p\n"
-                "A resize is %s in progress.\n"
-                "Capacity: %d\n"
-                "Count: %d\n"
-                "Invalid Count: %d\n"
-                "Misses : %d (%d allowed)\n"
-                "The backing buffer's name is %s and is located at %p.",
-                m_resize, m_metadata->rehash_in_progress ? "currently" : "not",
-                capacity(), count(), invalid_count(), misses, miss_tolerance(),
-                m_bd->name, m_bd);
-#endif
-            return nullptr;
+
+        } else if (ret == nullptr) {
+
+            if (m_resize == nullptr) {
+                return nullptr;
+            }
+            if (should_resize       &&
+                m_resize != nullptr &&
+                ! rehash_in_progress)
+            {
+                resize_by(1.2f);
+                return _lookup_cell(key);
+            }
+            if (m_resize != nullptr &&
+                rehash_in_progress)
+            {
+                N2CRASH(Error::PEBCAK,
+                    "This HashTable has somehow entered a bad state. A resize "
+                    "is in progress, but the table has been completely filled. "
+                    "This is supposed to be an impossible state, but... Here "
+                    "we are.\n"
+                    "Underlying buffer is named %s, and it is located at %p.\n",
+                    m_bd->name, m_bd);
+            }
         }
 
-#if defined(DEBUG)
         N2CRASH(Error::PEBCAK,
             "Whoever wrote this lookup function thought there was no way to "
             "get to this portion of code. And yet here we are.\n"
             "The backing buffer's name is %s and is located at %p.",
             m_bd->name, m_bd);
-#endif
-
         return nullptr;
     }
 
