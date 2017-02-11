@@ -8,6 +8,7 @@
 
 #include "batteries_included.h"
 #include "primitive_types.h"
+#include "crash.h"
 
 inline u64 shift64(u64 key);
 inline u64 djb2(c_cstr str);
@@ -22,6 +23,22 @@ inline void sha1(u8 const*const data, u64 num_bytes, cstr sha_out);
          produce djb2 collisions on any filename.
 */
 #define HASH djb2
+
+template<typename T>
+inline u64 n2hash(T key);
+
+template<> inline u64 n2hash(c_cstr key) { return djb2(key);    }
+template<> inline u64 n2hash(u8     key) { return shift64(key); }
+template<> inline u64 n2hash(u16    key) { return shift64(key); }
+template<> inline u64 n2hash(u32    key) { return shift64(key); }
+template<> inline u64 n2hash(u64    key) { return shift64(key); }
+
+template<typename T>
+inline u64 n2hash(T ket) {
+    // TODO: Implement a type printing process, and print the type here.
+    N2CRASH(Error::UnimplementedCode,
+        "This type does not have an associated hashing function.");
+}
 
 
 /* Integer hash based on bitshifts and xors, taken from

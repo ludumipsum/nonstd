@@ -257,7 +257,7 @@ protected: /*< ## Protected Member Methods */
      */
     inline Cell *const _lookup_cell(T_KEY key) {
         auto&  map         = m_metadata->map;
-        auto   hash        = shift64(key);
+        auto   hash        = n2hash(key);
         // Initial index for the given key.
         auto   cell_index  = hash % capacity();
         // Counter for invalid cells checked.
