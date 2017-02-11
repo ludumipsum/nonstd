@@ -32,6 +32,10 @@ template<> inline u64 n2hash(u8     key) { return shift64(key); }
 template<> inline u64 n2hash(u16    key) { return shift64(key); }
 template<> inline u64 n2hash(u32    key) { return shift64(key); }
 template<> inline u64 n2hash(u64    key) { return shift64(key); }
+template<> inline u64 n2hash(i8     key) { return shift64(key); }
+template<> inline u64 n2hash(i16    key) { return shift64(key); }
+template<> inline u64 n2hash(i32    key) { return shift64(key); }
+template<> inline u64 n2hash(i64    key) { return shift64(key); }
 
 template<typename T>
 inline u64 n2hash(T ket) {
