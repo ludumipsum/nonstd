@@ -402,7 +402,6 @@ public:
 private:
     struct key_iterator_passthrough {
         HashTable & table;
-        // iterator_passthrough ( HashTable & table ) : table(table);
         inline key_iterator begin() { return { table, table.m_metadata->map}; }
         inline key_iterator end()   {
             return { table, (table.m_metadata->map + table.capacity())};
@@ -410,7 +409,6 @@ private:
     };
     struct value_iterator_passthrough {
         HashTable & table;
-        // iterator_passthrough ( HashTable & table ) : table(table);
         inline value_iterator begin() { return { table, table.m_metadata->map}; }
         inline value_iterator end()   {
             return { table, (table.m_metadata->map + table.capacity())};
@@ -418,7 +416,6 @@ private:
     };
     struct item_iterator_passthrough {
         HashTable & table;
-        // iterator_passthrough ( HashTable & table ) : table(table);
         inline item_iterator begin() { return { table, table.m_metadata->map}; }
         inline item_iterator end()   {
             return { table, (table.m_metadata->map + table.capacity())};
@@ -431,11 +428,18 @@ private:
         Cell *      data;     /*< The data currently referenced.         */
         Cell *      data_end; /*< The pointer past the end of the table. */
 
-        base_iterator(HashTable & table,
-                 Cell * data)
-            : table    ( table )
-            , data     ( data  )
-            , data_end ( (table.m_metadata->map + table.capacity()) ) { }
+        base_iterator(HashTable & _table,
+                     Cell *       _data)
+            : table    ( _table )
+            , data     ( _data  )
+            , data_end ( (table.m_metadata->map + table.capacity()) )
+        {
+            // The first Cell may be invalid. If so, make sure it's not returned
+            while( data->state != CellState::USED &&
+                   data != data_end ) {
+                data += 1;
+            }
+        }
 
         inline void next_valid_cell() {
             do {
@@ -460,8 +464,8 @@ public:
 
 public:
     struct key_iterator : public base_iterator {
-        key_iterator(HashTable & table, Cell * data)
-            : base_iterator(table, data) { }
+        key_iterator(HashTable & _table, Cell * _data)
+            : base_iterator(_table, _data) { }
 
         /* Pre-increment -- step forward and return `this`. */
         inline key_iterator& operator++() {
@@ -487,14 +491,14 @@ public:
             return copy;
         }
         /* Dereference -- return the current value. */
-        inline T_KEY const operator*() const {
+        inline T_KEY const& operator*() const {
             return this->data->key;
         }
     };
 
     struct value_iterator : public base_iterator {
-        value_iterator(HashTable & table, Cell * data)
-            : base_iterator(table, data) { }
+        value_iterator(HashTable & _table, Cell * _data)
+            : base_iterator(_table, _data) { }
 
         /* Pre-increment -- step forward and return `this`. */
         inline value_iterator& operator++() {
@@ -520,14 +524,14 @@ public:
             return copy;
         }
         /* Dereference -- return the current value. */
-        inline T_VAL& operator*() const {
+        inline T_VAL& operator*() {
             return this->data->value;
         }
     };
 
     struct item_iterator : public base_iterator {
-        item_iterator(HashTable & table, Cell * data)
-            : base_iterator(table, data) { }
+        item_iterator(HashTable & _table, Cell * _data)
+            : base_iterator(_table, _data) { }
 
         /* Pre-increment -- step forward and return `this`. */
         inline item_iterator& operator++() {
@@ -553,7 +557,7 @@ public:
             return copy;
         }
         /* Dereference -- return the current value. */
-        inline T_ITEM operator*() const {
+        inline T_ITEM operator*() {
             return { &(this->data->key), &(this->data->value) };
         }
     };
