@@ -447,7 +447,7 @@ private:
             }
         }
 
-public:
+    public:
         inline bool operator==(const base_iterator & other) const {
             return &table == &other.table && data == other.data;
         }
@@ -455,6 +455,7 @@ public:
             return &table != &other.table || data != other.data;
         }
     };
+
 
 public:
     struct key_iterator : public base_iterator {
