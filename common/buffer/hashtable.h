@@ -429,8 +429,8 @@ private:
             , data_end ( (table.m_metadata->map + table.capacity()) )
         {
             // The first Cell may be invalid. If so, make sure it's not returned
-            while( data->state != CellState::USED &&
-                   data != data_end ) {
+            while( data != data_end &&
+                   data->state != CellState::USED ) {
                 data += 1;
             }
         }
@@ -438,10 +438,10 @@ private:
         inline void next_valid_cell() {
             do {
                 data += 1;
-            } while( data->state != CellState::USED && data != data_end );
+            } while( data != data_end && data->state != CellState::USED );
         }
         inline void next_valid_cell(u64 n) {
-            while (n > 0 && data != data_end) {
+            while (data != data_end && n > 0) {
                 next_valid_cell();
                 n -= 1;
             }
