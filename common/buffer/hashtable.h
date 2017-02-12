@@ -383,14 +383,8 @@ private:
 
 public:
     typedef struct item_t {
-        union {
-            T_KEY * const key;
-            T_KEY * const first;
-        };
-        union {
-            T_VAL * const value;
-            T_VAL * const second;
-        };
+        T_KEY& key;
+        T_KEY& value;
     } T_ITEM;
 
 
@@ -558,7 +552,7 @@ public:
         }
         /* Dereference -- return the current value. */
         inline T_ITEM operator*() {
-            return { &(this->data->key), &(this->data->value) };
+            return { this->data->key, this->data->value };
         }
     };
 
