@@ -371,9 +371,9 @@ protected: /*< ## Protected Member Methods */
      * -------------------------------------
      */
 public:
-    class key_iterator;
-    class value_iterator;
-    class item_iterator;
+    struct key_iterator;
+    struct value_iterator;
+    struct item_iterator;
 
 private:
     struct key_iterator_passthrough;
@@ -403,29 +403,29 @@ private:
     struct key_iterator_passthrough {
         HashTable & table;
         // iterator_passthrough ( HashTable & table ) : table(table);
-        inline key_iterator begin() { return { table, table.m_metadata.map}; }
+        inline key_iterator begin() { return { table, table.m_metadata->map}; }
         inline key_iterator end()   {
-            return { table, (table.m_metadata.map + table.capacity())};
+            return { table, (table.m_metadata->map + table.capacity())};
         }
     };
     struct value_iterator_passthrough {
         HashTable & table;
         // iterator_passthrough ( HashTable & table ) : table(table);
-        inline value_iterator begin() { return { table, table.m_metadata.map}; }
+        inline value_iterator begin() { return { table, table.m_metadata->map}; }
         inline value_iterator end()   {
-            return { table, (table.m_metadata.map + table.capacity())};
+            return { table, (table.m_metadata->map + table.capacity())};
         }
     };
     struct item_iterator_passthrough {
         HashTable & table;
         // iterator_passthrough ( HashTable & table ) : table(table);
-        inline item_iterator begin() { return { table, table.m_metadata.map}; }
+        inline item_iterator begin() { return { table, table.m_metadata->map}; }
         inline item_iterator end()   {
-            return { table, (table.m_metadata.map + table.capacity())};
+            return { table, (table.m_metadata->map + table.capacity())};
         }
     };
 
-    class base_iterator {
+    struct base_iterator {
     protected:
         HashTable & table;    /*< The ring being iterated.               */
         Cell *      data;     /*< The data currently referenced.         */
@@ -435,14 +435,7 @@ private:
                  Cell * data)
             : table    ( table )
             , data     ( data  )
-            , data_end ( (table.m_metadata.map + table.capacity()) ) { }
-
-        inline bool operator==(const base_iterator & other) const {
-            return &table == &other.table && data == other.data;
-        }
-        inline bool operator!=(const base_iterator & other) const {
-            return &table == &other.table || data != other.data;
-        }
+            , data_end ( (table.m_metadata->map + table.capacity()) ) { }
 
         inline void next_valid_cell() {
             do {
@@ -455,10 +448,18 @@ private:
                 n -= 1;
             }
         }
+
+public:
+        inline bool operator==(const base_iterator & other) const {
+            return &table == &other.table && data == other.data;
+        }
+        inline bool operator!=(const base_iterator & other) const {
+            return &table != &other.table || data != other.data;
+        }
     };
 
 public:
-    class key_iterator : base_iterator {
+    struct key_iterator : public base_iterator {
         key_iterator(HashTable & table, Cell * data)
             : base_iterator(table, data) { }
 
@@ -486,12 +487,12 @@ public:
             return copy;
         }
         /* Dereference -- return the current value. */
-        inline T_KEY operator*() const {
-            return { this->data->key };
+        inline T_KEY const operator*() const {
+            return this->data->key;
         }
     };
 
-    class value_iterator : base_iterator {
+    struct value_iterator : public base_iterator {
         value_iterator(HashTable & table, Cell * data)
             : base_iterator(table, data) { }
 
@@ -519,12 +520,12 @@ public:
             return copy;
         }
         /* Dereference -- return the current value. */
-        inline T_VAL operator*() const {
-            return { this->data->value };
+        inline T_VAL& operator*() const {
+            return this->data->value;
         }
     };
 
-    class item_iterator : base_iterator {
+    struct item_iterator : public base_iterator {
         item_iterator(HashTable & table, Cell * data)
             : base_iterator(table, data) { }
 
@@ -552,8 +553,8 @@ public:
             return copy;
         }
         /* Dereference -- return the current value. */
-        inline T_ITEM * operator*() const {
-            return {*this->data->key, *this->data->value};
+        inline T_ITEM operator*() const {
+            return { &(this->data->key), &(this->data->value) };
         }
     };
 
