@@ -240,14 +240,22 @@ template< class T >
 using n2_decay_t = typename std::decay<T>::type;
 #define DECAY_TYPE(T) n2_decay_t<T>
 
-/* constexpr is_same_type
- * ----------------------
- * Helper for std::is_same, wrapped s.t. entities may be directly passed in.
+/* IS_SAME_TYPE
+ * ------------
+ * Helper wrapping std::is_same<T,U>::value
+ */
+#define IS_SAME_TYPE(T,U) std::is_same<T,U>::value
+
+/* HAS_SAME_TYPE
+ * -------------
+ * `constexper` helper wrapping std::is_same<T,U>::value and decltype, s.t. type
+ * information of instances may be checked at runtime.
  */
 template<typename T, typename U>
-constexpr bool is_same_type(T left, U right) {
-  return std::is_same<decltype(left),decltype(right)>::value;
+constexpr bool n2_has_same_type(T left, U right) {
+    return std::is_same<decltype(left),decltype(right)>::value;
 }
+#define HAS_SAME_TYPE(T,U) n2_has_same_type(T,U)
 
 /* TEMPLATE_ENABLE
  * ---------------
