@@ -290,44 +290,272 @@ protected: /*< ## Protected Member Methods */
             misses     += 1;
         }
 
+        // The termination of this function is a pretty complicated piece of
+        // state checking. We expect the only outcomes to be,
+        // 1. Returning a  valid `Cell *`
+        // 2. Returning a `nullptr`
+        // 3. Resizing the HashTable, and re-entering this function.
+        //
+        // I was having a lot of trouble keeping the potential outcomes in my
+        // head, so I went ahead and whipped up this logic table.
+        //
+        //     | Outcome | ret | should_resize | m_resize | resize_in_progress |
+        //     |---------|-----|---------------|----------|--------------------|
+        //     | ret     | Yes | No            | No       | No                 |
+        //     | ret     | Yes | No            | Yes      | No                 |
+        //     | ret     | Yes | No            | Yes      | Yes                |
+        //     | ret     | Yes | Yes           | Yes      | Yes                |
+        //     | ret     | Yes | Yes           | No       | No                 |
+        //     | Resize  | Yes | Yes           | Yes      | No                 |
+        //     | nul     | No  | Yes           | No       | No                 |
+        //     | Resize  | No  | Yes           | Yes      | No                 |
+        //     | Error   | No  | Yes           | Yes      | Yes                |
+        //
+        // Note that all unlisted combinations are what I consider to be invalid
+        // states because,
+        // 1. `ret == nullptr` (ret == No) implies `should_resize`.
+        // 2. `resize_in_progress` implies `m_resize`.
+        //
+        // The below if-soup was written in an attempt to be optimistic; the
+        // most common results are (hopefully) written first. This was done
+        // assuming branch prediction will be optimistic, and that optimizing
+        // for correct branch predictions will meaningfully improve system
+        // performance.
         bool should_resize      = misses >= n2min(miss_tolerance(), capacity());
         bool rehash_in_progress = m_metadata->rehash_in_progress;
 
-        if (ret != nullptr && ! should_resize) {
-            return ret;
-        } else
-        if (should_resize && m_resize != nullptr) {
+        if (ret) {
+            if (! should_resize     ||
+                m_resize == nullptr ||
+                rehash_in_progress)
+            {
+                return ret;
+            }
             resize_by(1.2f);
             return _lookup_cell(key);
-        } else
-        if (should_resize && m_resize == nullptr) {
-#if 0
-            LOG("WARNING: This HashTable is full -- and a lookup has failed -- "
-                "but increasing the size of the HashTable is disallowed.\n"
-                "Resize function ptr : %p\n"
-                "A resize is %s in progress.\n"
-                "Capacity: %d\n"
-                "Count: %d\n"
-                "Invalid Count: %d\n"
-                "Misses : %d (%d allowed)\n"
-                "The backing buffer's name is %s and is located at %p.",
-                m_resize, m_metadata->rehash_in_progress ? "currently" : "not",
-                capacity(), count(), invalid_count(), misses, miss_tolerance(),
-                m_bd->name, m_bd);
-#endif
-            return nullptr;
+
+        } else if (ret == nullptr) {
+
+            if (m_resize == nullptr) {
+                return nullptr;
+            }
+            if (should_resize       &&
+                m_resize != nullptr &&
+                ! rehash_in_progress)
+            {
+                resize_by(1.2f);
+                return _lookup_cell(key);
+            }
+            if (m_resize != nullptr &&
+                rehash_in_progress)
+            {
+                N2CRASH(Error::PEBCAK,
+                    "This HashTable has somehow entered a bad state. A resize "
+                    "is in progress, but the table has been completely filled. "
+                    "This is supposed to be an impossible state, but... Here "
+                    "we are.\n"
+                    "Underlying buffer is named %s, and it is located at %p.\n",
+                    m_bd->name, m_bd);
+            }
         }
 
-#if defined(DEBUG)
         N2CRASH(Error::PEBCAK,
             "Whoever wrote this lookup function thought there was no way to "
             "get to this portion of code. And yet here we are.\n"
             "The backing buffer's name is %s and is located at %p.",
             m_bd->name, m_bd);
-#endif
-
         return nullptr;
     }
+
+    /* Nested Iterator and Related Functions
+     * -------------------------------------
+     */
+public:
+    struct key_iterator;
+    struct value_iterator;
+    struct item_iterator;
+
+private:
+    struct key_iterator_passthrough;
+    struct value_iterator_passthrough;
+    struct item_iterator_passthrough;
+
+
+public:
+    typedef struct item_t {
+        T_KEY& key;
+        T_KEY& value;
+    } T_ITEM;
+
+
+    inline key_iterator_passthrough   keys()   { return { *this }; }
+    inline value_iterator_passthrough values() { return { *this }; }
+    inline item_iterator_passthrough  items()  { return { *this }; }
+
+
+private:
+    struct key_iterator_passthrough {
+        HashTable & table;
+        inline key_iterator begin() { return { table, table.m_metadata->map}; }
+        inline key_iterator end()   {
+            return { table, (table.m_metadata->map + table.capacity())};
+        }
+    };
+    struct value_iterator_passthrough {
+        HashTable & table;
+        inline value_iterator begin() { return { table, table.m_metadata->map}; }
+        inline value_iterator end()   {
+            return { table, (table.m_metadata->map + table.capacity())};
+        }
+    };
+    struct item_iterator_passthrough {
+        HashTable & table;
+        inline item_iterator begin() { return { table, table.m_metadata->map}; }
+        inline item_iterator end()   {
+            return { table, (table.m_metadata->map + table.capacity())};
+        }
+    };
+
+    struct base_iterator {
+    protected:
+        HashTable & table;    /*< The ring being iterated.               */
+        Cell *      data;     /*< The data currently referenced.         */
+        Cell *      data_end; /*< The pointer past the end of the table. */
+
+        base_iterator(HashTable & _table,
+                     Cell *       _data)
+            : table    ( _table )
+            , data     ( _data  )
+            , data_end ( (table.m_metadata->map + table.capacity()) )
+        {
+            // The first Cell may be invalid. If so, make sure it's not returned
+            while( data != data_end &&
+                   data->state != CellState::USED ) {
+                data += 1;
+            }
+        }
+
+        inline void next_valid_cell() {
+            do {
+                data += 1;
+            } while( data != data_end && data->state != CellState::USED );
+        }
+        inline void next_valid_cell(u64 n) {
+            while (data != data_end && n > 0) {
+                next_valid_cell();
+                n -= 1;
+            }
+        }
+
+    public:
+        inline bool operator==(const base_iterator & other) const {
+            return &table == &other.table && data == other.data;
+        }
+        inline bool operator!=(const base_iterator & other) const {
+            return &table != &other.table || data != other.data;
+        }
+    };
+
+
+public:
+    struct key_iterator : public base_iterator {
+        key_iterator(HashTable & _table, Cell * _data)
+            : base_iterator(_table, _data) { }
+
+        /* Pre-increment -- step forward and return `this`. */
+        inline key_iterator& operator++() {
+            this->next_valid_cell();
+            return *this;
+        }
+        /* Post-increment -- return a copy created before stepping forward. */
+        inline key_iterator operator++(int) {
+            key_iterator copy = *this;
+            this->next_valid_cell();
+            return copy;
+        }
+        /* Increment and assign -- step forward by `n` and return `this`.
+         * Be sure not to iterate past `end()`. */
+        inline key_iterator& operator+=(u64 n) {
+            this->next_valid_cell(n);
+            return *this;
+        }
+        /* Arithmetic increment -- return an incremented copy. */
+        inline key_iterator operator+(u64 n) {
+            key_iterator copy = *this;
+            this->next_valid_cell(n);
+            return copy;
+        }
+        /* Dereference -- return the current value. */
+        inline T_KEY const& operator*() const {
+            return this->data->key;
+        }
+    };
+
+    struct value_iterator : public base_iterator {
+        value_iterator(HashTable & _table, Cell * _data)
+            : base_iterator(_table, _data) { }
+
+        /* Pre-increment -- step forward and return `this`. */
+        inline value_iterator& operator++() {
+            this->next_valid_cell();
+            return *this;
+        }
+        /* Post-increment -- return a copy created before stepping forward. */
+        inline value_iterator operator++(int) {
+            value_iterator copy = *this;
+            this->next_valid_cell();
+            return copy;
+        }
+        /* Increment and assign -- step forward by `n` and return `this`.
+         * Be sure not to iterate past `end()`. */
+        inline value_iterator& operator+=(u64 n) {
+            this->next_valid_cell(n);
+            return *this;
+        }
+        /* Arithmetic increment -- return an incremented copy. */
+        inline value_iterator operator+(u64 n) {
+            value_iterator copy = *this;
+            this->next_valid_cell(n);
+            return copy;
+        }
+        /* Dereference -- return the current value. */
+        inline T_VAL& operator*() {
+            return this->data->value;
+        }
+    };
+
+    struct item_iterator : public base_iterator {
+        item_iterator(HashTable & _table, Cell * _data)
+            : base_iterator(_table, _data) { }
+
+        /* Pre-increment -- step forward and return `this`. */
+        inline item_iterator& operator++() {
+            this->next_valid_cell();
+            return *this;
+        }
+        /* Post-increment -- return a copy created before stepping forward. */
+        inline item_iterator operator++(int) {
+            item_iterator copy = *this;
+            this->next_valid_cell();
+            return copy;
+        }
+        /* Increment and assign -- step forward by `n` and return `this`.
+         * Be sure not to iterate past `end()`. */
+        inline item_iterator& operator+=(u64 n) {
+            this->next_valid_cell(n);
+            return *this;
+        }
+        /* Arithmetic increment -- return an incremented copy. */
+        inline item_iterator operator+(u64 n) {
+            item_iterator copy = *this;
+            this->next_valid_cell(n);
+            return copy;
+        }
+        /* Dereference -- return the current value. */
+        inline T_ITEM operator*() {
+            return { this->data->key, this->data->value };
+        }
+    };
 
 
     /* Ensure that only POD data is used in these views.*/
