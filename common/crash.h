@@ -12,6 +12,7 @@
 
 #include "batteries_included.h"
 #include "primitive_types.h"
+#include "logging.h"
 
 
 namespace crash {

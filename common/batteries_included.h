@@ -240,26 +240,42 @@ template< class T >
 using n2_decay_t = typename std::decay<T>::type;
 #define DECAY_TYPE(T) n2_decay_t<T>
 
+/* IS_SAME_TYPE
+ * ------------
+ * Helper wrapping std::is_same<T,U>::value
+ */
+#define IS_SAME_TYPE(T,U) std::is_same<T,U>::value
+
+/* HAS_SAME_TYPE
+ * -------------
+ * `constexper` helper wrapping std::is_same<T,U>::value and decltype, s.t. type
+ * information of instances may be checked at runtime.
+ */
+template<typename T, typename U>
+constexpr bool n2_has_same_type(T left, U right) {
+    return std::is_same<decltype(left),decltype(right)>::value;
+}
+#define HAS_SAME_TYPE(T,U) n2_has_same_type(T,U)
+
 /* TEMPLATE_ENABLE
-   ---------------
-
-   std::enable_if convenience wrapper.
-   Utility tools for easily enabling/disabling functions in templated
-   types based on a trait or boolean expression. Usage requires passing
-   in a parameter from the class template in the first variable of the
-   macro. For example, if you had:
-
-       template<bool ConfigBoolean, class T> MyClass { ... };
-
-   You'd use use the macro like so:
-
-       TEMPLATE_ENABLE(ConfigBoolean, T) void EitherOr() { ... };
-       TEMPLATE_ENABLE(!ConfigBoolean, T) void EitherOr() { ... };
-
-   Which will yield only the correct version of that function based
-   on the template parameter. Poor man's type-level overloading, poorer
-   man's pattern match.
-*/
+ * ---------------
+ * std::enable_if convenience wrapper.
+ * Utility tools for easily enabling/disabling functions in templated
+ * types based on a trait or boolean expression. Usage requires passing
+ * in a parameter from the class template in the first variable of the
+ * macro. For example, if you had:
+ *
+ *     template<bool ConfigBoolean, class T> MyClass { ... };
+ *
+ * You'd use use the macro like so:
+ *
+ *     TEMPLATE_ENABLE(ConfigBoolean, T) void EitherOr() { ... };
+ *     TEMPLATE_ENABLE(!ConfigBoolean, T) void EitherOr() { ... };
+ *
+ * Which will yield only the correct version of that function based
+ * on the template parameter. Poor man's type-level overloading, poorer
+ * man's pattern match.
+ */
 template< bool B, class T = void >
 using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
 #define TEMPLATE_ENABLE(Cond, T)                        \
@@ -267,11 +283,10 @@ using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
              n2_enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
 
 /* Shim for mktemp
-   ------------------------------------
-
-   On the windows runtimes, the posix function mktemp requires some
-   goofy shimming.
-*/
+ * ------------------------------------
+ * On the windows runtimes, the posix function mktemp requires some
+ * goofy shimming.
+ */
 #if defined(__MINGW32__) || defined(_MSC_VER)
 #include <io.h>
 #endif
