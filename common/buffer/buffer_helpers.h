@@ -8,8 +8,8 @@
  *   game/modules/buffer_helpers.cc
  */
 
-#if !defined(IFACE_BUFFER)
-#define IFACE_BUFFER
+#if !defined(IFACE_BUFFER_HELPERS)
+#define IFACE_BUFFER_HELPERS
 
 #include "batteries_included.h"
 #include "primitive_types.h"
@@ -50,4 +50,4 @@ inline HashTable<K,V> new_hashtable(
     Flags  flags          = PASS);
 
 } /* namespace buffer */
-#endif /* IFACE_BUFFER */
+#endif /* IFACE_BUFFER_HELPERS */
