@@ -39,6 +39,7 @@
 
 /* Should-be-standard Library */
 #include "optional.h"
+#include "compare.h"
 #include "cvar.h"
 #include "hash.h"
 #include "itertools.h"

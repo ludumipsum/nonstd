@@ -8,6 +8,7 @@
 
 #include "batteries_included.h"
 #include "primitive_types.h"
+#include "compare.h"
 #include "hash.h"
 #include "logging.h"
 #include "mathutils.h"
@@ -279,7 +280,7 @@ protected: /*< ## Protected Member Methods */
             Cell& cell = map[cell_index];
             bool cell_is_empty = cell.state == CellState::EMPTY;
             bool match_found   = (cell.state  == CellState::USED
-                                  && cell.key == key);
+                                  && n2compare(cell.key, key) == 0);
 
             if (match_found || cell_is_empty) {
                 ret = &cell;
