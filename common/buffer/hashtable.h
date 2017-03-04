@@ -385,8 +385,8 @@ private:
 
 public:
     typedef struct item_t {
-        T_KEY& key;
-        T_KEY& value;
+        T_KEY const& key;
+        T_VAL&       value;
     } T_ITEM;
 
 
