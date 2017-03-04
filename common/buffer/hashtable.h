@@ -376,11 +376,13 @@ public:
     struct key_iterator;
     struct value_iterator;
     struct item_iterator;
+    struct cell_iterator;
 
 private:
     struct key_iterator_passthrough;
     struct value_iterator_passthrough;
     struct item_iterator_passthrough;
+    struct cell_iterator_passthrough;
 
 
 public:
@@ -393,6 +395,7 @@ public:
     inline key_iterator_passthrough   keys()   { return { *this }; }
     inline value_iterator_passthrough values() { return { *this }; }
     inline item_iterator_passthrough  items()  { return { *this }; }
+    inline cell_iterator_passthrough  cells()  { return { *this }; }
 
 
 private:
@@ -414,6 +417,13 @@ private:
         HashTable & table;
         inline item_iterator begin() { return { table, table.m_metadata->map}; }
         inline item_iterator end()   {
+            return { table, (table.m_metadata->map + table.capacity())};
+        }
+    };
+    struct cell_iterator_passthrough {
+        HashTable & table;
+        inline cell_iterator begin() { return { table, table.m_metadata->map}; }
+        inline cell_iterator end()   {
             return { table, (table.m_metadata->map + table.capacity())};
         }
     };
@@ -509,6 +519,41 @@ public:
         /* Dereference -- return the current value. */
         inline T_ITEM operator*() {
             return { this->data->key, this->data->value };
+        }
+    };
+
+    struct cell_iterator : public base_iterator<cell_iterator> {
+        cell_iterator(HashTable & _table, Cell * _data)
+            : base_iterator<cell_iterator>(_table, _data)
+        {
+            // We don't want to skip over invalid cells, so reset this->data to
+            // whatever was initially set.
+            this->data = _data;
+        }
+        /* Dereference -- return the current value. */
+        inline Cell const * const operator*() const {
+            return this->data;
+        }
+        /* Pre-increment -- step forward and return `this`. */
+        inline cell_iterator& operator++() {
+            this->data += 1;
+            return *this;
+        }
+        /* Post-increment -- return a copy created before stepping forward. */
+        inline cell_iterator operator++(int) {
+            cell_iterator copy = *this;
+            this->data += 1;
+            return copy;
+        }
+        /* Increment and assign -- step forward by `n` and return `this`. */
+        inline cell_iterator& operator+=(u64 n) {
+            N2CRASH(Error::UnimplementedCode,
+                    "This is a per-cell iterator. stahp!");
+        }
+        /* Arithmetic increment -- return an incremented copy. */
+        inline cell_iterator operator+(u64 n) {
+            N2CRASH(Error::UnimplementedCode,
+                    "This is a per-cell iterator. stahp!");
         }
     };
 
