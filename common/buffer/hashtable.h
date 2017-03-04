@@ -368,6 +368,7 @@ protected: /*< ## Protected Member Methods */
         return nullptr;
     }
 
+
     /* Nested Iterator and Related Functions
      * -------------------------------------
      */
@@ -417,6 +418,9 @@ private:
         }
     };
 
+    /* Use the CRTP (Curiously Recurring Template Pattern) to return references
+     * to the dervied iterators when needed. */
+    template<typename ITTR_T>
     struct base_iterator {
     protected:
         HashTable & table;    /*< The ring being iterated.               */
@@ -455,103 +459,53 @@ private:
         inline bool operator!=(const base_iterator & other) const {
             return &table != &other.table || data != other.data;
         }
+        /* Pre-increment -- step forward and return `this`. */
+        inline ITTR_T& operator++() {
+            this->next_valid_cell();
+            return *(static_cast<ITTR_T*>(this));
+        }
+        /* Post-increment -- return a copy created before stepping forward. */
+        inline ITTR_T operator++(int) {
+            ITTR_T copy = *this;
+            this->next_valid_cell();
+            return copy;
+        }
+        /* Increment and assign -- step forward by `n` and return `this`. */
+        inline ITTR_T& operator+=(u64 n) {
+            this->next_valid_cell(n);
+            return *(static_cast<ITTR_T*>(this));
+        }
+        /* Arithmetic increment -- return an incremented copy. */
+        inline ITTR_T operator+(u64 n) {
+            ITTR_T copy = *this;
+            this->next_valid_cell(n);
+            return copy;
+        }
     };
 
 
 public:
-    struct key_iterator : public base_iterator {
+    struct key_iterator : public base_iterator<key_iterator> {
         key_iterator(HashTable & _table, Cell * _data)
-            : base_iterator(_table, _data) { }
-
-        /* Pre-increment -- step forward and return `this`. */
-        inline key_iterator& operator++() {
-            this->next_valid_cell();
-            return *this;
-        }
-        /* Post-increment -- return a copy created before stepping forward. */
-        inline key_iterator operator++(int) {
-            key_iterator copy = *this;
-            this->next_valid_cell();
-            return copy;
-        }
-        /* Increment and assign -- step forward by `n` and return `this`.
-         * Be sure not to iterate past `end()`. */
-        inline key_iterator& operator+=(u64 n) {
-            this->next_valid_cell(n);
-            return *this;
-        }
-        /* Arithmetic increment -- return an incremented copy. */
-        inline key_iterator operator+(u64 n) {
-            key_iterator copy = *this;
-            this->next_valid_cell(n);
-            return copy;
-        }
+            : base_iterator<key_iterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_KEY const& operator*() const {
             return this->data->key;
         }
     };
 
-    struct value_iterator : public base_iterator {
+    struct value_iterator : public base_iterator<value_iterator> {
         value_iterator(HashTable & _table, Cell * _data)
-            : base_iterator(_table, _data) { }
-
-        /* Pre-increment -- step forward and return `this`. */
-        inline value_iterator& operator++() {
-            this->next_valid_cell();
-            return *this;
-        }
-        /* Post-increment -- return a copy created before stepping forward. */
-        inline value_iterator operator++(int) {
-            value_iterator copy = *this;
-            this->next_valid_cell();
-            return copy;
-        }
-        /* Increment and assign -- step forward by `n` and return `this`.
-         * Be sure not to iterate past `end()`. */
-        inline value_iterator& operator+=(u64 n) {
-            this->next_valid_cell(n);
-            return *this;
-        }
-        /* Arithmetic increment -- return an incremented copy. */
-        inline value_iterator operator+(u64 n) {
-            value_iterator copy = *this;
-            this->next_valid_cell(n);
-            return copy;
-        }
+            : base_iterator<value_iterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_VAL& operator*() {
             return this->data->value;
         }
     };
 
-    struct item_iterator : public base_iterator {
+    struct item_iterator : public base_iterator<item_iterator> {
         item_iterator(HashTable & _table, Cell * _data)
-            : base_iterator(_table, _data) { }
-
-        /* Pre-increment -- step forward and return `this`. */
-        inline item_iterator& operator++() {
-            this->next_valid_cell();
-            return *this;
-        }
-        /* Post-increment -- return a copy created before stepping forward. */
-        inline item_iterator operator++(int) {
-            item_iterator copy = *this;
-            this->next_valid_cell();
-            return copy;
-        }
-        /* Increment and assign -- step forward by `n` and return `this`.
-         * Be sure not to iterate past `end()`. */
-        inline item_iterator& operator+=(u64 n) {
-            this->next_valid_cell(n);
-            return *this;
-        }
-        /* Arithmetic increment -- return an incremented copy. */
-        inline item_iterator operator+(u64 n) {
-            item_iterator copy = *this;
-            this->next_valid_cell(n);
-            return copy;
-        }
+            : base_iterator<item_iterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_ITEM operator*() {
             return { this->data->key, this->data->value };
