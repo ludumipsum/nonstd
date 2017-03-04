@@ -32,6 +32,7 @@ protected: /*< ## Inner-Types */
         T_KEY     key;
         T_VAL     value;
         CellState state;
+        u64       initial_cell;
     };
     struct Metadata {
         u32  magic;
@@ -146,6 +147,7 @@ public: /*< ## Public Memeber Methods */
         cell->value = value;
         if (cell->state == CellState::EMPTY) {
             cell->state = CellState::USED;
+            cell->initial_cell = n2hash(key) % capacity();
             m_metadata->count += 1;
         }
         return { cell->value };
@@ -162,6 +164,7 @@ public: /*< ## Public Memeber Methods */
         cell->key   = key;
         cell->value = value;
         cell->state = CellState::USED;
+        cell->initial_cell = n2hash(key) % capacity();
         m_metadata->count += 1;
         return { cell->value };
     }
@@ -261,6 +264,7 @@ protected: /*< ## Protected Member Methods */
         auto   hash        = n2hash(key);
         // Initial index for the given key.
         auto   cell_index  = hash % capacity();
+        auto   initial_cell_index  = hash % capacity();
         // Counter for invalid cells checked.
         u64    misses      = 0;
         // Target Cell to return (may remain null).
