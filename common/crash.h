@@ -76,24 +76,6 @@ i32 crash(N2Error error,
             ##__VA_ARGS__) )
 
 
-#if defined(DEBUG)
-#define N2ASSERT(COND, ERR, MESSAGE, ...)                \
-    ( (COND) ?                                           \
-      0 :                                                \
-      N2CRASH(ERR,                                       \
-            "Assertion Failed ( " #COND " )\n" MESSAGE , \
-            ##__VA_ARGS__) )
-#define N2ASSERT_FALSE(COND, ERR, MESSAGE, ...)           \
-    ( (COND) ?                                            \
-      N2CRASH(ERR,                                        \
-            "Assertion Failed !( " #COND " )\n" MESSAGE , \
-            ##__VA_ARGS__) :                              \
-      0 )
-#else
-#define N2ASSERT(COND, ERR, MESSAGE, ...)
-#define N2ASSERT_FALSE(COND, ERR, MESSAGE, ...)
-#endif
-
 /* CAPTURE_CRASH Test Rigging
  * --------------------------
  */
