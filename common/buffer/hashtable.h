@@ -31,8 +31,8 @@ protected: /*< ## Inner-Types */
     struct Cell {
         T_KEY     key;
         T_VAL     value;
-        CellState state;
         u64       initial_cell;
+        CellState state;
     };
     struct Metadata {
         u32  magic;
@@ -147,7 +147,7 @@ public: /*< ## Public Memeber Methods */
         cell->value = value;
         if (cell->state == CellState::EMPTY) {
             cell->state = CellState::USED;
-            cell->initial_cell = n2hash(key) % capacity();
+            cell->initial_cell = constrain_key(n2hash(key));
             m_metadata->count += 1;
         }
         return { cell->value };
@@ -164,7 +164,7 @@ public: /*< ## Public Memeber Methods */
         cell->key   = key;
         cell->value = value;
         cell->state = CellState::USED;
-        cell->initial_cell = n2hash(key) % capacity();
+        cell->initial_cell = constrain_key(n2hash(key));
         m_metadata->count += 1;
         return { cell->value };
     }
@@ -182,6 +182,13 @@ public: /*< ## Public Memeber Methods */
 
 
 protected: /*< ## Protected Member Methods */
+    /**
+     * Constrain a hash value down to an entry in the cell table. 
+     */
+    inline u64 constrain_key(u64 hash) {
+        return hash % capacity();
+    }
+
     /**
      * Resize `this` HashTable to have room for exactly `capacity` elements.
      * This function should be able to both upscale and downscale HashTables.
@@ -263,8 +270,8 @@ protected: /*< ## Protected Member Methods */
         auto&  map         = m_metadata->map;
         auto   hash        = n2hash(key);
         // Initial index for the given key.
-        auto   cell_index  = hash % capacity();
-        auto   initial_cell_index  = hash % capacity();
+        auto   cell_index  = constrain_key(hash);
+        auto   initial_cell_index  = cell_index;
         // Counter for invalid cells checked.
         u64    misses      = 0;
         // Target Cell to return (may remain null).
@@ -291,7 +298,7 @@ protected: /*< ## Protected Member Methods */
                 break;
             }
 
-            cell_index  = (1 + cell_index) % capacity();
+            cell_index  = constrain_key(1 + cell_index);
             misses     += 1;
         }
 
