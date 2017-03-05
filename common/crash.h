@@ -15,12 +15,10 @@
 #include "logging.h"
 
 
-namespace crash {
-
 /**
  * N2 Error Codes
  */
-enum class Error {
+enum class N2Error {
     Success,
     PEBCAK,
     Undefined,
@@ -38,21 +36,23 @@ enum class Error {
 };
 
 
+namespace crash {
+
 /* Kerplow */
-i32 crash(Error  error,
-          c_cstr reason,
-          c_cstr file,
-          u64    line,
-          c_cstr funcsig);
+i32 crash(N2Error error,
+          c_cstr  reason,
+          c_cstr  file,
+          u64     line,
+          c_cstr  funcsig);
+
 
 /* N2CRASH Macro
  * -----------
- * Used as a macro-ized passthrough to the above crash::boom function. This lets
- * us skip adding FILE and LINE macros to every invocation of crash::boom.
+ * Used as a macro-ized passthrough to the above crash::crash function. This
+ * lets us skip adding FILE and LINE macros to every invocation of crash::crash.
  */
-//TODO: Add a 1-arity crash macro s.t. the MESSAGE is optional?
 #define N2CRASH(ERROR, MESSAGE, ...)                                \
-    ::crash::crash(crash::ERROR,                                    \
+    ::crash::crash(ERROR,                                           \
                    _variadicExpand(MESSAGE, ##__VA_ARGS__).c_str(), \
                    __FILE__,                                        \
                    __LINE__,                                        \
@@ -105,7 +105,7 @@ int CAPTURE_CRASH(std::function<void(void)> test);
  * N2 String descriptors / to-string helper
  * -------------------------------------------------------
  */
-c_cstr n2strerr(Error err);
+c_cstr n2strerr(N2Error err);
 
 static c_cstr error_strings[] = {
     /* Success */       "No error. (Please update this to a clean exit).",
@@ -131,7 +131,7 @@ static c_cstr error_strings[] = {
                         "Operation executed with invalid arguments.",
 };
 
-c_cstr n2strerr(Error err) {
+c_cstr n2strerr(N2Error err) {
     return error_strings[(i32)(err)];
 }
 
