@@ -58,9 +58,9 @@ constexpr T bitMask(int nbits) {
       // First we branch to avoid shifting the past the width of the type, then
       // (assuming we are shifting, and aren't just returning `~0`) we cast `~0`
       // to an explicitly unsigned type before performing the shift.
-      return nbits != std::numeric_limits<UT>::digits ?
-                      ~T(~UT(0) << nbits)             :
-                      ~T(0);
+      return (nbits != (sizeof(UT) * 8)) ?
+             ~T(~UT(0) << nbits)         :
+             ~T(0);
 }
 
 
@@ -82,7 +82,7 @@ constexpr bool is_power_of_two(T num) {
  * -----------------
  *TODO: Consider making these template specializations based on the size of T.
  */
-inline constexpr u32 next_power_of_two(u32 num) {
+inline u32 next_power_of_two(u32 num) {
     u32 v = num - 1;
     v |= v >> 1;
     v |= v >> 2;
@@ -93,7 +93,7 @@ inline constexpr u32 next_power_of_two(u32 num) {
     return v;
 }
 
-inline constexpr u64 next_power_of_two(u64 num) {
+inline u64 next_power_of_two(u64 num) {
     u64 v = num - 1;
     v |= v >> 1;
     v |= v >> 2;
