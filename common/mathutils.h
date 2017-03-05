@@ -82,7 +82,7 @@ constexpr bool is_power_of_two(T num) {
  * -----------------
  *TODO: Consider making these template specializations based on the size of T.
  */
-inline constexpr u32 next_power_of_two(u32 num) {
+inline u32 next_power_of_two(u32 num) {
     u32 v = num - 1;
     v |= v >> 1;
     v |= v >> 2;
@@ -93,7 +93,7 @@ inline constexpr u32 next_power_of_two(u32 num) {
     return v;
 }
 
-inline constexpr u64 next_power_of_two(u64 num) {
+inline u64 next_power_of_two(u64 num) {
     u64 v = num - 1;
     v |= v >> 1;
     v |= v >> 2;
