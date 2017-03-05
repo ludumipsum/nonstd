@@ -48,7 +48,8 @@ public: /*< ## Class Methods */
     static const u64 default_miss_tolerance =  8;
 
     inline static u64 precomputeSize(u64 capacity = default_capacity) {
-        return sizeof(Metadata) + sizeof(Cell) * capacity;
+        auto required_capacity = next_power_of_two(capacity);
+        return sizeof(Metadata) + sizeof(Cell) * capacity; 
     }
 
     inline static void initializeBuffer(Descriptor *const bd,
@@ -56,15 +57,22 @@ public: /*< ## Class Methods */
         Metadata * metadata = (Metadata *)(bd->data);
 #if defined(DEBUG)
         N2CRASH_IF(bd->size < sizeof(Metadata), Error::InsufficientMemory,
-            "Buffer HashTable is being overlaid onto a Buffer that is too "
-            "small (" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            bd->size, sizeof(Metadata), bd->name, bd);
+                   "Buffer HashTable is being overlaid onto a Buffer that is "
+                   "too small (" Fu64 "B) to fit the HashTable Metadata "
+                   "(" Fu64 ").\n"
+                   "Underlying buffer is named %s, and it is located at %p.",
+                   bd->size, sizeof(Metadata), bd->name, bd);
         N2CRASH_IF(metadata->rehash_in_progress, Error::PEBCAK,
-            "Buffer HashTable has been reinitialized while "
-            "`rehash_in_progress == true`. This should not be possible.\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            bd->name, bd);
+                   "Buffer HashTable has been reinitialized while "
+                   "`rehash_in_progress == true`. This shouldn't be possible.\n"
+                   "Underlying buffer is named %s, and it is located at %p.",
+                   bd->name, bd);
+        auto required_size = precomputeSize(metadata->capacity)
+        N2CRASH_IF(bd->size < required_size, Error::InsufficientMemory,
+                   "Buffer HashTable is being overlaid onto a Buffer that is "
+                   "too small (" Fu64 "B) to fit the whole table (" Fu64 "B).\n"
+                   "Underlying buffer is named %s, and it is located at %p.",
+                   bd->size, required_size, bd->name, bd);
 #endif
         /* If the type check is correct, no initialization is required. */
         if (metadata->magic == magic) { return; }
