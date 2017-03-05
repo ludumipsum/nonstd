@@ -31,6 +31,7 @@ protected: /*< ## Inner-Types */
     struct Cell {
         T_KEY     key;
         T_VAL     value;
+        u64       initial_cell;
         CellState state;
     };
     struct Metadata {
@@ -146,6 +147,7 @@ public: /*< ## Public Memeber Methods */
         cell->value = value;
         if (cell->state == CellState::EMPTY) {
             cell->state = CellState::USED;
+            cell->initial_cell = constrain_key(n2hash(key));
             m_metadata->count += 1;
         }
         return { cell->value };
@@ -162,6 +164,7 @@ public: /*< ## Public Memeber Methods */
         cell->key   = key;
         cell->value = value;
         cell->state = CellState::USED;
+        cell->initial_cell = constrain_key(n2hash(key));
         m_metadata->count += 1;
         return { cell->value };
     }
@@ -179,6 +182,13 @@ public: /*< ## Public Memeber Methods */
 
 
 protected: /*< ## Protected Member Methods */
+    /**
+     * Constrain a hash value down to an entry in the cell table. 
+     */
+    inline u64 constrain_key(u64 hash) {
+        return hash % capacity();
+    }
+
     /**
      * Resize `this` HashTable to have room for exactly `capacity` elements.
      * This function should be able to both upscale and downscale HashTables.
@@ -260,7 +270,8 @@ protected: /*< ## Protected Member Methods */
         auto&  map         = m_metadata->map;
         auto   hash        = n2hash(key);
         // Initial index for the given key.
-        auto   cell_index  = hash % capacity();
+        auto   cell_index  = constrain_key(hash);
+        auto   initial_cell_index  = cell_index;
         // Counter for invalid cells checked.
         u64    misses      = 0;
         // Target Cell to return (may remain null).
@@ -287,7 +298,7 @@ protected: /*< ## Protected Member Methods */
                 break;
             }
 
-            cell_index  = (1 + cell_index) % capacity();
+            cell_index  = constrain_key(1 + cell_index);
             misses     += 1;
         }
 
@@ -376,11 +387,13 @@ public:
     struct key_iterator;
     struct value_iterator;
     struct item_iterator;
+    struct cell_iterator;
 
 private:
     struct key_iterator_passthrough;
     struct value_iterator_passthrough;
     struct item_iterator_passthrough;
+    struct cell_iterator_passthrough;
 
 
 public:
@@ -393,6 +406,7 @@ public:
     inline key_iterator_passthrough   keys()   { return { *this }; }
     inline value_iterator_passthrough values() { return { *this }; }
     inline item_iterator_passthrough  items()  { return { *this }; }
+    inline cell_iterator_passthrough  cells()  { return { *this }; }
 
 
 private:
@@ -414,6 +428,13 @@ private:
         HashTable & table;
         inline item_iterator begin() { return { table, table.m_metadata->map}; }
         inline item_iterator end()   {
+            return { table, (table.m_metadata->map + table.capacity())};
+        }
+    };
+    struct cell_iterator_passthrough {
+        HashTable & table;
+        inline cell_iterator begin() { return { table, table.m_metadata->map}; }
+        inline cell_iterator end()   {
             return { table, (table.m_metadata->map + table.capacity())};
         }
     };
@@ -509,6 +530,41 @@ public:
         /* Dereference -- return the current value. */
         inline T_ITEM operator*() {
             return { this->data->key, this->data->value };
+        }
+    };
+
+    struct cell_iterator : public base_iterator<cell_iterator> {
+        cell_iterator(HashTable & _table, Cell * _data)
+            : base_iterator<cell_iterator>(_table, _data)
+        {
+            // We don't want to skip over invalid cells, so reset this->data to
+            // whatever was initially set.
+            this->data = _data;
+        }
+        /* Dereference -- return the current value. */
+        inline Cell const * const operator*() const {
+            return this->data;
+        }
+        /* Pre-increment -- step forward and return `this`. */
+        inline cell_iterator& operator++() {
+            this->data += 1;
+            return *this;
+        }
+        /* Post-increment -- return a copy created before stepping forward. */
+        inline cell_iterator operator++(int) {
+            cell_iterator copy = *this;
+            this->data += 1;
+            return copy;
+        }
+        /* Increment and assign -- step forward by `n` and return `this`. */
+        inline cell_iterator& operator+=(u64 n) {
+            N2CRASH(Error::UnimplementedCode,
+                    "This is a per-cell iterator. stahp!");
+        }
+        /* Arithmetic increment -- return an incremented copy. */
+        inline cell_iterator operator+(u64 n) {
+            N2CRASH(Error::UnimplementedCode,
+                    "This is a per-cell iterator. stahp!");
         }
     };
 
