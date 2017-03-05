@@ -78,17 +78,17 @@ public: /*< ## Public Memeber Methods */
     }
 
     inline u64 resize(u64 capacity) {
-        N2CRASH(Error::UnimplementedCode, "");
+        N2CRASH(N2Error::UnimplementedCode, "");
     }
 
     inline T* consume(u64 count) {
-        N2CRASH(Error::UnimplementedCode, "");
+        N2CRASH(N2Error::UnimplementedCode, "");
     }
 
     inline T& operator[](i64 index) {
 #if defined(DEBUG)
         // TODO: Better logging
-        N2CRASH_IF(index >= capacity(), Error::OutOfBounds,
+        N2CRASH_IF(index >= capacity(), N2Error::OutOfBounds,
             "Entry %d / %d.\n"
             "Underlying buffer is named %s, and it is located at %p.",
             index, capacity(), m_bd->name, m_bd);

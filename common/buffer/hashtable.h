@@ -54,12 +54,12 @@ public: /*< ## Class Methods */
                                         u64 miss_tolerance = 0) {
         Metadata * metadata = (Metadata *)(bd->data);
 #if defined(DEBUG)
-        N2CRASH_IF(bd->size < sizeof(Metadata), Error::InsufficientMemory,
+        N2CRASH_IF(bd->size < sizeof(Metadata), N2Error::InsufficientMemory,
             "Buffer HashTable is being overlaid onto a Buffer that is too "
             "small (" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
             "Underlying buffer is named %s, and it is located at %p.",
             bd->size, sizeof(Metadata), bd->name, bd);
-        N2CRASH_IF(metadata->rehash_in_progress, Error::PEBCAK,
+        N2CRASH_IF(metadata->rehash_in_progress, N2Error::PEBCAK,
             "Buffer HashTable has been reinitialized while "
             "`rehash_in_progress == true`. This should not be possible.\n"
             "Underlying buffer is named %s, and it is located at %p.",
@@ -187,17 +187,17 @@ protected: /*< ## Protected Member Methods */
         u64 new_capacity     = data_region_size / sizeof(Cell);
 
 #if defined(DEBUG)
-        N2CRASH_IF(m_resize == nullptr, Error::NullPtr,
+        N2CRASH_IF(m_resize == nullptr, N2Error::NullPtr,
             "Attempting to resize a HashTable that has no associated "
             "resize function.\n"
             "Underlying buffer is named %s, and it is located at %p.",
             m_bd->name, m_bd);
-        N2CRASH_IF(m_bd->size < sizeof(Metadata), Error::InsufficientMemory,
+        N2CRASH_IF(m_bd->size < sizeof(Metadata), N2Error::InsufficientMemory,
             "Buffer HashTable is being resized into a Buffer that is too small "
             "(" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
             "Underlying buffer is named %s, and it is located at %p.",
             m_bd->size, sizeof(Metadata), m_bd->name, m_bd);
-        N2CRASH_IF(new_capacity < count(), Error::InsufficientMemory,
+        N2CRASH_IF(new_capacity < count(), N2Error::InsufficientMemory,
             "Resizing a HashTable such that the new capacity (" Fu64 ") is "
             "less than the current count (" Fu64 "). This... is probbaly not "
             "okay. Data should be `destroy`d or `drop`d before downsizing?\n"
@@ -349,7 +349,7 @@ protected: /*< ## Protected Member Methods */
             if (m_resize != nullptr &&
                 rehash_in_progress)
             {
-                N2CRASH(Error::PEBCAK,
+                N2CRASH(N2Error::PEBCAK,
                     "This HashTable has somehow entered a bad state. A resize "
                     "is in progress, but the table has been completely filled. "
                     "This is supposed to be an impossible state, but... Here "
@@ -359,7 +359,7 @@ protected: /*< ## Protected Member Methods */
             }
         }
 
-        N2CRASH(Error::PEBCAK,
+        N2CRASH(N2Error::PEBCAK,
             "Whoever wrote this lookup function thought there was no way to "
             "get to this portion of code. And yet here we are.\n"
             "The backing buffer's name is %s and is located at %p.",
