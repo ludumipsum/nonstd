@@ -145,7 +145,7 @@ public:
             u64 required_size = m_bd->cursor - m_bd->data + full_size;
             if (required_size > m_bd->size) {
                 resize(required_size * 1.2f);
-                LOG("Grew live buffer map %s from "Fu64"B to "Fu64"B",
+                LOG("Grew live buffer map %s from " Fu64 "B to " Fu64 "B",
                     m_bd->name, m_bd->size, (u64)(required_size * 1.2f));
             }
         }
