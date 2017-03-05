@@ -116,6 +116,9 @@ protected:
 public:
     inline void resize(u64 size_bytes) {
         if (m_state) {
+            if (size_bytes <= m_bd->size) {
+                LOG("Skipping resize (would shrink)");
+            } 
             m_state->memory.resize(m_bd, size_bytes);
             m_metadata = (Metadata*) m_bd->data;
         } else {
@@ -142,8 +145,8 @@ public:
             u64 required_size = m_bd->cursor - m_bd->data + full_size;
             if (required_size > m_bd->size) {
                 resize(required_size * 1.2f);
-                LOG("Grew live buffer map %s from %dB to %dB",
-                    m_bd->name, m_bd->size, required_size * 1.2f);
+                LOG("Grew live buffer map %s from "Fu64"B to "Fu64"B",
+                    m_bd->name, m_bd->size, (u64)(required_size * 1.2f));
             }
         }
 
