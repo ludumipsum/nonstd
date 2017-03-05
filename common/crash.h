@@ -35,6 +35,7 @@ enum class Error {
     UninitializedMemory,
     MissingData,
     InvalidArguments,
+    HashCollision,
 };
 
 
