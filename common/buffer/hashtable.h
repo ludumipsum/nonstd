@@ -38,14 +38,14 @@ protected: /*< ## Inner-Types */
         u64  capacity;
         u64  count;
         u64  invalid_count;
-        u64  miss_tolerance;
+        f32  max_load_factor;
         bool rehash_in_progress;
         Cell map[];
     };
 
 public: /*< ## Class Methods */
-    static const u64 default_capacity       = 64;
-    static const u64 default_miss_tolerance =  8;
+    static const     u64 default_capacity        = 64;
+    static constexpr f32 default_max_load_factor = 0.6f;
 
     inline static u64 precomputeSize(u64 capacity = default_capacity) {
         auto required_capacity = next_power_of_two(capacity);
@@ -53,7 +53,7 @@ public: /*< ## Class Methods */
     }
 
     inline static void initializeBuffer(Descriptor *const bd,
-                                        u64 miss_tolerance = 0) {
+                                        u64 max_load_factor = 0) {
         Metadata * metadata = (Metadata *)(bd->data);
 #if defined(DEBUG)
         N2CRASH_IF(bd->size < sizeof(Metadata), Error::InsufficientMemory,
@@ -90,8 +90,9 @@ public: /*< ## Class Methods */
         metadata->capacity           = capacity;
         metadata->count              = 0;
         metadata->invalid_count      = 0;
-        metadata->miss_tolerance     = miss_tolerance ? miss_tolerance
-                                                      : default_miss_tolerance;
+        metadata->max_load_factor    = max_load_factor ?
+                                       max_load_factor :
+                                       default_max_load_factor;
         metadata->rehash_in_progress = false;
         memset(metadata->map, '\0', data_region_size);
     }
@@ -111,11 +112,12 @@ public: /*< ## Ctors, Detors, and Assignments */
 
 
 public: /*< ## Public Memeber Methods */
-    inline u64 size()           { return m_bd->size; }
-    inline u64 capacity()       { return m_metadata->capacity; }
-    inline u64 count()          { return m_metadata->count; }
-    inline u64 invalid_count()  { return m_metadata->invalid_count; }
-    inline u64 miss_tolerance() { return m_metadata->miss_tolerance; }
+    inline u64 size()            { return m_bd->size; }
+    inline u64 capacity()        { return m_metadata->capacity; }
+    inline u64 count()           { return m_metadata->count; }
+    inline u64 invalid_count()   { return m_metadata->invalid_count; }
+    inline f32 max_load_factor() { return m_metadata->max_load_factor; }
+    inline f32 load_factor()     { return (f64)count() / (f64)capacity(); }
 
     /* Reset this HashTable to empty. */
     inline void drop() {
@@ -148,6 +150,7 @@ public: /*< ## Public Memeber Methods */
      * The Optional will be only false if the HashTable is completely filled,
      * and unable to resize. */
     inline Optional<T_VAL&> set(T_KEY key, T_VAL value) {
+        _check_load();
         Cell *const cell = _lookup_cell(key);
         if (cell == nullptr) return { };
         cell->key   = key;
@@ -165,6 +168,7 @@ public: /*< ## Public Memeber Methods */
      * HashTable, or if the HashTable is completely filled, and unable
      * to resize. */
     inline Optional<T_VAL&> create(T_KEY key, T_VAL value) {
+        _check_load();
         Cell *const cell = _lookup_cell(key);
         if (cell == nullptr || cell->state != CellState::EMPTY) return { };
         cell->key   = key;
@@ -190,12 +194,27 @@ public: /*< ## Public Memeber Methods */
      * TODO: Consider making this protected (again), or exposing it in a
      *       different way
      */
+    template<bool fast=true>
     inline u64 constrain_key(u64 hash) {
         return hash % capacity();
     }
 
+    template<>
+    inline u64 constrain_key<true>(u64 hash) {
+        return hash & (u64)(capacity() - 1);
+    }
+
 
 protected: /*< ## Protected Member Methods */
+    /**
+     * Check the load factor for this table and resize if necessary
+     */
+    inline void _check_load() {
+        bool overloaded = load_factor() > max_load_factor();
+        if (!overloaded) { return; }
+        _resize(size() * 2);
+    }
+
     /**
      * Resize `this` HashTable to have room for exactly `capacity` elements.
      * This function should be able to both upscale and downscale HashTables.
@@ -244,7 +263,7 @@ protected: /*< ## Protected Member Methods */
         m_resize(m_bd, new_size);
 
         // Re-seat the Metadata member, re-set the Metadata members (save for
-        // miss_tolerance, which will remain correct), and zero-out the
+        // max_load_factor, which will remain correct), and zero-out the
         // HashTable data region.
         m_metadata           = (Metadata*)(m_bd->data);
         m_metadata->count    = 0;
@@ -289,15 +308,14 @@ protected: /*< ## Protected Member Methods */
         //     been used in this HashTable).
         //  3. We've looked at every Cell in the HashTable an none match the
         //     above criteria.
-        // If we loop in this section at least m_metadata->miss_tolerance times,
-        // we, rather than returning, will resize the entire HashTable (by 1.2
-        // times) (thereby rehashing all keys), then reenter this function with
-        // the same key.
+        // If we loop in this section for `capacity()` times, we, rather than
+        // returning, will resize the entire HashTable (thereby rehashing all
+        // keys), then reenter this function with the same key.
         while(misses < capacity()) {
             Cell& cell = map[cell_index];
-            bool cell_is_empty = cell.state == CellState::EMPTY;
+            bool cell_is_empty = cell.state   == CellState::EMPTY;
             bool match_found   = (cell.state  == CellState::USED
-                                  && n2compare(cell.key, key) == 0);
+                                  && n2equals(cell.key, key));
 
             if (match_found || cell_is_empty) {
                 ret = &cell;
@@ -339,7 +357,7 @@ protected: /*< ## Protected Member Methods */
         // assuming branch prediction will be optimistic, and that optimizing
         // for correct branch predictions will meaningfully improve system
         // performance.
-        bool should_resize      = misses >= n2min(miss_tolerance(), capacity());
+        bool should_resize = misses >= capacity();
         bool rehash_in_progress = m_metadata->rehash_in_progress;
 
         if (ret) {
