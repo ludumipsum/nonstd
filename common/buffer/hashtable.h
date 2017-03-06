@@ -285,6 +285,8 @@ protected: /*< ## Protected Member Methods */
      * otherwise a `Cell *` will be returned. The returned Cell may have
      * `state == CellState::EMPTY` or `state == CellState::USED`, (but _not_
      * `state == CellState::DELETED`).
+     *TODO: Refactor should_resize out of this function (and probably stop
+     *      tracking misses, too).
      */
     inline Cell *const _lookup_cell(T_KEY key) {
         auto&  map         = m_metadata->map;
