@@ -44,12 +44,12 @@ protected: /*< ## Inner-Types */
     };
 
 public: /*< ## Class Methods */
-    static const     u64 default_capacity        = 64;
+    static constexpr u64 default_capacity        = 64;
     static constexpr f32 default_max_load_factor = 0.6f;
 
     inline static u64 precomputeSize(u64 capacity = default_capacity) {
         auto required_capacity = next_power_of_two(capacity);
-        return sizeof(Metadata) + sizeof(Cell) * capacity; 
+        return sizeof(Metadata) + sizeof(Cell) * required_capacity;
     }
 
     inline static void initializeBuffer(Descriptor *const bd,
@@ -67,7 +67,7 @@ public: /*< ## Class Methods */
                    "`rehash_in_progress == true`. This shouldn't be possible.\n"
                    "Underlying buffer is named %s, and it is located at %p.",
                    bd->name, bd);
-        auto required_size = precomputeSize(metadata->capacity)
+        auto required_size = precomputeSize(metadata->capacity);
         N2CRASH_IF(bd->size < required_size, Error::InsufficientMemory,
                    "Buffer HashTable is being overlaid onto a Buffer that is "
                    "too small (" Fu64 "B) to fit the whole table (" Fu64 "B).\n"
