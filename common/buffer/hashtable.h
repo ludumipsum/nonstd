@@ -194,13 +194,7 @@ public: /*< ## Public Memeber Methods */
      * TODO: Consider making this protected (again), or exposing it in a
      *       different way
      */
-    template<bool fast=true>
     inline u64 constrain_key(u64 hash) {
-        return hash % capacity();
-    }
-
-    template<>
-    inline u64 constrain_key<true>(u64 hash) {
         return hash & (u64)(capacity() - 1);
     }
 
