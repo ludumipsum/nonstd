@@ -481,7 +481,7 @@ private:
         /* Pre-increment -- step forward and return `this`. */
         inline ITTR_T& operator++() {
             this->next_valid_cell();
-            return *(static_cast<ITTR_T*>(this));
+            return *((ITTR_T*)this);
         }
         /* Post-increment -- return a copy created before stepping forward. */
         inline ITTR_T operator++(int) {
@@ -492,7 +492,7 @@ private:
         /* Increment and assign -- step forward by `n` and return `this`. */
         inline ITTR_T& operator+=(u64 n) {
             this->next_valid_cell(n);
-            return *(static_cast<ITTR_T*>(this));
+            return *((ITTR_T*)this);
         }
         /* Arithmetic increment -- return an incremented copy. */
         inline ITTR_T operator+(u64 n) {
