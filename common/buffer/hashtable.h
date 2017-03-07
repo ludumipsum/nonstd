@@ -117,7 +117,10 @@ public: /*< ## Public Memeber Methods */
     inline u64 count()           { return m_metadata->count; }
     inline u64 invalid_count()   { return m_metadata->invalid_count; }
     inline f32 max_load_factor() { return m_metadata->max_load_factor; }
-    inline f32 load_factor()     { return (f64)count() / (f64)capacity(); }
+    inline f32 load_factor()     {
+        f64 used = count() + invalid_count();
+        return used / (f64)capacity();
+    }
 
     /* Reset this HashTable to empty. */
     inline void drop() {
@@ -205,7 +208,7 @@ protected: /*< ## Protected Member Methods */
      */
     inline void _check_load() {
         bool overloaded = load_factor() > max_load_factor();
-        if (!overloaded) { return; }
+        if (!overloaded || m_metadata->rehash_in_progress) { return; }
         _resize(size() * 2);
     }
 
