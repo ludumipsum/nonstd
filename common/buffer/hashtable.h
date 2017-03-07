@@ -399,6 +399,14 @@ protected: /*< ## Protected Member Methods */
         return nullptr;
     }
 
+    /* Contained-Type Accessors
+     * ------------------------
+     */
+public:
+    using cell_type  = Cell;
+    using key_type   = T_KEY;
+    using value_type = T_VAL;
+
 
     /* Nested Iterator and Related Functions
      * -------------------------------------
