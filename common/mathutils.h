@@ -50,7 +50,7 @@ T rescale(T value, decltype(value) domain_max,
  * I (Drew) and RapidCheck's author (emil-e) have been working on.
  */
 template<typename T> inline
-constexpr T bitMask(int nbits) {
+constexpr T maskLowestBits(int nbits) {
       using UT = typename std::make_unsigned<T>::type;
       // There are two pieces of undefined behavior we're avoiding here,
       //   1. Shifting past the width of a type (ex `<< 32` against an `i32`)
