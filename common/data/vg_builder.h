@@ -253,7 +253,7 @@ public:
     }
     /* Set the end angle of the arc shape */
     inline VG& angle_end(f32 theta) {
-        m_current.angle_1 = theta;
+        m_current.angle_2 = theta;
         return *this;
     }
 
