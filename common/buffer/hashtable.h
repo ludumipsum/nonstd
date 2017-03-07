@@ -497,7 +497,7 @@ private:
         /* Arithmetic increment -- return an incremented copy. */
         inline ITTR_T operator+(u64 n) {
             ITTR_T copy = *this;
-            this->next_valid_cell(n);
+            copy->next_valid_cell(n);
             return copy;
         }
     };
@@ -556,13 +556,13 @@ public:
         }
         /* Increment and assign -- step forward by `n` and return `this`. */
         inline cell_iterator& operator+=(u64 n) {
-            N2CRASH(Error::UnimplementedCode,
-                    "This is a per-cell iterator. stahp!");
+            this->data = n2min((this->data + n), this->data_end);
         }
         /* Arithmetic increment -- return an incremented copy. */
         inline cell_iterator operator+(u64 n) {
-            N2CRASH(Error::UnimplementedCode,
-                    "This is a per-cell iterator. stahp!");
+            cell_iterator copy = *this;
+            copy->data = n2min((copy->data + n), copy->data_end);
+            return copy;
         }
     };
 
