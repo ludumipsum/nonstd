@@ -573,7 +573,7 @@ public:
             this->data = _data;
         }
         /* Dereference -- return the current value. */
-        inline Cell const * const operator*() const {
+        inline Cell * const operator*() const {
             return this->data;
         }
         /* Pre-increment -- step forward and return `this`. */
