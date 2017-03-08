@@ -475,7 +475,7 @@ private:
     template<typename ITTR_T>
     struct base_iterator {
     protected:
-        HashTable & table;    /*< The ring being iterated.               */
+        HashTable & table;    /*< The HashTabl being iterated.           */
         Cell *      data;     /*< The data currently referenced.         */
         Cell *      data_end; /*< The pointer past the end of the table. */
 
