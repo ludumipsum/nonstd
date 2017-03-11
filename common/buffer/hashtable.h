@@ -208,9 +208,8 @@ protected: /*< ## Protected Member Methods */
      */
     inline void _check_load() {
         bool overloaded = load_factor() > max_load_factor();
-        if (!overloaded ||
-            m_resize == nullptr ||
-            m_metadata->rehash_in_progress) { return; }
+        bool rehashing  = m_metadata->rehash_in_progress;
+        if (!overloaded || m_resize == nullptr || rehashing) { return; }
         _resize(size() * 2);
     }
 
