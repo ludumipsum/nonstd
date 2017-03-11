@@ -477,12 +477,12 @@ private:
     template<typename ITTR_T>
     struct base_iterator {
     protected:
-        HashTable & table;    /*< The HashTabl being iterated.           */
-        Cell *      data;     /*< The data currently referenced.         */
-        Cell *      data_end; /*< The pointer past the end of the table. */
+        HashTable & table;    /*< The HashTable being iterated.           */
+        Cell *      data;     /*< The data currently referenced.          */
+        Cell *      data_end; /*< The pointer past the end of the table.  */
 
         base_iterator(HashTable & _table,
-                     Cell *       _data)
+                      Cell *      _data)
             : table    ( _table )
             , data     ( _data  )
             , data_end ( (table.m_metadata->map + table.capacity()) )
@@ -507,11 +507,11 @@ private:
         }
 
     public:
-        inline bool operator==(const base_iterator & other) const {
-            return &table == &other.table && data == other.data;
+        inline bool operator==(const ITTR_T & other) const {
+            return data == other.data;
         }
-        inline bool operator!=(const base_iterator & other) const {
-            return &table != &other.table || data != other.data;
+        inline bool operator!=(const ITTR_T & other) const {
+            return data != other.data;
         }
         /* Pre-increment -- step forward and return `this`. */
         inline ITTR_T& operator++() {
@@ -566,17 +566,26 @@ public:
         }
     };
 
-    struct cell_iterator : public base_iterator<cell_iterator> {
-        cell_iterator(HashTable & _table, Cell * _data)
-            : base_iterator<cell_iterator>(_table, _data)
-        {
-            // We don't want to skip over invalid cells, so reset this->data to
-            // whatever was initially set.
-            this->data = _data;
+    /* The Cell Iterator doesn't quite behave like the others, so we're not
+     * going to inherit from the base iterator. */
+    struct cell_iterator {
+    protected:
+        HashTable & table;    /*< The HashTable being iterated.           */
+        Cell *      data;     /*< The data currently referenced.          */
+        Cell *      data_end; /*< The pointer past the end of the table.  */
+
+    public:
+        cell_iterator(HashTable & _table,
+                      Cell *      _data)
+            : table    ( _table )
+            , data     ( _data  )
+            , data_end ( (table.m_metadata->map + table.capacity()) ) { }
+
+        inline bool operator==(const cell_iterator & other) const {
+            return data == other.data;
         }
-        /* Dereference -- return the current value. */
-        inline Cell * const operator*() const {
-            return this->data;
+        inline bool operator!=(const cell_iterator & other) const {
+            return data != other.data;
         }
         /* Pre-increment -- step forward and return `this`. */
         inline cell_iterator& operator++() {
@@ -598,6 +607,10 @@ public:
             cell_iterator copy = *this;
             copy->data = n2min((copy->data + n), copy->data_end);
             return copy;
+        }
+        /* Dereference -- return the current value. */
+        inline Cell * const operator*() const {
+            return this->data;
         }
     };
 
