@@ -474,7 +474,7 @@ private:
 
     /* Use the CRTP (Curiously Recurring Template Pattern) to return references
      * to the dervied iterators when needed. */
-    template<typename ITTR_T>
+    template<typename ITER_T>
     struct base_iterator {
     protected:
         HashTable & table;    /*< The HashTable being iterated.           */
@@ -507,31 +507,31 @@ private:
         }
 
     public:
-        inline bool operator==(const ITTR_T & other) const {
+        inline bool operator==(const ITER_T & other) const {
             return data == other.data;
         }
-        inline bool operator!=(const ITTR_T & other) const {
+        inline bool operator!=(const ITER_T & other) const {
             return data != other.data;
         }
         /* Pre-increment -- step forward and return `this`. */
-        inline ITTR_T& operator++() {
+        inline ITER_T& operator++() {
             this->next_valid_cell();
-            return *((ITTR_T*)this);
+            return *((ITER_T*)this);
         }
         /* Post-increment -- return a copy created before stepping forward. */
-        inline ITTR_T operator++(int) {
-            ITTR_T copy = *this;
+        inline ITER_T operator++(int) {
+            ITER_T copy = *this;
             this->next_valid_cell();
             return copy;
         }
         /* Increment and assign -- step forward by `n` and return `this`. */
-        inline ITTR_T& operator+=(u64 n) {
+        inline ITER_T& operator+=(u64 n) {
             this->next_valid_cell(n);
-            return *((ITTR_T*)this);
+            return *((ITER_T*)this);
         }
         /* Arithmetic increment -- return an incremented copy. */
-        inline ITTR_T operator+(u64 n) {
-            ITTR_T copy = *this;
+        inline ITER_T operator+(u64 n) {
+            ITER_T copy = *this;
             copy->next_valid_cell(n);
             return copy;
         }
