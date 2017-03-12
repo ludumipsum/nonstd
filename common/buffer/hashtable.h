@@ -24,6 +24,7 @@ enum class CellState {
     USED,
 };
 
+
 template<typename T_KEY, typename T_VAL>
 class HashTable {
 protected: /*< ## Inner-Types */
@@ -31,14 +32,16 @@ protected: /*< ## Inner-Types */
     struct Cell {
         T_KEY     key;
         T_VAL     value;
+        i8        distance;
         CellState state;
     };
     struct Metadata {
         u32  magic;
         u64  capacity;
         u64  count;
-        u64  invalid_count;
+        u64  deleted_count;
         f32  max_load_factor;
+        u8   max_miss_distance;
         bool rehash_in_progress;
         Cell map[];
     };
@@ -89,19 +92,31 @@ public: /*< ## Class Methods */
         metadata->magic              = magic;
         metadata->capacity           = capacity;
         metadata->count              = 0;
-        metadata->invalid_count      = 0;
+        metadata->deleted_count      = 0;
         metadata->max_load_factor    = max_load_factor ?
                                        max_load_factor :
                                        default_max_load_factor;
+        metadata->max_miss_distance  = log2(capacity);
         metadata->rehash_in_progress = false;
         memset(metadata->map, '\0', data_region_size);
+        // As an optimization, all empty cells _must_ have their distance from
+        // the natural hash set to -1
+        //TODO: Improve the -1 distance optimzation
+        for (auto&& cell : HashTable(bd).cells()) { cell->distance = -1; }
     }
+
+
+public: /*< ## Contained-Type Accessors */
+    using cell_type  = Cell;
+    using key_type   = T_KEY;
+    using value_type = T_VAL;
 
 
 protected: /*< ## Public Member Variables */
     Descriptor * const m_bd;
     Metadata   *       m_metadata;
     BufferResizeFn     m_resize;
+
 
 public: /*< ## Ctors, Detors, and Assignments */
     HashTable(Descriptor *const bd,
@@ -112,93 +127,92 @@ public: /*< ## Ctors, Detors, and Assignments */
 
 
 public: /*< ## Public Memeber Methods */
-    inline u64 size()            { return m_bd->size; }
-    inline u64 capacity()        { return m_metadata->capacity; }
-    inline u64 count()           { return m_metadata->count; }
-    inline u64 invalid_count()   { return m_metadata->invalid_count; }
-    inline f32 max_load_factor() { return m_metadata->max_load_factor; }
-    inline f32 load_factor()     {
-        f64 used = count() + invalid_count();
-        return used / (f64)capacity();
+    inline u64  size()            { return m_bd->size; }
+    inline u64  capacity()        { return m_metadata->capacity; }
+    inline u64  count()           { return m_metadata->count; }
+    inline u64  deleted_count()   { return m_metadata->deleted_count; }
+    inline f32  max_load_factor() { return m_metadata->max_load_factor; }
+    inline void max_load_factor(f32 factor) {
+        m_metadata->max_load_factor = factor;
     }
+    inline f32  load_factor() {
+        f32 used = count() + deleted_count();
+        return used / (f32)capacity();
+    }
+    inline u8   max_miss_distance() { return m_metadata->max_miss_distance; }
+
+
+    /* Calculate the natural index for the key. */
+    inline u64 natural_index_for(T_KEY key) {
+        return ( n2hash(key) & (u64)(capacity() - 1) );
+    }
+
+
+    /* Lookup Operations
+     * ----------------- */
+
+    /* Search for the given key, returning an Optional. */
+    inline Optional<T_VAL&> operator[](T_KEY key) { return get(key); }
+    inline Optional<T_VAL&> get(T_KEY key) {
+        Cell *const cell = _find(key);
+        if (cell != nullptr) return { cell->value };
+        return { };
+    }
+
+    /* Check for the existence of the given key. */
+    inline bool contains(T_KEY key) { return (_find(key) != nullptr); }
+
+
+    /* Write Operations
+     * ---------------- */
+
+    /* Insert the given k/v pair, if the key has not yet been written.
+     * The returned Optional will be false if the given key already exists in
+     * the HashTable, or if the insert fails to find a valid bucket within
+     * `max_miss_distance` probes. */
+    inline Optional<T_VAL&> insert(T_KEY key, T_VAL value) {
+        Cell * const cell = _insert(key, value);
+        if (cell != nullptr) return { cell->value };
+        return { };
+    }
+
+    /* Insert or update the given k/v pair.
+     * The returned Optional will be only false if the insert fails to find a
+     * valid bucket within `max_miss_distance` probes to hold a new k/v pair. */
+    inline Optional<T_VAL&> set(T_KEY key, T_VAL value) {
+        Cell * const cell = _insert_or_assign(key, value);
+        if (cell != nullptr) return { cell->value };
+        return { };
+    }
+
+    /* Remove the given key from the HashTable.
+     * No records are written if the key has not been previously written. */
+    inline bool erase(T_KEY key) {
+        return _erase(key);
+    }
+
+
+    /* Storage Manipulations
+     * --------------------- */
 
     /* Reset this HashTable to empty. */
     inline void drop() {
         memset(m_metadata->map, '\0', (capacity() * sizeof(Cell)));
         m_metadata->count = 0;
-        m_metadata->invalid_count = 0;
+        m_metadata->deleted_count = 0;
     }
 
+    /* Resize this HashTable to at least the given capacity (rounded up to the
+     * nearest power of two). */
     inline void resize_to(u64 capacity) {
         _resize(HashTable::precomputeSize(capacity));
     }
 
-    inline void resize_by(f64 growth_factor) {
+    /* Resize this HashTable by a given growth factor (rounded up to the nearest
+     * power of two). */
+    inline void resize_by(f32 growth_factor) {
         u64 capacity = (u64)(this->capacity() * growth_factor);
         _resize(HashTable::precomputeSize(capacity));
-    }
-
-    /* Search for the given key, returning an Optional. */
-    inline Optional<T_VAL&> operator[](T_KEY key) { return get(key); }
-    inline Optional<T_VAL&> get(T_KEY key) {
-        Cell *const cell = _lookup_cell(key);
-        if (cell == nullptr || cell->state != CellState::USED) return { };
-        return { cell->value };
-    }
-
-    /* Check for the existence of the given key. */
-    inline bool contains(T_KEY key) { return (bool)(get(key)); }
-
-    /* Write the given k/v pair, returning an Optional.
-     * The Optional will be only false if the HashTable is completely filled,
-     * and unable to resize. */
-    inline Optional<T_VAL&> set(T_KEY key, T_VAL value) {
-        _check_load();
-        Cell *const cell = _lookup_cell(key);
-        if (cell == nullptr) return { };
-        cell->key   = key;
-        cell->value = value;
-        if (cell->state == CellState::EMPTY) {
-            cell->state = CellState::USED;
-            m_metadata->count += 1;
-        }
-        return { cell->value };
-    }
-
-    /* Write the given k/v pair if the given key has not yet been written,
-     * returning an Optional.
-     * The Optional will be false if the given key already exists in the
-     * HashTable, or if the HashTable is completely filled, and unable
-     * to resize. */
-    inline Optional<T_VAL&> create(T_KEY key, T_VAL value) {
-        _check_load();
-        Cell *const cell = _lookup_cell(key);
-        if (cell == nullptr || cell->state != CellState::EMPTY) return { };
-        cell->key   = key;
-        cell->value = value;
-        cell->state = CellState::USED;
-        m_metadata->count += 1;
-        return { cell->value };
-    }
-
-    /* Remove the given key from the HashTable.
-     * No records are written if the key has not been previously written. */
-    inline void destroy(T_KEY key) {
-        Cell *const cell = _lookup_cell(key);
-        if (cell != nullptr && cell->state == CellState::USED) {
-            cell->state = CellState::DELETED;
-            m_metadata->count -= 1;
-            m_metadata->invalid_count += 1;
-        }
-    }
-
-    /**
-     * Constrain a hash value down to an entry in the cell table.
-     * TODO: Consider making this protected (again), or exposing it in a
-     *       different way
-     */
-    inline u64 constrain_key(u64 hash) {
-        return hash & (u64)(capacity() - 1);
     }
 
 
@@ -210,7 +224,7 @@ protected: /*< ## Protected Member Methods */
         bool overloaded = load_factor() > max_load_factor();
         bool rehashing  = m_metadata->rehash_in_progress;
         if (!overloaded || m_resize == nullptr || rehashing) { return; }
-        _resize(size() * 2);
+        resize_by(size() * 2.f);
     }
 
     /**
@@ -263,10 +277,16 @@ protected: /*< ## Protected Member Methods */
         // Re-seat the Metadata member, re-set the Metadata members (save for
         // max_load_factor, which will remain correct), and zero-out the
         // HashTable data region.
-        m_metadata           = (Metadata*)(m_bd->data);
-        m_metadata->count    = 0;
-        m_metadata->capacity = new_capacity;
+        m_metadata                    = (Metadata*)(m_bd->data);
+        m_metadata->count             = 0;
+        m_metadata->capacity          = new_capacity;
+        // TODO: Verify log2 is correct.
+        m_metadata->max_miss_distance = log2(new_capacity);
         memset(m_metadata->map, '\0', data_region_size);
+        // As an optimization, all empty cells _must_ have their distance from
+        // the natural hash set to -1
+        //TODO: Improve the -1 distance optimzation
+        for (auto&& cell : this->cells()) { cell->distance = -1; }
 
         // Copy all data from the `src` HashTable into `this`.
         // Use `rehash_in_progress` to prevent the below `set` calls from
@@ -283,133 +303,135 @@ protected: /*< ## Protected Member Methods */
         n2free(intermediate_data);
     }
 
-    /**
-     * Lookup the given `key` and return a `Cell *`.
-     * If the HashTable is completely filled, `nullptr` will be returned,
-     * otherwise a `Cell *` will be returned. The returned Cell may have
-     * `state == CellState::EMPTY` or `state == CellState::USED`, (but _not_
-     * `state == CellState::DELETED`).
-     *TODO: Refactor should_resize out of this function (and probably stop
-     *      tracking misses, too).
-     */
-    inline Cell *const _lookup_cell(T_KEY key) {
-        auto&  map         = m_metadata->map;
-        auto   hash        = n2hash(key);
-        // Initial index for the given key.
-        auto   cell_index  = constrain_key(hash);
-        // Counter for invalid cells checked.
-        u64    misses      = 0;
-        // Target Cell to return (may remain null).
-        Cell * ret = nullptr;
 
-        // This loop will exit when either,
-        //  1. We've reached a `USED` Cell associated with the given key.
-        //  2. We've reached an `EMPTY` Cell (implying the given key has not yet
-        //     been used in this HashTable).
-        //  3. We've looked at every Cell in the HashTable an none match the
-        //     above criteria.
-        // If we loop in this section for `capacity()` times, we, rather than
-        // returning, will resize the entire HashTable (thereby rehashing all
-        // keys), then reenter this function with the same key.
-        while(misses < capacity()) {
-            Cell& cell = map[cell_index];
-            bool cell_is_empty = cell.state   == CellState::EMPTY;
-            bool match_found   = (cell.state  == CellState::USED
-                                  && n2equals(cell.key, key));
+    inline Cell * _find(T_KEY key) {
+        u64    cell_index   = natural_index_for(key);
+        Cell * current_cell = m_metadata->map + cell_index;
+        Cell * end_cell     = m_metadata->map + capacity();
+        i8     distance     = 0;
 
-            if (match_found || cell_is_empty) {
-                ret = &cell;
-                break;
+        while (distance <= current_cell->distance) {
+            if (n2equals(key, current_cell->key)) {
+                return current_cell;
             }
-
-            cell_index  = constrain_key(1 + cell_index);
-            misses     += 1;
+            current_cell += 1;
+            distance     += 1;
+            if (current_cell == end_cell) { current_cell = m_metadata->map; }
         }
-
-        // The termination of this function is a pretty complicated piece of
-        // state checking. We expect the only outcomes to be,
-        // 1. Returning a  valid `Cell *`
-        // 2. Returning a `nullptr`
-        // 3. Resizing the HashTable, and re-entering this function.
-        //
-        // I was having a lot of trouble keeping the potential outcomes in my
-        // head, so I went ahead and whipped up this logic table.
-        //
-        //     | Outcome | ret | should_resize | m_resize | resize_in_progress |
-        //     |---------|-----|---------------|----------|--------------------|
-        //     | ret     | Yes | No            | No       | No                 |
-        //     | ret     | Yes | No            | Yes      | No                 |
-        //     | ret     | Yes | No            | Yes      | Yes                |
-        //     | ret     | Yes | Yes           | Yes      | Yes                |
-        //     | ret     | Yes | Yes           | No       | No                 |
-        //     | Resize  | Yes | Yes           | Yes      | No                 |
-        //     | nul     | No  | Yes           | No       | No                 |
-        //     | Resize  | No  | Yes           | Yes      | No                 |
-        //     | Error   | No  | Yes           | Yes      | Yes                |
-        //
-        // Note that all unlisted combinations are what I consider to be invalid
-        // states because,
-        // 1. `ret == nullptr` (ret == No) implies `should_resize`.
-        // 2. `resize_in_progress` implies `m_resize`.
-        //
-        // The below if-soup was written in an attempt to be optimistic; the
-        // most common results are (hopefully) written first. This was done
-        // assuming branch prediction will be optimistic, and that optimizing
-        // for correct branch predictions will meaningfully improve system
-        // performance.
-        bool should_resize = misses >= capacity();
-        bool rehash_in_progress = m_metadata->rehash_in_progress;
-
-        if (ret) {
-            if (! should_resize     ||
-                m_resize == nullptr ||
-                rehash_in_progress)
-            {
-                return ret;
-            }
-            resize_by(1.2f);
-            return _lookup_cell(key);
-
-        } else if (ret == nullptr) {
-
-            if (m_resize == nullptr) {
-                return nullptr;
-            }
-            if (should_resize       &&
-                m_resize != nullptr &&
-                ! rehash_in_progress)
-            {
-                resize_by(1.2f);
-                return _lookup_cell(key);
-            }
-            if (m_resize != nullptr &&
-                rehash_in_progress)
-            {
-                N2CRASH(N2Error::PEBCAK,
-                    "This HashTable has somehow entered a bad state. A resize "
-                    "is in progress, but the table has been completely filled. "
-                    "This is supposed to be an impossible state, but... Here "
-                    "we are.\n"
-                    "Underlying buffer is named %s, and it is located at %p.\n",
-                    m_bd->name, m_bd);
-            }
-        }
-
-        N2CRASH(N2Error::PEBCAK,
-            "Whoever wrote this lookup function thought there was no way to "
-            "get to this portion of code. And yet here we are.\n"
-            "The backing buffer's name is %s and is located at %p.",
-            m_bd->name, m_bd);
         return nullptr;
     }
 
-    /* Contained-Type Accessors
-     * ------------------------
-     */
-public:
-    using cell_type  = Cell;
-    using key_type   = T_KEY;
-    using value_type = T_VAL;
+
+    inline Cell * const _insert(T_KEY key, T_VAL value) {
+        _check_load();
+
+        u64    cell_index   = natural_index_for(key);
+        Cell * current_cell = m_metadata->map + cell_index;
+        Cell * end_cell     = m_metadata->map + capacity();
+        i8     distance     = 0;
+
+        while (distance <= current_cell->distance) {
+            if (n2equals(key, current_cell->key)) {
+                return nullptr;
+            }
+            current_cell += 1;
+            distance     += 1;
+            if (current_cell == end_cell) { current_cell = m_metadata->map; }
+        }
+
+        return _do_new_insert(key, value, current_cell, distance);
+    }
+
+
+    inline Cell * const _insert_or_assign(T_KEY key, T_VAL value) {
+        _check_load();
+
+        u64    cell_index   = natural_index_for(key);
+        Cell * current_cell = m_metadata->map + cell_index;
+        Cell * end_cell     = m_metadata->map + capacity();
+        i8     distance     = 0;
+
+        while (distance <= current_cell->distance) {
+            if (n2equals(key, current_cell->key)) {
+                current_cell->value = value;
+                return current_cell;
+            }
+            current_cell += 1;
+            distance     += 1;
+            if (current_cell == end_cell) { current_cell = m_metadata->map; }
+        }
+
+        return _do_new_insert(key, value, current_cell, distance);
+    }
+
+
+    inline Cell * const _do_new_insert(T_KEY key,
+                                       T_VAL value,
+                                       Cell * current_cell,
+                                       i8 distance)
+    {
+        Cell * end_cell = m_metadata->map + capacity();
+
+        while (true) {
+            if (current_cell->state == CellState::EMPTY)
+            {
+                current_cell->key      = key;
+                current_cell->value    = value;
+                current_cell->distance = distance;
+                current_cell->state = CellState::USED;
+                m_metadata->count += 1;
+
+                return current_cell;
+            }
+            else if (distance > current_cell->distance)
+            {
+                std::swap(current_cell->key, key);
+                std::swap(current_cell->value, value);
+                std::swap(current_cell->distance, distance);
+            }
+
+            current_cell += 1;
+            distance     += 1;
+            if (current_cell == end_cell) { current_cell = m_metadata->map; }
+
+            if (distance == m_metadata->max_miss_distance) {
+                if (m_resize == nullptr || m_metadata->rehash_in_progress) {
+                    return nullptr;
+                }
+                resize_by(2.f);
+                return _insert(key, value);
+            }
+        }
+    }
+
+
+    inline bool _erase(T_KEY key) {
+        Cell * cell_to_erase = _find(key);
+
+        if (cell_to_erase) {
+            Cell * end_cell  = m_metadata->map + capacity();
+            Cell * next_cell = cell_to_erase + 1;
+            if (next_cell == end_cell) { next_cell = m_metadata->map; }
+
+            while(next_cell->distance > 0) {
+                cell_to_erase->key      = next_cell->key;
+                cell_to_erase->value    = next_cell->value;
+                cell_to_erase->distance = next_cell->distance - 1;
+
+                cell_to_erase = next_cell;
+                next_cell +=  1;
+                if (next_cell == end_cell) { next_cell = m_metadata->map; }
+            }
+
+            cell_to_erase->distance = -1;
+            cell_to_erase->state = CellState::EMPTY;
+
+            m_metadata->count -= 1;
+
+            return true;
+        }
+        return false;
+    }
 
 
     /* Nested Iterator and Related Functions
