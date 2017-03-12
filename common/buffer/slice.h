@@ -50,7 +50,7 @@ public: /*< ## Public Memeber Methods */
     /* Return the size of the Slice in bytes. */
     inline u64 size()      { return m_bd->size; }
     /* Return the number of objects currently stored in the Slice. */
-    inline u64 count()     { return (m_bd->data - m_bd->cursor) / sizeof(T); }
+    inline u64 count()     { return (m_bd->cursor - m_bd->data) / sizeof(T); }
     /* Return the maximum number of objects the Slice may store. */
     inline u64 capacity()  { return m_bd->size / sizeof(T); }
 

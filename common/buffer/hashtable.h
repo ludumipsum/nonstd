@@ -8,6 +8,7 @@
 
 #include "batteries_included.h"
 #include "primitive_types.h"
+#include "compare.h"
 #include "hash.h"
 #include "logging.h"
 #include "mathutils.h"
@@ -37,33 +38,41 @@ protected: /*< ## Inner-Types */
         u64  capacity;
         u64  count;
         u64  invalid_count;
-        u64  miss_tolerance;
+        f32  max_load_factor;
         bool rehash_in_progress;
         Cell map[];
     };
 
 public: /*< ## Class Methods */
-    static const u64 default_capacity       = 64;
-    static const u64 default_miss_tolerance =  8;
+    static constexpr u64 default_capacity        = 64;
+    static constexpr f32 default_max_load_factor = 0.6f;
 
     inline static u64 precomputeSize(u64 capacity = default_capacity) {
-        return sizeof(Metadata) + sizeof(Cell) * capacity;
+        auto required_capacity = next_power_of_two(capacity);
+        return sizeof(Metadata) + sizeof(Cell) * required_capacity;
     }
 
     inline static void initializeBuffer(Descriptor *const bd,
-                                        u64 miss_tolerance = 0) {
+                                        u64 max_load_factor = 0) {
         Metadata * metadata = (Metadata *)(bd->data);
 #if defined(DEBUG)
         N2CRASH_IF(bd->size < sizeof(Metadata), N2Error::InsufficientMemory,
-            "Buffer HashTable is being overlaid onto a Buffer that is too "
-            "small (" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            bd->size, sizeof(Metadata), bd->name, bd);
+                   "Buffer HashTable is being overlaid onto a Buffer that is "
+                   "too small (" Fu64 "B) to fit the HashTable Metadata "
+                   "(" Fu64 ").\n"
+                   "Underlying buffer is named %s, and it is located at %p.",
+                   bd->size, sizeof(Metadata), bd->name, bd);
         N2CRASH_IF(metadata->rehash_in_progress, N2Error::PEBCAK,
-            "Buffer HashTable has been reinitialized while "
-            "`rehash_in_progress == true`. This should not be possible.\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            bd->name, bd);
+                   "Buffer HashTable has been reinitialized while "
+                   "`rehash_in_progress == true`. This shouldn't be possible.\n"
+                   "Underlying buffer is named %s, and it is located at %p.",
+                   bd->name, bd);
+        auto required_size = precomputeSize(metadata->capacity);
+        N2CRASH_IF(bd->size < required_size, N2Error::InsufficientMemory,
+                   "Buffer HashTable is being overlaid onto a Buffer that is "
+                   "too small (" Fu64 "B) to fit the whole table (" Fu64 "B).\n"
+                   "Underlying buffer is named %s, and it is located at %p.",
+                   bd->size, required_size, bd->name, bd);
 #endif
         /* If the type check is correct, no initialization is required. */
         if (metadata->magic == magic) { return; }
@@ -81,8 +90,9 @@ public: /*< ## Class Methods */
         metadata->capacity           = capacity;
         metadata->count              = 0;
         metadata->invalid_count      = 0;
-        metadata->miss_tolerance     = miss_tolerance ? miss_tolerance
-                                                      : default_miss_tolerance;
+        metadata->max_load_factor    = max_load_factor ?
+                                       max_load_factor :
+                                       default_max_load_factor;
         metadata->rehash_in_progress = false;
         memset(metadata->map, '\0', data_region_size);
     }
@@ -102,11 +112,15 @@ public: /*< ## Ctors, Detors, and Assignments */
 
 
 public: /*< ## Public Memeber Methods */
-    inline u64 size()           { return m_bd->size; }
-    inline u64 capacity()       { return m_metadata->capacity; }
-    inline u64 count()          { return m_metadata->count; }
-    inline u64 invalid_count()  { return m_metadata->invalid_count; }
-    inline u64 miss_tolerance() { return m_metadata->miss_tolerance; }
+    inline u64 size()            { return m_bd->size; }
+    inline u64 capacity()        { return m_metadata->capacity; }
+    inline u64 count()           { return m_metadata->count; }
+    inline u64 invalid_count()   { return m_metadata->invalid_count; }
+    inline f32 max_load_factor() { return m_metadata->max_load_factor; }
+    inline f32 load_factor()     {
+        f64 used = count() + invalid_count();
+        return used / (f64)capacity();
+    }
 
     /* Reset this HashTable to empty. */
     inline void drop() {
@@ -139,6 +153,7 @@ public: /*< ## Public Memeber Methods */
      * The Optional will be only false if the HashTable is completely filled,
      * and unable to resize. */
     inline Optional<T_VAL&> set(T_KEY key, T_VAL value) {
+        _check_load();
         Cell *const cell = _lookup_cell(key);
         if (cell == nullptr) return { };
         cell->key   = key;
@@ -156,6 +171,7 @@ public: /*< ## Public Memeber Methods */
      * HashTable, or if the HashTable is completely filled, and unable
      * to resize. */
     inline Optional<T_VAL&> create(T_KEY key, T_VAL value) {
+        _check_load();
         Cell *const cell = _lookup_cell(key);
         if (cell == nullptr || cell->state != CellState::EMPTY) return { };
         cell->key   = key;
@@ -176,8 +192,27 @@ public: /*< ## Public Memeber Methods */
         }
     }
 
+    /**
+     * Constrain a hash value down to an entry in the cell table.
+     * TODO: Consider making this protected (again), or exposing it in a
+     *       different way
+     */
+    inline u64 constrain_key(u64 hash) {
+        return hash & (u64)(capacity() - 1);
+    }
+
 
 protected: /*< ## Protected Member Methods */
+    /**
+     * Check the load factor for this table and resize if necessary
+     */
+    inline void _check_load() {
+        bool overloaded = load_factor() > max_load_factor();
+        bool rehashing  = m_metadata->rehash_in_progress;
+        if (!overloaded || m_resize == nullptr || rehashing) { return; }
+        _resize(size() * 2);
+    }
+
     /**
      * Resize `this` HashTable to have room for exactly `capacity` elements.
      * This function should be able to both upscale and downscale HashTables.
@@ -226,7 +261,7 @@ protected: /*< ## Protected Member Methods */
         m_resize(m_bd, new_size);
 
         // Re-seat the Metadata member, re-set the Metadata members (save for
-        // miss_tolerance, which will remain correct), and zero-out the
+        // max_load_factor, which will remain correct), and zero-out the
         // HashTable data region.
         m_metadata           = (Metadata*)(m_bd->data);
         m_metadata->count    = 0;
@@ -254,12 +289,14 @@ protected: /*< ## Protected Member Methods */
      * otherwise a `Cell *` will be returned. The returned Cell may have
      * `state == CellState::EMPTY` or `state == CellState::USED`, (but _not_
      * `state == CellState::DELETED`).
+     *TODO: Refactor should_resize out of this function (and probably stop
+     *      tracking misses, too).
      */
     inline Cell *const _lookup_cell(T_KEY key) {
         auto&  map         = m_metadata->map;
         auto   hash        = n2hash(key);
         // Initial index for the given key.
-        auto   cell_index  = hash % capacity();
+        auto   cell_index  = constrain_key(hash);
         // Counter for invalid cells checked.
         u64    misses      = 0;
         // Target Cell to return (may remain null).
@@ -271,22 +308,21 @@ protected: /*< ## Protected Member Methods */
         //     been used in this HashTable).
         //  3. We've looked at every Cell in the HashTable an none match the
         //     above criteria.
-        // If we loop in this section at least m_metadata->miss_tolerance times,
-        // we, rather than returning, will resize the entire HashTable (by 1.2
-        // times) (thereby rehashing all keys), then reenter this function with
-        // the same key.
+        // If we loop in this section for `capacity()` times, we, rather than
+        // returning, will resize the entire HashTable (thereby rehashing all
+        // keys), then reenter this function with the same key.
         while(misses < capacity()) {
             Cell& cell = map[cell_index];
-            bool cell_is_empty = cell.state == CellState::EMPTY;
+            bool cell_is_empty = cell.state   == CellState::EMPTY;
             bool match_found   = (cell.state  == CellState::USED
-                                  && cell.key == key);
+                                  && n2equals(cell.key, key));
 
             if (match_found || cell_is_empty) {
                 ret = &cell;
                 break;
             }
 
-            cell_index  = (1 + cell_index) % capacity();
+            cell_index  = constrain_key(1 + cell_index);
             misses     += 1;
         }
 
@@ -321,7 +357,7 @@ protected: /*< ## Protected Member Methods */
         // assuming branch prediction will be optimistic, and that optimizing
         // for correct branch predictions will meaningfully improve system
         // performance.
-        bool should_resize      = misses >= n2min(miss_tolerance(), capacity());
+        bool should_resize = misses >= capacity();
         bool rehash_in_progress = m_metadata->rehash_in_progress;
 
         if (ret) {
@@ -367,6 +403,15 @@ protected: /*< ## Protected Member Methods */
         return nullptr;
     }
 
+    /* Contained-Type Accessors
+     * ------------------------
+     */
+public:
+    using cell_type  = Cell;
+    using key_type   = T_KEY;
+    using value_type = T_VAL;
+
+
     /* Nested Iterator and Related Functions
      * -------------------------------------
      */
@@ -374,23 +419,26 @@ public:
     struct key_iterator;
     struct value_iterator;
     struct item_iterator;
+    struct cell_iterator;
 
 private:
     struct key_iterator_passthrough;
     struct value_iterator_passthrough;
     struct item_iterator_passthrough;
+    struct cell_iterator_passthrough;
 
 
 public:
     typedef struct item_t {
-        T_KEY& key;
-        T_KEY& value;
+        T_KEY const& key;
+        T_VAL&       value;
     } T_ITEM;
 
 
     inline key_iterator_passthrough   keys()   { return { *this }; }
     inline value_iterator_passthrough values() { return { *this }; }
     inline item_iterator_passthrough  items()  { return { *this }; }
+    inline cell_iterator_passthrough  cells()  { return { *this }; }
 
 
 private:
@@ -415,15 +463,25 @@ private:
             return { table, (table.m_metadata->map + table.capacity())};
         }
     };
+    struct cell_iterator_passthrough {
+        HashTable & table;
+        inline cell_iterator begin() { return { table, table.m_metadata->map}; }
+        inline cell_iterator end()   {
+            return { table, (table.m_metadata->map + table.capacity())};
+        }
+    };
 
+    /* Use the CRTP (Curiously Recurring Template Pattern) to return references
+     * to the dervied iterators when needed. */
+    template<typename ITER_T>
     struct base_iterator {
     protected:
-        HashTable & table;    /*< The ring being iterated.               */
-        Cell *      data;     /*< The data currently referenced.         */
-        Cell *      data_end; /*< The pointer past the end of the table. */
+        HashTable & table;    /*< The HashTable being iterated.           */
+        Cell *      data;     /*< The data currently referenced.          */
+        Cell *      data_end; /*< The pointer past the end of the table.  */
 
         base_iterator(HashTable & _table,
-                     Cell *       _data)
+                      Cell *      _data)
             : table    ( _table )
             , data     ( _data  )
             , data_end ( (table.m_metadata->map + table.capacity()) )
@@ -448,112 +506,110 @@ private:
         }
 
     public:
-        inline bool operator==(const base_iterator & other) const {
-            return &table == &other.table && data == other.data;
+        inline bool operator==(const ITER_T & other) const {
+            return data == other.data;
         }
-        inline bool operator!=(const base_iterator & other) const {
-            return &table != &other.table || data != other.data;
+        inline bool operator!=(const ITER_T & other) const {
+            return data != other.data;
+        }
+        /* Pre-increment -- step forward and return `this`. */
+        inline ITER_T& operator++() {
+            this->next_valid_cell();
+            return *((ITER_T*)this);
+        }
+        /* Post-increment -- return a copy created before stepping forward. */
+        inline ITER_T operator++(int) {
+            ITER_T copy = *this;
+            this->next_valid_cell();
+            return copy;
+        }
+        /* Increment and assign -- step forward by `n` and return `this`. */
+        inline ITER_T& operator+=(u64 n) {
+            this->next_valid_cell(n);
+            return *((ITER_T*)this);
+        }
+        /* Arithmetic increment -- return an incremented copy. */
+        inline ITER_T operator+(u64 n) {
+            ITER_T copy = *this;
+            copy->next_valid_cell(n);
+            return copy;
         }
     };
 
 
 public:
-    struct key_iterator : public base_iterator {
+    struct key_iterator : public base_iterator<key_iterator> {
         key_iterator(HashTable & _table, Cell * _data)
-            : base_iterator(_table, _data) { }
-
-        /* Pre-increment -- step forward and return `this`. */
-        inline key_iterator& operator++() {
-            this->next_valid_cell();
-            return *this;
-        }
-        /* Post-increment -- return a copy created before stepping forward. */
-        inline key_iterator operator++(int) {
-            key_iterator copy = *this;
-            this->next_valid_cell();
-            return copy;
-        }
-        /* Increment and assign -- step forward by `n` and return `this`.
-         * Be sure not to iterate past `end()`. */
-        inline key_iterator& operator+=(u64 n) {
-            this->next_valid_cell(n);
-            return *this;
-        }
-        /* Arithmetic increment -- return an incremented copy. */
-        inline key_iterator operator+(u64 n) {
-            key_iterator copy = *this;
-            this->next_valid_cell(n);
-            return copy;
-        }
+            : base_iterator<key_iterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_KEY const& operator*() const {
             return this->data->key;
         }
     };
 
-    struct value_iterator : public base_iterator {
+    struct value_iterator : public base_iterator<value_iterator> {
         value_iterator(HashTable & _table, Cell * _data)
-            : base_iterator(_table, _data) { }
-
-        /* Pre-increment -- step forward and return `this`. */
-        inline value_iterator& operator++() {
-            this->next_valid_cell();
-            return *this;
-        }
-        /* Post-increment -- return a copy created before stepping forward. */
-        inline value_iterator operator++(int) {
-            value_iterator copy = *this;
-            this->next_valid_cell();
-            return copy;
-        }
-        /* Increment and assign -- step forward by `n` and return `this`.
-         * Be sure not to iterate past `end()`. */
-        inline value_iterator& operator+=(u64 n) {
-            this->next_valid_cell(n);
-            return *this;
-        }
-        /* Arithmetic increment -- return an incremented copy. */
-        inline value_iterator operator+(u64 n) {
-            value_iterator copy = *this;
-            this->next_valid_cell(n);
-            return copy;
-        }
+            : base_iterator<value_iterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_VAL& operator*() {
             return this->data->value;
         }
     };
 
-    struct item_iterator : public base_iterator {
+    struct item_iterator : public base_iterator<item_iterator> {
         item_iterator(HashTable & _table, Cell * _data)
-            : base_iterator(_table, _data) { }
-
-        /* Pre-increment -- step forward and return `this`. */
-        inline item_iterator& operator++() {
-            this->next_valid_cell();
-            return *this;
-        }
-        /* Post-increment -- return a copy created before stepping forward. */
-        inline item_iterator operator++(int) {
-            item_iterator copy = *this;
-            this->next_valid_cell();
-            return copy;
-        }
-        /* Increment and assign -- step forward by `n` and return `this`.
-         * Be sure not to iterate past `end()`. */
-        inline item_iterator& operator+=(u64 n) {
-            this->next_valid_cell(n);
-            return *this;
-        }
-        /* Arithmetic increment -- return an incremented copy. */
-        inline item_iterator operator+(u64 n) {
-            item_iterator copy = *this;
-            this->next_valid_cell(n);
-            return copy;
-        }
+            : base_iterator<item_iterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_ITEM operator*() {
             return { this->data->key, this->data->value };
+        }
+    };
+
+    /* The Cell Iterator doesn't quite behave like the others, so we're not
+     * going to inherit from the base iterator. */
+    struct cell_iterator {
+    protected:
+        HashTable & table;    /*< The HashTable being iterated.           */
+        Cell *      data;     /*< The data currently referenced.          */
+        Cell *      data_end; /*< The pointer past the end of the table.  */
+
+    public:
+        cell_iterator(HashTable & _table,
+                      Cell *      _data)
+            : table    ( _table )
+            , data     ( _data  )
+            , data_end ( (table.m_metadata->map + table.capacity()) ) { }
+
+        inline bool operator==(const cell_iterator & other) const {
+            return data == other.data;
+        }
+        inline bool operator!=(const cell_iterator & other) const {
+            return data != other.data;
+        }
+        /* Pre-increment -- step forward and return `this`. */
+        inline cell_iterator& operator++() {
+            this->data += 1;
+            return *this;
+        }
+        /* Post-increment -- return a copy created before stepping forward. */
+        inline cell_iterator operator++(int) {
+            cell_iterator copy = *this;
+            this->data += 1;
+            return copy;
+        }
+        /* Increment and assign -- step forward by `n` and return `this`. */
+        inline cell_iterator& operator+=(u64 n) {
+            this->data = n2min((this->data + n), this->data_end);
+        }
+        /* Arithmetic increment -- return an incremented copy. */
+        inline cell_iterator operator+(u64 n) {
+            cell_iterator copy = *this;
+            copy->data = n2min((copy->data + n), copy->data_end);
+            return copy;
+        }
+        /* Dereference -- return the current value. */
+        inline Cell * const operator*() const {
+            return this->data;
         }
     };
 

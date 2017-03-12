@@ -174,6 +174,21 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
    Macros that are designed for general quality-of-life improvements.
 */
 
+/* FORCEINLINE
+ * -----------
+ * Forces the compiler to inline this function, if possible, otherwise simply
+ * suggests it.
+ */
+#if defined(_MSC_VER)
+#  define FORCEINLINE __forceinline inline
+#elif defined(__clang__)
+#  define FORCEINLINE __attribute__((always_inline)) inline
+#elif defined(__GNUC__) || defined(__GNUG__)
+#  define FORCEINLINE __attribute__((always_inline)) inline
+#else
+#  define FORCEINLINE inline
+#endif
+
 
 /* UNUSED()
    --------

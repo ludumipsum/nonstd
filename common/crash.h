@@ -33,6 +33,7 @@ enum class N2Error {
     UninitializedMemory,
     MissingData,
     InvalidArguments,
+    HashCollision,
 };
 
 
