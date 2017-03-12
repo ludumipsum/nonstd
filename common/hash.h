@@ -40,7 +40,7 @@ template<> inline u64 n2hash(i64    key) { return shift64(key); }
 template<typename T>
 inline u64 n2hash(T ket) {
     // TODO: Implement a type printing process, and print the type here.
-    N2CRASH(Error::UnimplementedCode,
+    N2CRASH(N2Error::UnimplementedCode,
         "This type does not have an associated hashing function.");
 }
 
