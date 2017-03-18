@@ -18,13 +18,6 @@
 
 namespace buffer {
 
-enum class CellState {
-    EMPTY = 0, //< EMPTY _must be_ `0` s.t. explicitly-zero'd Cells are EMPTY.
-    DELETED,
-    USED,
-};
-
-
 template<typename T_KEY, typename T_VAL>
 class HashTable {
 protected: /*< ## Inner-Types */
@@ -33,7 +26,6 @@ protected: /*< ## Inner-Types */
         T_KEY     key;
         T_VAL     value;
         i8        distance;
-        CellState state;
     };
     struct Metadata {
         u32  magic;
@@ -295,7 +287,7 @@ protected: /*< ## Protected Member Methods */
         Cell * cell       = src.m_metadata->map;
         Cell * final_cell = src.m_metadata->map + src.capacity();
         for (  ; cell < final_cell; cell++) {
-            if (cell->state == CellState::USED) { set(cell->key, cell->value); }
+            if (cell->distance >= 0) { set(cell->key, cell->value); }
         }
         m_metadata->rehash_in_progress = false;
 
@@ -373,12 +365,11 @@ protected: /*< ## Protected Member Methods */
         Cell * end_cell = m_metadata->map + capacity();
 
         while (true) {
-            if (current_cell->state == CellState::EMPTY)
+            if (current_cell->distance == -1)
             {
                 current_cell->key      = key;
                 current_cell->value    = value;
                 current_cell->distance = distance;
-                current_cell->state = CellState::USED;
                 m_metadata->count += 1;
 
                 return current_cell;
@@ -424,7 +415,6 @@ protected: /*< ## Protected Member Methods */
             }
 
             cell_to_erase->distance = -1;
-            cell_to_erase->state = CellState::EMPTY;
 
             m_metadata->count -= 1;
 
@@ -510,7 +500,7 @@ private:
         {
             // The first Cell may be invalid. If so, make sure it's not returned
             while( data != data_end &&
-                   data->state != CellState::USED ) {
+                   data->distance == -1 ) {
                 data += 1;
             }
         }
@@ -518,7 +508,7 @@ private:
         inline void next_valid_cell() {
             do {
                 data += 1;
-            } while( data != data_end && data->state != CellState::USED );
+            } while( data != data_end && data->distance == -1 );
         }
         inline void next_valid_cell(u64 n) {
             while (data != data_end && n > 0) {
