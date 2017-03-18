@@ -21,12 +21,18 @@ namespace buffer {
 template<typename T_KEY, typename T_VAL>
 class HashTable {
 protected: /*< ## Inner-Types */
-    static const u32 magic = 0xBADB33F;
     struct Cell {
         T_KEY     key;
         T_VAL     value;
         i8        distance;
-    };
+
+        inline bool is_empty()                   { return distance == -1; }
+        inline bool is_in_use()                  { return distance >=  0; }
+        inline bool is_at_natural_position()     { return distance ==  0; }
+        inline bool is_not_at_natural_position() { return distance >   0; }
+    }; ENFORCE_POD(Cell);
+
+    static const u32 magic = 0xBADB33F;
     struct Metadata {
         u32  magic;
         u64  capacity;
@@ -281,14 +287,10 @@ protected: /*< ## Protected Member Methods */
         for (auto&& cell : this->cells()) { cell->distance = -1; }
 
         // Copy all data from the `src` HashTable into `this`.
-        // Use `rehash_in_progress` to prevent the below `set` calls from
+        // Use `rehash_in_progress` to prevent the below `_insert` calls from
         // triggering a rehash while this one is completing.
         m_metadata->rehash_in_progress = true;
-        Cell * cell       = src.m_metadata->map;
-        Cell * final_cell = src.m_metadata->map + src.capacity();
-        for (  ; cell < final_cell; cell++) {
-            if (cell->distance >= 0) { set(cell->key, cell->value); }
-        }
+        for (auto&& item : src.items()) { _insert(item.key, item.value); }
         m_metadata->rehash_in_progress = false;
 
         // Discard temporary space.
@@ -365,7 +367,7 @@ protected: /*< ## Protected Member Methods */
         Cell * end_cell = m_metadata->map + capacity();
 
         while (true) {
-            if (current_cell->distance == -1)
+            if ( current_cell->is_empty() )
             {
                 current_cell->key      = key;
                 current_cell->value    = value;
@@ -404,7 +406,7 @@ protected: /*< ## Protected Member Methods */
             Cell * next_cell = cell_to_erase + 1;
             if (next_cell == end_cell) { next_cell = m_metadata->map; }
 
-            while(next_cell->distance > 0) {
+            while( next_cell->is_not_at_natural_position() ) {
                 cell_to_erase->key      = next_cell->key;
                 cell_to_erase->value    = next_cell->value;
                 cell_to_erase->distance = next_cell->distance - 1;
@@ -499,16 +501,11 @@ private:
             , data_end ( (table.m_metadata->map + table.capacity()) )
         {
             // The first Cell may be invalid. If so, make sure it's not returned
-            while( data != data_end &&
-                   data->distance == -1 ) {
-                data += 1;
-            }
+            while( data != data_end && data->is_empty() ) { data += 1; }
         }
 
         inline void next_valid_cell() {
-            do {
-                data += 1;
-            } while( data != data_end && data->distance == -1 );
+            do { data += 1; } while( data != data_end && data->is_empty() );
         }
         inline void next_valid_cell(u64 n) {
             while (data != data_end && n > 0) {
