@@ -125,24 +125,31 @@ public: /*< ## Ctors, Detors, and Assignments */
 
 
 public: /*< ## Public Memeber Methods */
-    inline u64  size()            { return m_bd->size; }
-    inline u64  capacity()        { return m_metadata->capacity; }
-    inline u64  count()           { return m_metadata->count; }
-    inline u64  deleted_count()   { return m_metadata->deleted_count; }
-    inline f32  max_load_factor() { return m_metadata->max_load_factor; }
-    inline void max_load_factor(f32 factor) {
-        m_metadata->max_load_factor = factor;
+    inline u64 size()            { return m_bd->size; }
+    inline u64 capacity()        { return m_metadata->capacity; }
+    inline u64 count()           { return m_metadata->count; }
+    inline u64 deleted_count()   { return m_metadata->deleted_count; }
+    inline f32 max_load_factor() { return m_metadata->max_load_factor; }
+    inline f32 max_load_factor(f32 factor) {
+        return (m_metadata->max_load_factor = factor);
     }
-    inline f32  load_factor() {
+    inline f32 load_factor() {
         f32 used = count() + deleted_count();
         return used / (f32)capacity();
     }
-    inline u8   max_miss_distance() { return m_metadata->max_miss_distance; }
+    inline u8  max_miss_distance() { return m_metadata->max_miss_distance; }
 
 
     /* Calculate the natural index for the key. */
     inline u64 natural_index_for(T_KEY key) {
         return ( n2hash(key) & (u64)(capacity() - 1) );
+    }
+
+    inline Cell * begin_cell() {
+        return m_metadata->map;
+    }
+    inline Cell * end_cell() {
+        return m_metadata->map + capacity();
     }
 
 
@@ -152,7 +159,7 @@ public: /*< ## Public Memeber Methods */
     /* Search for the given key, returning an Optional. */
     inline Optional<T_VAL&> operator[](T_KEY key) { return get(key); }
     inline Optional<T_VAL&> get(T_KEY key) {
-        Cell *const cell = _find(key);
+        Cell * const cell = _find(key);
         if (cell != nullptr) return { cell->value };
         return { };
     }
@@ -202,15 +209,15 @@ public: /*< ## Public Memeber Methods */
 
     /* Resize this HashTable to at least the given capacity (rounded up to the
      * nearest power of two). */
-    inline void resize_to(u64 capacity) {
-        _resize(HashTable::precomputeSize(capacity));
+    inline void resize_to(u64 new_capacity) {
+        _resize(HashTable::precomputeSize(new_capacity));
     }
 
     /* Resize this HashTable by a given growth factor (rounded up to the nearest
      * power of two). */
     inline void resize_by(f32 growth_factor) {
-        u64 capacity = (u64)(this->capacity() * growth_factor);
-        _resize(HashTable::precomputeSize(capacity));
+        u64 new_capacity = (u64)(this->capacity() * growth_factor);
+        _resize(HashTable::precomputeSize(new_capacity));
     }
 
 
@@ -301,7 +308,7 @@ protected: /*< ## Protected Member Methods */
     inline Cell * _find(T_KEY key) {
         u64    cell_index   = natural_index_for(key);
         Cell * current_cell = m_metadata->map + cell_index;
-        Cell * end_cell     = m_metadata->map + capacity();
+        Cell * end_cell     = this->end_cell();
         i8     distance     = 0;
 
         while (distance <= current_cell->distance) {
@@ -321,7 +328,7 @@ protected: /*< ## Protected Member Methods */
 
         u64    cell_index   = natural_index_for(key);
         Cell * current_cell = m_metadata->map + cell_index;
-        Cell * end_cell     = m_metadata->map + capacity();
+        Cell * end_cell     = this->end_cell();
         i8     distance     = 0;
 
         while (distance <= current_cell->distance) {
@@ -342,7 +349,7 @@ protected: /*< ## Protected Member Methods */
 
         u64    cell_index   = natural_index_for(key);
         Cell * current_cell = m_metadata->map + cell_index;
-        Cell * end_cell     = m_metadata->map + capacity();
+        Cell * end_cell     = this->end_cell();
         i8     distance     = 0;
 
         while (distance <= current_cell->distance) {
@@ -364,7 +371,7 @@ protected: /*< ## Protected Member Methods */
                                        Cell * current_cell,
                                        i8 distance)
     {
-        Cell * end_cell = m_metadata->map + capacity();
+        Cell * const end_cell = this->end_cell();
 
         while (true) {
             if ( current_cell->is_empty() )
@@ -402,7 +409,7 @@ protected: /*< ## Protected Member Methods */
         Cell * cell_to_erase = _find(key);
 
         if (cell_to_erase) {
-            Cell * end_cell  = m_metadata->map + capacity();
+            Cell * end_cell  = this->end_cell();
             Cell * next_cell = cell_to_erase + 1;
             if (next_cell == end_cell) { next_cell = m_metadata->map; }
 
@@ -458,31 +465,23 @@ public:
 private:
     struct key_iterator_passthrough {
         HashTable & table;
-        inline key_iterator begin() { return { table, table.m_metadata->map}; }
-        inline key_iterator end()   {
-            return { table, (table.m_metadata->map + table.capacity())};
-        }
+        inline key_iterator begin() { return { table, table.begin_cell()}; }
+        inline key_iterator end()   { return { table, table.end_cell()}; }
     };
     struct value_iterator_passthrough {
         HashTable & table;
-        inline value_iterator begin() { return { table, table.m_metadata->map}; }
-        inline value_iterator end()   {
-            return { table, (table.m_metadata->map + table.capacity())};
-        }
+        inline value_iterator begin() { return { table, table.begin_cell()}; }
+        inline value_iterator end()   { return { table, table.end_cell()}; }
     };
     struct item_iterator_passthrough {
         HashTable & table;
-        inline item_iterator begin() { return { table, table.m_metadata->map}; }
-        inline item_iterator end()   {
-            return { table, (table.m_metadata->map + table.capacity())};
-        }
+        inline item_iterator begin() { return { table, table.begin_cell()}; }
+        inline item_iterator end()   { return { table, table.end_cell()}; }
     };
     struct cell_iterator_passthrough {
         HashTable & table;
-        inline cell_iterator begin() { return { table, table.m_metadata->map}; }
-        inline cell_iterator end()   {
-            return { table, (table.m_metadata->map + table.capacity())};
-        }
+        inline cell_iterator begin() { return { table, table.begin_cell()}; }
+        inline cell_iterator end()   { return { table, table.end_cell()}; }
     };
 
     /* Use the CRTP (Curiously Recurring Template Pattern) to return references
@@ -498,7 +497,7 @@ private:
                       Cell *      _data)
             : table    ( _table )
             , data     ( _data  )
-            , data_end ( (table.m_metadata->map + table.capacity()) )
+            , data_end ( (table.end_cell()) )
         {
             // The first Cell may be invalid. If so, make sure it's not returned
             while( data != data_end && data->is_empty() ) { data += 1; }
@@ -587,7 +586,7 @@ public:
                       Cell *      _data)
             : table    ( _table )
             , data     ( _data  )
-            , data_end ( (table.m_metadata->map + table.capacity()) ) { }
+            , data_end ( (table.end_cell()) ) { }
 
         inline bool operator==(const cell_iterator & other) const {
             return data == other.data;
@@ -616,6 +615,7 @@ public:
             copy->data = n2min((copy->data + n), copy->data_end);
             return copy;
         }
+        //TODO: This should probably be a referene, not a ptr?
         /* Dereference -- return the current value. */
         inline Cell * const operator*() const {
             return this->data;
