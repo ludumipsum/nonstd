@@ -78,29 +78,48 @@ constexpr bool is_power_of_two(T num) {
     return (num && !(num & (num - 1)));
 }
 
-/* Next Power of Two
- * -----------------
+/* Powers of Two
+ * -------------
  *TODO: Consider making these template specializations based on the size of T.
  */
 inline u32 next_power_of_two(u32 num) {
-    u32 v = num - 1;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    v++;
-    return v;
+    num -= 1;
+    num |= num >> 1;
+    num |= num >> 2;
+    num |= num >> 4;
+    num |= num >> 8;
+    num |= num >> 16;
+    num += 1;
+    return num;
 }
 
 inline u64 next_power_of_two(u64 num) {
-    u64 v = num - 1;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    v |= v >> 32;
-    v++;
-    return v;
+    num -= 1;
+    num |= num >> 1;
+    num |= num >> 2;
+    num |= num >> 4;
+    num |= num >> 8;
+    num |= num >> 16;
+    num |= num >> 32;
+    num += 1;
+    return num;
+}
+
+inline u32 previous_power_of_two(u32 num) {
+    num |= (num >> 1);
+    num |= (num >> 2);
+    num |= (num >> 4);
+    num |= (num >> 8);
+    num |= (num >> 16);
+    return num - (num >> 1);
+}
+
+inline u64 previous_power_of_two(u64 num) {
+    num |= (num >> 1);
+    num |= (num >> 2);
+    num |= (num >> 4);
+    num |= (num >> 8);
+    num |= (num >> 16);
+    num |= (num >> 32);
+    return num - (num >> 1);
 }
