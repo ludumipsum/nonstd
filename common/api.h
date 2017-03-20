@@ -22,32 +22,6 @@
 #include "data/vg_command.h"
 #include "data/input_event.h"
 
-
-// TODO: extern "C" the whole API file
-
-struct Entity {
-    ID id;
-    f32 x, y, z;
-    f32 xr, yr, zr;
-}; ENFORCE_POD(Entity);
-
-struct SimulationStat {
-    u64 step;
-    u64 tick_usec,
-        post_tick_usec,
-        total_usec;
-};
-struct StepStat {
-    u64 frame;
-    u64 platform_total_usec;
-    u64 input_poll_usec,
-        blend_view_usec,
-        draw_gui_usec,
-        total_usec;
-    f32 blend_alpha;
-    u16 sim_frames_run;
-};
-
 /* Game State
    ==========
 
