@@ -37,7 +37,6 @@ protected: /*< ## Inner-Types */
         u32  magic;
         u64  capacity;
         u64  count;
-        u64  deleted_count;
         f32  max_load_factor;
         u8   max_miss_distance;
         bool rehash_in_progress;
@@ -49,8 +48,14 @@ public: /*< ## Class Methods */
     static constexpr f32 default_max_load_factor = 0.6f;
 
     inline static u64 precomputeSize(u64 capacity = default_capacity) {
-        auto required_capacity = next_power_of_two(capacity);
-        return sizeof(Metadata) + sizeof(Cell) * required_capacity;
+        // Round the requested capacity up to the nearest power-of-two, and then
+        // tack on additional cells enough to handle the maximum miss distance.
+        // This lets us skip the bounds checking in lookups and inserts, and
+        // guarantee room enough for a reasonable number of collisions.
+        u64 required_capacity = next_power_of_two(capacity);
+        u64 max_miss_distance = log2(required_capacity);
+        return (sizeof (Metadata) +
+                (sizeof(Cell) * (required_capacity + max_miss_distance)));
     }
 
     inline static void initializeBuffer(Descriptor *const bd,
@@ -68,7 +73,7 @@ public: /*< ## Class Methods */
                    "`rehash_in_progress == true`. This shouldn't be possible.\n"
                    "Underlying buffer is named %s, and it is located at %p.",
                    bd->name, bd);
-        auto required_size = precomputeSize(metadata->capacity);
+        u64 required_size = precomputeSize(metadata->capacity);
         N2CRASH_IF(bd->size < required_size, N2Error::InsufficientMemory,
                    "Buffer HashTable is being overlaid onto a Buffer that is "
                    "too small (" Fu64 "B) to fit the whole table (" Fu64 "B).\n"
@@ -86,15 +91,14 @@ public: /*< ## Class Methods */
             DEBUG_BREAKPOINT();
         }
         u64 data_region_size = bd->size - sizeof(Metadata);
-        u64 capacity         = data_region_size / sizeof(Cell);
+        u64 total_capacity   = data_region_size / sizeof(Cell);
         metadata->magic              = magic;
-        metadata->capacity           = capacity;
+        metadata->capacity           = previous_power_of_two(total_capacity);
         metadata->count              = 0;
-        metadata->deleted_count      = 0;
         metadata->max_load_factor    = max_load_factor ?
                                        max_load_factor :
                                        default_max_load_factor;
-        metadata->max_miss_distance  = log2(capacity);
+        metadata->max_miss_distance  = log2(metadata->capacity);
         metadata->rehash_in_progress = false;
         memset(metadata->map, '\0', data_region_size);
         // As an optimization, all empty cells _must_ have their distance from
@@ -128,16 +132,13 @@ public: /*< ## Public Memeber Methods */
     inline u64 size()            { return m_bd->size; }
     inline u64 capacity()        { return m_metadata->capacity; }
     inline u64 count()           { return m_metadata->count; }
-    inline u64 deleted_count()   { return m_metadata->deleted_count; }
     inline f32 max_load_factor() { return m_metadata->max_load_factor; }
     inline f32 max_load_factor(f32 factor) {
         return (m_metadata->max_load_factor = factor);
     }
-    inline f32 load_factor() {
-        f32 used = count() + deleted_count();
-        return used / (f32)capacity();
-    }
+    inline f32 load_factor()       { return (f32)count() / (f32)capacity(); }
     inline u8  max_miss_distance() { return m_metadata->max_miss_distance; }
+    inline u64 total_capacity()    { return (capacity() + max_miss_distance()); }
 
 
     /* Calculate the natural index for the key. */
@@ -149,7 +150,7 @@ public: /*< ## Public Memeber Methods */
         return m_metadata->map;
     }
     inline Cell * end_cell() {
-        return m_metadata->map + capacity();
+        return m_metadata->map + total_capacity();
     }
 
 
@@ -202,9 +203,12 @@ public: /*< ## Public Memeber Methods */
 
     /* Reset this HashTable to empty. */
     inline void drop() {
-        memset(m_metadata->map, '\0', (capacity() * sizeof(Cell)));
+        memset(m_metadata->map, '\0', (total_capacity() * sizeof(Cell)));
+        // As an optimization, all empty cells _must_ have their distance from
+        // the natural hash set to -1
+        //TODO: Improve the -1 distance optimzation
+        for (auto&& cell : this->cells()) { cell->distance = -1; }
         m_metadata->count = 0;
-        m_metadata->deleted_count = 0;
     }
 
     /* Resize this HashTable to at least the given capacity (rounded up to the
@@ -228,8 +232,8 @@ protected: /*< ## Protected Member Methods */
     inline void _check_load() {
         bool overloaded = load_factor() > max_load_factor();
         bool rehashing  = m_metadata->rehash_in_progress;
-        if (!overloaded || m_resize == nullptr || rehashing) { return; }
-        resize_by(size() * 2.f);
+        if (!overloaded || rehashing) { return; }
+        resize_by(2.f);
     }
 
     /**
@@ -237,15 +241,16 @@ protected: /*< ## Protected Member Methods */
      * This function should be able to both upscale and downscale HashTables.
      */
     inline void _resize(u64 new_size) {
-        u64 data_region_size = new_size - sizeof(Metadata);
-        u64 new_capacity     = data_region_size / sizeof(Cell);
+        u64 data_region_size   = new_size - sizeof(Metadata);
+        u64 new_total_capacity = data_region_size / sizeof(Cell);
+        u64 new_capacity       = previous_power_of_two(new_total_capacity);
 
-#if defined(DEBUG)
         N2CRASH_IF(m_resize == nullptr, N2Error::NullPtr,
             "Attempting to resize a HashTable that has no associated "
             "resize function.\n"
             "Underlying buffer is named %s, and it is located at %p.",
             m_bd->name, m_bd);
+#if defined(DEBUG)
         N2CRASH_IF(m_bd->size < sizeof(Metadata), N2Error::InsufficientMemory,
             "Buffer HashTable is being resized into a Buffer that is too small "
             "(" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
@@ -308,74 +313,77 @@ protected: /*< ## Protected Member Methods */
     inline Cell * _find(T_KEY key) {
         u64    cell_index   = natural_index_for(key);
         Cell * current_cell = m_metadata->map + cell_index;
-        Cell * end_cell     = this->end_cell();
         i8     distance     = 0;
 
-        while (distance <= current_cell->distance) {
+        while (   distance <= max_miss_distance()
+               && distance <= current_cell->distance) {
+            //TODO: Potential optimization; if distance < current_cell->distance
+            //      I don't think there's any chance we're looking at a match.
             if (n2equals(key, current_cell->key)) {
                 return current_cell;
             }
             current_cell += 1;
             distance     += 1;
-            if (current_cell == end_cell) { current_cell = m_metadata->map; }
         }
         return nullptr;
     }
 
+    inline Cell * const _insert_or_assign(T_KEY key, T_VAL value) {
+        Cell * cell = _find(key);
+        if (cell != nullptr) {
+            cell->value = value;
+            return cell;
+        }
+
+        return _insert(key, value);
+    }
 
     inline Cell * const _insert(T_KEY key, T_VAL value) {
         _check_load();
 
         u64    cell_index   = natural_index_for(key);
         Cell * current_cell = m_metadata->map + cell_index;
-        Cell * end_cell     = this->end_cell();
         i8     distance     = 0;
 
         while (distance <= current_cell->distance) {
+            //TODO: Potential optimization; if distance < current_cell->distance
+            //      I don't think there's any chance we're looking at a match.
             if (n2equals(key, current_cell->key)) {
                 return nullptr;
             }
             current_cell += 1;
             distance     += 1;
-            if (current_cell == end_cell) { current_cell = m_metadata->map; }
         }
 
         return _do_new_insert(key, value, current_cell, distance);
     }
-
-
-    inline Cell * const _insert_or_assign(T_KEY key, T_VAL value) {
-        _check_load();
-
-        u64    cell_index   = natural_index_for(key);
-        Cell * current_cell = m_metadata->map + cell_index;
-        Cell * end_cell     = this->end_cell();
-        i8     distance     = 0;
-
-        while (distance <= current_cell->distance) {
-            if (n2equals(key, current_cell->key)) {
-                current_cell->value = value;
-                return current_cell;
-            }
-            current_cell += 1;
-            distance     += 1;
-            if (current_cell == end_cell) { current_cell = m_metadata->map; }
-        }
-
-        return _do_new_insert(key, value, current_cell, distance);
-    }
-
 
     inline Cell * const _do_new_insert(T_KEY key,
                                        T_VAL value,
                                        Cell * current_cell,
                                        i8 distance)
     {
-        Cell * const end_cell = this->end_cell();
-
         while (true) {
-            if ( current_cell->is_empty() )
-            {
+            if (distance > max_miss_distance()) {
+                N2CRASH_IF(m_resize == nullptr, N2Error::NullPtr,
+                    "Attempting to resize a HashTable that has no associated "
+                    "resize function due to an insert exceeding the maximum "
+                    "miss distance (%u).\n"
+                    "Underlying buffer is named %s, and it is located at %p.",
+                    max_miss_distance(), m_bd->name, m_bd);
+                N2CRASH_IF(m_metadata->rehash_in_progress, N2Error::PEBCAK,
+                    "Attempting to resize a HashTable that has no associated "
+                    "resize function due to an insert exceeding the maximum "
+                    "miss distance (%u) _during a resize operation_.\n"
+                    "How does that even happen?\n"
+                    "Underlying buffer is named %s, and it is located at %p.",
+                    max_miss_distance(), m_bd->name, m_bd);
+
+                resize_by(2.f);
+                return _insert(key, value);
+            }
+
+            if (current_cell->is_empty()) {
                 current_cell->key      = key;
                 current_cell->value    = value;
                 current_cell->distance = distance;
@@ -383,8 +391,7 @@ protected: /*< ## Protected Member Methods */
 
                 return current_cell;
             }
-            else if (distance > current_cell->distance)
-            {
+            else if (distance > current_cell->distance) {
                 std::swap(current_cell->key, key);
                 std::swap(current_cell->value, value);
                 std::swap(current_cell->distance, distance);
@@ -392,15 +399,6 @@ protected: /*< ## Protected Member Methods */
 
             current_cell += 1;
             distance     += 1;
-            if (current_cell == end_cell) { current_cell = m_metadata->map; }
-
-            if (distance == m_metadata->max_miss_distance) {
-                if (m_resize == nullptr || m_metadata->rehash_in_progress) {
-                    return nullptr;
-                }
-                resize_by(2.f);
-                return _insert(key, value);
-            }
         }
     }
 
@@ -409,22 +407,19 @@ protected: /*< ## Protected Member Methods */
         Cell * cell_to_erase = _find(key);
 
         if (cell_to_erase) {
-            Cell * end_cell  = this->end_cell();
             Cell * next_cell = cell_to_erase + 1;
-            if (next_cell == end_cell) { next_cell = m_metadata->map; }
 
-            while( next_cell->is_not_at_natural_position() ) {
-                cell_to_erase->key      = next_cell->key;
-                cell_to_erase->value    = next_cell->value;
+            while (next_cell->is_not_at_natural_position()) {
+                std::swap(cell_to_erase->key, next_cell->key);
+                std::swap(cell_to_erase->value, next_cell->value);
+
                 cell_to_erase->distance = next_cell->distance - 1;
 
                 cell_to_erase = next_cell;
                 next_cell +=  1;
-                if (next_cell == end_cell) { next_cell = m_metadata->map; }
             }
 
             cell_to_erase->distance = -1;
-
             m_metadata->count -= 1;
 
             return true;
