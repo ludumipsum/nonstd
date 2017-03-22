@@ -143,7 +143,7 @@ public: /*< ## Public Memeber Methods */
 
     /* Calculate the natural index for the key. */
     inline u64 natural_index_for(T_KEY key) {
-        return ( n2hash(key) & (u64)(capacity() - 1) );
+        return ( std::hash<T_KEY>{}(key) & (u64)(capacity() - 1) );
     }
 
     inline Cell * begin_cell() {
