@@ -1,7 +1,66 @@
-/* Buffer: Hash Table
- * ========================
+/* Typed Buffer-Backed HashTable
+ * =============================
+ * This is a relatively simple, buffer-backed, typed (POD-only) hash table that
+ * uses Robin Hood, open-power-of-two-hashing. This structure _requires_ a
+ * resize function to be provided at construction time, as it does not make
+ * sense for this style of hash table to be unable to automatically increase its
+ * own size based on load factor or sub-optimal key distribution. It also lets
+ * us get away with some crazy optimizations.
  *
- * Map from an entity ID to a 32-bit unsigned index.
+ * The implementation was heavily influenced by designs outlined by Sebastian
+ * Sylvan and Malte Skarupke, drawing on the core architecture of the first, and
+ * numerous optimizations in the second. Links;
+ * https://www.sebastiansylvan.com/post/robin-hood-hashing-should-be-your-default-hash-table-implementation/
+ * https://probablydance.com/2017/02/26/i-wrote-the-fastest-hashtable/
+ *
+ * The first major optimization, Robin Hood hashing, is relatively well
+ * understood; inserts into this table are allowed to move previously inserted
+ * k/v pairs within the table, and will do so in an attempt to reduce the
+ * average distance between the "natural" index a key hashes to, and the actual
+ * cell the k/v pair is stored in.
+ *
+ * One unexpected side-effect of this is the inability to maintain referential
+ * transparency in any context. The pathological case can be demonstrated by,
+ *   1. Inserting a new k/v pair (KV0) with a natural cell index of 0
+ *   2. Inserting a new k/v pair (KV1) with a natural cell index of 1
+ *   3. Capturing a reference (R1) to the value in cell index 1
+ *   4. Inserting a new k/v pair (KV2) with a natural cell index of 0
+ *   5. Observing that R1 now corresponds to the value of KV2, rather than KV1.
+ *
+ * This occurs because the insertion of KV2 moves KV1 from cell 1 to cell 2, and
+ * inserts KV2 into cell 1 (KV2 "steals from the rich" `distance == 0` KV1, s.t.
+ * both k/v pairs are one cell away from their natural). The reference R1
+ * remains locked to the value member of cell 1, and is therefore invalidated.
+ * Iterator invalidation is well understood, but Get invalidation is a little
+ * too much. As such, this hash table has a relatively simple
+ * get/set/erase/contains interface that never returns references.
+ *
+ * A second major optimization allows us to entirely avoid bounds-checking. When
+ * allocating cells for the table, we determine a maximum miss distance allowed
+ * for the given table size. If a new insert would place a cell at
+ * `max_miss_distance` away from its natural index, we resize the table before
+ * proceeding. We can then allocate `max_miss_distance` extra cells past the end
+ * of the table, ignore them when calculating the natural index for a key, and
+ * know that we will never attempt to write into the very last cell. (Doing so
+ * would require writing a k/v pair to a cell `max_miss_distance` away from the
+ * last valid natural index, which we know will trigger a resize before the
+ * insert completes.)
+ *
+ * A more subtle optimization related to the above lead us to 1-index a cell's
+ * stored miss-distance; if the cell is placed in its natural cell, it's
+ * distance will be 1, and a cell stored at the farthest distance will have a
+ * distance of exactly `max_miss_distance`. This allows us to
+ * `memset(_, '\0', _);` the entire cell table, and mark cells empty. This means
+ * we start `distance` at 1 on get and set, and resize when `distance >
+ * max_miss_distance`, rather than when `distance == max_miss_distance`.
+ *
+ * TODO: Handle the accidentally-quadratic resize issue by capturing entropic
+ *       data on initialize / resize, and use that data to salt natural hashes.
+ *       https://accidentallyquadratic.tumblr.com/post/153545455987/rust-hash-iteration-reinsertion
+ * TODO: Potential optimization; if distance < current_cell->distance
+ *       I don't think there's any chance we're looking at a match. Find out if
+ *       the double comparison (`if (distance == current_cell->distance &&
+ *       n2equals(key, current_cell->key)`) is a speedup on inserts.
  */
 
 #pragma once
@@ -22,15 +81,16 @@ namespace buffer {
 template<typename T_KEY, typename T_VAL>
 class HashTable {
 protected: /*< ## Inner-Types */
+
     struct Cell {
         T_KEY key;
         T_VAL value;
         u8    distance;
 
-        inline bool is_empty()                   { return distance == 0; }
-        inline bool is_in_use()                  { return distance >  0; }
-        inline bool is_at_natural_position()     { return distance == 1; }
-        inline bool is_not_at_natural_position() { return distance >  1; }
+        inline bool isEmpty()                { return distance == 0; }
+        inline bool isInUse()                { return distance >  0; }
+        inline bool isAtNaturalPosition()    { return distance == 1; }
+        inline bool isNotAtNaturalPosition() { return distance >  1; }
     }; ENFORCE_POD(Cell);
 
     static const u32 magic = 0xBADB33F;
@@ -51,8 +111,6 @@ public: /*< ## Class Methods */
     inline static u64 precomputeSize(u64 capacity = default_capacity) {
         // Round the requested capacity up to the nearest power-of-two, and then
         // tack on additional cells enough to handle the maximum miss distance.
-        // This lets us skip the bounds checking in lookups and inserts, and
-        // guarantee room enough for a reasonable number of collisions.
         u64 required_capacity = next_power_of_two(capacity);
         u8  max_miss_distance = log2(required_capacity);
         return (sizeof (Metadata) +
@@ -102,6 +160,18 @@ public: /*< ## Class Methods */
         metadata->max_miss_distance  = log2(metadata->capacity);
         metadata->rehash_in_progress = false;
         memset(metadata->map, '\0', data_region_size);
+#if defined(DEBUG)
+        u64 used_capacity = (metadata->capacity + metadata->max_miss_distance);
+        N2CRASH_IF(used_capacity > total_capacity, N2Error::InvalidMemory,
+                   "Buffer HashTable has been initialized with a data region "
+                   "that does not have room for overallocation. The data "
+                   "region can store up to " Fu64 " cells. The natural "
+                   "capacity is " Fu64 ", and the desired overflow is " Fu64
+                   " -- totaling " Fu64 ".\n"
+                   "Underlying buffer is named %s, and is located at %p.",
+                   total_capacity, metadata->capacity,
+                   metadata->max_miss_distance, used_capacity, bd->name, bd);
+#endif
     }
 
 
@@ -129,26 +199,24 @@ public: /*< ## Public Member Methods */
     inline u64 size()            { return m_bd->size; }
     inline u64 capacity()        { return m_metadata->capacity; }
     inline u64 count()           { return m_metadata->count; }
-    inline f32 max_load_factor() { return m_metadata->max_load_factor; }
-    inline f32 max_load_factor(f32 factor) {
+    inline f32 maxLoadFactor()   { return m_metadata->max_load_factor; }
+    inline f32 maxLoadFactor(f32 factor) {
         return (m_metadata->max_load_factor = factor);
     }
-    inline f32 load_factor()       { return (f32)count() / (f32)capacity(); }
-    inline u8  max_miss_distance() { return m_metadata->max_miss_distance; }
-    inline u64 total_capacity()    { return (capacity() + max_miss_distance()); }
+    inline f32 loadFactor()      { return (f32)count() / (f32)capacity(); }
+    inline u8  maxMissDistance() { return m_metadata->max_miss_distance; }
+    inline u64 totalCapacity()   { return (capacity() + maxMissDistance()); }
 
 
-    /* Calculate the natural index for the key. */
-    inline u64 natural_index_for(T_KEY key) {
+    /* Calculate the natural index for the given key */
+    inline u64 naturalIndexFor(T_KEY key) {
         return ( std::hash<T_KEY>{}(key) & (u64)(capacity() - 1) );
     }
 
-    inline Cell * begin_cell() {
-        return m_metadata->map;
-    }
-    inline Cell * end_cell() {
-        return m_metadata->map + total_capacity();
-    }
+    /* Get a pointer to the first cell in the table (iterator begin). */
+    inline Cell * _beginCell() { return m_metadata->map; }
+    /* Get a pointer to the past-the-end cell in the table (iterator end). */
+    inline Cell * _endCell()   { return m_metadata->map + totalCapacity(); }
 
 
     /* Lookup Operations
@@ -156,13 +224,13 @@ public: /*< ## Public Member Methods */
 
     /* Search for the given key, returning an Optional. */
     inline Optional<T_VAL> get(T_KEY key) {
-        Cell * const cell = _find_cell(key);
+        Cell * const cell = _findCell(key);
         if (cell != nullptr) return { cell->value };
         return { };
     }
 
     /* Check for the existence of the given key. */
-    inline bool contains(T_KEY key) { return (_find_cell(key) != nullptr); }
+    inline bool contains(T_KEY key) { return (_findCell(key) != nullptr); }
 
 
     /* Write Operations
@@ -170,12 +238,16 @@ public: /*< ## Public Member Methods */
 
     /* Insert or update the given k/v pair. */
     inline void set(T_KEY key, T_VAL value) {
-        _check_load();
+        _checkLoad();
 
-        u64    cell_index   = natural_index_for(key);
+        u64    cell_index   = naturalIndexFor(key);
         Cell * current_cell = m_metadata->map + cell_index;
         u8     distance     = 1;
 
+
+        // If the number of misses (distance) is ever greater than the next
+        // cell's recorded distance (current_cell->distance), we know that our
+        // key cannot be in the table, as it would have stolen a previous cell.
         while (distance <= current_cell->distance) {
             //TODO: Potential optimization; if distance < current_cell->distance
             //      I don't think there's any chance we're looking at a match.
@@ -188,20 +260,20 @@ public: /*< ## Public Member Methods */
         }
 
         while (true) {
-            if (distance > max_miss_distance()) {
+            if (distance > maxMissDistance()) {
                 N2CRASH_IF(m_metadata->rehash_in_progress, N2Error::PEBCAK,
                     "Attempting to resize a HashTable that has no associated "
                     "resize function due to an insert exceeding the maximum "
                     "miss distance (%u) _during a resize operation_.\n"
                     "How does that even happen?\n"
                     "Underlying buffer is named %s, and it is located at %p.",
-                    max_miss_distance(), m_bd->name, m_bd);
+                    maxMissDistance(), m_bd->name, m_bd);
 
-                resize_by(2.f);
+                resizeBy(2.f);
                 return set(key, value);
             }
 
-            if (current_cell->is_empty()) {
+            if (current_cell->isEmpty()) {
                 current_cell->key      = key;
                 current_cell->value    = value;
                 current_cell->distance = distance;
@@ -221,14 +293,15 @@ public: /*< ## Public Member Methods */
     }
 
     /* Remove the given key from the HashTable.
-     * No records are written if the key has not been previously written. */
+     * No records are modified if the key has not been previously written. */
     inline bool erase(T_KEY key) {
-        Cell * cell_to_erase = _find_cell(key);
+        Cell * cell_to_erase = _findCell(key);
+        Cell * next_cell     = cell_to_erase + 1;
 
         if (cell_to_erase) {
-            Cell * next_cell = cell_to_erase + 1;
-
-            while (next_cell->is_not_at_natural_position()) {
+            // We can know that the last cell in the table will never be
+            // written, so will never register true for `distance > 1`.
+            while (next_cell->isNotAtNaturalPosition()) {
                 std::swap(cell_to_erase->key, next_cell->key);
                 std::swap(cell_to_erase->value, next_cell->value);
 
@@ -252,19 +325,19 @@ public: /*< ## Public Member Methods */
 
     /* Reset this HashTable to empty. */
     inline void drop() {
-        memset(m_metadata->map, '\0', (total_capacity() * sizeof(Cell)));
+        memset(m_metadata->map, '\0', (totalCapacity() * sizeof(Cell)));
         m_metadata->count = 0;
     }
 
     /* Resize this HashTable to at least the given capacity (rounded up to the
      * nearest power of two). */
-    inline void resize_to(u64 new_capacity) {
+    inline void resizeTo(u64 new_capacity) {
         _resize(HashTable::precomputeSize(new_capacity));
     }
 
     /* Resize this HashTable by a given growth factor (rounded up to the nearest
      * power of two). */
-    inline void resize_by(f32 growth_factor) {
+    inline void resizeBy(f32 growth_factor) {
         u64 new_capacity = (u64)(this->capacity() * growth_factor);
         _resize(HashTable::precomputeSize(new_capacity));
     }
@@ -272,11 +345,16 @@ public: /*< ## Public Member Methods */
 
 protected: /*< ## Protected Member Methods */
 
-    inline Cell * _find_cell(T_KEY key) {
-        u64    cell_index   = natural_index_for(key);
+    /* Find the pointer to the cell associated with the given key, returning
+     * nullptr if the key does not exist in the table. */
+    inline Cell * _findCell(T_KEY key) {
+        u64    cell_index   = naturalIndexFor(key);
         Cell * current_cell = m_metadata->map + cell_index;
         u8     distance     = 1;
 
+        // If the number of misses (distance) is ever greater than the next
+        // cell's recorded distance (current_cell->distance), we know that our
+        // key cannot be in the table, as it would have stolen a previous cell.
         while (distance <= current_cell->distance) {
             //TODO: Potential optimization; if distance < current_cell->distance
             //      I don't think there's any chance we're looking at a match.
@@ -290,20 +368,16 @@ protected: /*< ## Protected Member Methods */
     }
 
 
-    /**
-     * Check the load factor for this table and resize if necessary
-     */
-    inline void _check_load() {
-        bool overloaded = load_factor() > max_load_factor();
+    /* Check the load factor for this table and resize if necessary */
+    inline void _checkLoad() {
+        bool overloaded = loadFactor() > maxLoadFactor();
         bool rehashing  = m_metadata->rehash_in_progress;
         if (!overloaded || rehashing) { return; }
-        resize_by(2.f);
+        resizeBy(2.f);
     }
 
-    /**
-     * Resize `this` HashTable to have room for exactly `capacity` elements.
-     * This function should be able to both upscale and downscale HashTables.
-     */
+    /* Resize `this` HashTable to have room for exactly `capacity` elements.
+     * This function should be able to both upscale and downscale HashTables. */
     inline void _resize(u64 new_size) {
         u64 data_region_size   = new_size - sizeof(Metadata);
         u64 new_total_capacity = data_region_size / sizeof(Cell);
@@ -397,23 +471,23 @@ public:
 private:
     struct key_iterator_passthrough {
         HashTable & table;
-        inline key_iterator begin() { return { table, table.begin_cell()}; }
-        inline key_iterator end()   { return { table, table.end_cell()}; }
+        inline key_iterator begin() { return { table, table._beginCell()}; }
+        inline key_iterator end()   { return { table, table._endCell()}; }
     };
     struct value_iterator_passthrough {
         HashTable & table;
-        inline value_iterator begin() { return { table, table.begin_cell()}; }
-        inline value_iterator end()   { return { table, table.end_cell()}; }
+        inline value_iterator begin() { return { table, table._beginCell()}; }
+        inline value_iterator end()   { return { table, table._endCell()}; }
     };
     struct item_iterator_passthrough {
         HashTable & table;
-        inline item_iterator begin() { return { table, table.begin_cell()}; }
-        inline item_iterator end()   { return { table, table.end_cell()}; }
+        inline item_iterator begin() { return { table, table._beginCell()}; }
+        inline item_iterator end()   { return { table, table._endCell()}; }
     };
     struct cell_iterator_passthrough {
         HashTable & table;
-        inline cell_iterator begin() { return { table, table.begin_cell()}; }
-        inline cell_iterator end()   { return { table, table.end_cell()}; }
+        inline cell_iterator begin() { return { table, table._beginCell()}; }
+        inline cell_iterator end()   { return { table, table._endCell()}; }
     };
 
     /* Use the CRTP (Curiously Recurring Template Pattern) to return references
@@ -429,14 +503,14 @@ private:
                       Cell *      _data)
             : table    ( _table )
             , data     ( _data  )
-            , data_end ( (table.end_cell()) )
+            , data_end ( (table._endCell()) )
         {
             // The first Cell may be invalid. If so, make sure it's not returned
-            while( data != data_end && data->is_empty() ) { data += 1; }
+            while( data != data_end && data->isEmpty() ) { data += 1; }
         }
 
         inline void next_valid_cell() {
-            do { data += 1; } while( data != data_end && data->is_empty() );
+            do { data += 1; } while( data != data_end && data->isEmpty() );
         }
         inline void next_valid_cell(u64 n) {
             while (data != data_end && n > 0) {
@@ -518,7 +592,7 @@ public:
                       Cell *      _data)
             : table    ( _table )
             , data     ( _data  )
-            , data_end ( (table.end_cell()) ) { }
+            , data_end ( (table._endCell()) ) { }
 
         inline bool operator==(const cell_iterator & other) const {
             return data == other.data;
