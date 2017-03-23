@@ -16,20 +16,21 @@
 #include "api.h"
 #include "buffer.h"
 
+
 namespace buffer {
 
 template<typename T_KEY, typename T_VAL>
 class HashTable {
 protected: /*< ## Inner-Types */
     struct Cell {
-        T_KEY     key;
-        T_VAL     value;
-        i8        distance;
+        T_KEY key;
+        T_VAL value;
+        u8    distance;
 
-        inline bool is_empty()                   { return distance == -1; }
-        inline bool is_in_use()                  { return distance >=  0; }
-        inline bool is_at_natural_position()     { return distance ==  0; }
-        inline bool is_not_at_natural_position() { return distance >   0; }
+        inline bool is_empty()                   { return distance == 0; }
+        inline bool is_in_use()                  { return distance >  0; }
+        inline bool is_at_natural_position()     { return distance == 1; }
+        inline bool is_not_at_natural_position() { return distance >  1; }
     }; ENFORCE_POD(Cell);
 
     static const u32 magic = 0xBADB33F;
@@ -53,7 +54,7 @@ public: /*< ## Class Methods */
         // This lets us skip the bounds checking in lookups and inserts, and
         // guarantee room enough for a reasonable number of collisions.
         u64 required_capacity = next_power_of_two(capacity);
-        u64 max_miss_distance = log2(required_capacity);
+        u8  max_miss_distance = log2(required_capacity);
         return (sizeof (Metadata) +
                 (sizeof(Cell) * (required_capacity + max_miss_distance)));
     }
@@ -101,10 +102,6 @@ public: /*< ## Class Methods */
         metadata->max_miss_distance  = log2(metadata->capacity);
         metadata->rehash_in_progress = false;
         memset(metadata->map, '\0', data_region_size);
-        // As an optimization, all empty cells _must_ have their distance from
-        // the natural hash set to -1
-        //TODO: Improve the -1 distance optimzation
-        for (auto&& cell : HashTable(bd, nullptr).cells()) { cell->distance = -1; }
     }
 
 
@@ -128,7 +125,7 @@ public: /*< ## Ctors, Detors, and Assignments */
         , m_resize   ( resize                  ) { }
 
 
-public: /*< ## Public Memeber Methods */
+public: /*< ## Public Member Methods */
     inline u64 size()            { return m_bd->size; }
     inline u64 capacity()        { return m_metadata->capacity; }
     inline u64 count()           { return m_metadata->count; }
@@ -159,13 +156,13 @@ public: /*< ## Public Memeber Methods */
 
     /* Search for the given key, returning an Optional. */
     inline Optional<T_VAL> get(T_KEY key) {
-        Cell * const cell = _find(key);
+        Cell * const cell = _find_cell(key);
         if (cell != nullptr) return { cell->value };
         return { };
     }
 
     /* Check for the existence of the given key. */
-    inline bool contains(T_KEY key) { return (_find(key) != nullptr); }
+    inline bool contains(T_KEY key) { return (_find_cell(key) != nullptr); }
 
 
     /* Write Operations
@@ -177,10 +174,9 @@ public: /*< ## Public Memeber Methods */
 
         u64    cell_index   = natural_index_for(key);
         Cell * current_cell = m_metadata->map + cell_index;
-        i8     distance     = 0;
+        u8     distance     = 1;
 
-        while (   distance <= max_miss_distance()
-               && distance <= current_cell->distance) {
+        while (distance <= current_cell->distance) {
             //TODO: Potential optimization; if distance < current_cell->distance
             //      I don't think there's any chance we're looking at a match.
             if (n2equals(key, current_cell->key)) {
@@ -227,17 +223,10 @@ public: /*< ## Public Memeber Methods */
     /* Remove the given key from the HashTable.
      * No records are written if the key has not been previously written. */
     inline bool erase(T_KEY key) {
-        Cell * cell_to_erase = _find(key);
+        Cell * cell_to_erase = _find_cell(key);
 
         if (cell_to_erase) {
             Cell * next_cell = cell_to_erase + 1;
-
-            if (next_cell == this->end_cell()) {
-                cell_to_erase->distance = -1;
-                m_metadata->count -= 1;
-
-                return true;
-            }
 
             while (next_cell->is_not_at_natural_position()) {
                 std::swap(cell_to_erase->key, next_cell->key);
@@ -249,7 +238,7 @@ public: /*< ## Public Memeber Methods */
                 next_cell     += 1;
             }
 
-            cell_to_erase->distance = -1;
+            cell_to_erase->distance = 0;
             m_metadata->count -= 1;
 
             return true;
@@ -264,10 +253,6 @@ public: /*< ## Public Memeber Methods */
     /* Reset this HashTable to empty. */
     inline void drop() {
         memset(m_metadata->map, '\0', (total_capacity() * sizeof(Cell)));
-        // As an optimization, all empty cells _must_ have their distance from
-        // the natural hash set to -1
-        //TODO: Improve the -1 distance optimzation
-        for (auto&& cell : this->cells()) { cell->distance = -1; }
         m_metadata->count = 0;
     }
 
@@ -287,13 +272,12 @@ public: /*< ## Public Memeber Methods */
 
 protected: /*< ## Protected Member Methods */
 
-    inline Cell * _find(T_KEY key) {
+    inline Cell * _find_cell(T_KEY key) {
         u64    cell_index   = natural_index_for(key);
         Cell * current_cell = m_metadata->map + cell_index;
-        i8     distance     = 0;
+        u8     distance     = 1;
 
-        while (   distance <= max_miss_distance()
-               && distance <= current_cell->distance) {
+        while (distance <= current_cell->distance) {
             //TODO: Potential optimization; if distance < current_cell->distance
             //      I don't think there's any chance we're looking at a match.
             if (n2equals(key, current_cell->key)) {
@@ -365,13 +349,8 @@ protected: /*< ## Protected Member Methods */
         m_metadata                    = (Metadata*)(m_bd->data);
         m_metadata->count             = 0;
         m_metadata->capacity          = new_capacity;
-        // TODO: Verify log2 is correct.
         m_metadata->max_miss_distance = log2(new_capacity);
         memset(m_metadata->map, '\0', data_region_size);
-        // As an optimization, all empty cells _must_ have their distance from
-        // the natural hash set to -1
-        //TODO: Improve the -1 distance optimzation
-        for (auto&& cell : this->cells()) { cell->distance = -1; }
 
         // Copy all data from the `src` HashTable into `this`.
         // Use `rehash_in_progress` to prevent the below `set` calls from
@@ -383,6 +362,7 @@ protected: /*< ## Protected Member Methods */
         // Discard temporary space.
         n2free(intermediate_data);
     }
+
 
 
     /* Nested Iterator and Related Functions
