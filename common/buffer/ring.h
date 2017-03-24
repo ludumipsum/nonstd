@@ -86,13 +86,6 @@ public: /*< ## Public Memeber Methods */
     }
 
     inline T& operator[](i64 index) {
-#if defined(DEBUG)
-        // TODO: Better logging
-        N2CRASH_IF(index >= capacity(), N2Error::OutOfBounds,
-            "Entry %d / %d.\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            index, capacity(), m_bd->name, m_bd);
-#endif
         u64 target_index = increment(m_write_head, (index));
         return *((T*)(m_bd->data) + target_index);
     }
