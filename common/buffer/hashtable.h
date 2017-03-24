@@ -104,6 +104,7 @@ protected: /*< ## Inner-Types */
         Cell map[];
     };
 
+
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity        = 64;
     static constexpr f32 default_max_load_factor = 0.6f;
@@ -243,7 +244,6 @@ public: /*< ## Public Member Methods */
         u64    cell_index   = naturalIndexFor(key);
         Cell * current_cell = m_metadata->map + cell_index;
         u8     distance     = 1;
-
 
         // If the number of misses (distance) is ever greater than the next
         // cell's recorded distance (current_cell->distance), we know that our
@@ -443,16 +443,16 @@ protected: /*< ## Protected Member Methods */
      * -------------------------------------
      */
 public:
-    struct key_iterator;
-    struct value_iterator;
-    struct item_iterator;
-    struct cell_iterator;
+    struct KeyIterator;
+    struct ValueIterator;
+    struct ItemIterator;
+    struct CellIterator;
 
 private:
-    struct key_iterator_passthrough;
-    struct value_iterator_passthrough;
-    struct item_iterator_passthrough;
-    struct cell_iterator_passthrough;
+    struct KeyIteratorPassthrough;
+    struct ValueIteratorPassthrough;
+    struct ItemIteratorPassthrough;
+    struct CellIteratorPassthrough;
 
 
 public:
@@ -462,36 +462,36 @@ public:
     } T_ITEM;
 
 
-    inline key_iterator_passthrough   keys()   { return { *this }; }
-    inline value_iterator_passthrough values() { return { *this }; }
-    inline item_iterator_passthrough  items()  { return { *this }; }
-    inline cell_iterator_passthrough  cells()  { return { *this }; }
+    inline KeyIteratorPassthrough   keys()   { return { *this }; }
+    inline ValueIteratorPassthrough values() { return { *this }; }
+    inline ItemIteratorPassthrough  items()  { return { *this }; }
+    inline CellIteratorPassthrough  cells()  { return { *this }; }
 
 
 private:
-    struct key_iterator_passthrough {
+    struct KeyIteratorPassthrough {
         HashTable & table;
-        inline key_iterator begin() { return { table, table._beginCell()}; }
-        inline key_iterator end()   { return { table, table._endCell()}; }
+        inline KeyIterator begin() { return { table, table._beginCell()}; }
+        inline KeyIterator end()   { return { table, table._endCell()}; }
     };
-    struct value_iterator_passthrough {
+    struct ValueIteratorPassthrough {
         HashTable & table;
-        inline value_iterator begin() { return { table, table._beginCell()}; }
-        inline value_iterator end()   { return { table, table._endCell()}; }
+        inline ValueIterator begin() { return { table, table._beginCell()}; }
+        inline ValueIterator end()   { return { table, table._endCell()}; }
     };
-    struct item_iterator_passthrough {
+    struct ItemIteratorPassthrough {
         HashTable & table;
-        inline item_iterator begin() { return { table, table._beginCell()}; }
-        inline item_iterator end()   { return { table, table._endCell()}; }
+        inline ItemIterator begin() { return { table, table._beginCell()}; }
+        inline ItemIterator end()   { return { table, table._endCell()}; }
     };
-    struct cell_iterator_passthrough {
+    struct CellIteratorPassthrough {
         HashTable & table;
-        inline cell_iterator begin() { return { table, table._beginCell()}; }
-        inline cell_iterator end()   { return { table, table._endCell()}; }
+        inline CellIterator begin() { return { table, table._beginCell()}; }
+        inline CellIterator end()   { return { table, table._endCell()}; }
     };
 
     /* Use the CRTP (Curiously Recurring Template Pattern) to return references
-     * to the dervied iterators when needed. */
+     * to the derived iterators when needed. */
     template<typename ITER_T>
     struct base_iterator {
     protected:
@@ -552,27 +552,27 @@ private:
 
 
 public:
-    struct key_iterator : public base_iterator<key_iterator> {
-        key_iterator(HashTable & _table, Cell * _data)
-            : base_iterator<key_iterator>(_table, _data) { }
+    struct KeyIterator : public base_iterator<KeyIterator> {
+        KeyIterator(HashTable & _table, Cell * _data)
+            : base_iterator<KeyIterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_KEY const& operator*() const {
             return this->data->key;
         }
     };
 
-    struct value_iterator : public base_iterator<value_iterator> {
-        value_iterator(HashTable & _table, Cell * _data)
-            : base_iterator<value_iterator>(_table, _data) { }
+    struct ValueIterator : public base_iterator<ValueIterator> {
+        ValueIterator(HashTable & _table, Cell * _data)
+            : base_iterator<ValueIterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_VAL& operator*() {
             return this->data->value;
         }
     };
 
-    struct item_iterator : public base_iterator<item_iterator> {
-        item_iterator(HashTable & _table, Cell * _data)
-            : base_iterator<item_iterator>(_table, _data) { }
+    struct ItemIterator : public base_iterator<ItemIterator> {
+        ItemIterator(HashTable & _table, Cell * _data)
+            : base_iterator<ItemIterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_ITEM operator*() {
             return { this->data->key, this->data->value };
@@ -581,43 +581,43 @@ public:
 
     /* The Cell Iterator doesn't quite behave like the others, so we're not
      * going to inherit from the base iterator. */
-    struct cell_iterator {
+    struct CellIterator {
     protected:
         HashTable & table;    /*< The HashTable being iterated.           */
         Cell *      data;     /*< The data currently referenced.          */
         Cell *      data_end; /*< The pointer past the end of the table.  */
 
     public:
-        cell_iterator(HashTable & _table,
+        CellIterator(HashTable & _table,
                       Cell *      _data)
             : table    ( _table )
             , data     ( _data  )
             , data_end ( (table._endCell()) ) { }
 
-        inline bool operator==(const cell_iterator & other) const {
+        inline bool operator==(const CellIterator & other) const {
             return data == other.data;
         }
-        inline bool operator!=(const cell_iterator & other) const {
+        inline bool operator!=(const CellIterator & other) const {
             return data != other.data;
         }
         /* Pre-increment -- step forward and return `this`. */
-        inline cell_iterator& operator++() {
+        inline CellIterator& operator++() {
             this->data += 1;
             return *this;
         }
         /* Post-increment -- return a copy created before stepping forward. */
-        inline cell_iterator operator++(int) {
-            cell_iterator copy = *this;
+        inline CellIterator operator++(int) {
+            CellIterator copy = *this;
             this->data += 1;
             return copy;
         }
         /* Increment and assign -- step forward by `n` and return `this`. */
-        inline cell_iterator& operator+=(u64 n) {
+        inline CellIterator& operator+=(u64 n) {
             this->data = n2min((this->data + n), this->data_end);
         }
         /* Arithmetic increment -- return an incremented copy. */
-        inline cell_iterator operator+(u64 n) {
-            cell_iterator copy = *this;
+        inline CellIterator operator+(u64 n) {
+            CellIterator copy = *this;
             copy->data = n2min((copy->data + n), copy->data_end);
             return copy;
         }
