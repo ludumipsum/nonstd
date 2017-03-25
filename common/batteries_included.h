@@ -307,9 +307,19 @@ using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
 #endif
 
 
-/* Constexpr Type-name Printing
+/* Constexpr Type-Name Printing
  * ----------------------------
- * Heavily inspired by http://stackoverflow.com/questions/35941045
+ * Heavily inspired by http://stackoverflow.com/questions/35941045.
+ * Relies on an MSVC define to map `__FUNCSIG__` to `__PRETTY_FUNCTION__`.
+ * Designed to work with the `Ftype` format string macro.
+ * `__PRETTY_FUNCTION__` (or `__FUNCSIG__`) will output something like;
+ * `void functionSignature() [Type = MyType]`.
+ * The below leverages the `Ftype` format string (`%.*s`) to cap the length of a
+ * (potentially) non-null-terminated string, which lets us only print what's in
+ * between the `[...]` from the function signature.
+ * Example;
+ *     printf("My type name is: \"" Ftype "\"\n", TYPE_NAME(MyType));
+ * TODO: Ensure this is actually all constexpr'ing.
  */
 struct TypeNameView
 {
@@ -321,11 +331,11 @@ template<typename Type>
 constexpr TypeNameView GetTypeNameView()
 {
     char const * p = __PRETTY_FUNCTION__;
-    while (*p++ != '=');
-    for (; *p == ' '; p++);
+    while (*p++ != '=');    //< Skip past the func sig, to the `Type =`.
+    for (; *p == ' '; p++); //< Skip to the first character of the type.
     char const * p2 = p;
-    int count = 1;
-    for (;;++p2)
+    int count = 1;          //< For nested types, we might encunter more sets of
+    for (;;++p2)            //< `[..]`. Loop until we close the first `[`.
     {
         switch (*p2) {
         case '[': {
@@ -333,7 +343,7 @@ constexpr TypeNameView GetTypeNameView()
         } break;
         case ']': {
             --count;
-            if (!count) { return { (int32_t)(p2 - p), p }; }
+            if (count == 0) { return { (int32_t)(p2 - p), p }; }
         } break;
         }
     }
@@ -350,8 +360,4 @@ constexpr char const * TypeNameStr() {
     return (GetTypeNameView<Type>()).str;
 }
 
-template<typename Type>
-constexpr void PrintTypeName(bool newline = false) {
-    printf("%.*s", TypeNameLen<Type>(), TypeNameStr<Type>());
-    if (newline) { printf("\n"); }
-}
+#define TYPE_NAME(TYPE) TypeNameLen<TYPE>(), TypeNameStr<TYPE>()
