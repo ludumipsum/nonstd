@@ -305,3 +305,53 @@ using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
 #if defined(__MINGW32__) || defined(_MSC_VER)
 #include <io.h>
 #endif
+
+
+/* Constexpr Type-name Printing
+ * ----------------------------
+ * Heavily inspired by http://stackoverflow.com/questions/35941045
+ */
+struct TypeNameView
+{
+    int32_t      len;
+    char const * str;
+};
+
+template<typename Type>
+constexpr TypeNameView GetTypeNameView()
+{
+    char const * p = __PRETTY_FUNCTION__;
+    while (*p++ != '=');
+    for (; *p == ' '; p++);
+    char const * p2 = p;
+    int count = 1;
+    for (;;++p2)
+    {
+        switch (*p2) {
+        case '[': {
+            ++count;
+        } break;
+        case ']': {
+            --count;
+            if (!count) { return { (int32_t)(p2 - p), p }; }
+        } break;
+        }
+    }
+    return {};
+}
+
+template<typename Type>
+constexpr int32_t TypeNameLen() {
+    return (GetTypeNameView<Type>()).len;
+}
+
+template<typename Type>
+constexpr char const * TypeNameStr() {
+    return (GetTypeNameView<Type>()).str;
+}
+
+template<typename Type>
+constexpr void PrintTypeName(bool newline = false) {
+    printf("%.*s", TypeNameLen<Type>(), TypeNameStr<Type>());
+    if (newline) { printf("\n"); }
+}
