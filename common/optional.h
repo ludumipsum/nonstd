@@ -59,9 +59,18 @@ public:
     inline auto& operator () () { return   this->operator*();  }
     inline auto& operator * () {
 #if N2_CHECKED_OPTIONALS
-        if (!storage.just) { BREAKPOINT(); }
+        if (!just) { BREAKPOINT(); }
 #endif
         return _getValue();
+    }
+
+    /* Accessor w/ default
+     * NB. Because the `!just` case requires returning the value passed into
+     * the function call, these _can not_ operate on references.
+     */
+    inline auto valueOr(DECAY_TYPE(T) other) {
+        if (just) { return _getValue(); }
+        else      { return other;       }
     }
 };
 
