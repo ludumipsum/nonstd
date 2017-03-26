@@ -356,8 +356,8 @@ constexpr int32_t TypeNameLen() {
 }
 
 template<typename Type>
-constexpr char const * TypeNameStr() {
+constexpr char const * TypeName() {
     return (GetTypeNameView<Type>()).str;
 }
 
-#define TYPE_NAME(TYPE) TypeNameLen<TYPE>(), TypeNameStr<TYPE>()
+#define TYPE_NAME(TYPE) TypeNameLen<TYPE>(), TypeName<TYPE>()
