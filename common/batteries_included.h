@@ -328,26 +328,22 @@ struct TypeNameView
 };
 
 template<typename Type>
-constexpr TypeNameView GetTypeNameView()
-{
-    char const * p = __PRETTY_FUNCTION__;
-    while (*p++ != '=');    //< Skip past the func sig, to the `Type =`.
-    for (; *p == ' '; p++); //< Skip to the first character of the type.
-    char const * p2 = p;
-    int count = 1;          //< For nested types, we might encunter more sets of
-    for (;;++p2)            //< `[..]`. Loop until we close the first `[`.
-    {
+constexpr TypeNameView GetTypeNameView() {
+    char const * p  = __PRETTY_FUNCTION__; // Pointer to the start of the type.
+    char const * p2 = p;                   // Pointer to the end of the type.
+    int count       = 1;                   // Tracker for the number of types.
+    for (; *(++p) != '='; ++p2); // Skip p and p2 to the first `=`.
+    for (; *(++p) == ' '; ++p2); // Skip p and p2 past any spaces.
+    // In the above for loops, we skipped past the first `[`, which is why count
+    // == 0. We now increment p2 forward until the matching `]` is found.
+    while (count > 0) {
+        ++p2;
         switch (*p2) {
-        case '[': {
-            ++count;
-        } break;
-        case ']': {
-            --count;
-            if (count == 0) { return { (int32_t)(p2 - p), p }; }
-        } break;
+        case '[': { ++count; } break;
+        case ']': { --count; } break;
         }
     }
-    return {};
+    return { (int32_t)(p2 - p), p };
 }
 
 template<typename Type>
