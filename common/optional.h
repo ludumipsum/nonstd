@@ -68,9 +68,18 @@ public:
      * NB. Because the `!just` case requires returning the value passed into
      * the function call, these _can not_ operate on references.
      */
+    TEMPLATE_ENABLE(IS_NOT_REFERENCE_TYPE(T), T)
     inline auto valueOr(DECAY_TYPE(T) other) {
         if (just) { return _getValue(); }
         else      { return other;       }
+    }
+    TEMPLATE_ENABLE(IS_REFERENCE_TYPE(T), T)
+    inline auto valueOr(DECAY_TYPE(T) other) {
+        N2CRASH(N2Error::InvalidMemory,
+                "Optionals that wrap reference types cannot safely generate "
+                "an `other` reference. Temporary stack memory, no null-"
+                "reference, all that jazz.");
+        return other;
     }
 };
 
