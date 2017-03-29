@@ -29,7 +29,7 @@ protected:
     struct Metadata {
         u32  magic;
         u32  bucket_count;
-        Cell map[];
+        Cell (&map)[];
     };
 
     Metadata         *      m_metadata;
