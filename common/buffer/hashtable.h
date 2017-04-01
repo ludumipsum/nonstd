@@ -101,7 +101,7 @@ protected: /*< ## Inner-Types */
         f32  max_load_factor;
         u8   max_miss_distance;
         bool rehash_in_progress;
-        Cell (&map)[];
+        Cell map[];
     };
 
 

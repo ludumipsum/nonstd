@@ -46,7 +46,7 @@ protected: /*< ## Innter-Types */
         u64 count;
         u64 write_head;
         u64 read_head;
-        T   (&data)[];
+        T   data[];
     };
 
 public: /*< ## Class Methods */
