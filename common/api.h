@@ -67,6 +67,12 @@ struct GameState {
         Buffer *const (*lookupHistoric) (c_cstr name, u64 frame);
     } memory;
 
+    struct RngAPI {
+        u64  (*integer)  (u64 min, u64 max);
+        f64  (*fraction) (f64 min, f64 max);
+        void (*seed)     (u64 new_seed);
+    } rng;
+
     /* Read-only data populated by the platform */
     struct IncomingData {
         /* Stream of input events since the last frame. */
