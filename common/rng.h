@@ -6,7 +6,7 @@
  *
  * This file is the shared interface, accessible from both platform and
  * game code.
- * See platform/modules/random.cc and game/modules/random.cc for implementations
+ * See platform/modules/rng.cc and game/modules/rng.cc for implementations
  */
 
 #pragma once
@@ -16,7 +16,7 @@
 
 #include <limits>
 
-namespace random {
+namespace rng {
     
 /* Generate a random integer */
 u64 integer(u64 min=std::numeric_limits<u64>::lowest(),
