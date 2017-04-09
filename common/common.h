@@ -34,7 +34,6 @@
 #include "buffer/ring.h"
 #include "buffer/slice.h"
 #include "buffer/stream.h"
-#include "buffer_map.h" //TODO: Refactor this out.
 #include "buffer/buffer_helpers.h"
 
 /* Should-be-standard Library */
