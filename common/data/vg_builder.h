@@ -17,10 +17,10 @@ protected:
     VGCommandList    m_vgcl;
 
     /* Retained state */
-    bool  m_fill,
-          m_stroke;
-    Color m_fill_color,
-          m_stroke_color;
+    bool  m_fill;
+    Color m_fill_color;
+    bool  m_stroke;
+    Color m_stroke_color;
     f32   m_stroke_width;
 
     inline void commit() {
