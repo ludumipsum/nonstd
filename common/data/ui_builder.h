@@ -122,7 +122,6 @@ public:
         m_current.color_1[2] = scolor[2];
         m_current.color_1[3] = scolor[3];
         return *this;
-        return *this;
     }
 
     /* Set the state of this control. Valid states are:

@@ -22,6 +22,9 @@
 #ifndef n2clamp
 #define n2clamp(v, a, b) (n2min((b), (((v) > (a)) ? v : a)))
 #endif
+#ifndef n2abs
+#define n2abs(n) std::abs(n)
+#endif
 
 
 /* Range Rescaling
