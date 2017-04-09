@@ -305,3 +305,59 @@ using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
 #if defined(__MINGW32__) || defined(_MSC_VER)
 #include <io.h>
 #endif
+
+
+/* Constexpr Type-Name Printing
+ * ----------------------------
+ * Heavily inspired by http://stackoverflow.com/questions/35941045.
+ * Designed to work with the `Ftype` format string macro.
+ * Example;
+ *     printf("My type name is: \"" Ftype "\"\n", PRINTF_TYPE_NAME(MyType));
+ *
+ * This function works by capturing a slice of the `__PRETTY_FUNCTION__` string
+ * literal, and figuring out the number of characters worth printing. The
+ * `Ftype` format string ('%.*s') consumes two arguments; first a maximum number
+ * of characters to print, then the `char const *` to pull from. We use ::length
+ * followed my ::name to fill in those arguments.
+ *
+ * NB. This only works in GCC and Clang because MSVC hasn't implemented C++14's
+ * constexpr extensions, and we can't ex; `char const * p  = __FUNCSIG__;`. Boo.
+ */
+
+#if defined(_MSC_VER)
+#  define PRINTF_TYPE_NAME(TYPE) 36, "[[Sorry, no type name from MSVC :C]]"
+#else
+
+#define PRINTF_TYPE_NAME(TYPE) N2TypeName<TYPE>::length, N2TypeName<TYPE>::name
+
+template<typename Type>
+struct N2TypeName {
+    static constexpr char const * _getName() {
+        char const * p  = __PRETTY_FUNCTION__;
+        while (*(++p) != '='); // Skip p to the first `=`.
+        while (*(++p) == ' '); // Skip p past any spaces.
+        return p;
+    }
+
+    static constexpr int32_t const _getLength() {
+        char const * p  = _getName();
+        char const * p2 = p;
+        int count       = 1;
+        // In _getName, we will have skipped past the first `[` (which is why
+        // count == 1). We now increment p2 until the matching `]` is found.
+        while (count > 0) {
+            ++p2;
+            switch (*p2) {
+            case '[': { ++count; } break;
+            case ']': { --count; } break;
+            }
+        }
+        return (int32_t)(p2 - p);
+    }
+
+    // Making these `static constexpr` members ensures compile-time resolution.
+    static constexpr char const *  name   = _getName();
+    static constexpr int32_t const length = _getLength();
+};
+
+#endif /* defined(_MSC_VER) */

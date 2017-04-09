@@ -39,6 +39,7 @@ typedef void *          print_ptr;
 #define Fi64     "%" PRId64
 #define Fptr     "%p"
 #define Fptrdiff "%td"
+#define Ftype    "%.*s"
 
 inline ptr  n2malloc(size_t size)           { return (ptr)(malloc(size)); }
 inline ptr  n2alloca(size_t size)           { return (ptr)(alloca(size)); }
