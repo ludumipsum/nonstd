@@ -116,9 +116,6 @@ inline char const* const bool2string(bool b) {
    ---------------
    Force alignment of a given instance or datatype.
 */
-#ifndef alignof
-#   define alignof(x) __alignof(x)
-#endif
 #if defined(_MSC_VER)
 #   define ALIGNAS(X) __declspec(align(X))
 #else

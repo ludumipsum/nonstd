@@ -17,6 +17,8 @@
 
 namespace buffer {
 
+inline bool exists(c_cstr name);
+
 template<typename T>
 inline Slice<T>       get_slice(c_cstr name);
 template<typename T>
