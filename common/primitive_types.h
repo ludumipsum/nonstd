@@ -117,7 +117,7 @@ struct Color {
             u8 a;
         };
     };
-}; ENFORCE_POD(Color);
+}; ENFORCE_POD(Color); ENFORCE_SIZE(Color, 4);
 
 
 /* Construct empty */
