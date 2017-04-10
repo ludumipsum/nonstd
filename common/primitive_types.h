@@ -29,6 +29,17 @@ typedef uint8_t *       ptr;
 typedef uint8_t const * c_ptr;
 typedef void *          print_ptr;
 
+ENFORCE_SIZE(u8,  1);
+ENFORCE_SIZE(u16, 2);
+ENFORCE_SIZE(u32, 4);
+ENFORCE_SIZE(u64, 8);
+ENFORCE_SIZE(i8,  1);
+ENFORCE_SIZE(i16, 2);
+ENFORCE_SIZE(i32, 4);
+ENFORCE_SIZE(i64, 8);
+ENFORCE_SIZE(f32, 4);
+ENFORCE_SIZE(f64, 8);
+
 #define  Fu8     "%"  PRIu8
 #define Fu16     "%" PRIu16
 #define Fu32     "%" PRIu32
