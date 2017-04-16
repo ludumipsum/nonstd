@@ -12,33 +12,22 @@
 /* Basic Types
    -----------
 */
-typedef uint8_t          u8;
-typedef uint16_t        u16;
-typedef uint32_t        u32;
-typedef uint64_t        u64;
-typedef int8_t           i8;
-typedef int16_t         i16;
-typedef int32_t         i32;
-typedef int64_t         i64;
-typedef float           f32;
-typedef double          f64;
+typedef uint8_t          u8;        ENFORCE_SIZE(u8,  1);
+typedef uint16_t        u16;        ENFORCE_SIZE(u16, 2);
+typedef uint32_t        u32;        ENFORCE_SIZE(u32, 4);
+typedef uint64_t        u64;        ENFORCE_SIZE(u64, 8);
+typedef int8_t           i8;        ENFORCE_SIZE(i8,  1);
+typedef int16_t         i16;        ENFORCE_SIZE(i16, 2);
+typedef int32_t         i32;        ENFORCE_SIZE(i32, 4);
+typedef int64_t         i64;        ENFORCE_SIZE(i64, 8);
+typedef float           f32;        ENFORCE_SIZE(f32, 4);
+typedef double          f64;        ENFORCE_SIZE(f64, 8);
 typedef char *          cstr;
 typedef char const *    c_cstr;
 typedef ptrdiff_t       ptrdiff;
 typedef uint8_t *       ptr;
 typedef uint8_t const * c_ptr;
 typedef void *          print_ptr;
-
-ENFORCE_SIZE(u8,  1);
-ENFORCE_SIZE(u16, 2);
-ENFORCE_SIZE(u32, 4);
-ENFORCE_SIZE(u64, 8);
-ENFORCE_SIZE(i8,  1);
-ENFORCE_SIZE(i16, 2);
-ENFORCE_SIZE(i32, 4);
-ENFORCE_SIZE(i64, 8);
-ENFORCE_SIZE(f32, 4);
-ENFORCE_SIZE(f64, 8);
 
 #define  Fu8     "%"  PRIu8
 #define Fu16     "%" PRIu16

@@ -87,11 +87,8 @@
 
 #define ENFORCE_SIZE(T, bytes) \
     static_assert(sizeof(T) == bytes, "Type '" STRING(T) "' is the wrong size (it is required to be " STRING(bytes) " bytes).")
-#define ENFORCE_MIN_SIZE(T, max_bytes) \
-    static_assert(sizeof(T) >= bytes, "Type '" STRING(T) "' is the wrong size (it is required to be at most " STRING(bytes) " bytes).")
 #define ENFORCE_MAX_SIZE(T, max_bytes) \
     static_assert(sizeof(T) <= bytes, "Type '" STRING(T) "' is the wrong size (it is required to be at most " STRING(bytes) " bytes).")
-
 
 /* Platform Homogenization Macros
    ==============================
