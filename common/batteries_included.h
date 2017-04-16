@@ -56,7 +56,7 @@
    Uses the preprocessor to create a static string version of the passed symbol
    or macro. Usage:
        char const* msg = "This is a string literal defined at "
-                         STRING(__FILE__) ":" STRING(__LINE);
+                         STRING(__FILE__) ":" STRING(__LINE__);
 */
 #define __STRING_SECONDPASS(X) #X
 #define STRING(X) __STRING_SECONDPASS(X)
