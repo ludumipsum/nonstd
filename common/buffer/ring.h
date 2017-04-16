@@ -68,9 +68,10 @@ public: /*< ## Ctors, Detors, and Assignments */
 
 
 public: /*< ## Public Memeber Methods */
-    inline u64 size()     { return m_bd->size; }
-    inline u64 capacity() { return m_capacity; }
-    inline u64 count()    { return m_capacity; }
+    inline u64    size()     { return m_bd->size; }
+    inline u64    capacity() { return m_capacity; }
+    inline u64    count()    { return m_capacity; }
+    inline c_cstr name()     { return m_bd->name; } 
 
     inline void drop() {
         memset(m_bd->data, '\0', m_bd->size);
@@ -78,7 +79,13 @@ public: /*< ## Public Memeber Methods */
     }
 
     inline u64 resize(u64 capacity) {
-        N2CRASH(N2Error::UnimplementedCode, "");
+        N2CRASH_IF(m_resize == nullptr, N2Error::MissingData,
+                   "Unable to resize ring %s (resize function not set)",
+                   name()); 
+        auto required_size = Ring<T>::precomputeSize(capacity);
+        auto new_size = m_resize(m_bd, required_size);
+        m_capacity = new_size / sizeof(T);
+        return m_capacity;
     }
 
     inline T* consume(u64 count) {
