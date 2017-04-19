@@ -25,15 +25,15 @@ inline std::string _variadicExpand(c_cstr message, ...)
     va_list format_args;
 
     va_start(format_args, message);
-    u32 size = vsnprintf(NULL, 0, message, format_args);
+    u32 size = 1 + vsnprintf(NULL, 0, message, format_args);
     va_end(format_args);
 
     std::string expanded;
-    expanded.resize(size + 1);
+    expanded.resize(size);
+    cstr data = const_cast<cstr>(expanded.data());
 
     va_start(format_args, message);
-    vsnprintf(const_cast<cstr>(expanded.c_str()), size + 1,
-                                message, format_args);
+    vsnprintf(data, size, message, format_args);
     va_end(format_args);
 
     return expanded;
