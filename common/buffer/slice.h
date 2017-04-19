@@ -110,7 +110,8 @@ public: /*< ## Public Memeber Methods */
     inline T& operator[](u64 index) {
 #if defined(DEBUG)
         if (index > count() && index < capacity()) {
-            LOG("WARNING: Accessing an uninitialized object in a Slice at %d.\n"
+            LOG("WARNING: Accessing an uninitialized object in a Slice at "
+                Fu64 ".\n"
                 "This will invalidate count() and range-based iterators."
                 "Please be sure you're remaining within the bounds of consumed "
                 "data in this Slice.\n"
