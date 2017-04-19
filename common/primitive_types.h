@@ -33,10 +33,15 @@ typedef void *          print_ptr;
 #define Fu16     "%" PRIu16
 #define Fu32     "%" PRIu32
 #define Fu64     "%" PRIu64
+#define  Fx8   "0x%"  PRIX8
+#define Fx16   "0x%" PRIX16
+#define Fx32   "0x%" PRIX32
+#define Fx64   "0x%" PRIX64
 #define  Fi8     "%"  PRId8
 #define Fi16     "%" PRId16
 #define Fi32     "%" PRId32
 #define Fi64     "%" PRId64
+#define Fsize_t  "%zu"
 #define Fptr     "%p"
 #define Fptrdiff "%td"
 #define Ftype    "%.*s"
