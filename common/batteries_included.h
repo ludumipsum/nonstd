@@ -260,18 +260,20 @@ using n2_decay_t = typename std::decay<T>::type;
  * ------------
  * Helper wrapping std::is_same<T,U>::value
  */
-#define IS_SAME_TYPE(T,U) std::is_same<T,U>::value
+#define IS_SAME_TYPE(T,U)       (std::is_same<T,U>::value)
+#define IS_DIFFERENT_TYPE(T,U) !(std::is_same<T,U>::value)
 
 /* HAS_SAME_TYPE
  * -------------
- * `constexper` helper wrapping std::is_same<T,U>::value and decltype, s.t. type
- * information of instances may be checked at runtime.
+ * Macro wrapping std::is_same<T,U>::value and decltype, s.t. type information
+ * of instances may be checked at runtime.
+ * NB. We can't use a constexpr struct to pretty-up this implementation because
+ * cv qualifiers will be dropped from struct template arguments.
  */
-template<typename T, typename U>
-constexpr bool n2_has_same_type(T left, U right) {
-    return std::is_same<decltype(left),decltype(right)>::value;
-}
-#define HAS_SAME_TYPE(T,U) n2_has_same_type(T,U)
+#define HAS_SAME_TYPE(LEFT,RIGHT)      \
+     (std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
+#define HAS_DIFFERENT_TYPE(LEFT,RIGHT) \
+    !(std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
 
 /* TEMPLATE_ENABLE
  * ---------------
