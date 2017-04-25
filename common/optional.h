@@ -8,6 +8,8 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
+#include "crash.h"
+
 #if !defined(N2_CHECKED_OPTIONALS)
 #define N2_CHECKED_OPTIONALS false
 #endif
