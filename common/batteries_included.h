@@ -15,6 +15,11 @@
 
 #pragma once
 
+/* If we're not explicitly in a debug build, make sure NDEBUG is defined */
+#if !defined(DEBUG) && !defined(_DEBUG)
+# define NDEBUG
+#endif
+
 /* # C Standard Library Includes */
 #include <assert.h>
 #include <errno.h>
