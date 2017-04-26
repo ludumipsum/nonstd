@@ -1,17 +1,16 @@
 /* C Standard Library Includes
-   ===========================
-
-   This file contains all C standard library includes we use. It is the first
-   file included in common.h, and provides these symbols to everything else in
-   the project.
-
-   It is also the home for a collection of macros and utility functions which
-   make C++ more comfortable to work in and closer to homogenous across our
-   target platforms. If you would have put something in `util.h` in the old
-   world, there's a good chance it should live here.
-
-   All files under common/ should also include this header.
-   */
+ * ===========================
+ * This file contains all C standard library includes we use. It is the first
+ * file included in common.h, and provides these symbols to everything else in
+ * the project.
+ *
+ * It is also the home for a collection of macros and utility functions which
+ * make C++ more comfortable to work in and closer to homogenous across our
+ * target platforms. If you would have put something in `util.h` in the old
+ * world, there's a good chance it should live here.
+ *
+ * All files under common/ should also include this header.
+ */
 
 #pragma once
 
@@ -48,36 +47,35 @@
 
 
 /* Primitive Type Definitions
-   ==========================
-
-   Macros, typedefs, and structs that will be used as this project's most basic
-   types. Builds off of e.g. stdint -- modified for our personal style -- and
-   builds types useful for a vidja garm.
-*/
+ * ==========================
+ * Macros, typedefs, and structs that will be used as this project's most basic
+ * types. Builds off of e.g. stdint -- modified for our personal style -- and
+ * builds types useful for a vidja garm.
+ */
 
 
 /* Symbol Stringifyer
-   ------------------
-   Uses the preprocessor to create a static string version of the passed symbol
-   or macro. Usage:
-       char const* msg = "This is a string literal defined at "
-                         STRING(__FILE__) ":" STRING(__LINE__);
-*/
+ * ------------------
+ * Uses the preprocessor to create a static string version of the passed symbol
+ * or macro. Usage:
+ *     char const* msg = "This is a string literal defined at "
+ *                       STRING(__FILE__) ":" STRING(__LINE__);
+ */
 #define __STRING_SECONDPASS(X) #X
 #define STRING(X) __STRING_SECONDPASS(X)
 
 /* Symbol Concatenator
-   ------------------
-   Mushes two symbols together into one at the preprocessor level.
-*/
+ * ------------------
+ * Mushes two symbols together into one at the preprocessor level.
+ */
 #define CONCAT_SYMBOL(a, b) CONCAT_SYMBOL_I(a, b)
 #define CONCAT_SYMBOL_I(a, b) CONCAT_SYMBOL_II(~, a ## b)
 #define CONCAT_SYMBOL_II(p, res) res
 
 /* struct/class type_traits Assertions
-   -----------------------------------
-   A macro to cause compile-time failures when we incorrectly build non-POD
-   datatypes.
+ * -----------------------------------
+ * A macro to cause compile-time failures when we incorrectly build non-POD
+ * datatypes.
  */
 #if defined(_MSC_VER)
 # define ENFORCE_POD(T) \
@@ -96,34 +94,33 @@
     static_assert(sizeof(T) <= bytes, "Type '" STRING(T) "' is the wrong size (it is required to be at most " STRING(bytes) " bytes).")
 
 /* Platform Homogenization Macros
-   ==============================
-
-   The macros below (probably) exist in one form or another on at least one
-   major platform. They probably don't agree on the details though, so we
-   (re)define them below to ensure a consistent feel.
-*/
+ * ==============================
+ * The macros below (probably) exist in one form or another on at least one
+ * major platform. They probably don't agree on the details though, so we
+ * (re)define them below to ensure a consistent feel.
+ */
 
 
 /* __PRETTY_FUNCTION__
-   -------------------
-   Use the same prettier function signature macro everywhere.
-*/
+ * -------------------
+ * Use the same prettier function signature macro everywhere.
+ */
 #if defined(_MSC_VER)
 # define __PRETTY_FUNCTION__ __FUNCSIG__
 #endif
 
 /* Stringifcation Functions
-   ------------------------
-   for easy printf-ing.
-*/
+ * ------------------------
+ * for easy printf-ing.
+ */
 inline char const* const bool2string(bool b) {
     return b ? "true" : "false";
 };
 
 /* Alignment Macro
-   ---------------
-   Force alignment of a given instance or datatype.
-*/
+ * ---------------
+ * Force alignment of a given instance or datatype.
+ */
 #if defined(_MSC_VER)
 #   define ALIGNAS(X) __declspec(align(X))
 #else
@@ -131,9 +128,9 @@ inline char const* const bool2string(bool b) {
 #endif
 
 /* BREAKPOINT
-   ----------
-   Programmatically force a breakpoint on X86
-*/
+ * ----------
+ * Programmatically force a breakpoint on X86
+ */
 #ifdef _MSC_VER
 # ifdef _X86_
 #  define _debug_break_impl { __asm { int 3 } }
@@ -154,11 +151,11 @@ inline char const* const bool2string(bool b) {
 #endif
 
 /* ALIGNMENT CORRECT FREE
-   ----------------------
-   Alias the appropriate free function for destroying underlying buffers. This
-   utility function is necessary because the visual C runtime differentiates
-   aligned from unaligned buffers in terms of how they're freed, unlike POSIX.
-*/
+ * ----------------------
+ * Alias the appropriate free function for destroying underlying buffers. This
+ * utility function is necessary because the visual C runtime differentiates
+ * aligned from unaligned buffers in terms of how they're freed, unlike POSIX.
+ */
 inline void alignment_correct_free(void* buffer, bool aligned) {
     #if defined(_MSC_VER)
         if (aligned) {
@@ -174,10 +171,9 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
 
 
 /* General Utility Macros
-   ----------------------
-
-   Macros that are designed for general quality-of-life improvements.
-*/
+ * ----------------------
+ * Macros that are designed for general quality-of-life improvements.
+ */
 
 /* FORCEINLINE
  * -----------
@@ -196,17 +192,17 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
 
 
 /* UNUSED()
-   --------
-   Utility macro for marking variables deliberately-unused. Nixes warnings.
-*/
+ * --------
+ * Utility macro for marking variables deliberately-unused. Nixes warnings.
+ */
 #define UNUSED(_var) do { (void)(true ? (void)0 : ( (void)(_var) ) ); } while(0)
 
 /* FOURCC Construction Shorthand
-   -----------------------------
-   Many data file formats, especially microsoft ones, use four-character-codes
-   to identify segments. These are represented as a 32-bit integer with the
-   value of four adjacent ASCII characters.
-*/
+ * -----------------------------
+ * Many data file formats, especially microsoft ones, use four-character-codes
+ * to identify segments. These are represented as a 32-bit integer with the
+ * value of four adjacent ASCII characters.
+ */
 inline uint32_t N2FOURCC(uint8_t a, uint8_t b, uint8_t c, uint8_t d) {
     return (uint32_t)( (uint32_t(d) << 24 )
                      | (uint32_t(c) << 16 )
@@ -221,13 +217,13 @@ inline uint32_t N2FOURCC(char const* code) {
 }
 
 /* C++ Default Constructor Removal
-   -------------------------------
-   A macro to disallow the copy constructor and operator- functions
-   This should be used in the private: declarations for a class.
-   Note that if there is a user-defined Copy Ctor there will be no implcitly
-   defined Move Ctor (or Move Assignment Operator), so deleting those members
-   is, at best, redundant.
-*/
+ * -------------------------------
+ * A macro to disallow the copy constructor and operator- functions
+ * This should be used in the private: declarations for a class.
+ * Note that if there is a user-defined Copy Ctor there will be no implcitly
+ * defined Move Ctor (or Move Assignment Operator), so deleting those members
+ * is, at best, redundant.
+ */
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)   \
     TypeName(const TypeName&) = delete;      \
     void operator=(const TypeName&) = delete
