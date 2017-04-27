@@ -329,9 +329,11 @@ using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
 
 #if defined(_MSC_VER)
 #  define PRINTF_TYPE_NAME(TYPE) 36, "[[Sorry, no type name from MSVC :C]]"
+#  define PRINTF_TYPE_NAME_OF(TYPE)   36, "[[Sorry, no type name from MSVC :C]]"
 #else
 
 #define PRINTF_TYPE_NAME(TYPE) N2TypeName<TYPE>::length, N2TypeName<TYPE>::name
+#define PRINTF_TYPE_NAME_OF(TYPE) PRINTF_TYPE_NAME(decltype(TYPE))
 
 template<typename Type>
 struct N2TypeName {
