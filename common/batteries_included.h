@@ -293,12 +293,13 @@ using n2_decay_t = typename std::decay<T>::type;
  * Which will yield only the correct version of that function based
  * on the template parameter. Poor man's type-level overloading, poorer
  * man's pattern match.
+ * Note: _DEP_T needs to be decayed for the cases when T is a reference type;
+ * the SFINAE trick being pulled succeeds when we default `_DEP_T * = nullptr`,
+ * and `T& * = nullptr` doesn't work so good.
  */
-template< bool B, class T = void >
-using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
-#define TEMPLATE_ENABLE(Cond, T)                        \
-    template<typename _TEMPLATE_ENABLE_DEPENDENCY_=T,   \
-             n2_enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
+#define TEMPLATE_ENABLE(COND, T)            \
+    template<typename _DEP_T=DECAY_TYPE(T), \
+             typename std::enable_if_t<COND,_DEP_T> * = nullptr>
 
 /* Shim for mktemp
  * ------------------------------------
