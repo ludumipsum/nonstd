@@ -34,6 +34,7 @@
 
 /* # C++ Standard Library Includes */
 #include <functional>
+#include <type_traits>
 #include <string>
 #include <unordered_map>
 
@@ -44,6 +45,47 @@
 #else
 #include <alloca.h>     // alloca
 #endif
+
+/* C++ 14/17 Futures
+ * =================
+ * Helper types / functions that weren't included in C++14 or aren't yet
+ * implemented in MSVC. `namespace`d as Native 2 Futures, because as soon as we
+ * can, we should switch these out for std:: implementations.
+ *
+ * NB. We can't implement the ::value helpers that are being added to C++17 yet
+ *     because inline variables (which is at the core that implementation) are
+ *     (at best) a c++1z extension.
+ */
+namespace n2f {
+
+/* `void_t<Ts...>`
+ * ---------------
+ * Utility metafunction that maps a sequence of any types to the type `void`.
+ */
+template <typename... Ts> struct make_void { typedef void type; };
+template <typename... Ts> using void_t = typename make_void<Ts...>::type;
+
+/* Helper Types
+ * ------------
+ * Mapping exactly to `[type_trait]<T>::type`.
+ */
+template <bool B, typename T = void>
+using enable_if_t = typename ::std::enable_if<B,T>::type;
+#define ENABLE_IF(B, T) ::n2f::enable_if_t<B,T>
+
+template <typename T>
+using remove_reference_t = typename ::std::remove_reference<T>::type;
+#define REMOVE_REFERENCE_TYPE(T) ::n2f::remove_reference_t<T>
+
+template <typename T>
+using add_reference_t = typename ::std::add_lvalue_reference<T>::type;
+#define ADD_REFERENCE_TYPE(T) ::n2f::add_reference_t<T>
+
+template< class T >
+using decay_t = typename ::std::decay<T>::type;
+#define DECAY_TYPE(T) ::n2f::decay_t<T>
+
+} /* namespace n2f */
 
 
 /* Primitive Type Definitions
@@ -77,16 +119,10 @@
  * A macro to cause compile-time failures when we incorrectly build non-POD
  * datatypes.
  */
-#if defined(_MSC_VER)
 # define ENFORCE_POD(T) \
     static_assert(::std::is_trivially_copyable<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
     static_assert(::std::is_trivially_default_constructible<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
     static_assert(::std::is_standard_layout<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
-#else
-# define ENFORCE_POD(T) \
-    static_assert(std::is_trivial<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivial. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(std::is_standard_layout<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
-#endif
 
 #define ENFORCE_SIZE(T, bytes) \
     static_assert(sizeof(T) == bytes, "Type '" STRING(T) "' is the wrong size (it is required to be " STRING(bytes) " bytes).")
@@ -228,40 +264,20 @@ inline uint32_t N2FOURCC(char const* code) {
     TypeName(const TypeName&) = delete;      \
     void operator=(const TypeName&) = delete
 
-/* Helpers for adding and removing references to types
- * ---------------------------------------------------
- * Not all our compilers support C++14 fully, so we can't rely on the STL helper
- * for stripping references off and getting the type. So here we are.
- */
-template< class T >
-using n2_remove_reference_t = typename std::remove_reference<T>::type;
-#define REMOVE_REFERENCE_TYPE(T) n2_remove_reference_t<T>
-template< class T >
-using n2_add_reference_t = typename std::add_lvalue_reference<T>::type;
-#define ADD_REFERENCE_TYPE(T) n2_add_reference_t<T>
-
 /* IS_REFERENCE
  * ------------
  * Helper wrapping std::is_reference<T>::value to extract the referentiality
  * of an object. Answers the "Is this type a reference?" question.
  */
-#define IS_REFERENCE_TYPE(T) (std::is_reference<T>::value)
+#define IS_REFERENCE_TYPE(T) (::std::is_reference<T>::value)
 #define IS_NOT_REFERENCE_TYPE(T) (!IS_REFERENCE_TYPE(T))
-
-/* DECAY
- * -----
- * Wrapper around std::decay<T>::type like the one defined in C++14
- */
-template< class T >
-using n2_decay_t = typename std::decay<T>::type;
-#define DECAY_TYPE(T) n2_decay_t<T>
 
 /* IS_SAME_TYPE
  * ------------
  * Helper wrapping std::is_same<T,U>::value
  */
-#define IS_SAME_TYPE(T,U)       (std::is_same<T,U>::value)
-#define IS_DIFFERENT_TYPE(T,U) !(std::is_same<T,U>::value)
+#define IS_SAME_TYPE(T,U)       (::std::is_same<T,U>::value)
+#define IS_DIFFERENT_TYPE(T,U) !(::std::is_same<T,U>::value)
 
 /* HAS_SAME_TYPE
  * -------------
@@ -271,9 +287,9 @@ using n2_decay_t = typename std::decay<T>::type;
  * cv qualifiers will be dropped from struct template arguments.
  */
 #define HAS_SAME_TYPE(LEFT,RIGHT)      \
-     (std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
+     (::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
 #define HAS_DIFFERENT_TYPE(LEFT,RIGHT) \
-    !(std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
+    !(::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
 
 /* TEMPLATE_ENABLE
  * ---------------
@@ -290,19 +306,25 @@ using n2_decay_t = typename std::decay<T>::type;
  *     TEMPLATE_ENABLE(ConfigBoolean, T) void EitherOr() { ... };
  *     TEMPLATE_ENABLE(!ConfigBoolean, T) void EitherOr() { ... };
  *
- * Which will yield only the correct version of that function based
- * on the template parameter. Poor man's type-level overloading, poorer
- * man's pattern match.
- * Note: _DEP_T needs to be decayed for the cases when T is a reference type;
- * the SFINAE trick being pulled succeeds when we default `_DEP_T * = nullptr`,
- * and `T& * = nullptr` doesn't work so good.
+ * Which will yield only the correct version of that function being chosen
+ * during overload resolution based on the template parameter. Poor man's
+ * type-level overloading, poorer man's pattern match.
+ * Notes on the implementation;
+ * - To correctly perform SFINAE, the `enable_if_t` needs to return a dependent
+ *   type. `_DEP_T` is explicitly defined based on `T` to guarantee this.
+ * - `_DEP_T` needs to be a type decayed from `T` for the cases in which T is a
+ *   reference type. When SFINAE succeeds, we're defaulting the second template
+ *   parameter to `_DEP_T * = nullptr`, and `T& * = nullptr` ain't so good.
+ * - Because TEMPLATE_ENABLE is being performed using a dependent type,
+ *   functions that are disabled will still be partially resolved and may still
+ *   result in hard compiler errors, especially if they use `T` as their return.
  */
 #define TEMPLATE_ENABLE(COND, T)            \
     template<typename _DEP_T=DECAY_TYPE(T), \
-             typename std::enable_if_t<COND,_DEP_T> * = nullptr>
+             typename ::n2f::enable_if_t<COND,_DEP_T> * = nullptr>
 
 /* Shim for mktemp
- * ------------------------------------
+ * ---------------
  * On the windows runtimes, the posix function mktemp requires some
  * goofy shimming.
  */
@@ -329,12 +351,14 @@ using n2_decay_t = typename std::decay<T>::type;
  */
 
 #if defined(_MSC_VER)
-#  define PRINTF_TYPE_NAME(TYPE) 36, "[[Sorry, no type name from MSVC :C]]"
-#  define PRINTF_TYPE_NAME_OF(TYPE)   36, "[[Sorry, no type name from MSVC :C]]"
+
+#  define PRINTF_TYPE_NAME(TYPE)    36, "[[Sorry, no type name from MSVC :C]]"
+#  define PRINTF_TYPE_NAME_OF(TYPE) 36, "[[Sorry, no type name from MSVC :C]]"
+
 #else
 
-#define PRINTF_TYPE_NAME(TYPE) N2TypeName<TYPE>::length, N2TypeName<TYPE>::name
-#define PRINTF_TYPE_NAME_OF(TYPE) PRINTF_TYPE_NAME(decltype(TYPE))
+#  define PRINTF_TYPE_NAME(TYPE) N2TypeName<TYPE>::length, N2TypeName<TYPE>::name
+#  define PRINTF_TYPE_NAME_OF(TYPE) PRINTF_TYPE_NAME(decltype(TYPE))
 
 template<typename Type>
 struct N2TypeName {
@@ -366,4 +390,4 @@ struct N2TypeName {
     static constexpr int32_t const length = _getLength();
 };
 
-#endif /* defined(_MSC_VER) */
+#endif
