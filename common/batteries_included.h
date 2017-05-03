@@ -78,8 +78,12 @@ using remove_reference_t = typename ::std::remove_reference<T>::type;
 #define REMOVE_REFERENCE_TYPE(T) ::n2f::remove_reference_t<T>
 
 template <typename T>
-using add_reference_t = typename ::std::add_lvalue_reference<T>::type;
-#define ADD_REFERENCE_TYPE(T) ::n2f::add_reference_t<T>
+using add_lvalue_reference_t = typename ::std::add_lvalue_reference<T>::type;
+#define ADD_REFERENCE_TYPE(T) ::n2f::add_lvalue_reference_t<T>
+
+template <typename T>
+using add_rvalue_reference_t = typename ::std::add_rvalue_reference<T>::type;
+#define ADD_RVAL_REFERENCE_TYPE(T) ::n2f::add_rvalue_reference_t<T>
 
 template< class T >
 using decay_t = typename ::std::decay<T>::type;
