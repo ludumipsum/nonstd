@@ -97,7 +97,7 @@ using decay_t = typename ::std::decay<T>::type;
 
 /* IS_REFERENCE
  * ------------
- * Helper wrapping std::is_reference<T>::value to extract the referentiality
+ * Macro wrapping std::is_reference<T>::value to extract the referentiality
  * of an object. Answers the "Is this type a reference?" question.
  */
 #define IS_REFERENCE_TYPE(T)      (::std::is_reference<T>::value)
@@ -105,7 +105,7 @@ using decay_t = typename ::std::decay<T>::type;
 
 /* IS_SAME_TYPE
  * ------------
- * Helper wrapping std::is_same<T,U>::value
+ * Macro wrapping std::is_same<T,U>::value.
  */
 #define IS_SAME_TYPE(LEFT,RIGHT)       (::std::is_same<LEFT,RIGHT>::value)
 #define IS_DIFFERENT_TYPE(LEFT,RIGHT) !(::std::is_same<LEFT,RIGHT>::value)
@@ -129,7 +129,6 @@ using decay_t = typename ::std::decay<T>::type;
  * types. Builds off of e.g. stdint -- modified for our personal style -- and
  * builds types useful for a vidja garm.
  */
-
 
 /* Symbol Stringifyer
  * ------------------
@@ -164,13 +163,13 @@ using decay_t = typename ::std::decay<T>::type;
 #define ENFORCE_MAX_SIZE(T, max_bytes) \
     static_assert(sizeof(T) <= bytes, "Type '" STRING(T) "' is the wrong size (it is required to be at most " STRING(bytes) " bytes).")
 
+
 /* Platform Homogenization Macros
  * ==============================
  * The macros below (probably) exist in one form or another on at least one
  * major platform. They probably don't agree on the details though, so we
  * (re)define them below to ensure a consistent feel.
  */
-
 
 /* __PRETTY_FUNCTION__
  * -------------------
@@ -239,13 +238,6 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
     #endif
 }
 
-
-
-/* General Utility Macros
- * ----------------------
- * Macros that are designed for general quality-of-life improvements.
- */
-
 /* FORCEINLINE
  * -----------
  * Forces the compiler to inline this function, if possible, otherwise simply
@@ -261,6 +253,21 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
 #  define FORCEINLINE inline
 #endif
 
+/* Shim for mktemp
+ * ---------------
+ * On the windows runtimes, the posix function mktemp requires some
+ * goofy shimming.
+ */
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#include <io.h>
+#endif
+
+
+
+/* General Utility Macros
+ * ======================
+ * Macros that are designed for general quality-of-life improvements.
+ */
 
 /* UNUSED()
  * --------
@@ -330,15 +337,6 @@ inline uint32_t N2FOURCC(char const* code) {
 #define TEMPLATE_ENABLE(COND, T)            \
     template<typename _DEP_T=DECAY_TYPE(T), \
              typename ::n2f::enable_if_t<COND,_DEP_T> * = nullptr>
-
-/* Shim for mktemp
- * ---------------
- * On the windows runtimes, the posix function mktemp requires some
- * goofy shimming.
- */
-#if defined(__MINGW32__) || defined(_MSC_VER)
-#include <io.h>
-#endif
 
 
 /* Constexpr Type-Name Printing
