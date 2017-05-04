@@ -120,6 +120,14 @@ using decay_t = typename ::std::decay<T>::type;
 #define HAS_DIFFERENT_TYPE(LEFT,RIGHT) \
     !(::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
 
+/* IS_CONVERTABLE
+ * --------------
+ * Macro wrapping std::is_convertible<TO, FROM>::value. Useful in copy/move
+ * assignment operators and constructors.
+ */
+#define IS_CONVERTABLE(FROM,TO)      (::std::is_convertible<FROM,TO>::value)
+#define IS_NOT_CONVERTABLE(FROM,TO) !(::std::is_convertible<FROM,TO>::value)
+
 } /* namespace n2f */
 
 
