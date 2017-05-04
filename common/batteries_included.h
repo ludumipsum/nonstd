@@ -352,7 +352,7 @@ inline uint32_t N2FOURCC(char const* code) {
  * Heavily inspired by http://stackoverflow.com/questions/35941045.
  * Designed to work with the `Ftype` format string macro.
  * Example;
- *     printf("My type name is: \"" Ftype "\"\n", PRINTF_TYPE_NAME(MyType));
+ *     printf("My type name is: \"" Ftype "\"\n", PRINT_TYPE_NAME(MyType));
  *
  * This function works by capturing a slice of the `__PRETTY_FUNCTION__` string
  * literal, and figuring out the number of characters worth printing. The
@@ -366,13 +366,13 @@ inline uint32_t N2FOURCC(char const* code) {
 
 #if defined(_MSC_VER)
 
-#  define PRINTF_TYPE_NAME(TYPE)    36, "[[Sorry, no type name from MSVC :C]]"
-#  define PRINTF_TYPE_NAME_OF(TYPE) 36, "[[Sorry, no type name from MSVC :C]]"
+#  define PRINT_TYPE_NAME(TYPE)    36, "[[Sorry, no type name from MSVC :C]]"
+#  define PRINT_TYPE_NAME_OF(TYPE) 36, "[[Sorry, no type name from MSVC :C]]"
 
 #else
 
-#  define PRINTF_TYPE_NAME(TYPE) N2TypeName<TYPE>::length, N2TypeName<TYPE>::name
-#  define PRINTF_TYPE_NAME_OF(TYPE) PRINTF_TYPE_NAME(decltype(TYPE))
+#  define PRINT_TYPE_NAME(TYPE) N2TypeName<TYPE>::length, N2TypeName<TYPE>::name
+#  define PRINT_TYPE_NAME_OF(TYPE) PRINT_TYPE_NAME(decltype(TYPE))
 
 template<typename Type>
 struct N2TypeName {
