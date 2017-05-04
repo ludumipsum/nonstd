@@ -51,10 +51,6 @@
  * Helper types / functions that weren't included in C++14 or aren't yet
  * implemented in MSVC. `namespace`d as Native 2 Futures, because as soon as we
  * can, we should switch these out for std:: implementations.
- *
- * NB. We can't implement the ::value helpers that are being added to C++17 yet
- *     because inline variables (which is at the core that implementation) are
- *     (at best) a c++1z extension.
  */
 namespace n2f {
 
@@ -67,8 +63,9 @@ template <typename... Ts> using void_t = typename make_void<Ts...>::type;
 
 /* Helper Types
  * ------------
- * Mapping exactly to `[type_trait]<T>::type`.
+ * Mapping exactly to `[type_trait]<Ts..>::type`.
  */
+
 template <bool B, typename T = void>
 using enable_if_t = typename ::std::enable_if<B,T>::type;
 #define ENABLE_IF(B, T) ::n2f::enable_if_t<B,T>
@@ -88,6 +85,40 @@ using add_rvalue_reference_t = typename ::std::add_rvalue_reference<T>::type;
 template< class T >
 using decay_t = typename ::std::decay<T>::type;
 #define DECAY_TYPE(T) ::n2f::decay_t<T>
+
+
+/* Helper Values
+ * -------------
+ * Mapping exactly to `[type_trait]<Ts..>::value`.
+ * NB. We're using macros rather than inline constexr `n2f::[type_trait]_v` vars
+ * because inline variables (which is a requirement for making the `_v`  helpers
+ * useful) are a C++1z extension at this point. No idea when MSVC will get them.
+ */
+
+/* IS_REFERENCE
+ * ------------
+ * Helper wrapping std::is_reference<T>::value to extract the referentiality
+ * of an object. Answers the "Is this type a reference?" question.
+ */
+#define IS_REFERENCE_TYPE(T)      (::std::is_reference<T>::value)
+#define IS_NOT_REFERENCE_TYPE(T) !(::std::is_reference<T>::value)
+
+/* IS_SAME_TYPE
+ * ------------
+ * Helper wrapping std::is_same<T,U>::value
+ */
+#define IS_SAME_TYPE(LEFT,RIGHT)       (::std::is_same<LEFT,RIGHT>::value)
+#define IS_DIFFERENT_TYPE(LEFT,RIGHT) !(::std::is_same<LEFT,RIGHT>::value)
+
+/* HAS_SAME_TYPE
+ * -------------
+ * Macro wrapping std::is_same<T,U>::value and decltype, s.t. type information
+ * of instances may be checked at runtime.
+ */
+#define HAS_SAME_TYPE(LEFT,RIGHT)      \
+     (::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
+#define HAS_DIFFERENT_TYPE(LEFT,RIGHT) \
+    !(::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
 
 } /* namespace n2f */
 
@@ -267,33 +298,6 @@ inline uint32_t N2FOURCC(char const* code) {
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)   \
     TypeName(const TypeName&) = delete;      \
     void operator=(const TypeName&) = delete
-
-/* IS_REFERENCE
- * ------------
- * Helper wrapping std::is_reference<T>::value to extract the referentiality
- * of an object. Answers the "Is this type a reference?" question.
- */
-#define IS_REFERENCE_TYPE(T) (::std::is_reference<T>::value)
-#define IS_NOT_REFERENCE_TYPE(T) (!IS_REFERENCE_TYPE(T))
-
-/* IS_SAME_TYPE
- * ------------
- * Helper wrapping std::is_same<T,U>::value
- */
-#define IS_SAME_TYPE(T,U)       (::std::is_same<T,U>::value)
-#define IS_DIFFERENT_TYPE(T,U) !(::std::is_same<T,U>::value)
-
-/* HAS_SAME_TYPE
- * -------------
- * Macro wrapping std::is_same<T,U>::value and decltype, s.t. type information
- * of instances may be checked at runtime.
- * NB. We can't use a constexpr struct to pretty-up this implementation because
- * cv qualifiers will be dropped from struct template arguments.
- */
-#define HAS_SAME_TYPE(LEFT,RIGHT)      \
-     (::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
-#define HAS_DIFFERENT_TYPE(LEFT,RIGHT) \
-    !(::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
 
 /* TEMPLATE_ENABLE
  * ---------------
