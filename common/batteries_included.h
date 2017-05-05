@@ -86,7 +86,7 @@ using remove_reference_t = typename ::std::remove_reference<T>::type;
 
 template <typename T>
 using add_lvalue_reference_t = typename ::std::add_lvalue_reference<T>::type;
-#define ADD_REFERENCE_TYPE(T) ::n2_::add_lvalue_reference_t<T>
+#define ADD_LVAL_REFERENCE_TYPE(T) ::n2_::add_lvalue_reference_t<T>
 
 template <typename T>
 using add_rvalue_reference_t = typename ::std::add_rvalue_reference<T>::type;
