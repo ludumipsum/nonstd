@@ -172,6 +172,40 @@ using decay_t = typename ::std::decay<T>::type;
 #define IS_CONVERTIBLE(FROM,TO)      (::std::is_convertible<FROM,TO>::value)
 #define IS_NOT_CONVERTIBLE(FROM,TO) !(::std::is_convertible<FROM,TO>::value)
 
+/* Triviality Checks
+ * -----------------
+ * Macros wrapping `std::is_trivially_[type_trait]<T>::value`. Tells us what the
+ * compiler will be able to automatically generate for us.
+ */
+#define IS_TRIVIALLY_COPYABLE(T)      (::std::is_trivially_copyable<T>::value)
+#define IS_NOT_TRIVIALLY_COPYABLE(T) !(::std::is_trivially_copyable<T>::value)
+
+
+#define IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T)      (::std::is_trivially_default_constructible<T>::value)
+#define IS_NOT_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T) !(::std::is_trivially_default_constructible<T>::value)
+
+#define IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)      (::std::is_trivially_copy_constructible<T>::value)
+#define IS_NOT_TRIVIALLY_COPY_CONSTRUCTIBLE(T) !(::std::is_trivially_copy_constructible<T>::value)
+
+#define IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T)      (::std::is_trivially_move_constructible<T>::value)
+#define IS_NOT_TRIVIALLY_MOVE_CONSTRUCTIBLE(T) !(::std::is_trivially_move_constructible<T>::value)
+
+
+#define IS_TRIVIALLY_COPY_ASSIGNABLE(T)      (::std::is_trivially_copy_assignable<T>::value)
+#define IS_NOT_TRIVIALLY_COPY_ASSIGNABLE(T) !(::std::is_trivially_copy_assignable<T>::value)
+
+#define IS_TRIVIALLY_MOVE_ASSIGNABLE(T)      (::std::is_trivially_move_assignable<T>::value)
+#define IS_NOT_TRIVIALLY_MOVE_ASSIGNABLE(T) !(::std::is_trivially_move_assignable<T>::value)
+
+
+#define IS_TRIVIALLY_DESTRUCTIBLE(T)      (::std::is_trivially_destructible<T>::value)
+#define IS_NOT_TRIVIALLY_DESTRUCTIBLE(T) !(::std::is_trivially_destructible<T>::value)
+
+/* Skipping out on these two because... I don't have a use for them. And it's
+ * more typing. That I don't want to do right now. */
+// template <class T, class... Args> struct is_trivially_constructible;
+// template <class T, class U> struct is_trivially_assignable;
+
 } /* namespace n2_ */
 
 
