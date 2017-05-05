@@ -46,13 +46,14 @@
 #include <alloca.h>     // alloca
 #endif
 
-/* C++ 14/17 Futures
- * =================
- * Helper types / functions that weren't included in C++14 or aren't yet
- * implemented in MSVC. `namespace`d as Native 2 Futures, because as soon as we
- * can, we should switch these out for std:: implementations.
+/* C++ 14/17 Type Trait Polyfills
+ * ==============================
+ * Helper types / struct values / functions that weren't included in C++14 or
+ * aren't yet implemented in MSVC, or aren't practical to implement in C++14/11.
+ * `namespace`d into `n2_` -- the Native 2 Junk Drawer -- because we should
+ * switch these out for the std:: implementations as soon as we can.
  */
-namespace n2f {
+namespace n2_ {
 
 /* `void_t<Ts...>`
  * ---------------
@@ -77,29 +78,29 @@ template <typename... Ts> using void_t = typename make_void<Ts...>::type;
 
 template <bool B, typename T = void>
 using enable_if_t = typename ::std::enable_if<B,T>::type;
-#define ENABLE_IF(B, T) ::n2f::enable_if_t<B,T>
+#define ENABLE_IF(B, T) ::n2_::enable_if_t<B,T>
 
 template <typename T>
 using remove_reference_t = typename ::std::remove_reference<T>::type;
-#define REMOVE_REFERENCE_TYPE(T) ::n2f::remove_reference_t<T>
+#define REMOVE_REFERENCE_TYPE(T) ::n2_::remove_reference_t<T>
 
 template <typename T>
 using add_lvalue_reference_t = typename ::std::add_lvalue_reference<T>::type;
-#define ADD_REFERENCE_TYPE(T) ::n2f::add_lvalue_reference_t<T>
+#define ADD_REFERENCE_TYPE(T) ::n2_::add_lvalue_reference_t<T>
 
 template <typename T>
 using add_rvalue_reference_t = typename ::std::add_rvalue_reference<T>::type;
-#define ADD_RVAL_REFERENCE_TYPE(T) ::n2f::add_rvalue_reference_t<T>
+#define ADD_RVAL_REFERENCE_TYPE(T) ::n2_::add_rvalue_reference_t<T>
 
 template< class T >
 using decay_t = typename ::std::decay<T>::type;
-#define DECAY_TYPE(T) ::n2f::decay_t<T>
+#define DECAY_TYPE(T) ::n2_::decay_t<T>
 
 
 /* Helper Values
  * -------------
  * Mapping exactly to `[type_trait]<Ts...>::value`.
- * NB. We're using macros rather than inline constexpr `n2f::[type_trait]_v`
+ * NB. We're using macros rather than inline constexpr `n2_::[type_trait]_v`
  * variables that C++17 will define because inline variables (which are required
  * for making the `_v` helpers useful) are a C++1z extension at this point. No
  * idea when MSVC will get them, or if they're consistently available in GCC.
@@ -142,7 +143,7 @@ using decay_t = typename ::std::decay<T>::type;
 #define IS_CONVERTIBLE(FROM,TO)      (::std::is_convertible<FROM,TO>::value)
 #define IS_NOT_CONVERTIBLE(FROM,TO) !(::std::is_convertible<FROM,TO>::value)
 
-} /* namespace n2f */
+} /* namespace n2_ */
 
 
 /* Primitive Type Definitions
@@ -370,7 +371,7 @@ inline uint32_t N2FOURCC(char const* code) {
  */
 #define TEMPLATE_ENABLE(COND, T)            \
     template<typename _DEP_T=DECAY_TYPE(T), \
-             typename ::n2f::enable_if_t<COND,_DEP_T> * = nullptr>
+             typename ::n2_::enable_if_t<COND,_DEP_T> * = nullptr>
 
 
 /* Constexpr Type-Name Printing
