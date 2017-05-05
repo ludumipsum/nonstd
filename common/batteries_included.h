@@ -46,6 +46,26 @@
 #include <alloca.h>     // alloca
 #endif
 
+
+/* Symbol Stringifyer
+ * ==================
+ * Uses the preprocessor to create a static string version of the passed symbol
+ * or macro. Usage:
+ *     char const* msg = "This is a string literal defined at "
+ *                       STRING(__FILE__) ":" STRING(__LINE__);
+ */
+#define __STRING_SECONDPASS(X) #X
+#define STRING(X) __STRING_SECONDPASS(X)
+
+/* Symbol Concatenator
+ * ------------------
+ * Mushes two symbols together into one at the preprocessor level.
+ */
+#define CONCAT_SYMBOL(a, b) CONCAT_SYMBOL_I(a, b)
+#define CONCAT_SYMBOL_I(a, b) CONCAT_SYMBOL_II(~, a ## b)
+#define CONCAT_SYMBOL_II(p, res) res
+
+
 /* C++ 14/17 Type Trait Polyfills
  * ==============================
  * Helper types / struct values / functions that weren't included in C++14 or
@@ -146,45 +166,32 @@ using decay_t = typename ::std::decay<T>::type;
 } /* namespace n2_ */
 
 
-/* Primitive Type Definitions
- * ==========================
- * Macros, typedefs, and structs that will be used as this project's most basic
- * types. Builds off of e.g. stdint -- modified for our personal style -- and
- * builds types useful for a vidja garm.
+/* struct/class Type Trait Assertions
+ * ==================================
+ * Macros that cause compile-time errors when we build non-compliant datatypes.
  */
 
-/* Symbol Stringifyer
- * ------------------
- * Uses the preprocessor to create a static string version of the passed symbol
- * or macro. Usage:
- *     char const* msg = "This is a string literal defined at "
- *                       STRING(__FILE__) ":" STRING(__LINE__);
- */
-#define __STRING_SECONDPASS(X) #X
-#define STRING(X) __STRING_SECONDPASS(X)
-
-/* Symbol Concatenator
- * ------------------
- * Mushes two symbols together into one at the preprocessor level.
- */
-#define CONCAT_SYMBOL(a, b) CONCAT_SYMBOL_I(a, b)
-#define CONCAT_SYMBOL_I(a, b) CONCAT_SYMBOL_II(~, a ## b)
-#define CONCAT_SYMBOL_II(p, res) res
-
-/* struct/class type_traits Assertions
- * -----------------------------------
- * A macro to cause compile-time failures when we incorrectly build non-POD
- * datatypes.
+/* ENFOCE_POD
+ * ----------
+ * Verifies the given type is a POD datatype. The last assertion should be
+ * redundant, but better safe than sorry.
  */
 #define ENFORCE_POD(T) \
-    static_assert(::std::is_trivially_copyable<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
+    static_assert(::std::is_trivially_copyable<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                           \
     static_assert(::std::is_trivially_default_constructible<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(::std::is_standard_layout<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
+    static_assert(::std::is_standard_layout<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                                 \
+    static_assert(::std::is_pod<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is... not. We're not sure why. Please expand the ENFORCE_POD macro. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");
 
+/* ENFORCE_SIZE (and friends)
+ * --------------------------
+ * Verifies the given type is exactly / under / above / within the range of
+ * the give size.
+ */
 #define ENFORCE_SIZE(T, bytes) \
     static_assert(sizeof(T) == bytes, "Type '" STRING(T) "' is the wrong size (it is required to be " STRING(bytes) " bytes).")
 #define ENFORCE_MAX_SIZE(T, max_bytes) \
     static_assert(sizeof(T) <= bytes, "Type '" STRING(T) "' is the wrong size (it is required to be at most " STRING(bytes) " bytes).")
+
 
 
 /* Platform Homogenization Macros
