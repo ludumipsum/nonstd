@@ -56,7 +56,16 @@ namespace n2f {
 
 /* `void_t<Ts...>`
  * ---------------
+ * C++17 feature; its definition will be simplified with that spec.
  * Utility metafunction that maps a sequence of any types to the type `void`.
+ * This is primarily used in SFINAE idioms, ex; to remove class template
+ * overloads based on type traits (`class` used for brevity);
+ *
+ *     template <class, class = std::void_t<>>
+ *     struct has_member_foo : std::false_type { };
+ *
+ *     template <class T>
+ *     struct has_member_foo<T, std::void_t<class T::foo>> : std::true_type { };
  */
 template <typename... Ts> struct make_void { typedef void type; };
 template <typename... Ts> using void_t = typename make_void<Ts...>::type;
@@ -89,10 +98,11 @@ using decay_t = typename ::std::decay<T>::type;
 
 /* Helper Values
  * -------------
- * Mapping exactly to `[type_trait]<Ts..>::value`.
- * NB. We're using macros rather than inline constexr `n2f::[type_trait]_v` vars
- * because inline variables (which is a requirement for making the `_v`  helpers
- * useful) are a C++1z extension at this point. No idea when MSVC will get them.
+ * Mapping exactly to `[type_trait]<Ts...>::value`.
+ * NB. We're using macros rather than inline constexpr `n2f::[type_trait]_v`
+ * variables that C++17 will define because inline variables (which are required
+ * for making the `_v` helpers useful) are a C++1z extension at this point. No
+ * idea when MSVC will get them, or if they're consistently available in GCC.
  */
 
 /* IS_REFERENCE
@@ -105,15 +115,15 @@ using decay_t = typename ::std::decay<T>::type;
 
 /* IS_SAME_TYPE
  * ------------
- * Macro wrapping std::is_same<T,U>::value.
+ * Macro wrapping std::is_same<T,U>::value, s.t. types can be compared.
  */
 #define IS_SAME_TYPE(LEFT,RIGHT)       (::std::is_same<LEFT,RIGHT>::value)
 #define IS_DIFFERENT_TYPE(LEFT,RIGHT) !(::std::is_same<LEFT,RIGHT>::value)
 
 /* HAS_SAME_TYPE
  * -------------
- * Macro wrapping std::is_same<T,U>::value and decltype, s.t. type information
- * of instances may be checked at runtime.
+ * Macro wrapping std::is_same<T,U>::value and decltype, s.t. types of
+ * instances can be compared.
  */
 #define HAS_SAME_TYPE(LEFT,RIGHT)      \
      (::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
@@ -124,6 +134,10 @@ using decay_t = typename ::std::decay<T>::type;
  * --------------
  * Macro wrapping std::is_convertible<TO, FROM>::value. Useful in copy/move
  * assignment operators and constructors.
+ * Note 'convertible' in this case means implicitly convertible. Specifically,
+ * this will be true iff the below imaginary function is well formed;
+ *
+ *     TO test() { return std::declval<FROM>(); }
  */
 #define IS_CONVERTIBLE(FROM,TO)      (::std::is_convertible<FROM,TO>::value)
 #define IS_NOT_CONVERTIBLE(FROM,TO) !(::std::is_convertible<FROM,TO>::value)
@@ -306,7 +320,7 @@ inline uint32_t N2FOURCC(char const* code) {
  * -------------------------------
  * A macro to disallow the copy constructor and operator- functions
  * This should be used in the private: declarations for a class.
- * Note that if there is a user-defined Copy Ctor there will be no implcitly
+ * Note that if there is a user-defined Copy Ctor there will be no implicitly
  * defined Move Ctor (or Move Assignment Operator), so deleting those members
  * is, at best, redundant.
  */
@@ -333,14 +347,26 @@ inline uint32_t N2FOURCC(char const* code) {
  * during overload resolution based on the template parameter. Poor man's
  * type-level overloading, poorer man's pattern match.
  * Notes on the implementation;
- * - To correctly perform SFINAE, the `enable_if_t` needs to return a dependent
- *   type. `_DEP_T` is explicitly defined based on `T` to guarantee this.
+ * - For this form to correctly operate using SFINAE, the `enable_if_t` needs to
+ *   return a dependent type. `_DEP_T` is explicitly defined based on `T` to
+ *   guarantee this. (TODO: Experiment some more and guarantee this is the most
+ *   robust form we can safely use... I have a feeling this invariant... isn't).
  * - `_DEP_T` needs to be a type decayed from `T` for the cases in which T is a
  *   reference type. When SFINAE succeeds, we're defaulting the second template
  *   parameter to `_DEP_T * = nullptr`, and `T& * = nullptr` ain't so good.
- * - Because TEMPLATE_ENABLE is being performed using a dependent type,
- *   functions that are disabled will still be partially resolved and may still
- *   result in hard compiler errors, especially if they use `T` as their return.
+ * - Because TEMPLATE_ENABLE is defining and operating on a dependent type that
+ *   is not cleanly accessible outside of the macro, users will need to be very
+ *   careful with the signatures of functions they disable with this macro. Take
+ *   for example the below, assuming T is... say, a reference to a u32;
+ *
+ *       TEMPLTE_ENABLE(IS_NOT_REFERENCE_TYPE(T), T)
+ *       T * getAPointer() { ... }
+ *
+ *   This will fail to compile. `T` will be defined before template argument
+ *   deduction occurs (the same point at which _DEP_T is defined by its default,
+ *   `T`), so before the enable_if clause can remove this function from the
+ *   overload set, `T *` will be resolved to `u32 & *`, which is a hard error
+ *   outside of the immediate context of the function.
  */
 #define TEMPLATE_ENABLE(COND, T)            \
     template<typename _DEP_T=DECAY_TYPE(T), \
