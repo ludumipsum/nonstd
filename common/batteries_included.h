@@ -126,13 +126,20 @@ using decay_t = typename ::std::decay<T>::type;
  * idea when MSVC will get them, or if they're consistently available in GCC.
  */
 
-/* IS_REFERENCE
- * ------------
- * Macro wrapping std::is_reference<T>::value to extract the referentiality
- * of an object. Answers the "Is this type a reference?" question.
+/* IS_REFERENCE (and friends)
+ * --------------------------
+ * Macro wrapping std::is_reference<T>::value (and l/r value specifiers) to
+ * extract the referentiality of an object.
+ * Answers the "Is this type a reference? If so, what kind?" question.
  */
 #define IS_REFERENCE_TYPE(T)      (::std::is_reference<T>::value)
 #define IS_NOT_REFERENCE_TYPE(T) !(::std::is_reference<T>::value)
+
+#define IS_LVAL_REFERENCE_TYPE(T)      (::std::is_lvalue_reference<T>::value)
+#define IS_NOT_LVAL_REFERENCE_TYPE(T) !(::std::is_lvalue_reference<T>::value)
+
+#define IS_RVAL_REFERENCE_TYPE(T)      (::std::is_rvalue_reference<T>::value)
+#define IS_NOT_RVAL_REFERENCE_TYPE(T) !(::std::is_rvalue_reference<T>::value)
 
 /* IS_SAME_TYPE
  * ------------
