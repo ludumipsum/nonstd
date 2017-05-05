@@ -98,7 +98,9 @@ template <typename... Ts> using void_t = typename make_void<Ts...>::type;
 
 template <bool B, typename T = void>
 using enable_if_t = typename ::std::enable_if<B,T>::type;
-#define ENABLE_IF_TYPE(B, T) ::n2_::enable_if_t<B,T>
+/* NB. This macro doesn't capture the default `T = void` argument. If you want
+ *     that behavior, you'll have to `ENABLE_IF_TYPE([COND], void)`. */
+#define ENABLE_IF_TYPE(B,T) ::n2_::enable_if_t<B,T>
 
 template <typename T>
 using remove_reference_t = typename ::std::remove_reference<T>::type;
@@ -128,7 +130,7 @@ using decay_t = typename ::std::decay<T>::type;
 
 /* IS_REFERENCE (and friends)
  * --------------------------
- * Macro wrapping std::is_reference<T>::value (and l/r value specifiers) to
+ * Macros wrapping std::is_reference<T>::value (and l/r value specifiers) to
  * extract the referentiality of an object.
  * Answers the "Is this type a reference? If so, what kind?" question.
  */
@@ -143,14 +145,14 @@ using decay_t = typename ::std::decay<T>::type;
 
 /* IS_SAME_TYPE
  * ------------
- * Macro wrapping std::is_same<T,U>::value, s.t. types can be compared.
+ * Macros wrapping std::is_same<T,U>::value, s.t. types can be compared.
  */
 #define IS_SAME_TYPE(LEFT,RIGHT)       (::std::is_same<LEFT,RIGHT>::value)
 #define IS_DIFFERENT_TYPE(LEFT,RIGHT) !(::std::is_same<LEFT,RIGHT>::value)
 
 /* HAS_SAME_TYPE
  * -------------
- * Macro wrapping std::is_same<T,U>::value and decltype, s.t. types of
+ * Macros wrapping std::is_same<T,U>::value and decltype, s.t. types of
  * instances can be compared.
  */
 #define HAS_SAME_TYPE(LEFT,RIGHT)      \
@@ -160,7 +162,7 @@ using decay_t = typename ::std::decay<T>::type;
 
 /* IS_CONVERTIBLE
  * --------------
- * Macro wrapping std::is_convertible<TO, FROM>::value. Useful in copy/move
+ * Macros wrapping std::is_convertible<TO, FROM>::value. Useful in copy/move
  * assignment operators and constructors.
  * Note 'convertible' in this case means implicitly convertible. Specifically,
  * this will be true iff the below imaginary function is well formed;
