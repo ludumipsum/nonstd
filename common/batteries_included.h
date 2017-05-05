@@ -78,7 +78,7 @@ template <typename... Ts> using void_t = typename make_void<Ts...>::type;
 
 template <bool B, typename T = void>
 using enable_if_t = typename ::std::enable_if<B,T>::type;
-#define ENABLE_IF(B, T) ::n2_::enable_if_t<B,T>
+#define ENABLE_IF_TYPE(B, T) ::n2_::enable_if_t<B,T>
 
 template <typename T>
 using remove_reference_t = typename ::std::remove_reference<T>::type;
@@ -371,7 +371,7 @@ inline uint32_t N2FOURCC(char const* code) {
  */
 #define TEMPLATE_ENABLE(COND, T)            \
     template<typename _DEP_T=DECAY_TYPE(T), \
-             typename ::n2_::enable_if_t<COND,_DEP_T> * = nullptr>
+             typename ENABLE_IF_TYPE(COND,_DEP_T) * = nullptr>
 
 
 /* Constexpr Type-Name Printing
