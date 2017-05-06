@@ -114,6 +114,14 @@ template <typename T>
 using add_rvalue_reference_t = typename ::std::add_rvalue_reference<T>::type;
 #define ADD_RVAL_REFERENCE_TYPE(T) ::n2_::add_rvalue_reference_t<T>
 
+template <typename T>
+using remove_const_t = typename ::std::remove_const<T>::type;
+#define REMOVE_CONST_TYPE(T) ::n2_::remove_const_t<T>
+
+template <typename T>
+using add_const_t = typename ::std::add_const<T>::type;
+#define ADD_CONST_TYPE(T) ::n2_::add_const_t<T>
+
 template< class T >
 using decay_t = typename ::std::decay<T>::type;
 #define DECAY_TYPE(T) ::n2_::decay_t<T>
