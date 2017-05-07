@@ -8,6 +8,8 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
+#include "crash.h"
+
 #if !defined(N2_CHECKED_OPTIONALS)
 #define N2_CHECKED_OPTIONALS false
 #endif
@@ -33,11 +35,11 @@ protected:
 
     /* Accessor for option-by-value instances */
     TEMPLATE_ENABLE(IS_NOT_REFERENCE_TYPE(T), T)
-    ADD_REFERENCE_TYPE(T) _getValue() { return value; }
+    ADD_LVAL_REFERENCE_TYPE(T) _getValue() { return value; }
 
     /* Accessor for option-by-reference instances */
     TEMPLATE_ENABLE(IS_REFERENCE_TYPE(T), T)
-    ADD_REFERENCE_TYPE(T) _getValue() { return *value_ptr; }
+    ADD_LVAL_REFERENCE_TYPE(T) _getValue() { return *value_ptr; }
 
 public:
     /* Constructor for option-by-value instances */

@@ -34,6 +34,7 @@
 
 /* # C++ Standard Library Includes */
 #include <functional>
+#include <type_traits>
 #include <string>
 #include <unordered_map>
 
@@ -46,16 +47,8 @@
 #endif
 
 
-/* Primitive Type Definitions
- * ==========================
- * Macros, typedefs, and structs that will be used as this project's most basic
- * types. Builds off of e.g. stdint -- modified for our personal style -- and
- * builds types useful for a vidja garm.
- */
-
-
 /* Symbol Stringifyer
- * ------------------
+ * ==================
  * Uses the preprocessor to create a static string version of the passed symbol
  * or macro. Usage:
  *     char const* msg = "This is a string literal defined at "
@@ -72,26 +65,185 @@
 #define CONCAT_SYMBOL_I(a, b) CONCAT_SYMBOL_II(~, a ## b)
 #define CONCAT_SYMBOL_II(p, res) res
 
-/* struct/class type_traits Assertions
- * -----------------------------------
- * A macro to cause compile-time failures when we incorrectly build non-POD
- * datatypes.
- */
-#if defined(_MSC_VER)
-# define ENFORCE_POD(T) \
-    static_assert(::std::is_trivially_copyable<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(::std::is_trivially_default_constructible<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(::std::is_standard_layout<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
-#else
-# define ENFORCE_POD(T) \
-    static_assert(std::is_trivial<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivial. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(std::is_standard_layout<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
-#endif
 
+/* C++ 14/17 Type Trait Polyfills
+ * ==============================
+ * Helper types / struct values / functions that weren't included in C++14 or
+ * aren't yet implemented in MSVC, or aren't practical to implement in C++14/11.
+ * `namespace`d into `n2_` -- the Native 2 Junk Drawer -- because we should
+ * switch these out for the std:: implementations as soon as we can.
+ */
+namespace n2_ {
+
+/* `void_t<Ts...>`
+ * ---------------
+ * C++17 feature; its definition will be simplified with that spec.
+ * Utility metafunction that maps a sequence of any types to the type `void`.
+ * This is primarily used in SFINAE idioms, ex; to remove class template
+ * overloads based on type traits (`class` used for brevity);
+ *
+ *     template <class, class = std::void_t<>>
+ *     struct has_member_foo : std::false_type { };
+ *
+ *     template <class T>
+ *     struct has_member_foo<T, std::void_t<class T::foo>> : std::true_type { };
+ */
+template <typename... Ts> struct make_void { typedef void type; };
+template <typename... Ts> using void_t = typename make_void<Ts...>::type;
+
+/* Helper Types
+ * ------------
+ * Mapping exactly to `[type_trait]<Ts..>::type`.
+ */
+
+template <bool B, typename T = void>
+using enable_if_t = typename ::std::enable_if<B,T>::type;
+/* NB. This macro doesn't capture the default `T = void` argument. If you want
+ *     that behavior, you'll have to `ENABLE_IF_TYPE([COND], void)`. */
+#define ENABLE_IF_TYPE(B,T) ::n2_::enable_if_t<B,T>
+
+template <typename T>
+using remove_reference_t = typename ::std::remove_reference<T>::type;
+#define REMOVE_REFERENCE_TYPE(T) ::n2_::remove_reference_t<T>
+
+template <typename T>
+using add_lvalue_reference_t = typename ::std::add_lvalue_reference<T>::type;
+#define ADD_LVAL_REFERENCE_TYPE(T) ::n2_::add_lvalue_reference_t<T>
+
+template <typename T>
+using add_rvalue_reference_t = typename ::std::add_rvalue_reference<T>::type;
+#define ADD_RVAL_REFERENCE_TYPE(T) ::n2_::add_rvalue_reference_t<T>
+
+template <typename T>
+using remove_const_t = typename ::std::remove_const<T>::type;
+#define REMOVE_CONST_TYPE(T) ::n2_::remove_const_t<T>
+
+template <typename T>
+using add_const_t = typename ::std::add_const<T>::type;
+#define ADD_CONST_TYPE(T) ::n2_::add_const_t<T>
+
+template< class T >
+using decay_t = typename ::std::decay<T>::type;
+#define DECAY_TYPE(T) ::n2_::decay_t<T>
+
+
+/* Helper Values
+ * -------------
+ * Mapping exactly to `[type_trait]<Ts...>::value`.
+ * NB. We're using macros rather than inline constexpr `n2_::[type_trait]_v`
+ * variables that C++17 will define because inline variables (which are required
+ * for making the `_v` helpers useful) are a C++1z extension at this point. No
+ * idea when MSVC will get them, or if they're consistently available in GCC.
+ */
+
+/* IS_REFERENCE (and friends)
+ * --------------------------
+ * Macros wrapping std::is_reference<T>::value (and l/r value specifiers) to
+ * extract the referentiality of an object.
+ * Answers the "Is this type a reference? If so, what kind?" question.
+ */
+#define IS_REFERENCE_TYPE(T)      (::std::is_reference<T>::value)
+#define IS_NOT_REFERENCE_TYPE(T) !(::std::is_reference<T>::value)
+
+#define IS_LVAL_REFERENCE_TYPE(T)      (::std::is_lvalue_reference<T>::value)
+#define IS_NOT_LVAL_REFERENCE_TYPE(T) !(::std::is_lvalue_reference<T>::value)
+
+#define IS_RVAL_REFERENCE_TYPE(T)      (::std::is_rvalue_reference<T>::value)
+#define IS_NOT_RVAL_REFERENCE_TYPE(T) !(::std::is_rvalue_reference<T>::value)
+
+/* IS_SAME_TYPE
+ * ------------
+ * Macros wrapping std::is_same<T,U>::value, s.t. types can be compared.
+ */
+#define IS_SAME_TYPE(LEFT,RIGHT)       (::std::is_same<LEFT,RIGHT>::value)
+#define IS_DIFFERENT_TYPE(LEFT,RIGHT) !(::std::is_same<LEFT,RIGHT>::value)
+
+/* HAS_SAME_TYPE
+ * -------------
+ * Macros wrapping std::is_same<T,U>::value and decltype, s.t. types of
+ * instances can be compared.
+ */
+#define HAS_SAME_TYPE(LEFT,RIGHT)      \
+     (::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
+#define HAS_DIFFERENT_TYPE(LEFT,RIGHT) \
+    !(::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
+
+/* IS_CONVERTIBLE
+ * --------------
+ * Macros wrapping std::is_convertible<TO, FROM>::value. Useful in copy/move
+ * assignment operators and constructors.
+ * Note 'convertible' in this case means implicitly convertible. Specifically,
+ * this will be true iff the below imaginary function is well formed;
+ *
+ *     TO test() { return std::declval<FROM>(); }
+ */
+#define IS_CONVERTIBLE(FROM,TO)      (::std::is_convertible<FROM,TO>::value)
+#define IS_NOT_CONVERTIBLE(FROM,TO) !(::std::is_convertible<FROM,TO>::value)
+
+/* Triviality Checks
+ * -----------------
+ * Macros wrapping `std::is_trivially_[type_trait]<T>::value`. Tells us what the
+ * compiler will be able to automatically generate for us.
+ */
+#define IS_TRIVIALLY_COPYABLE(T)      (::std::is_trivially_copyable<T>::value)
+#define IS_NOT_TRIVIALLY_COPYABLE(T) !(::std::is_trivially_copyable<T>::value)
+
+
+#define IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T)      (::std::is_trivially_default_constructible<T>::value)
+#define IS_NOT_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T) !(::std::is_trivially_default_constructible<T>::value)
+
+#define IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)      (::std::is_trivially_copy_constructible<T>::value)
+#define IS_NOT_TRIVIALLY_COPY_CONSTRUCTIBLE(T) !(::std::is_trivially_copy_constructible<T>::value)
+
+#define IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T)      (::std::is_trivially_move_constructible<T>::value)
+#define IS_NOT_TRIVIALLY_MOVE_CONSTRUCTIBLE(T) !(::std::is_trivially_move_constructible<T>::value)
+
+
+#define IS_TRIVIALLY_COPY_ASSIGNABLE(T)      (::std::is_trivially_copy_assignable<T>::value)
+#define IS_NOT_TRIVIALLY_COPY_ASSIGNABLE(T) !(::std::is_trivially_copy_assignable<T>::value)
+
+#define IS_TRIVIALLY_MOVE_ASSIGNABLE(T)      (::std::is_trivially_move_assignable<T>::value)
+#define IS_NOT_TRIVIALLY_MOVE_ASSIGNABLE(T) !(::std::is_trivially_move_assignable<T>::value)
+
+
+#define IS_TRIVIALLY_DESTRUCTIBLE(T)      (::std::is_trivially_destructible<T>::value)
+#define IS_NOT_TRIVIALLY_DESTRUCTIBLE(T) !(::std::is_trivially_destructible<T>::value)
+
+/* Skipping out on these two because... I don't have a use for them. And it's
+ * more typing. That I don't want to do right now. */
+// template <class T, class... Args> struct is_trivially_constructible;
+// template <class T, class U> struct is_trivially_assignable;
+
+} /* namespace n2_ */
+
+
+/* struct/class Type Trait Assertions
+ * ==================================
+ * Macros that cause compile-time errors when we build non-compliant datatypes.
+ */
+
+/* ENFOCE_POD
+ * ----------
+ * Verifies the given type is a POD datatype. The last assertion should be
+ * redundant, but better safe than sorry.
+ */
+#define ENFORCE_POD(T) \
+    static_assert(::std::is_trivially_copyable<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                           \
+    static_assert(::std::is_trivially_default_constructible<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
+    static_assert(::std::is_standard_layout<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                                 \
+    static_assert(::std::is_pod<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is... not. We're not sure why. Please expand the ENFORCE_POD macro. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
+
+/* ENFORCE_SIZE (and friends)
+ * --------------------------
+ * Verifies the given type is exactly / under / above / within the range of
+ * the give size.
+ */
 #define ENFORCE_SIZE(T, bytes) \
     static_assert(sizeof(T) == bytes, "Type '" STRING(T) "' is the wrong size (it is required to be " STRING(bytes) " bytes).")
 #define ENFORCE_MAX_SIZE(T, max_bytes) \
     static_assert(sizeof(T) <= bytes, "Type '" STRING(T) "' is the wrong size (it is required to be at most " STRING(bytes) " bytes).")
+
+
 
 /* Platform Homogenization Macros
  * ==============================
@@ -99,7 +251,6 @@
  * major platform. They probably don't agree on the details though, so we
  * (re)define them below to ensure a consistent feel.
  */
-
 
 /* __PRETTY_FUNCTION__
  * -------------------
@@ -168,13 +319,6 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
     #endif
 }
 
-
-
-/* General Utility Macros
- * ----------------------
- * Macros that are designed for general quality-of-life improvements.
- */
-
 /* FORCEINLINE
  * -----------
  * Forces the compiler to inline this function, if possible, otherwise simply
@@ -190,6 +334,21 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
 #  define FORCEINLINE inline
 #endif
 
+/* Shim for mktemp
+ * ---------------
+ * On the windows runtimes, the posix function mktemp requires some
+ * goofy shimming.
+ */
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#include <io.h>
+#endif
+
+
+
+/* General Utility Macros
+ * ======================
+ * Macros that are designed for general quality-of-life improvements.
+ */
 
 /* UNUSED()
  * --------
@@ -220,58 +379,13 @@ inline uint32_t N2FOURCC(char const* code) {
  * -------------------------------
  * A macro to disallow the copy constructor and operator- functions
  * This should be used in the private: declarations for a class.
- * Note that if there is a user-defined Copy Ctor there will be no implcitly
+ * Note that if there is a user-defined Copy Ctor there will be no implicitly
  * defined Move Ctor (or Move Assignment Operator), so deleting those members
  * is, at best, redundant.
  */
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)   \
     TypeName(const TypeName&) = delete;      \
     void operator=(const TypeName&) = delete
-
-/* Helpers for adding and removing references to types
- * ---------------------------------------------------
- * Not all our compilers support C++14 fully, so we can't rely on the STL helper
- * for stripping references off and getting the type. So here we are.
- */
-template< class T >
-using n2_remove_reference_t = typename std::remove_reference<T>::type;
-#define REMOVE_REFERENCE_TYPE(T) n2_remove_reference_t<T>
-template< class T >
-using n2_add_reference_t = typename std::add_lvalue_reference<T>::type;
-#define ADD_REFERENCE_TYPE(T) n2_add_reference_t<T>
-
-/* IS_REFERENCE
- * ------------
- * Helper wrapping std::is_reference<T>::value to extract the referentiality
- * of an object. Answers the "Is this type a reference?" question.
- */
-#define IS_REFERENCE_TYPE(T) (std::is_reference<T>::value)
-#define IS_NOT_REFERENCE_TYPE(T) (!IS_REFERENCE_TYPE(T))
-
-/* DECAY
- * -----
- * Wrapper around std::decay<T>::type like the one defined in C++14
- */
-template< class T >
-using n2_decay_t = typename std::decay<T>::type;
-#define DECAY_TYPE(T) n2_decay_t<T>
-
-/* IS_SAME_TYPE
- * ------------
- * Helper wrapping std::is_same<T,U>::value
- */
-#define IS_SAME_TYPE(T,U) std::is_same<T,U>::value
-
-/* HAS_SAME_TYPE
- * -------------
- * `constexper` helper wrapping std::is_same<T,U>::value and decltype, s.t. type
- * information of instances may be checked at runtime.
- */
-template<typename T, typename U>
-constexpr bool n2_has_same_type(T left, U right) {
-    return std::is_same<decltype(left),decltype(right)>::value;
-}
-#define HAS_SAME_TYPE(T,U) n2_has_same_type(T,U)
 
 /* TEMPLATE_ENABLE
  * ---------------
@@ -288,24 +402,34 @@ constexpr bool n2_has_same_type(T left, U right) {
  *     TEMPLATE_ENABLE(ConfigBoolean, T) void EitherOr() { ... };
  *     TEMPLATE_ENABLE(!ConfigBoolean, T) void EitherOr() { ... };
  *
- * Which will yield only the correct version of that function based
- * on the template parameter. Poor man's type-level overloading, poorer
- * man's pattern match.
+ * Which will yield only the correct version of that function being chosen
+ * during overload resolution based on the template parameter. Poor man's
+ * type-level overloading, poorer man's pattern match.
+ * Notes on the implementation;
+ * - For this form to correctly operate using SFINAE, the `enable_if_t` needs to
+ *   return a dependent type. `_DEP_T` is explicitly defined based on `T` to
+ *   guarantee this. (TODO: Experiment some more and guarantee this is the most
+ *   robust form we can safely use... I have a feeling this invariant... isn't).
+ * - `_DEP_T` needs to be a type decayed from `T` for the cases in which T is a
+ *   reference type. When SFINAE succeeds, we're defaulting the second template
+ *   parameter to `_DEP_T * = nullptr`, and `T& * = nullptr` ain't so good.
+ * - Because TEMPLATE_ENABLE is defining and operating on a dependent type that
+ *   is not cleanly accessible outside of the macro, users will need to be very
+ *   careful with the signatures of functions they disable with this macro. Take
+ *   for example the below, assuming T is... say, a reference to a u32;
+ *
+ *       TEMPLTE_ENABLE(IS_NOT_REFERENCE_TYPE(T), T)
+ *       T * getAPointer() { ... }
+ *
+ *   This will fail to compile. `T` will be defined before template argument
+ *   deduction occurs (the same point at which _DEP_T is defined by its default,
+ *   `T`), so before the enable_if clause can remove this function from the
+ *   overload set, `T *` will be resolved to `u32 & *`, which is a hard error
+ *   outside of the immediate context of the function.
  */
-template< bool B, class T = void >
-using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
-#define TEMPLATE_ENABLE(Cond, T)                        \
-    template<typename _TEMPLATE_ENABLE_DEPENDENCY_=T,   \
-             n2_enable_if_t<Cond, _TEMPLATE_ENABLE_DEPENDENCY_>* =nullptr>
-
-/* Shim for mktemp
- * ------------------------------------
- * On the windows runtimes, the posix function mktemp requires some
- * goofy shimming.
- */
-#if defined(__MINGW32__) || defined(_MSC_VER)
-#include <io.h>
-#endif
+#define TEMPLATE_ENABLE(COND, T)            \
+    template<typename _DEP_T=DECAY_TYPE(T), \
+             typename ENABLE_IF_TYPE(COND,_DEP_T) * = nullptr>
 
 
 /* Constexpr Type-Name Printing
@@ -313,7 +437,7 @@ using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
  * Heavily inspired by http://stackoverflow.com/questions/35941045.
  * Designed to work with the `Ftype` format string macro.
  * Example;
- *     printf("My type name is: \"" Ftype "\"\n", PRINTF_TYPE_NAME(MyType));
+ *     printf("My type name is: \"" Ftype "\"\n", PRINT_TYPE_NAME(MyType));
  *
  * This function works by capturing a slice of the `__PRETTY_FUNCTION__` string
  * literal, and figuring out the number of characters worth printing. The
@@ -326,10 +450,14 @@ using n2_enable_if_t = typename std::enable_if<B, DECAY_TYPE(T)>::type;
  */
 
 #if defined(_MSC_VER)
-#  define PRINTF_TYPE_NAME(TYPE) 36, "[[Sorry, no type name from MSVC :C]]"
+
+#  define PRINT_TYPE_NAME(TYPE)    36, "[[Sorry, no type name from MSVC :C]]"
+#  define PRINT_TYPE_NAME_OF(TYPE) 36, "[[Sorry, no type name from MSVC :C]]"
+
 #else
 
-#define PRINTF_TYPE_NAME(TYPE) N2TypeName<TYPE>::length, N2TypeName<TYPE>::name
+#  define PRINT_TYPE_NAME(TYPE) N2TypeName<TYPE>::length, N2TypeName<TYPE>::name
+#  define PRINT_TYPE_NAME_OF(TYPE) PRINT_TYPE_NAME(decltype(TYPE))
 
 template<typename Type>
 struct N2TypeName {
@@ -361,4 +489,25 @@ struct N2TypeName {
     static constexpr int32_t const length = _getLength();
 };
 
-#endif /* defined(_MSC_VER) */
+#endif
+
+
+/* Value Category Checker
+ * ======================
+ * Like it says on the tin.
+ * Taken nearly directly from http://stackoverflow.com/questions/16637945
+ */
+template<typename T> struct value_category {
+    static constexpr auto value = "prvalue";
+};
+
+template<typename T> struct value_category<T&> {
+    static constexpr auto value = "lvalue";
+};
+
+template<typename T> struct value_category<T&&> {
+    static constexpr auto value = "xvalue";
+};
+
+// Double parens for ensuring we inspect an expression, not an entity
+#define VALUE_CATEGORY(expr) value_category<decltype((expr))>::value
