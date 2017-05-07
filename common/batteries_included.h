@@ -231,7 +231,7 @@ using decay_t = typename ::std::decay<T>::type;
     static_assert(::std::is_trivially_copyable<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                           \
     static_assert(::std::is_trivially_default_constructible<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
     static_assert(::std::is_standard_layout<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                                 \
-    static_assert(::std::is_pod<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is... not. We're not sure why. Please expand the ENFORCE_POD macro. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");
+    static_assert(::std::is_pod<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is... not. We're not sure why. Please expand the ENFORCE_POD macro. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
 
 /* ENFORCE_SIZE (and friends)
  * --------------------------
