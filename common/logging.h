@@ -77,8 +77,7 @@ inline i32 _logMessage(c_cstr    message,
  */
 #if defined(N2_DISABLE_LOGGING)
     #define LOG(MESSAGE, ...)
-#else // defined(N2_DISABLE_LOGGING)
-#if defined(DEBUG)
+#elif defined(DEBUG)
     static char format_verification[1] = {0};
     #define LOG(MESSAGE, ...)                                          \
         snprintf(format_verification, 0, MESSAGE, ##__VA_ARGS__);      \
@@ -88,5 +87,4 @@ inline i32 _logMessage(c_cstr    message,
     #define LOG(MESSAGE, ...)                                          \
         _logMessage(::_variadicExpand(MESSAGE, ##__VA_ARGS__).c_str(), \
                     __FILE__, __LINE__, __FUNCTION__)
-#endif // defined(DEBUG)
 #endif // defined(N2_DISABLE_LOGGING)
