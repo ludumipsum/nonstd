@@ -75,6 +75,9 @@ inline i32 _logMessage(c_cstr    message,
  * trick will add the cost of writing `\0` into `format_verification` to every
  * message actually printed.
  */
+#if defined(N2_DISABLE_LOGGING)
+    #define LOG(MESSAGE, ...)
+#else // defined(N2_DISABLE_LOGGING)
 #if defined(DEBUG)
     static char format_verification[1] = {0};
     #define LOG(MESSAGE, ...)                                          \
@@ -86,3 +89,4 @@ inline i32 _logMessage(c_cstr    message,
         _logMessage(::_variadicExpand(MESSAGE, ##__VA_ARGS__).c_str(), \
                     __FILE__, __LINE__, __FUNCTION__)
 #endif // defined(DEBUG)
+#endif // defined(N2_DISABLE_LOGGING)
