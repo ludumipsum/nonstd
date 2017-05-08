@@ -113,7 +113,11 @@ public: /*< ## Class Methods */
         // Round the requested capacity up to the nearest power-of-two, and then
         // tack on additional cells enough to handle the maximum miss distance.
         u64 required_capacity = next_power_of_two(capacity);
-        u8  max_miss_distance = log2(required_capacity);
+        u8  max_miss_distance = n2clamp(
+            log2(required_capacity),
+            1,
+            std::numeric_limits<u8>::max()
+        );
         return (sizeof (Metadata) +
                 (sizeof(Cell) * (required_capacity + max_miss_distance)));
     }
