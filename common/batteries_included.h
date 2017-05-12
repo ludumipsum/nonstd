@@ -137,6 +137,10 @@ using decay_t = typename ::std::decay<T>::type;
  * variables that C++17 will define because inline variables (which are required
  * for making the `_v` helpers useful) are a C++1z extension at this point. No
  * idea when MSVC will get them, or if they're consistently available in GCC.
+ *
+ * Note; I've given up the 80-column limit for this section, because the macro
+ * names should be clear enough to demarcate intention, and one-line structure
+ * of the definitions provides more clarity than short line-lengths.
  */
 
 /* IS_REFERENCE (and friends)
@@ -166,10 +170,8 @@ using decay_t = typename ::std::decay<T>::type;
  * Macros wrapping std::is_same<T,U>::value and decltype, s.t. types of
  * instances can be compared.
  */
-#define HAS_SAME_TYPE(LEFT,RIGHT)      \
-     (::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
-#define HAS_DIFFERENT_TYPE(LEFT,RIGHT) \
-    !(::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
+#define HAS_SAME_TYPE(LEFT,RIGHT)       (::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
+#define HAS_DIFFERENT_TYPE(LEFT,RIGHT) !(::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
 
 /* IS_CONVERTIBLE
  * --------------
@@ -183,40 +185,69 @@ using decay_t = typename ::std::decay<T>::type;
 #define IS_CONVERTIBLE(FROM,TO)      (::std::is_convertible<FROM,TO>::value)
 #define IS_NOT_CONVERTIBLE(FROM,TO) !(::std::is_convertible<FROM,TO>::value)
 
-/* Triviality Checks
- * -----------------
- * Macros wrapping `std::is_trivially_[type_trait]<T>::value`. Tells us what the
- * compiler will be able to automatically generate for us.
+/* Initialization/Deinitialization Checks
+ * --------------------------------------
+ * Macros wrapping `std::is_[trivially_][type_trait]<T>::value`. Tells us what
+ * the given class can or cannot do, and the trivially_ checks will tell us what
+ * the compiler will automatically generate for us.
  */
-#define IS_TRIVIALLY_COPYABLE(T)      (::std::is_trivially_copyable<T>::value)
-#define IS_NOT_TRIVIALLY_COPYABLE(T) !(::std::is_trivially_copyable<T>::value)
+#define IS_CONSTRUCTIBLE(T, ARGS)      (::std::is_constructible<T,ARGS>::value)
+#define IS_NOT_CONSTRUCTIBLE(T, ARGS) !(::std::is_constructible<T,ARGS>::value)
+#define IS_TRIVIALLY_CONSTRUCTIBLE(T, ARGS)      (::std::is_trivially_constructible<T,ARGS>::value)
+#define IS_NOT_TRIVIALLY_CONSTRUCTIBLE(T, ARGS) !(::std::is_trivially_constructible<T,ARGS>::value)
 
-
+#define IS_DEFAULT_CONSTRUCTIBLE(T)      (::std::is_default_constructible<T>::value)
+#define IS_NOT_DEFAULT_CONSTRUCTIBLE(T) !(::std::is_default_constructible<T>::value)
 #define IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T)      (::std::is_trivially_default_constructible<T>::value)
 #define IS_NOT_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T) !(::std::is_trivially_default_constructible<T>::value)
 
+#define IS_COPY_CONSTRUCTIBLE(T)      (::std::is_copy_constructible<T>::value)
+#define IS_NOT_COPY_CONSTRUCTIBLE(T) !(::std::is_copy_constructible<T>::value)
 #define IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)      (::std::is_trivially_copy_constructible<T>::value)
 #define IS_NOT_TRIVIALLY_COPY_CONSTRUCTIBLE(T) !(::std::is_trivially_copy_constructible<T>::value)
 
+#define IS_MOVE_CONSTRUCTIBLE(T)      (::std::is_move_constructible<T>::value)
+#define IS_NOT_MOVE_CONSTRUCTIBLE(T) !(::std::is_move_constructible<T>::value)
 #define IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T)      (::std::is_trivially_move_constructible<T>::value)
 #define IS_NOT_TRIVIALLY_MOVE_CONSTRUCTIBLE(T) !(::std::is_trivially_move_constructible<T>::value)
 
 
+#define IS_ASSIGNABLE(T)      (::std::is_assignable<T>::value)
+#define IS_NOT_ASSIGNABLE(T) !(::std::is_assignable<T>::value)
+#define IS_TRIVIALLY_ASSIGNABLE(T)      (::std::is_trivially_assignable<T>::value)
+#define IS_NOT_TRIVIALLY_ASSIGNABLE(T) !(::std::is_trivially_assignable<T>::value)
+
+#define IS_COPY_ASSIGNABLE(T)      (::std::is_copy_assignable<T>::value)
+#define IS_NOT_COPY_ASSIGNABLE(T) !(::std::is_copy_assignable<T>::value)
 #define IS_TRIVIALLY_COPY_ASSIGNABLE(T)      (::std::is_trivially_copy_assignable<T>::value)
 #define IS_NOT_TRIVIALLY_COPY_ASSIGNABLE(T) !(::std::is_trivially_copy_assignable<T>::value)
 
+#define IS_MOVE_ASSIGNABLE(T)      (::std::is_move_assignable<T>::value)
+#define IS_NOT_MOVE_ASSIGNABLE(T) !(::std::is_move_assignable<T>::value)
 #define IS_TRIVIALLY_MOVE_ASSIGNABLE(T)      (::std::is_trivially_move_assignable<T>::value)
 #define IS_NOT_TRIVIALLY_MOVE_ASSIGNABLE(T) !(::std::is_trivially_move_assignable<T>::value)
 
 
+#define IS_DESTRUCTIBLE(T)      (::std::is_destructible<T>::value)
+#define IS_NOT_DESTRUCTIBLE(T) !(::std::is_destructible<T>::value)
 #define IS_TRIVIALLY_DESTRUCTIBLE(T)      (::std::is_trivially_destructible<T>::value)
 #define IS_NOT_TRIVIALLY_DESTRUCTIBLE(T) !(::std::is_trivially_destructible<T>::value)
 
-/* Skipping out on these two because... I don't have a use for them. And it's
- * more typing. That I don't want to do right now. */
-// template <class T, class... Args> struct is_trivially_constructible;
-// template <class T, class U> struct is_trivially_assignable;
+/* Type Properties
+ * ---------------
+ * More macros wrapping `std::is_[type_trait}<T>::value`. This set focus on the
+ * properties of the given type, rather than supported operations. */
+#define IS_TRIVIAL(T)      (::std::is_trivial<T>::value)
+#define IS_NOT_TRIVIAL(T) !(::std::is_trivial<T>::value)
 
+#define IS_TRIVIALLY_COPYABLE(T)      (::std::is_trivially_copyable<T>::value)
+#define IS_NOT_TRIVIALLY_COPYABLE(T) !(::std::is_trivially_copyable<T>::value)
+
+#define IS_STANDARD_LAYOUT(T)      (::std::is_standard_layout<T>::value)
+#define IS_NOT_STANDARD_LAYOUT(T) !(::std::is_standard_layout<T>::value)
+
+#define IS_POD(T)      (::std::is_pod<T>::value)
+#define IS_NOT_POD(T) !(::std::is_pod<T>::value)
 } /* namespace n2_ */
 
 
@@ -231,10 +262,10 @@ using decay_t = typename ::std::decay<T>::type;
  * redundant, but better safe than sorry.
  */
 #define ENFORCE_POD(T) \
-    static_assert(::std::is_trivially_copyable<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                           \
-    static_assert(::std::is_trivially_default_constructible<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(::std::is_standard_layout<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                                 \
-    static_assert(::std::is_pod<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is... not. We're not sure why. Please expand the ENFORCE_POD macro. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
+    static_assert(IS_TRIVIALLY_COPYABLE(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                           \
+    static_assert(IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
+    static_assert(IS_STANDARD_LAYOUT(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                                 \
+    static_assert(IS_POD(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is... not. We're not sure why. Please expand the ENFORCE_POD macro. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
 
 /* ENFORCE_SIZE (and friends)
  * --------------------------
