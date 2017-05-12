@@ -91,6 +91,44 @@ namespace n2_ {
 template <typename... Ts> struct make_void { typedef void type; };
 template <typename... Ts> using void_t = typename make_void<Ts...>::type;
 
+/* In Place Constructor Tags
+ * -------------------------
+ * Useful for disambiguating constructors that accept initializer lists and/or
+ * variadic argument packs. ex;
+ *
+ *
+ *     struct Foo {
+ *         template <typename T> Foo(T) { . . . }
+ *         template <typename... Args> Foo(Args&&...) { . . . }
+ *     };
+ *     Foo { 0 }; // Which gets called?
+ *
+ *     struct Bar {
+ *         template <typename T> Bar(T) { . . . }
+ *         template <typename... Args> Bar(n2_::in_place_t, Args&&...) { . . . }
+ *     };
+ *     Bar { 0 };           // Unambiguous.
+ *     Bar { in_place, 0 }; // Unambiguous.
+ *
+ * Note that in the C++17 standard, the default (0-arg) constructors are
+ * explicitly defined with `= default` and are marked `explicit`. I have _no_
+ * idea why this was done, and have chosen to not replicate that definition.
+ *
+ * NB. We'd like these values to be inline variables so we can cleanly apply
+ * external linkage to them, but inline variables are a C++17 thing. Also, it
+ * doesn't really matter, because we're in the context of a mono-build.
+ * Fuck yeah, mono-builds.
+ */
+struct in_place_t { };
+constexpr /*inline*/ in_place_t in_place{};
+
+template <typename T> struct in_place_type_t { };
+template <typename T> constexpr /*inline*/ in_place_type_t<T> in_place_type{};
+
+template <size_t I> struct in_place_index_t { };
+template <size_t I> constexpr /*inline*/ in_place_index_t<I> in_place_index{};
+
+
 /* Helper Types
  * ------------
  * Mapping exactly to `[type_trait]<Ts..>::type`.
