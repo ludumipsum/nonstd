@@ -96,11 +96,14 @@ template <typename... Ts> using void_t = typename make_void<Ts...>::type;
  * Mapping exactly to `[type_trait]<Ts..>::type`.
  */
 
+/* NB. std::enable_if and n2_::enable_if_t default the returned type to `void`.
+ *     Macros don't let me define default arguments, so we have two
+ *     `ENABLE_IF_*` macros; one (`_DTYPE`) returns the dependent type, the
+ *     other (`_TYPE`) allows the default to come into play. */
 template <bool B, typename T = void>
 using enable_if_t = typename ::std::enable_if<B,T>::type;
-/* NB. This macro doesn't capture the default `T = void` argument. If you want
- *     that behavior, you'll have to `ENABLE_IF_TYPE([COND], void)`. */
-#define ENABLE_IF_TYPE(B,T) ::n2_::enable_if_t<B,T>
+#define ENABLE_IF_TYPE(B) ::n2_::enable_if_t<B>
+#define ENABLE_IF_DTYPE(B,T) ::n2_::enable_if_t<B,T>
 
 template <typename T>
 using remove_reference_t = typename ::std::remove_reference<T>::type;
@@ -429,7 +432,7 @@ inline uint32_t N2FOURCC(char const* code) {
  */
 #define TEMPLATE_ENABLE(COND, T)            \
     template<typename _DEP_T=DECAY_TYPE(T), \
-             typename ENABLE_IF_TYPE(COND,_DEP_T) * = nullptr>
+             typename ENABLE_IF_DTYPE(COND,_DEP_T) * = nullptr>
 
 
 /* Constexpr Type-Name Printing
