@@ -191,47 +191,63 @@ using decay_t = typename ::std::decay<T>::type;
  * the given class can or cannot do, and the trivially_ checks will tell us what
  * the compiler will automatically generate for us.
  */
-#define IS_CONSTRUCTIBLE(T, ARGS)      (::std::is_constructible<T,ARGS>::value)
-#define IS_NOT_CONSTRUCTIBLE(T, ARGS) !(::std::is_constructible<T,ARGS>::value)
-#define IS_TRIVIALLY_CONSTRUCTIBLE(T, ARGS)      (::std::is_trivially_constructible<T,ARGS>::value)
-#define IS_NOT_TRIVIALLY_CONSTRUCTIBLE(T, ARGS) !(::std::is_trivially_constructible<T,ARGS>::value)
+#define IS_CONSTRUCTIBLE(T, ...)      (::std::is_constructible<T,__VA_ARGS__>::value)
+#define IS_NOT_CONSTRUCTIBLE(T, ...) !(::std::is_constructible<T,__VA_ARGS__>::value)
+#define IS_TRIVIALLY_CONSTRUCTIBLE(T, ...)      (::std::is_trivially_constructible<T,__VA_ARGS__>::value)
+#define IS_NOT_TRIVIALLY_CONSTRUCTIBLE(T, ...) !(::std::is_trivially_constructible<T,__VA_ARGS__>::value)
+#define IS_NOTHROW_CONSTRUCTIBLE(T, ...)      (::std::is_nothrow_constructible<T,__VA_ARGS__>::value)
+#define IS_NOT_NOTHROW_CONSTRUCTIBLE(T, ...) !(::std::is_nothrow_constructible<T,__VA_ARGS__>::value)
 
 #define IS_DEFAULT_CONSTRUCTIBLE(T)      (::std::is_default_constructible<T>::value)
 #define IS_NOT_DEFAULT_CONSTRUCTIBLE(T) !(::std::is_default_constructible<T>::value)
 #define IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T)      (::std::is_trivially_default_constructible<T>::value)
 #define IS_NOT_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T) !(::std::is_trivially_default_constructible<T>::value)
+#define IS_NOTHROW_DEFAULT_CONSTRUCTIBLE(T)      (::std::is_nothrow_default_constructible<T>::value)
+#define IS_NOT_NOTHROW_DEFAULT_CONSTRUCTIBLE(T) !(::std::is_nothrow_default_constructible<T>::value)
 
 #define IS_COPY_CONSTRUCTIBLE(T)      (::std::is_copy_constructible<T>::value)
 #define IS_NOT_COPY_CONSTRUCTIBLE(T) !(::std::is_copy_constructible<T>::value)
 #define IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)      (::std::is_trivially_copy_constructible<T>::value)
 #define IS_NOT_TRIVIALLY_COPY_CONSTRUCTIBLE(T) !(::std::is_trivially_copy_constructible<T>::value)
+#define IS_NOTHROW_COPY_CONSTRUCTIBLE(T)      (::std::is_nothrow_copy_constructible<T>::value)
+#define IS_NOT_NOTHROW_COPY_CONSTRUCTIBLE(T) !(::std::is_nothrow_copy_constructible<T>::value)
 
 #define IS_MOVE_CONSTRUCTIBLE(T)      (::std::is_move_constructible<T>::value)
 #define IS_NOT_MOVE_CONSTRUCTIBLE(T) !(::std::is_move_constructible<T>::value)
 #define IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T)      (::std::is_trivially_move_constructible<T>::value)
 #define IS_NOT_TRIVIALLY_MOVE_CONSTRUCTIBLE(T) !(::std::is_trivially_move_constructible<T>::value)
+#define IS_NOTHROW_MOVE_CONSTRUCTIBLE(T)      (::std::is_nothrow_move_constructible<T>::value)
+#define IS_NOT_NOTHROW_MOVE_CONSTRUCTIBLE(T) !(::std::is_nothrow_move_constructible<T>::value)
 
 
 #define IS_ASSIGNABLE(T)      (::std::is_assignable<T>::value)
 #define IS_NOT_ASSIGNABLE(T) !(::std::is_assignable<T>::value)
 #define IS_TRIVIALLY_ASSIGNABLE(T)      (::std::is_trivially_assignable<T>::value)
 #define IS_NOT_TRIVIALLY_ASSIGNABLE(T) !(::std::is_trivially_assignable<T>::value)
+#define IS_NOTHROW_ASSIGNABLE(T)      (::std::is_nothrow_assignable<T>::value)
+#define IS_NOT_NOTHROW_ASSIGNABLE(T) !(::std::is_nothrow_assignable<T>::value)
 
 #define IS_COPY_ASSIGNABLE(T)      (::std::is_copy_assignable<T>::value)
 #define IS_NOT_COPY_ASSIGNABLE(T) !(::std::is_copy_assignable<T>::value)
 #define IS_TRIVIALLY_COPY_ASSIGNABLE(T)      (::std::is_trivially_copy_assignable<T>::value)
 #define IS_NOT_TRIVIALLY_COPY_ASSIGNABLE(T) !(::std::is_trivially_copy_assignable<T>::value)
+#define IS_NOTHROW_COPY_ASSIGNABLE(T)      (::std::is_nothrow_copy_assignable<T>::value)
+#define IS_NOT_NOTHROW_COPY_ASSIGNABLE(T) !(::std::is_nothrow_copy_assignable<T>::value)
 
 #define IS_MOVE_ASSIGNABLE(T)      (::std::is_move_assignable<T>::value)
 #define IS_NOT_MOVE_ASSIGNABLE(T) !(::std::is_move_assignable<T>::value)
 #define IS_TRIVIALLY_MOVE_ASSIGNABLE(T)      (::std::is_trivially_move_assignable<T>::value)
 #define IS_NOT_TRIVIALLY_MOVE_ASSIGNABLE(T) !(::std::is_trivially_move_assignable<T>::value)
+#define IS_NOTHROW_MOVE_ASSIGNABLE(T)      (::std::is_nothrow_move_assignable<T>::value)
+#define IS_NOT_NOTHROW_MOVE_ASSIGNABLE(T) !(::std::is_nothrow_move_assignable<T>::value)
 
 
 #define IS_DESTRUCTIBLE(T)      (::std::is_destructible<T>::value)
 #define IS_NOT_DESTRUCTIBLE(T) !(::std::is_destructible<T>::value)
 #define IS_TRIVIALLY_DESTRUCTIBLE(T)      (::std::is_trivially_destructible<T>::value)
 #define IS_NOT_TRIVIALLY_DESTRUCTIBLE(T) !(::std::is_trivially_destructible<T>::value)
+#define IS_NOTHROW_DESTRUCTIBLE(T)      (::std::is_nothrow_destructible<T>::value)
+#define IS_NOT_NOTHROW_DESTRUCTIBLE(T) !(::std::is_nothrow_destructible<T>::value)
 
 /* Type Properties
  * ---------------
