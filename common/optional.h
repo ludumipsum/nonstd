@@ -54,7 +54,7 @@ template<typename T> Optional<T> none() { return Optional<T>(); }
  *  ============================================================================
  */
 template <typename T>
-class Optional<T, ENABLE_IF_TYPE(IS_NOT_REFERENCE_TYPE(T), void) > {
+class Optional<T, ENABLE_IF_TYPE(IS_NOT_REFERENCE_TYPE(T)) > {
 public:
     using storage_type = T;
 
@@ -229,7 +229,7 @@ public:
  *  ============================================================================
  */
 template <typename T>
-class Optional<T, typename ENABLE_IF_TYPE(IS_LVAL_REFERENCE_TYPE(T), void) > {
+class Optional<T, typename ENABLE_IF_TYPE(IS_LVAL_REFERENCE_TYPE(T)) > {
 public:
     using storage_type = REMOVE_REFERENCE_TYPE(T);
     using const_storage_type = ADD_CONST_TYPE(storage_type);
