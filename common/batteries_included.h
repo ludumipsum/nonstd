@@ -196,6 +196,30 @@ using decay_t = typename ::std::decay<T>::type;
 #define IS_RVAL_REFERENCE_TYPE(T)      (::std::is_rvalue_reference<T>::value)
 #define IS_NOT_RVAL_REFERENCE_TYPE(T) !(::std::is_rvalue_reference<T>::value)
 
+/* IS_SCALAR (and friends)
+ * -----------------------
+ * Macros wrapping std::is_scalar<T>::value, and specializations thereon.
+ */
+#define IS_SCALAR(T)      (std::is_scalar<T>::value)
+#define IS_NOT_SCALAR(T) !(std::is_scalar<T>::value)
+
+#define IS_ARITHMETIC(T)      (std::is_arithmetic<T>::value)
+#define IS_NOT_ARITHMETIC(T) !(std::is_arithmetic<T>::value)
+
+#define IS_ENUM(T)      (std::is_enum<T>::value)
+#define IS_NOT_ENUM(T) !(std::is_enum<T>::value)
+
+#define IS_POINTER(T)      (std::is_pointer<T>::value)
+#define IS_NOT_POINTER(T) !(std::is_pointer<T>::value)
+
+#define IS_MEMBER_POINTER(T)      (std::is_member_pointer<T>::value)
+#define IS_NOT_MEMBER_POINTER(T) !(std::is_member_pointer<T>::value)
+
+#define IS_NULL_POINTER(T)      (std::is_null_pointer<T>::value)
+#define IS_NOT_NULL_POINTER(T) !(std::is_null_pointer<T>::value)
+
+
+
 /* IS_SAME_TYPE
  * ------------
  * Macros wrapping std::is_same<T,U>::value, s.t. types can be compared.
@@ -258,12 +282,12 @@ using decay_t = typename ::std::decay<T>::type;
 #define IS_NOT_NOTHROW_MOVE_CONSTRUCTIBLE(T) !(::std::is_nothrow_move_constructible<T>::value)
 
 
-#define IS_ASSIGNABLE(T)      (::std::is_assignable<T>::value)
-#define IS_NOT_ASSIGNABLE(T) !(::std::is_assignable<T>::value)
-#define IS_TRIVIALLY_ASSIGNABLE(T)      (::std::is_trivially_assignable<T>::value)
-#define IS_NOT_TRIVIALLY_ASSIGNABLE(T) !(::std::is_trivially_assignable<T>::value)
-#define IS_NOTHROW_ASSIGNABLE(T)      (::std::is_nothrow_assignable<T>::value)
-#define IS_NOT_NOTHROW_ASSIGNABLE(T) !(::std::is_nothrow_assignable<T>::value)
+#define IS_ASSIGNABLE(T,U)      (::std::is_assignable<T,U>::value)
+#define IS_NOT_ASSIGNABLE(T,U) !(::std::is_assignable<T,U>::value)
+#define IS_TRIVIALLY_ASSIGNABLE(T,U)      (::std::is_trivially_assignable<T,U>::value)
+#define IS_NOT_TRIVIALLY_ASSIGNABLE(T,U) !(::std::is_trivially_assignable<T,U>::value)
+#define IS_NOTHROW_ASSIGNABLE(T,U)      (::std::is_nothrow_assignable<T,U>::value)
+#define IS_NOT_NOTHROW_ASSIGNABLE(T,U) !(::std::is_nothrow_assignable<T,U>::value)
 
 #define IS_COPY_ASSIGNABLE(T)      (::std::is_copy_assignable<T>::value)
 #define IS_NOT_COPY_ASSIGNABLE(T) !(::std::is_copy_assignable<T>::value)
