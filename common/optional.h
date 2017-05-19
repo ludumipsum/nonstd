@@ -363,6 +363,54 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
 };
 
 
+/** Storage for LValue Reference types
+ *  ---------------------------------- */
+template < typename T >
+struct _Optional_LValRefStorage {
+    using _Storage_Type = DECAY_TYPE(T);
+
+    bool is_containing;
+    _Storage_Type * value;
+
+
+    constexpr _Optional_LValRefStorage()
+        : is_containing ( false   )
+        , value         ( nullptr ) { }
+
+    constexpr _Optional_LValRefStorage(n2_::nullopt_t /*unused*/)
+        : is_containing ( false   )
+        , value         ( nullptr ) { }
+
+
+    constexpr _Optional_LValRefStorage(_Optional_LValRefStorage const & other)
+        : is_containing ( other.is_containing )
+        , value         ( other.value         ) { }
+
+    constexpr _Optional_LValRefStorage(_Optional_LValRefStorage && other)
+        : is_containing ( other.is_containing )
+        , value         ( other.value         ) { }
+
+    constexpr _Optional_LValRefStorage(T & value)
+        : is_containing ( true  )
+        , value         ( const_cast<_Storage_Type *>(&value) ) { }
+
+    constexpr void setValue(T & value) {
+        is_containing = true;
+        this->value = &value;
+    }
+
+    constexpr void setValue(_Storage_Type * value) {
+        is_containing = true;
+        this->value = value;
+    }
+
+    constexpr void setValue(n2_::nullopt_t /**/) {
+        is_containing = false;
+        this->value = nullptr;
+    }
+};
+
+
 
 /** Optional Construction Logic and Storage for Value Types
  *  ============================================================================
@@ -772,16 +820,177 @@ public:
 
 /** LValue-Reference-Wrapping Optional
  *  ============================================================================
- *  Note that nearly all meaningful functionality is implemented in the
- *  _Optional_ValueBase parent.
- *  TODO: Write up a justification and description of this architecture.
  */
-
 template <typename T>
 class Optional < T, ENABLE_IF_TYPE(IS_LVAL_REFERENCE_TYPE(T)) >
     : _Optional_LvalReferenceBase<T>
 {
-    // TODO: Implement LValue Reference Optionals
+private:
+    using _Storage_Type = DECAY_TYPE(T);
+    using _Raw_Type     = REMOVE_REFERENCE_TYPE(T);
+
+    _Optional_LValRefStorage<T> _storage;
+
+public:
+    /* Empty Ctors
+     * ----------- */
+    constexpr Optional() noexcept
+        : _storage ( ) { }
+    constexpr Optional(n2_::nullopt_t /*unused*/) noexcept
+        : _storage ( ) { }
+
+    /* Copy Ctor
+     * --------- */
+    constexpr Optional(Optional const & other) noexcept
+        : _storage ( other._storage ) { }
+
+    /* Move Ctor
+     * --------- */
+    constexpr Optional(Optional && other) noexcept
+        : _storage ( std::move(other._storage) ) { }
+
+    /* Value Ctor
+     * ---------- */
+    constexpr Optional(T & value) noexcept
+        : _storage ( value ) { }
+
+    /* Empty Assignment
+     * ---------------- */
+    Optional<T&>& operator= (n2_::nullopt_t /*unused*/) noexcept {
+        _storage.is_containing = false;
+        _storage.value = nullptr;
+        return *this;
+    }
+
+    /* Copy Assignment
+     * --------------- */
+    Optional<T&>& operator= (Optional const & other) noexcept {
+        if (_storage.is_containing && other._storage.is_containing) {
+            _storage.value = other._storage.value;
+        } else {
+            if (other._storage.is_containing) {
+                _storage.value = other._storage.value;
+                _storage.is_containing = true;
+            } else {
+                _storage.is_containing = false;
+                _storage.value = nullptr;
+            }
+        }
+        return *this;
+    }
+
+    /* Move Assignment
+     * --------------- */
+    Optional<T&>& operator= (Optional && other) noexcept {
+        if (_storage.is_containing && other._storage.is_containing) {
+            _storage.value = std::move(other._storage.value);
+        } else {
+            if (other._storage.is_containing) {
+                _storage.value = other._storage.value;
+                _storage.is_containing = true;
+            } else {
+                _storage.is_containing = false;
+                _storage.value = nullptr;
+            }
+        }
+        return *this;
+    }
+
+    /* Value Assignment
+     * ---------------- */
+    Optional<T&>& operator= (T & value) noexcept {
+        _storage.value = const_cast<_Storage_Type *>(&value);
+    }
+
+    /* Helper Functions
+     * ---------------- */
+    constexpr T & _getValue() noexcept { return *_storage.value; }
+    constexpr T const & _getValue() const noexcept { return *_storage.value; }
+
+    constexpr bool _hasValue() const noexcept { return _storage.is_containing; }
+
+
+private:
+    /* Helper function to (optionally) check the validity of this Optional. */
+    constexpr void checkValue() const {
+#if N2_CHECKED_OPTIONALS
+        if (!this->_hasValue()) { BREAKPOINT(); }
+#endif
+    }
+
+public:
+    constexpr       _Raw_Type *  operator-> () {
+        checkValue(); return &this->_getValue();
+    }
+    constexpr const _Raw_Type *  operator-> () const {
+        checkValue(); return &this->_getValue();
+    }
+
+    constexpr       T &  operator*  ()       &  {
+        checkValue(); return this->_getValue();
+    }
+    constexpr const T &  operator*  () const &  {
+        checkValue(); return this->_getValue();
+    }
+    constexpr       T && operator*  ()       && {
+        checkValue(); return std::move(this->_getValue());
+    }
+    constexpr const T && operator*  () const && {
+        checkValue(); return std::move(this->_getValue());
+    }
+
+    // TODO: I don't think I actually want these... Would rather standardize on
+    //       the pointer-like access semantics.
+    constexpr       T &  operator() ()       &  {
+        checkValue(); return this->_getValue();
+    }
+    constexpr const T &  operator() () const &  {
+        checkValue(); return this->_getValue();
+    }
+    constexpr       T && operator() ()       && {
+        checkValue(); return std::move(this->_getValue());
+    }
+    constexpr const T && operator() () const && {
+        checkValue(); return std::move(this->_getValue());
+    }
+
+    constexpr explicit operator bool () const noexcept {
+        return this->_hasValue();
+    }
+    constexpr bool hasValue() const noexcept {
+        return this->_hasValue();
+    }
+
+    constexpr       T &  value()       &  {
+        checkValue(); return this->_getValue();
+    }
+    constexpr const T &  value() const &  {
+        checkValue(); return this->_getValue();
+    }
+    constexpr       T && value()       && {
+        checkValue(); return this->_getValue();
+    }
+    constexpr const T && value() const && {
+        checkValue(); return this->_getValue();
+    }
+
+    template < typename U = T >
+    constexpr _Raw_Type valueOr(U && value) const & {
+        return this->_hasValue() ? this->_getValue()
+                                 : static_cast<T>(std::forward<U>(value));
+    }
+    template < typename U = T >
+    constexpr _Raw_Type valueOr(U && value) && {
+        return this->_hasValue() ? this->_getValue()
+                                 : static_cast<T>(std::forward<U>(value));
+    }
+
+    void reset() noexcept {
+        if (this->_hasValue()) {
+            _storage.is_containing = false;
+            _storage.value = nullptr;
+        }
+    }
 };
 
 
