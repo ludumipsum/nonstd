@@ -126,164 +126,242 @@ template <typename T>
 class _Optional_LvalReferenceBase;
 
 
-/** Optional Storage Wrapper
- *  ------------------------
- *  Wrapper around the `is_containing` boolean, and the value-or-no-value Union.
- *  We need to give Optionals their own storage class s.t. SFINAE can be used to
- *  selectively define a destructor based on `T`s type_traits. When storing a
- *  type that is not trivial destructible, the _Storage object's implicitly
- *  defined destructor won't exist, and so needs to be explicitly created (and
- *  explicitly call the destructor on the stored value). When storing a type
- *  that is trivially destructible, the implicitly defined destructor will be
- *  defined, will correctly clean up the stored value, and will match the
- *  constexpr-ness of the stored type. Which we want.
- */
-template < typename T
-         , bool TriviallyDestructible = IS_TRIVIALLY_DESTRUCTIBLE(T) >
-struct _Optional_Storage;
-
-
 
 /** Optional Storage Class
  *  ============================================================================
+ *  Wrapper around the `is_containing` boolean, and the value-or-no-value union.
+ *  We need to give Optionals their own storage class s.t. SFINAE can be used to
+ *  selectively define constructors and destructors based on `T`.
+ *
+ *  When storing an object that is trivially copy and move constructible, the
+ *  implicitly defined copy/move ctors will be correct in all cases; the active
+ *  member of the union will be determined (at compile time, if possible) and
+ *  used to initialize the relevant member in the new _Storge object. Otherwise
+ *  the implicit copy/move ctors will not be defined, which forces us to
+ *  explicitly define them. In these cases, we also need to wait till run-time
+ *  to (optionally) construct a value based on the `other`.
+ *
+ *  When storing a type that is not trivial destructible, the _Storage object's
+ *  implicitly defined destructor won't be defined, and so needs to be
+ *  explicitly created (and needs to explicitly call the destructor on the
+ *  stored value). When storing a type that is trivially destructible, the
+ *  implicitly defined destructor will be defined, will correctly clean up the
+ *  stored value, and will match the constexpr-ness of the stored type.
  */
+template < typename T
+         , bool MoveAndCopyCtorsAreTrivial =
+             (    IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)
+               && IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T) )
+         , bool DestructorIsTrivial = IS_TRIVIALLY_DESTRUCTIBLE(T) >
+struct _Optional_Storage;
 
-/** Storage for Types with Trivial Destructors
- *  ------------------------------------------ */
-template < typename T  >
-struct _Optional_Storage<T, true> {
+
+/**
+ *  Storage for types with trivial construction and trivial destruction
+ *  ------------------------------------------------------------------- */
+template < typename T >
+struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ true,
+                            /* DestructorIsTrivial        */ true>
+{
     struct _Empty { };
+
+    bool is_containing;
     union {
         _Empty empty;
         T      value;
     };
-    bool is_containing;
+
 
     constexpr _Optional_Storage()
-        : empty         {       }
-        , is_containing ( false ) { }
+        : is_containing ( false )
+        , empty         {       } { }
 
     constexpr _Optional_Storage(n2_::nullopt_t /*unused*/)
-        : empty         {       }
-        , is_containing ( false ) { }
+        : is_containing ( false )
+        , empty         {       } { }
 
-    constexpr _Optional_Storage(_Optional_Storage const & other)
-        : value ( other.value )
-        , is_containing ( true ) { }
 
-    constexpr _Optional_Storage(_Optional_Storage && other)
-        : value ( std::move(other.value) )
-        , is_containing ( true ) { }
+    constexpr _Optional_Storage(_Optional_Storage const & other) = default;
+    constexpr _Optional_Storage(_Optional_Storage && other) = default;
+
 
     constexpr _Optional_Storage(T const & value)
-        : value         ( value )
-        , is_containing ( true  ) { }
+        : is_containing ( true  )
+        , value         ( value ) { }
 
     constexpr _Optional_Storage(T && value)
-        : value         ( std::move(value) )
-        , is_containing ( true             ) { }
+        : is_containing ( true             )
+        , value         ( std::move(value) ) { }
 
     template < typename... Args>
     constexpr _Optional_Storage(n2_::in_place_t,
                                 Args && ... args)
-        : value         ( std::forward<Args>(args)... )
-        , is_containing ( true                        ) { }
+        : is_containing ( true                        )
+        , value         ( std::forward<Args>(args)... ) { }
 
     template < typename Il, typename... Args>
     constexpr _Optional_Storage(n2_::in_place_t,
                                 std::initializer_list<Il> il,
                                 Args && ... args)
-        : value         ( il, std::forward<Args>(args)... )
-        , is_containing ( true                            ) { }
-
-    /* We need to define (and use, in containing classes) these 2/arity ctors,
-     * otherwise we cause a delegated-constructor loop that the compiler can't
-     * resolve. I... Actually don't fully understand the root issue, but...
-     * there you go. */
-    constexpr _Optional_Storage(bool is_containing,
-                                _Optional_Storage const & other)
-        : _Optional_Storage ( is_containing
-                              ? _Optional_Storage { other.value }
-                              : _Optional_Storage { n2_::nullopt } ) { }
-
-    constexpr _Optional_Storage(bool is_containing,
-                                _Optional_Storage && other)
-        : _Optional_Storage ( is_containing
-                              ? _Optional_Storage { std::move(other.value) }
-                              : _Optional_Storage { n2_::nullopt }           )
-    { }
+        : is_containing ( true                            )
+        , value         ( il, std::forward<Args>(args)... ) { }
 };
 
 
-/** Storage types with non-trivial destructors
- *  ------------------------------------------ */
+/** Storage for types with non-trivial construction & trivial destruction
+ *  --------------------------------------------------------------------- */
 template < typename T >
-struct _Optional_Storage<T, false> {
+struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
+                            /* DestructorIsTrivial        */ true>
+{
     struct _Empty { };
+
+    bool is_containing;
     union {
         _Empty empty;
         T      value;
     };
-    bool is_containing;
+
+    // The anonymous union may have be initialized to `empty`, so we use
+    // placement new to guarantee the active member is switched.
+    template < typename... Args >
+    void _construct(Args && ... args)
+    noexcept ( IS_NOTHROW_CONSTRUCTIBLE(T, Args...) ) {
+        new ((void*)(&value)) T(std::forward<Args>(args)...);
+        is_containing = true;
+    }
+
 
     constexpr _Optional_Storage()
-        : empty         {       }
-        , is_containing ( false ) { }
+        : is_containing ( false )
+        , empty         {       } { }
 
     constexpr _Optional_Storage(n2_::nullopt_t /*unused*/)
-        : empty         {       }
-        , is_containing ( false ) { }
+        : is_containing ( false )
+        , empty         {       } { }
 
+
+    // Interestingly, we can leave the copy and move constructors `constexpr`,
+    // as the compiler will be able to skip the `_construct` call if the `other`
+    // is non-containing. I don't know if a compile-time, non-containing, non-
+    // trivially constructible Optional will be of use, but... You can do it.
     constexpr _Optional_Storage(_Optional_Storage const & other)
-        : value ( other.value )
-        , is_containing ( true ) { }
+        : is_containing ( other.is_containing )
+        , empty         {                     }
+    {
+        if (other.is_containing)
+            _construct(other.value);
+    }
 
     constexpr _Optional_Storage(_Optional_Storage && other)
-        : value ( std::move(other.value) )
-        , is_containing ( true ) { }
+        : is_containing ( other.is_containing )
+        , empty         {                     }
+    {
+        if (other.is_containing)
+            _construct(std::move(other.value));
+    }
+
 
     constexpr _Optional_Storage(T const & value)
-        : value         ( value )
-        , is_containing ( true  ) { }
+        : is_containing ( true  )
+        , value         ( value ) { }
 
     constexpr _Optional_Storage(T && value)
-        : value         ( std::move(value) )
-        , is_containing ( true             ) { }
+        : is_containing ( true             )
+        , value         ( std::move(value) ) { }
 
-    template < typename... Args >
+    template < typename... Args>
     constexpr _Optional_Storage(n2_::in_place_t,
                                 Args && ... args)
-        : value         ( std::forward<Args>(args)... )
-        , is_containing ( true                        ) { }
+        : is_containing ( true                        )
+        , value         ( std::forward<Args>(args)... ) { }
 
-    template < typename Il, typename... Args >
+    template < typename Il, typename... Args>
     constexpr _Optional_Storage(n2_::in_place_t,
                                 std::initializer_list<Il> il,
                                 Args && ... args)
-        : value         ( il, std::forward<Args>(args)... )
-        , is_containing ( true                            ) { }
+        : is_containing ( true                            )
+        , value         ( il, std::forward<Args>(args)... ) { }
+};
 
-    /* We need to define (and use, in containing classes) these 2/arity ctors,
-     * otherwise we cause a delegated-constructor loop that the compiler can't
-     * resolve. I... Actually don't fully understand the root issue, but...
-     * there you go. */
-    constexpr _Optional_Storage(bool is_containing,
-                                _Optional_Storage const & other)
-        : _Optional_Storage ( is_containing
-                              ? _Optional_Storage { other.value }
-                              : _Optional_Storage { n2_::nullopt } ) { }
 
-    constexpr _Optional_Storage(bool is_containing,
-                                _Optional_Storage && other)
-        : _Optional_Storage ( is_containing
-                              ? _Optional_Storage { std::move(other.value) }
-                              : _Optional_Storage { n2_::nullopt }           )
-    { }
+/** Storage for types with non-trivial construction & non-trivial destruction
+ *  ------------------------------------------------------------------------- */
+template < typename T >
+struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
+                            /* DestructorIsTrivial        */ false>
+{
+    struct _Empty { };
+
+    bool is_containing;
+    union {
+        _Empty empty;
+        T      value;
+    };
+
+    // The anonymous union may have be initialized to `empty`, so we use
+    // placement new to guarantee the active member is switched.
+    template < typename... Args >
+    void _construct(Args && ... args)
+    noexcept ( IS_NOTHROW_CONSTRUCTIBLE(T, Args...) ) {
+        new ((void*)(&value)) T(std::forward<Args>(args)...);
+        is_containing = true;
+    }
 
     ~_Optional_Storage() {
-        if (is_containing) { value.~T(); }
+        if (is_containing)
+            value.~T();
     }
+
+
+    constexpr _Optional_Storage()
+        : is_containing ( false )
+        , empty         {       } { }
+
+    constexpr _Optional_Storage(n2_::nullopt_t /*unused*/)
+        : is_containing ( false )
+        , empty         {       } { }
+
+
+    constexpr _Optional_Storage(_Optional_Storage const & other)
+        : is_containing ( other.is_containing )
+        , empty         {                     }
+    {
+        if (other.is_containing)
+            _construct(other.value);
+    }
+
+    constexpr _Optional_Storage(_Optional_Storage && other)
+        : is_containing ( other.is_containing )
+        , empty         {                     }
+    {
+        if (other.is_containing)
+            _construct(std::move(other.value));
+    }
+
+
+    constexpr _Optional_Storage(T const & value)
+        : is_containing ( true  )
+        , value         ( value ) { }
+
+    constexpr _Optional_Storage(T && value)
+        : is_containing ( true             )
+        , value         ( std::move(value) ) { }
+
+    template < typename... Args>
+    constexpr _Optional_Storage(n2_::in_place_t,
+                                Args && ... args)
+        : is_containing ( true                        )
+        , value         ( std::forward<Args>(args)... ) { }
+
+    template < typename Il, typename... Args>
+    constexpr _Optional_Storage(n2_::in_place_t,
+                                std::initializer_list<Il> il,
+                                Args && ... args)
+        : is_containing ( true                            )
+        , value         ( il, std::forward<Args>(args)... ) { }
 };
+
 
 
 /** Optional Construction Logic and Storage for Value Types
@@ -318,8 +396,7 @@ public:
      * If IS_COPY_CONSTRUCTIBLE(T) == false, this constructor will be explicitly
      * deleted in Optional<T>. */
     constexpr _Optional_ValueBase(_Optional_ValueBase const & other)
-        : _storage ( other._storage.is_containing,
-                     other._storage                ) { }
+        : _storage ( other._storage ) { }
 
     /* Move Ctor
      * ---------
@@ -327,8 +404,7 @@ public:
      * deleted in Optional<T>. */
     constexpr _Optional_ValueBase(_Optional_ValueBase && other)
     noexcept(IS_NOTHROW_MOVE_CONSTRUCTIBLE(T))
-        : _storage ( other._storage.is_containing,
-                     std::move(other._storage.value) ) { }
+        : _storage ( std::move(other._storage.value) ) { }
 
     /* In-Place Value Ctor
      * ------------------- */
@@ -475,6 +551,7 @@ public:
                               , int) = 0 >
     _Optional_ValueBase<T>& operator= (U&& value) {
         if (_storage.is_containing) {
+            // Use _getValue to assign to a `T`, rather than a `REMOVE_CONST(T)`
             _getValue() = std::forward<U>(value);
         } else {
             _constructValue(std::forward<U>(value));
