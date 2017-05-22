@@ -471,23 +471,23 @@ public:
                                   Args && ... args)
         : _storage ( n2_::in_place, il, std::forward<Args>(args)... ) { }
 
-    /* Converting Move Value Ctor
+    /* Converting Value Move Ctor
      * -------------------------- */
     template < typename U = T
-             , ENABLE_IF_DTYPE((   IS_CONSTRUCTIBLE(T, U&&)
-                                && IS_DIFFERENT_TYPE(DECAY_TYPE(U),
+             , ENABLE_IF_DTYPE((   IS_DIFFERENT_TYPE(DECAY_TYPE(U),
                                                      n2_::in_place_t)
                                 && IS_DIFFERENT_TYPE(DECAY_TYPE(U), Optional<T>)
+                                && IS_CONSTRUCTIBLE(T, U&&)
                                 && IS_CONVERTIBLE(U&&, T))
                               , int) = 0 >
     constexpr _Optional_ValueBase(U && value)
         : _storage ( std::forward<U>(value) ) { }
 
     template < typename U = T
-             , ENABLE_IF_DTYPE((   IS_CONSTRUCTIBLE(T, U&&)
-                                && IS_DIFFERENT_TYPE(DECAY_TYPE(U),
+             , ENABLE_IF_DTYPE((   IS_DIFFERENT_TYPE(DECAY_TYPE(U),
                                                      n2_::in_place_t)
                                 && IS_DIFFERENT_TYPE(DECAY_TYPE(U), Optional<T>)
+                                && IS_CONSTRUCTIBLE(T, U&&)
                                 && IS_NOT_CONVERTIBLE(U&&, T))
                               , int) = 1 >
     constexpr explicit _Optional_ValueBase(U && value)
@@ -498,7 +498,8 @@ public:
      * NB. The value being copied is going to be a complete `Optional<U>` (not a
      *    `_Optional_ValueBase<U>`), so that's the parameter we accept. */
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_CONSTRUCTIBLE(T, U const &)
+             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
+                                &&   IS_CONSTRUCTIBLE(T, U const &)
                                 &&   IS_CONVERTIBLE(U const &, T)
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
                               , int) = 0>
@@ -508,7 +509,8 @@ public:
                                 : _Optional_ValueBase(n2_::nullopt) ) { }
 
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_CONSTRUCTIBLE(T, U const &)
+             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
+                                &&   IS_CONSTRUCTIBLE(T, U const &)
                                 &&   IS_NOT_CONVERTIBLE(U const &, T)
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
                               , int) = 1>
@@ -522,7 +524,8 @@ public:
      * NB. The value being moved is going to be a complete `Optional<U>` (not a
      *    `_Optional_ValueBase<U>`), so that's the parameter we accept. */
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_CONSTRUCTIBLE(T, U &&)
+             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
+                                &&   IS_CONSTRUCTIBLE(T, U&&)
                                 &&   IS_CONVERTIBLE(U &&, T)
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
                               , int) = 0>
@@ -532,7 +535,8 @@ public:
                                 : _Optional_ValueBase(n2_::nullopt)      ) { }
 
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_CONSTRUCTIBLE(T, U &&)
+             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
+                                &&   IS_CONSTRUCTIBLE(T, U&&)
                                 &&   IS_NOT_CONVERTIBLE(U &&, T)
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
                               , int) = 1>
@@ -586,13 +590,36 @@ public:
         return *this;
     }
 
-    /* Converting Move Value Assignment
-     * -------------------------------- */
+    /* Converting Value Move Assignment
+     * --------------------------------
+     * NOTE: There is either a problem with this implementation, or the C++17
+     * n4618 standard. Missing from the SFINAE clause below is the requirement
+     * that "`conjunction_v<is_scalar<T>, is_same<T, decay_t<U>>>` is `false`."
+     * With that clause in place, the assigning a T to a containing Optional
+     * results in an ambiguous implicit constructor call, but assigning an
+     * implicitly-convertible-to-T succeeds. Observe,
+     *     Optional<int>  foo = 42; // Works; Calls into the Converting Value
+     *                              // Move Ctor, *not* an assignment operator.
+     *     foo = 84; // Fails; `operator= (U&& value)` does not participate in
+     *               // overload resolution because `is_scalar_v<int>` is
+     *               // `true`, and `is_same_v<int, decay_t<int>>` is `true`.
+     *     // error: use of overloaded operator '=' is ambiguous (with operand
+     *     //         types 'Optional<int>' and 'int')
+     *     // . . . candidate is the implicit move assignment operator
+     *     // . . . candidate is the implicit copy assignment operator
+     *
+     *     Optional<long> bar = 42; // Works; Calls into the Converting Value
+     *                              // Move Ctor, *not* an assignment operator.
+     *     bar = 84; // Works; `operator= (U&& value)` is used because
+     *               // `is_same_v<int, decay_t<long>>` is `false`.
+     *
+     * The missing clause is;
+     *     && ! (   IS_SCALAR(T)
+     *           && IS_SAME_TYPE(DECAY_TYPE(U), T))
+     */
     template < typename U = T
              , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(DECAY_TYPE(U),
                                                        Optional<T>)
-                                && ! (   IS_SCALAR(T)
-                                      && IS_SAME_TYPE(DECAY_TYPE(U), T))
                                 &&   IS_CONSTRUCTIBLE(T, U)
                                 &&   IS_ASSIGNABLE(T&, U))
                               , int) = 0 >
@@ -611,7 +638,8 @@ public:
      * NB. The value being copied is going to be a complete `Optional<U>` (not a
      *    `_Optional_ValueBase<U>`), so that's the parameter we accept. */
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_CONSTRUCTIBLE(T, U const &)
+             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
+                                &&   IS_CONSTRUCTIBLE(T, U const &)
                                 &&   IS_ASSIGNABLE(T&, U const &)
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T)
                                 && ! IS_ASSIGNABLE_FROM_OPTIONAL(U, T))
@@ -635,7 +663,8 @@ public:
      * NB. The value being moved is going to be a complete `Optional<U>` (not a
      *    `_Optional_ValueBase<U>`), so that's the parameter we accept. */
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_CONSTRUCTIBLE(T, U)
+             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
+                                &&   IS_CONSTRUCTIBLE(T, U)
                                 &&   IS_ASSIGNABLE(T&, U)
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T)
                                 && ! IS_ASSIGNABLE_FROM_OPTIONAL(U, T))
