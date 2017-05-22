@@ -187,14 +187,14 @@ using decay_t = typename ::std::decay<T>::type;
  * extract the referentiality of an object.
  * Answers the "Is this type a reference? If so, what kind?" question.
  */
-#define IS_REFERENCE_TYPE(T)      (::std::is_reference<T>::value)
-#define IS_NOT_REFERENCE_TYPE(T) !(::std::is_reference<T>::value)
+#define IS_REFERENCE(T)      (::std::is_reference<T>::value)
+#define IS_NOT_REFERENCE(T) !(::std::is_reference<T>::value)
 
-#define IS_LVAL_REFERENCE_TYPE(T)      (::std::is_lvalue_reference<T>::value)
-#define IS_NOT_LVAL_REFERENCE_TYPE(T) !(::std::is_lvalue_reference<T>::value)
+#define IS_LVAL_REFERENCE(T)      (::std::is_lvalue_reference<T>::value)
+#define IS_NOT_LVAL_REFERENCE(T) !(::std::is_lvalue_reference<T>::value)
 
-#define IS_RVAL_REFERENCE_TYPE(T)      (::std::is_rvalue_reference<T>::value)
-#define IS_NOT_RVAL_REFERENCE_TYPE(T) !(::std::is_rvalue_reference<T>::value)
+#define IS_RVAL_REFERENCE(T)      (::std::is_rvalue_reference<T>::value)
+#define IS_NOT_RVAL_REFERENCE(T) !(::std::is_rvalue_reference<T>::value)
 
 /* IS_SCALAR (and friends)
  * -----------------------
@@ -217,8 +217,6 @@ using decay_t = typename ::std::decay<T>::type;
 
 #define IS_NULL_POINTER(T)      (std::is_null_pointer<T>::value)
 #define IS_NOT_NULL_POINTER(T) !(std::is_null_pointer<T>::value)
-
-
 
 /* IS_SAME_TYPE
  * ------------
@@ -310,6 +308,7 @@ using decay_t = typename ::std::decay<T>::type;
 #define IS_NOT_TRIVIALLY_DESTRUCTIBLE(T) !(::std::is_trivially_destructible<T>::value)
 #define IS_NOTHROW_DESTRUCTIBLE(T)      (::std::is_nothrow_destructible<T>::value)
 #define IS_NOT_NOTHROW_DESTRUCTIBLE(T) !(::std::is_nothrow_destructible<T>::value)
+
 
 /* Type Properties
  * ---------------

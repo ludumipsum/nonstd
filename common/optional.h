@@ -795,7 +795,7 @@ protected:
  *  user-facing observers.
  */
 template < typename T >
-class Optional < T, ENABLE_IF_TYPE(IS_NOT_REFERENCE_TYPE(T)) >
+class Optional < T, ENABLE_IF_TYPE(IS_NOT_REFERENCE(T)) >
     : private _Optional_ValueBase<T>
     , private n2_::_EnableCopyCtor<IS_COPY_CONSTRUCTIBLE(T),     Optional<T>>
     , private n2_::_EnableCopyAssign<(IS_COPY_CONSTRUCTIBLE(T)
@@ -899,7 +899,7 @@ public:
  *  user-facing observers.
  */
 template <typename T>
-class Optional < T, ENABLE_IF_TYPE(IS_LVAL_REFERENCE_TYPE(T)) >
+class Optional < T, ENABLE_IF_TYPE(IS_LVAL_REFERENCE(T)) >
     : _Optional_LValRefBase<T>
 {
 public:
