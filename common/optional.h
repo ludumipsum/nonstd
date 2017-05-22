@@ -817,6 +817,8 @@ public:
      * ---------------- */
     _Optional_LValRefBase<T&>& operator= (T & value) noexcept {
         _storage.value = const_cast<_Storage_Type>(&value);
+        _storage.is_containing = true;
+        return *this;
     }
 
     /* Helper Functions
