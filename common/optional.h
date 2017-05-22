@@ -887,21 +887,6 @@ public:
         checkValue(); return std::move(this->_getValue());
     }
 
-    // TODO: I don't think I actually want these... Would rather standardize on
-    //       the pointer-like access semantics.
-    constexpr       T &  operator() ()       &  {
-        checkValue(); return this->_getValue();
-    }
-    constexpr const T &  operator() () const &  {
-        checkValue(); return this->_getValue();
-    }
-    constexpr       T && operator() ()       && {
-        checkValue(); return std::move(this->_getValue());
-    }
-    constexpr const T && operator() () const && {
-        checkValue(); return std::move(this->_getValue());
-    }
-
     constexpr explicit operator bool () const noexcept {
         return this->_hasValue();
     }
@@ -982,21 +967,6 @@ public:
         checkValue(); return std::move(this->_getValue());
     }
     constexpr const T && operator*  () const && {
-        checkValue(); return std::move(this->_getValue());
-    }
-
-    // TODO: I don't think I actually want these... Would rather standardize on
-    //       the pointer-like access semantics.
-    constexpr       T &  operator() ()       &  {
-        checkValue(); return this->_getValue();
-    }
-    constexpr const T &  operator() () const &  {
-        checkValue(); return this->_getValue();
-    }
-    constexpr       T && operator() ()       && {
-        checkValue(); return std::move(this->_getValue());
-    }
-    constexpr const T && operator() () const && {
         checkValue(); return std::move(this->_getValue());
     }
 
