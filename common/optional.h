@@ -16,10 +16,10 @@
  *  For now, a good deal of the structure is described in the Forward
  *  Declarations section, and above each class / template specialization.
  *
- *
- *  TODO:
- *   * Implement a specialization on std::swap
- *   * Implement a specialization on std::hash
+ *  NB. No specialization on swap was added because `std::is_swappabale<T>` has
+ *  not landed in Apple Clang (at the time of writing), and because the std::
+ *  namespace should not be modified by user code. This is also the reason no
+ *  specialization on hash:: was added.
  */
 
 #pragma once
