@@ -18,9 +18,6 @@
  *
  *
  *  TODO:
- *   * Implement LValue-Reference-Wrapping Optionals
- *   * Consider if we want to (and how we would?) implement
- *     RValue-Reference-Wrapping Optionals
  *   * Implement a specialization on std::swap
  *   * Implement a specialization on std::hash
  */
@@ -123,7 +120,7 @@ class _Optional_ValueBase;
 
 
 template <typename T>
-class _Optional_LvalReferenceBase;
+class _Optional_LValRefBase;
 
 
 
@@ -367,11 +364,11 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
  *  ---------------------------------- */
 template < typename T >
 struct _Optional_LValRefStorage {
-    using _Storage_Type = DECAY_TYPE(T);
+    static_assert(IS_POINTER(T),
+        "_Optional_LValRefStorage expects to be specialized on a pointer type");
 
     bool is_containing;
-    _Storage_Type * value;
-
+    T    value;
 
     constexpr _Optional_LValRefStorage()
         : is_containing ( false   )
@@ -390,24 +387,9 @@ struct _Optional_LValRefStorage {
         : is_containing ( other.is_containing )
         , value         ( other.value         ) { }
 
-    constexpr _Optional_LValRefStorage(T & value)
+    constexpr _Optional_LValRefStorage(T value)
         : is_containing ( true  )
-        , value         ( const_cast<_Storage_Type *>(&value) ) { }
-
-    constexpr void setValue(T & value) {
-        is_containing = true;
-        this->value = &value;
-    }
-
-    constexpr void setValue(_Storage_Type * value) {
-        is_containing = true;
-        this->value = value;
-    }
-
-    constexpr void setValue(n2_::nullopt_t /**/) {
-        is_containing = false;
-        this->value = nullptr;
-    }
+        , value         ( value ) { }
 };
 
 
@@ -683,8 +665,8 @@ protected:
      * ----------------
      * For destructing, constructing, and fetching values. */
     void _removeValue() {
-        _storage.value.~_Storage_Type();
         _storage.is_containing = false;
+        _storage.value.~_Storage_Type();
     }
 
     template < typename... Args >
@@ -697,7 +679,7 @@ protected:
         _storage.is_containing = true;
     }
 
-    constexpr T & _getValue() noexcept { return _storage.value; }
+    constexpr T       & _getValue()       noexcept { return _storage.value; }
     constexpr T const & _getValue() const noexcept { return _storage.value; }
 
     constexpr bool _hasValue() const noexcept { return _storage.is_containing; }
@@ -709,16 +691,108 @@ protected:
  *  ============================================================================
  */
 template < typename T >
-class _Optional_LvalReferenceBase {
-    // TODO: Implement LValue Reference Optionals.
+class _Optional_LValRefBase {
+private:
+    /* Reference types can't be directly stored, and can't be reseated once
+     * initialized, so we strip the ref qualifier and store a mutable pointer
+     * to the base type of the reference. */
+    using _Storage_Type = REMOVE_REFERENCE_TYPE(T) *;
+
+    _Optional_LValRefStorage<_Storage_Type> _storage;
+
+public:
+    /* Empty Ctors
+     * ----------- */
+    constexpr _Optional_LValRefBase() noexcept
+        : _storage ( ) { }
+    constexpr _Optional_LValRefBase(n2_::nullopt_t /*unused*/) noexcept
+        : _storage ( ) { }
+
+    /* Copy Ctor
+     * --------- */
+    constexpr _Optional_LValRefBase(_Optional_LValRefBase const & other)
+    noexcept
+        : _storage ( other._storage ) { }
+
+    /* Move Ctor
+     * --------- */
+    constexpr _Optional_LValRefBase(_Optional_LValRefBase && other) noexcept
+        : _storage ( std::move(other._storage) ) { }
+
+    /* Value Ctor
+     * ---------- */
+    constexpr _Optional_LValRefBase(T & value) noexcept
+        : _storage ( const_cast<_Storage_Type>(&value) ) { }
+
+    /* Empty Assignment
+     * ---------------- */
+    _Optional_LValRefBase<T&>& operator= (n2_::nullopt_t /*unused*/) noexcept {
+        _removeValue();
+        return *this;
+    }
+
+    /* Copy Assignment
+     * ---------------
+     * NB. The value being copied is going to be a complete `Optional<T>` (not a
+     *    `_Optional_LValRefBase<T>`), so that's the parameter we accept. */
+    _Optional_LValRefBase<T&>& operator= (Optional<T&> const & other) noexcept {
+        if (_storage.is_containing && other._storage.is_containing) {
+            _storage.value = other._storage.value;
+        } else {
+            if (other._storage.is_containing) {
+                _storage.value = other._storage.value;
+                _storage.is_containing = true;
+            } else {
+                _removeValue();
+            }
+        }
+        return *this;
+    }
+
+    /* Move Assignment
+     * ---------------
+     * NB. The value being copied is going to be a complete `Optional<T>` (not a
+     *    `_Optional_LValRefBase<T>`), so that's the parameter we accept. */
+    _Optional_LValRefBase<T&>& operator= (Optional<T&> && other) noexcept {
+        if (_storage.is_containing && other._storage.is_containing) {
+            _storage.value = std::move(other._storage.value);
+        } else {
+            if (other._storage.is_containing) {
+                _storage.value = std::move(other._storage.value);
+                _storage.is_containing = true;
+            } else {
+                _removeValue();
+            }
+        }
+        return *this;
+    }
+
+    /* Value Assignment
+     * ---------------- */
+    _Optional_LValRefBase<T&>& operator= (T & value) noexcept {
+        _storage.value = const_cast<_Storage_Type>(&value);
+    }
+
+    /* Helper Functions
+     * ---------------- */
+protected:
+    void _removeValue() {
+        _storage.is_containing = false;
+        _storage.value = nullptr;
+    }
+
+    constexpr T       & _getValue()       noexcept { return *_storage.value; }
+    constexpr T const & _getValue() const noexcept { return *_storage.value; }
+
+    constexpr bool _hasValue() const noexcept { return _storage.is_containing; }
 };
 
 
 /** Value-Wrapping Optional
  *  ============================================================================
- *  Note that nearly all meaningful functionality is implemented in the
- *  _Optional_ValueBase parent.
- *  TODO: Write up a justification and description of this architecture.
+ *  Note that nearly all meaningful functionality related to storage is
+ *  implemented in the _Optional_ValueBase parent. This class only deals in
+ *  user-facing observers.
  */
 template < typename T >
 class Optional < T, ENABLE_IF_TYPE(IS_NOT_REFERENCE_TYPE(T)) >
@@ -820,95 +894,19 @@ public:
 
 /** LValue-Reference-Wrapping Optional
  *  ============================================================================
+ *  Note that nearly all meaningful functionality related to storage is
+ *  implemented in the _Optional_ValueBase parent. This class only deals in
+ *  user-facing observers.
  */
 template <typename T>
 class Optional < T, ENABLE_IF_TYPE(IS_LVAL_REFERENCE_TYPE(T)) >
-    : _Optional_LvalReferenceBase<T>
+    : _Optional_LValRefBase<T>
 {
-private:
-    using _Storage_Type = DECAY_TYPE(T);
-    using _Raw_Type     = REMOVE_REFERENCE_TYPE(T);
-
-    _Optional_LValRefStorage<T> _storage;
-
 public:
-    /* Empty Ctors
-     * ----------- */
-    constexpr Optional() noexcept
-        : _storage ( ) { }
-    constexpr Optional(n2_::nullopt_t /*unused*/) noexcept
-        : _storage ( ) { }
+    using _Optional_LValRefBase<T>::_Optional_LValRefBase;
+    using _Optional_LValRefBase<T>::operator=;
 
-    /* Copy Ctor
-     * --------- */
-    constexpr Optional(Optional const & other) noexcept
-        : _storage ( other._storage ) { }
-
-    /* Move Ctor
-     * --------- */
-    constexpr Optional(Optional && other) noexcept
-        : _storage ( std::move(other._storage) ) { }
-
-    /* Value Ctor
-     * ---------- */
-    constexpr Optional(T & value) noexcept
-        : _storage ( value ) { }
-
-    /* Empty Assignment
-     * ---------------- */
-    Optional<T&>& operator= (n2_::nullopt_t /*unused*/) noexcept {
-        _storage.is_containing = false;
-        _storage.value = nullptr;
-        return *this;
-    }
-
-    /* Copy Assignment
-     * --------------- */
-    Optional<T&>& operator= (Optional const & other) noexcept {
-        if (_storage.is_containing && other._storage.is_containing) {
-            _storage.value = other._storage.value;
-        } else {
-            if (other._storage.is_containing) {
-                _storage.value = other._storage.value;
-                _storage.is_containing = true;
-            } else {
-                _storage.is_containing = false;
-                _storage.value = nullptr;
-            }
-        }
-        return *this;
-    }
-
-    /* Move Assignment
-     * --------------- */
-    Optional<T&>& operator= (Optional && other) noexcept {
-        if (_storage.is_containing && other._storage.is_containing) {
-            _storage.value = std::move(other._storage.value);
-        } else {
-            if (other._storage.is_containing) {
-                _storage.value = other._storage.value;
-                _storage.is_containing = true;
-            } else {
-                _storage.is_containing = false;
-                _storage.value = nullptr;
-            }
-        }
-        return *this;
-    }
-
-    /* Value Assignment
-     * ---------------- */
-    Optional<T&>& operator= (T & value) noexcept {
-        _storage.value = const_cast<_Storage_Type *>(&value);
-    }
-
-    /* Helper Functions
-     * ---------------- */
-    constexpr T & _getValue() noexcept { return *_storage.value; }
-    constexpr T const & _getValue() const noexcept { return *_storage.value; }
-
-    constexpr bool _hasValue() const noexcept { return _storage.is_containing; }
-
+    using _Base_Type = REMOVE_REFERENCE_TYPE(T);
 
 private:
     /* Helper function to (optionally) check the validity of this Optional. */
@@ -919,10 +917,10 @@ private:
     }
 
 public:
-    constexpr       _Raw_Type *  operator-> () {
+    constexpr       _Base_Type *  operator-> () {
         checkValue(); return &this->_getValue();
     }
-    constexpr const _Raw_Type *  operator-> () const {
+    constexpr const _Base_Type *  operator-> () const {
         checkValue(); return &this->_getValue();
     }
 
@@ -975,21 +973,18 @@ public:
     }
 
     template < typename U = T >
-    constexpr _Raw_Type valueOr(U && value) const & {
+    constexpr _Base_Type valueOr(U && value) const & {
         return this->_hasValue() ? this->_getValue()
                                  : static_cast<T>(std::forward<U>(value));
     }
     template < typename U = T >
-    constexpr _Raw_Type valueOr(U && value) && {
+    constexpr _Base_Type valueOr(U && value) && {
         return this->_hasValue() ? this->_getValue()
                                  : static_cast<T>(std::forward<U>(value));
     }
 
     void reset() noexcept {
-        if (this->_hasValue()) {
-            _storage.is_containing = false;
-            _storage.value = nullptr;
-        }
+        if (this->_hasValue()) { this->_removeValue(); }
     }
 };
 
