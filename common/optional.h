@@ -9,12 +9,20 @@
  *  own CRASH macro, and otherwise allow segfaults when attempting to access
  *  uninitialized data.
  *
- *  The structure of these Optionals is also worth discussing.
- *  I will do that. I promise.
- *  Just not gonna do it now.
+ *  The structure of these Optionals is also worth discussing. They are
+ *  universally composed of three parts;
+ *   - The dedicated Storage component.
+ *     Contains the wrapped value (or not), and the `is_containing` boolean.
+ *   - The storage-aware Base class.
+ *     Contains a Storage component, and understands how to interact with the
+ *     value and boolean stored therein.
+ *   - The complete Optional.
+ *     Inherits from the Base class, but remains unaware of the Storage
+ *     component. May also inherit from classes that prevent copy and move
+ *     construction or assignment.
  *
- *  For now, a good deal of the structure is described in the Forward
- *  Declarations section, and above each class / template specialization.
+ *  See the class descriptors in the Forward Declarations section below for
+ *  additional details.
  *
  *  NB. No specialization on swap was added because `std::is_swappabale<T>` has
  *  not landed in Apple Clang (at the time of writing), and because the std::
@@ -99,9 +107,9 @@ constexpr static nullopt_t nullopt { n2_::in_place };
  *  ----------------------
  *  Will inherit from one of the `_Optional_*Base` classes, using SFINAE to
  *  expand only the salient specialization based on the value_type of `T`.
- *  Will also (maybe?) inherit from the `_Enable[Copy|Move][Ctor|Assign]<B,T>`
- *  helper classes to conditionally delete the relevant special member function
- *  based on the salient type_traits of `T`.
+ *  Will also inherit from the `_Enable[Copy|Move][Ctor|Assign]<B,T>` helper
+ *  classes to conditionally "delete" the relevant special member function based
+ *  on the salient type_traits of `T`.
  */
 template <typename T, typename Enable = void>
 class Optional;
@@ -110,11 +118,11 @@ class Optional;
 /** Optional Base Classes
  *  ---------------------
  *  Will contain all the necessary storage and construction logic used by the
- *  complete Optional sub-type s.t. we can build Optionals assuming all special
- *  member functions will be present. The sub-types will use Constructor
- *  Inheritance (`using _Optional_*Base::_Optional_*Base`) to pull in all Base
- *  constructors s.t. the complete Optional will be able to correctly initialize
- *  without needing any details regarding the storage of its value. */
+ *  complete Optional sub-type. The sub-types will use Constructor Inheritance
+ *  (`using _Optional_*Base::_Optional_*Base`) to pull in all of the
+ *  constructors defined by the Base s.t. the complete Optional will be able to
+ *  correctly initialize without needing any details regarding the storage of
+ *  its value. */
 template <typename T>
 class _Optional_ValueBase;
 
@@ -144,6 +152,12 @@ class _Optional_LValRefBase;
  *  stored value). When storing a type that is trivially destructible, the
  *  implicitly defined destructor will be defined, will correctly clean up the
  *  stored value, and will match the constexpr-ness of the stored type.
+ *
+ *  The _LValRefStorage is _dramatically_ simpler than its counterpart, as it
+ *  requires no in-place construction, and never requires a destructor (it will
+ *  be storing raw pointers, and raw pointers don't need to be cleaned up). We
+ *  use it primarily to maintain architecture parity between value- and
+ *  reference-wrapping Optionals.
  */
 template < typename T
          , bool MoveAndCopyCtorsAreTrivial =
@@ -151,6 +165,9 @@ template < typename T
                && IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T) )
          , bool DestructorIsTrivial = IS_TRIVIALLY_DESTRUCTIBLE(T) >
 struct _Optional_Storage;
+
+template < typename T >
+struct _Optional_LValRefStorage;
 
 
 /**
