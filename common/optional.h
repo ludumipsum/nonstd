@@ -1022,11 +1022,12 @@ constexpr Optional<T> just(T value) {
     return Optional<T> { value };
 }
 template<typename T, typename... Args>
-constexpr Optional<T> just(Args && ... args) {
+constexpr Optional<T> just(n2_::in_place_t /*unused*/, Args && ... args) {
     return Optional<T> { n2_::in_place, std::forward<Args>(args)... };
 }
 template<typename T, typename Il, typename... Args>
-constexpr Optional<T> just(std::initializer_list<Il> il, Args && ... args) {
+constexpr Optional<T> just(n2_::in_place_t /*unused*/,
+                           std::initializer_list<Il> il, Args && ... args) {
     return Optional<T> { n2_::in_place, il, std::forward<Args>(args)... };
 }
 
