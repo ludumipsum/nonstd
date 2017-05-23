@@ -778,10 +778,9 @@ public:
     }
 
     /* Copy Assignment
-     * ---------------
-     * NB. The value being copied is going to be a complete `Optional<T>` (not a
-     *    `_Optional_LValRefBase<T>`), so that's the parameter we accept. */
-    _Optional_LValRefBase<T&>& operator= (Optional<T&> const & other) noexcept {
+     * --------------- */
+    _Optional_LValRefBase<T&>& operator= (_Optional_LValRefBase const & other)
+    noexcept {
         if (_storage.is_containing && other._storage.is_containing) {
             _storage.value = other._storage.value;
         } else {
@@ -796,10 +795,9 @@ public:
     }
 
     /* Move Assignment
-     * ---------------
-     * NB. The value being copied is going to be a complete `Optional<T>` (not a
-     *    `_Optional_LValRefBase<T>`), so that's the parameter we accept. */
-    _Optional_LValRefBase<T&>& operator= (Optional<T&> && other) noexcept {
+     * --------------- */
+    _Optional_LValRefBase<T&>& operator= (_Optional_LValRefBase && other)
+    noexcept {
         if (_storage.is_containing && other._storage.is_containing) {
             _storage.value = std::move(other._storage.value);
         } else {
