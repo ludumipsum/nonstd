@@ -1057,42 +1057,42 @@ constexpr Optional<T const &> just_cref(T const& value) {
 template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
 constexpr bool operator == (Optional<T> const & lhs, Optional<U> const & rhs) {
     if ((bool)(lhs) != (bool)(rhs)) { return false; }
-    if ((bool)(lhs))                { return lhs() == rhs(); }
+    if ((bool)(lhs))                { return *lhs == *rhs; }
     return true;
 }
 
 template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
 constexpr bool operator != (Optional<T> const & lhs, Optional<U> const & rhs) {
     if ((bool)(lhs) != (bool)(rhs)) { return true; }
-    if ((bool)(lhs))                { return lhs() != rhs(); }
+    if ((bool)(lhs))                { return *lhs != *rhs; }
     return false;
 }
 
 template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
 constexpr bool operator >  (Optional<T> const & lhs, Optional<U> const & rhs) {
     if ((bool)(lhs) != (bool)(rhs)) { return (bool)(lhs); }
-    if ((bool)(lhs))                { return lhs() >  rhs(); }
+    if ((bool)(lhs))                { return *lhs >  *rhs; }
     return false;
 }
 
 template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
 constexpr bool operator >= (Optional<T> const & lhs, Optional<U> const & rhs) {
     if ((bool)(lhs) != (bool)(rhs)) { return (bool)(lhs); }
-    if ((bool)(lhs))                { return lhs() >= rhs(); }
+    if ((bool)(lhs))                { return *lhs >= *rhs; }
     return true;
 }
 
 template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
 constexpr bool operator <  (Optional<T> const & lhs, Optional<U> const & rhs) {
     if ((bool)(lhs) != (bool)(rhs)) { return ! (bool)(lhs); }
-    if ((bool)(lhs))                { return lhs() <  rhs(); }
+    if ((bool)(lhs))                { return *lhs <  *rhs; }
     return false;
 }
 
 template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
 constexpr bool operator <= (Optional<T> const & lhs, Optional<U> const & rhs) {
     if ((bool)(lhs) != (bool)(rhs)) { return ! (bool)(lhs); }
-    if ((bool)(lhs))                { return lhs() <= rhs(); }
+    if ((bool)(lhs))                { return *lhs <= *rhs; }
     return true;
 }
 
@@ -1161,54 +1161,54 @@ constexpr bool operator >= (n2_::nullopt_t, Optional<T> const & rhs) noexcept {
  */
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator == (Optional<T> const & lhs, Value const & rhs) {
-    return   (bool)(lhs) && lhs() == rhs;
+    return   (bool)(lhs) && *lhs == rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator == (Value const & lhs, Optional<T> const & rhs) {
-    return   (bool)(rhs) && lhs == rhs();
+    return   (bool)(rhs) && lhs == *rhs;
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator != (Optional<T> const & lhs, Value const & rhs) {
-    return ! (bool)(lhs) || lhs() != rhs;
+    return ! (bool)(lhs) || *lhs != rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator != (Value const & lhs, Optional<T> const & rhs) {
-    return ! (bool)(rhs) || lhs != rhs();
+    return ! (bool)(rhs) || lhs != *rhs;
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator >  (Optional<T> const & lhs, Value const & rhs) {
-    return   (bool)(lhs) && lhs() > rhs;
+    return   (bool)(lhs) && *lhs > rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator >  (Value const & lhs, Optional<T> const & rhs) {
-    return ! (bool)(rhs) || lhs > rhs();
+    return ! (bool)(rhs) || lhs > *rhs;
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator >= (Optional<T> const & lhs, Value const & rhs) {
-    return   (bool)(lhs) && lhs() >= rhs;
+    return   (bool)(lhs) && *lhs >= rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator >= (Value const & lhs, Optional<T> const & rhs) {
-    return ! (bool)(rhs) || lhs >= rhs();
+    return ! (bool)(rhs) || lhs >= *rhs;
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator <  (Optional<T> const & lhs, Value const & rhs) {
-    return ! (bool)(lhs) || lhs() < rhs;
+    return ! (bool)(lhs) || *lhs < rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator <  (Value const & lhs, Optional<T> const & rhs) {
-    return   (bool)(rhs) && lhs < rhs();
+    return   (bool)(rhs) && lhs < *rhs;
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator <= (Optional<T> const & lhs, Value const & rhs) {
-    return ! (bool)(lhs) || lhs() <= rhs;
+    return ! (bool)(lhs) || *lhs <= rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr bool operator <= (Value const & lhs, Optional<T> const & rhs) {
-    return   (bool)(rhs) && lhs <= rhs();
+    return   (bool)(rhs) && lhs <= *rhs;
 }
