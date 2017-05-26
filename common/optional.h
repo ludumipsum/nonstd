@@ -988,15 +988,17 @@ public:
         checkValue(); return this->_getValue();
     }
 
-    template < typename U = T >
+    template < typename U = _Base_Type >
     constexpr _Base_Type valueOr(U && value) const & {
-        return this->_hasValue() ? this->_getValue()
-                                 : static_cast<T>(std::forward<U>(value));
+        return this->_hasValue()
+                ? this->_getValue()
+                : static_cast<_Base_Type>(std::forward<U>(value));
     }
-    template < typename U = T >
+    template < typename U = _Base_Type >
     constexpr _Base_Type valueOr(U && value) && {
-        return this->_hasValue() ? this->_getValue()
-                                 : static_cast<T>(std::forward<U>(value));
+        return this->_hasValue()
+                ? this->_getValue()
+                : static_cast<_Base_Type>(std::forward<U>(value));
     }
 
     void reset() noexcept {
