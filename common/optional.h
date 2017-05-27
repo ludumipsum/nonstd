@@ -190,13 +190,9 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ true,
         : is_containing ( false )
         , empty         {       } { }
 
-    constexpr _Optional_Storage(n2_::nullopt_t /*unused*/)
-        : is_containing ( false )
-        , empty         {       } { }
-
 
     constexpr _Optional_Storage(_Optional_Storage const & other) = default;
-    constexpr _Optional_Storage(_Optional_Storage && other) = default;
+    constexpr _Optional_Storage(_Optional_Storage &&      other) = default;
 
 
     constexpr _Optional_Storage(T const & value)
@@ -247,10 +243,6 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
 
 
     constexpr _Optional_Storage()
-        : is_containing ( false )
-        , empty         {       } { }
-
-    constexpr _Optional_Storage(n2_::nullopt_t /*unused*/)
         : is_containing ( false )
         , empty         {       } { }
 
@@ -329,10 +321,6 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
 
 
     constexpr _Optional_Storage()
-        : is_containing ( false )
-        , empty         {       } { }
-
-    constexpr _Optional_Storage(n2_::nullopt_t /*unused*/)
         : is_containing ( false )
         , empty         {       } { }
 
