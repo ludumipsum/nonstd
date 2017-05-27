@@ -69,7 +69,7 @@ struct nullopt_t {
 
 constexpr static nullopt_t nullopt { n2_::in_place };
 
-} /* namespace n2 */
+} /* namespace n2_ */
 
 
 /** Helper Defines
