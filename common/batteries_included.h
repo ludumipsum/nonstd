@@ -91,16 +91,57 @@ namespace n2_ {
 template <typename... Ts> struct make_void { typedef void type; };
 template <typename... Ts> using void_t = typename make_void<Ts...>::type;
 
+/* In Place Constructor Tags
+ * -------------------------
+ * Useful for disambiguating constructors that accept initializer lists and/or
+ * variadic argument packs. ex;
+ *
+ *
+ *     struct Foo {
+ *         template <typename T> Foo(T) { . . . }
+ *         template <typename... Args> Foo(Args&&...) { . . . }
+ *     };
+ *     Foo { 0 }; // Which gets called?
+ *
+ *     struct Bar {
+ *         template <typename T> Bar(T) { . . . }
+ *         template <typename... Args> Bar(n2_::in_place_t, Args&&...) { . . . }
+ *     };
+ *     Bar { 0 };           // Unambiguous.
+ *     Bar { in_place, 0 }; // Unambiguous.
+ *
+ * Note that in the C++17 standard, the default (0-arg) constructors are
+ * explicitly defined with `= default` and are marked `explicit`. I have _no_
+ * idea why this was done, and have chosen to not replicate that definition.
+ *
+ * NB. We'd like these values to be inline variables so we can cleanly apply
+ * external linkage to them, but inline variables are a C++17 thing. Also, it
+ * doesn't really matter, because we're in the context of a mono-build.
+ * Fuck yeah, mono-builds.
+ */
+struct in_place_t { };
+constexpr /*inline*/ in_place_t in_place{};
+
+template <typename T> struct in_place_type_t { };
+template <typename T> constexpr /*inline*/ in_place_type_t<T> in_place_type{};
+
+template <size_t I> struct in_place_index_t { };
+template <size_t I> constexpr /*inline*/ in_place_index_t<I> in_place_index{};
+
+
 /* Helper Types
  * ------------
  * Mapping exactly to `[type_trait]<Ts..>::type`.
  */
 
+/* NB. std::enable_if and n2_::enable_if_t default the returned type to `void`.
+ *     Macros don't let me define default arguments, so we have two
+ *     `ENABLE_IF_*` macros; one (`_DTYPE`) returns the dependent type, the
+ *     other (`_TYPE`) allows the default to come into play. */
 template <bool B, typename T = void>
 using enable_if_t = typename ::std::enable_if<B,T>::type;
-/* NB. This macro doesn't capture the default `T = void` argument. If you want
- *     that behavior, you'll have to `ENABLE_IF_TYPE([COND], void)`. */
-#define ENABLE_IF_TYPE(B,T) ::n2_::enable_if_t<B,T>
+#define ENABLE_IF_TYPE(B) ::n2_::enable_if_t<B>
+#define ENABLE_IF_DTYPE(B,T) ::n2_::enable_if_t<B,T>
 
 template <typename T>
 using remove_reference_t = typename ::std::remove_reference<T>::type;
@@ -134,6 +175,10 @@ using decay_t = typename ::std::decay<T>::type;
  * variables that C++17 will define because inline variables (which are required
  * for making the `_v` helpers useful) are a C++1z extension at this point. No
  * idea when MSVC will get them, or if they're consistently available in GCC.
+ *
+ * Note; I've given up the 80-column limit for this section, because the macro
+ * names should be clear enough to demarcate intention, and one-line structure
+ * of the definitions provides more clarity than short line-lengths.
  */
 
 /* IS_REFERENCE (and friends)
@@ -142,14 +187,36 @@ using decay_t = typename ::std::decay<T>::type;
  * extract the referentiality of an object.
  * Answers the "Is this type a reference? If so, what kind?" question.
  */
-#define IS_REFERENCE_TYPE(T)      (::std::is_reference<T>::value)
-#define IS_NOT_REFERENCE_TYPE(T) !(::std::is_reference<T>::value)
+#define IS_REFERENCE(T)      (::std::is_reference<T>::value)
+#define IS_NOT_REFERENCE(T) !(::std::is_reference<T>::value)
 
-#define IS_LVAL_REFERENCE_TYPE(T)      (::std::is_lvalue_reference<T>::value)
-#define IS_NOT_LVAL_REFERENCE_TYPE(T) !(::std::is_lvalue_reference<T>::value)
+#define IS_LVAL_REFERENCE(T)      (::std::is_lvalue_reference<T>::value)
+#define IS_NOT_LVAL_REFERENCE(T) !(::std::is_lvalue_reference<T>::value)
 
-#define IS_RVAL_REFERENCE_TYPE(T)      (::std::is_rvalue_reference<T>::value)
-#define IS_NOT_RVAL_REFERENCE_TYPE(T) !(::std::is_rvalue_reference<T>::value)
+#define IS_RVAL_REFERENCE(T)      (::std::is_rvalue_reference<T>::value)
+#define IS_NOT_RVAL_REFERENCE(T) !(::std::is_rvalue_reference<T>::value)
+
+/* IS_SCALAR (and friends)
+ * -----------------------
+ * Macros wrapping std::is_scalar<T>::value, and specializations thereon.
+ */
+#define IS_SCALAR(T)      (std::is_scalar<T>::value)
+#define IS_NOT_SCALAR(T) !(std::is_scalar<T>::value)
+
+#define IS_ARITHMETIC(T)      (std::is_arithmetic<T>::value)
+#define IS_NOT_ARITHMETIC(T) !(std::is_arithmetic<T>::value)
+
+#define IS_ENUM(T)      (std::is_enum<T>::value)
+#define IS_NOT_ENUM(T) !(std::is_enum<T>::value)
+
+#define IS_POINTER(T)      (std::is_pointer<T>::value)
+#define IS_NOT_POINTER(T) !(std::is_pointer<T>::value)
+
+#define IS_MEMBER_POINTER(T)      (std::is_member_pointer<T>::value)
+#define IS_NOT_MEMBER_POINTER(T) !(std::is_member_pointer<T>::value)
+
+#define IS_NULL_POINTER(T)      (std::is_null_pointer<T>::value)
+#define IS_NOT_NULL_POINTER(T) !(std::is_null_pointer<T>::value)
 
 /* IS_SAME_TYPE
  * ------------
@@ -163,10 +230,8 @@ using decay_t = typename ::std::decay<T>::type;
  * Macros wrapping std::is_same<T,U>::value and decltype, s.t. types of
  * instances can be compared.
  */
-#define HAS_SAME_TYPE(LEFT,RIGHT)      \
-     (::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
-#define HAS_DIFFERENT_TYPE(LEFT,RIGHT) \
-    !(::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
+#define HAS_SAME_TYPE(LEFT,RIGHT)       (::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
+#define HAS_DIFFERENT_TYPE(LEFT,RIGHT) !(::std::is_same<decltype(LEFT),decltype(RIGHT)>::value)
 
 /* IS_CONVERTIBLE
  * --------------
@@ -180,39 +245,86 @@ using decay_t = typename ::std::decay<T>::type;
 #define IS_CONVERTIBLE(FROM,TO)      (::std::is_convertible<FROM,TO>::value)
 #define IS_NOT_CONVERTIBLE(FROM,TO) !(::std::is_convertible<FROM,TO>::value)
 
-/* Triviality Checks
- * -----------------
- * Macros wrapping `std::is_trivially_[type_trait]<T>::value`. Tells us what the
- * compiler will be able to automatically generate for us.
+/* Initialization/Deinitialization Checks
+ * --------------------------------------
+ * Macros wrapping `std::is_[trivially_][type_trait]<T>::value`. Tells us what
+ * the given class can or cannot do, and the trivially_ checks will tell us what
+ * the compiler will automatically generate for us.
  */
+#define IS_CONSTRUCTIBLE(T, ...)      (::std::is_constructible<T,__VA_ARGS__>::value)
+#define IS_NOT_CONSTRUCTIBLE(T, ...) !(::std::is_constructible<T,__VA_ARGS__>::value)
+#define IS_TRIVIALLY_CONSTRUCTIBLE(T, ...)      (::std::is_trivially_constructible<T,__VA_ARGS__>::value)
+#define IS_NOT_TRIVIALLY_CONSTRUCTIBLE(T, ...) !(::std::is_trivially_constructible<T,__VA_ARGS__>::value)
+#define IS_NOTHROW_CONSTRUCTIBLE(T, ...)      (::std::is_nothrow_constructible<T,__VA_ARGS__>::value)
+#define IS_NOT_NOTHROW_CONSTRUCTIBLE(T, ...) !(::std::is_nothrow_constructible<T,__VA_ARGS__>::value)
+
+#define IS_DEFAULT_CONSTRUCTIBLE(T)      (::std::is_default_constructible<T>::value)
+#define IS_NOT_DEFAULT_CONSTRUCTIBLE(T) !(::std::is_default_constructible<T>::value)
+#define IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T)      (::std::is_trivially_default_constructible<T>::value)
+#define IS_NOT_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T) !(::std::is_trivially_default_constructible<T>::value)
+#define IS_NOTHROW_DEFAULT_CONSTRUCTIBLE(T)      (::std::is_nothrow_default_constructible<T>::value)
+#define IS_NOT_NOTHROW_DEFAULT_CONSTRUCTIBLE(T) !(::std::is_nothrow_default_constructible<T>::value)
+
+#define IS_COPY_CONSTRUCTIBLE(T)      (::std::is_copy_constructible<T>::value)
+#define IS_NOT_COPY_CONSTRUCTIBLE(T) !(::std::is_copy_constructible<T>::value)
+#define IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)      (::std::is_trivially_copy_constructible<T>::value)
+#define IS_NOT_TRIVIALLY_COPY_CONSTRUCTIBLE(T) !(::std::is_trivially_copy_constructible<T>::value)
+#define IS_NOTHROW_COPY_CONSTRUCTIBLE(T)      (::std::is_nothrow_copy_constructible<T>::value)
+#define IS_NOT_NOTHROW_COPY_CONSTRUCTIBLE(T) !(::std::is_nothrow_copy_constructible<T>::value)
+
+#define IS_MOVE_CONSTRUCTIBLE(T)      (::std::is_move_constructible<T>::value)
+#define IS_NOT_MOVE_CONSTRUCTIBLE(T) !(::std::is_move_constructible<T>::value)
+#define IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T)      (::std::is_trivially_move_constructible<T>::value)
+#define IS_NOT_TRIVIALLY_MOVE_CONSTRUCTIBLE(T) !(::std::is_trivially_move_constructible<T>::value)
+#define IS_NOTHROW_MOVE_CONSTRUCTIBLE(T)      (::std::is_nothrow_move_constructible<T>::value)
+#define IS_NOT_NOTHROW_MOVE_CONSTRUCTIBLE(T) !(::std::is_nothrow_move_constructible<T>::value)
+
+
+#define IS_ASSIGNABLE(T,U)      (::std::is_assignable<T,U>::value)
+#define IS_NOT_ASSIGNABLE(T,U) !(::std::is_assignable<T,U>::value)
+#define IS_TRIVIALLY_ASSIGNABLE(T,U)      (::std::is_trivially_assignable<T,U>::value)
+#define IS_NOT_TRIVIALLY_ASSIGNABLE(T,U) !(::std::is_trivially_assignable<T,U>::value)
+#define IS_NOTHROW_ASSIGNABLE(T,U)      (::std::is_nothrow_assignable<T,U>::value)
+#define IS_NOT_NOTHROW_ASSIGNABLE(T,U) !(::std::is_nothrow_assignable<T,U>::value)
+
+#define IS_COPY_ASSIGNABLE(T)      (::std::is_copy_assignable<T>::value)
+#define IS_NOT_COPY_ASSIGNABLE(T) !(::std::is_copy_assignable<T>::value)
+#define IS_TRIVIALLY_COPY_ASSIGNABLE(T)      (::std::is_trivially_copy_assignable<T>::value)
+#define IS_NOT_TRIVIALLY_COPY_ASSIGNABLE(T) !(::std::is_trivially_copy_assignable<T>::value)
+#define IS_NOTHROW_COPY_ASSIGNABLE(T)      (::std::is_nothrow_copy_assignable<T>::value)
+#define IS_NOT_NOTHROW_COPY_ASSIGNABLE(T) !(::std::is_nothrow_copy_assignable<T>::value)
+
+#define IS_MOVE_ASSIGNABLE(T)      (::std::is_move_assignable<T>::value)
+#define IS_NOT_MOVE_ASSIGNABLE(T) !(::std::is_move_assignable<T>::value)
+#define IS_TRIVIALLY_MOVE_ASSIGNABLE(T)      (::std::is_trivially_move_assignable<T>::value)
+#define IS_NOT_TRIVIALLY_MOVE_ASSIGNABLE(T) !(::std::is_trivially_move_assignable<T>::value)
+#define IS_NOTHROW_MOVE_ASSIGNABLE(T)      (::std::is_nothrow_move_assignable<T>::value)
+#define IS_NOT_NOTHROW_MOVE_ASSIGNABLE(T) !(::std::is_nothrow_move_assignable<T>::value)
+
+
+#define IS_DESTRUCTIBLE(T)      (::std::is_destructible<T>::value)
+#define IS_NOT_DESTRUCTIBLE(T) !(::std::is_destructible<T>::value)
+#define IS_TRIVIALLY_DESTRUCTIBLE(T)      (::std::is_trivially_destructible<T>::value)
+#define IS_NOT_TRIVIALLY_DESTRUCTIBLE(T) !(::std::is_trivially_destructible<T>::value)
+#define IS_NOTHROW_DESTRUCTIBLE(T)      (::std::is_nothrow_destructible<T>::value)
+#define IS_NOT_NOTHROW_DESTRUCTIBLE(T) !(::std::is_nothrow_destructible<T>::value)
+
+
+/* Type Properties
+ * ---------------
+ * More macros wrapping `std::is_[type_trait}<T>::value`. This set focus on the
+ * properties of the given type, rather than supported operations. */
+#define IS_TRIVIAL(T)      (::std::is_trivial<T>::value)
+#define IS_NOT_TRIVIAL(T) !(::std::is_trivial<T>::value)
+
 #define IS_TRIVIALLY_COPYABLE(T)      (::std::is_trivially_copyable<T>::value)
 #define IS_NOT_TRIVIALLY_COPYABLE(T) !(::std::is_trivially_copyable<T>::value)
 
+#define IS_STANDARD_LAYOUT(T)      (::std::is_standard_layout<T>::value)
+#define IS_NOT_STANDARD_LAYOUT(T) !(::std::is_standard_layout<T>::value)
 
-#define IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T)      (::std::is_trivially_default_constructible<T>::value)
-#define IS_NOT_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T) !(::std::is_trivially_default_constructible<T>::value)
-
-#define IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)      (::std::is_trivially_copy_constructible<T>::value)
-#define IS_NOT_TRIVIALLY_COPY_CONSTRUCTIBLE(T) !(::std::is_trivially_copy_constructible<T>::value)
-
-#define IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T)      (::std::is_trivially_move_constructible<T>::value)
-#define IS_NOT_TRIVIALLY_MOVE_CONSTRUCTIBLE(T) !(::std::is_trivially_move_constructible<T>::value)
-
-
-#define IS_TRIVIALLY_COPY_ASSIGNABLE(T)      (::std::is_trivially_copy_assignable<T>::value)
-#define IS_NOT_TRIVIALLY_COPY_ASSIGNABLE(T) !(::std::is_trivially_copy_assignable<T>::value)
-
-#define IS_TRIVIALLY_MOVE_ASSIGNABLE(T)      (::std::is_trivially_move_assignable<T>::value)
-#define IS_NOT_TRIVIALLY_MOVE_ASSIGNABLE(T) !(::std::is_trivially_move_assignable<T>::value)
-
-
-#define IS_TRIVIALLY_DESTRUCTIBLE(T)      (::std::is_trivially_destructible<T>::value)
-#define IS_NOT_TRIVIALLY_DESTRUCTIBLE(T) !(::std::is_trivially_destructible<T>::value)
-
-/* Skipping out on these two because... I don't have a use for them. And it's
- * more typing. That I don't want to do right now. */
-// template <class T, class... Args> struct is_trivially_constructible;
-// template <class T, class U> struct is_trivially_assignable;
+#define IS_POD(T)      (::std::is_pod<T>::value)
+#define IS_NOT_POD(T) !(::std::is_pod<T>::value)
 
 } /* namespace n2_ */
 
@@ -228,10 +340,10 @@ using decay_t = typename ::std::decay<T>::type;
  * redundant, but better safe than sorry.
  */
 #define ENFORCE_POD(T) \
-    static_assert(::std::is_trivially_copyable<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                           \
-    static_assert(::std::is_trivially_default_constructible<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(::std::is_standard_layout<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                                 \
-    static_assert(::std::is_pod<T>::value, "Type '" STRING(T) "' was marked as Plain Old Data, but is... not. We're not sure why. Please expand the ENFORCE_POD macro. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
+    static_assert(IS_TRIVIALLY_COPYABLE(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                           \
+    static_assert(IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
+    static_assert(IS_STANDARD_LAYOUT(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                                 \
+    static_assert(IS_POD(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is... not. We're not sure why. Please expand the ENFORCE_POD macro. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
 
 /* ENFORCE_SIZE (and friends)
  * --------------------------
@@ -429,7 +541,7 @@ inline uint32_t N2FOURCC(char const* code) {
  */
 #define TEMPLATE_ENABLE(COND, T)            \
     template<typename _DEP_T=DECAY_TYPE(T), \
-             typename ENABLE_IF_TYPE(COND,_DEP_T) * = nullptr>
+             typename ENABLE_IF_DTYPE(COND,_DEP_T) * = nullptr>
 
 
 /* Constexpr Type-Name Printing
@@ -511,3 +623,108 @@ template<typename T> struct value_category<T&&> {
 
 // Double parens for ensuring we inspect an expression, not an entity
 #define VALUE_CATEGORY(expr) value_category<decltype((expr))>::value
+
+
+/* Special Member Enablers/Disablers
+ * =================================
+ * Beware. There be Template Magic Here.
+ * These helpers allow us selectively disable a parent classes' special member
+ * functions (Copy Constructor, Copy Assignment, Move Constructor, and Move
+ * Assignment) based on template type traits or constexpr boolean checks. The
+ * idiom to use is as follows;
+ *
+ * - Let's say we have a wrapper class `<template T> class Foo`, and we want the
+ *   assignment operators to not be defined unless `T` is trivially assignable.
+ * - Rename `Foo` to `_Foo_Base` [TODO: Come up wit a better name].
+ * - Create a new `Foo` using the below definition pattern;
+ *       template <typename T>
+ *       class Foo
+ *             : _Foo_Base<T>
+ *             , n2_::_EnableCopyAssign<IS_TRIVIALLY_ASSIGNABLE(T), T>
+ *             , n2_::_EnableMoveAssign<IS_TRIVIALLY_ASSIGNABLE(T), T> {
+ *           using _Foo_Base::_Foo_Base;
+ *       };
+ *   NB:
+ *   - We allow `Foo`s special members to all be implicitly defined.
+ *     This causes any invocation of `Foo& operator=` to call into both
+ *     `_Foo_Base& operator=` and `_EnableCopyAssign& operator=`. The later does
+ *     nothing, but if `IS_TRIVIALLY_ASSIGNABLE(T)` is false,
+ *     `_EnableCopyAssign& operator=` will be explicitly deleted, causing a
+ *     compilation error if `Foo& operator=` is ever misused.
+ *   - We use `using _Foo_Base::_Foo_Base` to inherit all of `_Foo_Base`'s valid
+ *     constructors, s.t. all explicit constructors defined by `_Foo_Base` will
+ *     be available to `Foo`.
+ *     TODO: Find out if `using` can be used to (cleanly) pull all of
+ *     `_Foo_Base`'s member functions in
+ */
+namespace n2_ {
+
+template <bool EnableCopyCtor, typename UniqueTag>
+struct _EnableCopyCtor {
+    constexpr _EnableCopyCtor() noexcept                              = default;
+    constexpr _EnableCopyCtor(const _EnableCopyCtor&) noexcept        = default;
+    _EnableCopyCtor& operator=(const _EnableCopyCtor&) noexcept       = default;
+    constexpr _EnableCopyCtor(_EnableCopyCtor &&) noexcept            = default;
+    _EnableCopyCtor& operator=(_EnableCopyCtor &&) noexcept           = default;
+};
+template <typename UniqueTag>
+struct _EnableCopyCtor<false, UniqueTag> {
+    constexpr _EnableCopyCtor() noexcept                              = default;
+    constexpr _EnableCopyCtor(const _EnableCopyCtor&) noexcept        = delete;
+    _EnableCopyCtor& operator=(const _EnableCopyCtor&) noexcept       = default;
+    constexpr _EnableCopyCtor(_EnableCopyCtor &&) noexcept            = default;
+    _EnableCopyCtor& operator=(_EnableCopyCtor &&) noexcept           = default;
+};
+
+template <bool EnableCopyAssign, typename UniqueTag>
+struct _EnableCopyAssign {
+    constexpr _EnableCopyAssign() noexcept                            = default;
+    constexpr _EnableCopyAssign(const _EnableCopyAssign&) noexcept    = default;
+    _EnableCopyAssign& operator=(const _EnableCopyAssign&) noexcept   = default;
+    constexpr _EnableCopyAssign(_EnableCopyAssign &&) noexcept        = default;
+    _EnableCopyAssign& operator=(_EnableCopyAssign &&) noexcept       = default;
+};
+template <typename UniqueTag>
+struct _EnableCopyAssign<false, UniqueTag> {
+    constexpr _EnableCopyAssign() noexcept                            = default;
+    constexpr _EnableCopyAssign(const _EnableCopyAssign&) noexcept    = default;
+    _EnableCopyAssign& operator=(const _EnableCopyAssign&) noexcept   = delete;
+    constexpr _EnableCopyAssign(_EnableCopyAssign &&) noexcept        = default;
+    _EnableCopyAssign& operator=(_EnableCopyAssign &&) noexcept       = default;
+};
+
+template <bool EnableMoveCtor, typename UniqueTag>
+struct _EnableMoveCtor {
+    constexpr _EnableMoveCtor() noexcept                              = default;
+    constexpr _EnableMoveCtor(const _EnableMoveCtor&) noexcept        = default;
+    _EnableMoveCtor& operator=(const _EnableMoveCtor&) noexcept       = default;
+    constexpr _EnableMoveCtor(_EnableMoveCtor &&) noexcept            = default;
+    _EnableMoveCtor& operator=(_EnableMoveCtor &&) noexcept           = default;
+};
+template <typename UniqueTag>
+struct _EnableMoveCtor<false, UniqueTag> {
+    constexpr _EnableMoveCtor() noexcept                              = default;
+    constexpr _EnableMoveCtor(const _EnableMoveCtor&) noexcept        = default;
+    _EnableMoveCtor& operator=(const _EnableMoveCtor&) noexcept       = default;
+    constexpr _EnableMoveCtor(_EnableMoveCtor &&) noexcept            = delete;
+    _EnableMoveCtor& operator=(_EnableMoveCtor &&) noexcept           = default;
+};
+
+template <bool EnableMoveAssign, typename UniqueTag>
+struct _EnableMoveAssign {
+    constexpr _EnableMoveAssign() noexcept                            = default;
+    constexpr _EnableMoveAssign(const _EnableMoveAssign&) noexcept    = default;
+    _EnableMoveAssign& operator=(const _EnableMoveAssign&) noexcept   = default;
+    constexpr _EnableMoveAssign(_EnableMoveAssign &&) noexcept        = default;
+    _EnableMoveAssign& operator=(_EnableMoveAssign &&) noexcept       = default;
+};
+template <typename UniqueTag>
+struct _EnableMoveAssign<false, UniqueTag> {
+    constexpr _EnableMoveAssign() noexcept                            = default;
+    constexpr _EnableMoveAssign(const _EnableMoveAssign&) noexcept    = default;
+    _EnableMoveAssign& operator=(const _EnableMoveAssign&) noexcept   = default;
+    constexpr _EnableMoveAssign(_EnableMoveAssign &&) noexcept        = default;
+    _EnableMoveAssign& operator=(_EnableMoveAssign &&) noexcept       = delete;
+};
+
+} /* namespace n2_ */
