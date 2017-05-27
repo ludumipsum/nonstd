@@ -47,6 +47,13 @@
 #endif
 
 
+/* Compiler-specific warning suppressions */
+#if defined(_MSC_VER)
+#pragma warning(disable: 4200)  // Nonstandard extension: zero length array
+#pragma warning(disable: 4201)  // Nonstandard extension: nameless struct/union
+#endif
+
+
 /* Symbol Stringifyer
  * ==================
  * Uses the preprocessor to create a static string version of the passed symbol
@@ -324,14 +331,16 @@ inline void alignment_correct_free(void* buffer, bool aligned) {
  * Forces the compiler to inline this function, if possible, otherwise simply
  * suggests it.
  */
-#if defined(_MSC_VER)
-#  define FORCEINLINE __forceinline inline
-#elif defined(__clang__)
-#  define FORCEINLINE __attribute__((always_inline)) inline
-#elif defined(__GNUC__) || defined(__GNUG__)
-#  define FORCEINLINE __attribute__((always_inline)) inline
-#else
-#  define FORCEINLINE inline
+#if !defined(FORCEINLINE)
+#  if defined(_MSC_VER)
+#    define FORCEINLINE __forceinline inline
+#  elif defined(__clang__)
+#    define FORCEINLINE __attribute__((always_inline)) inline
+#  elif defined(__GNUC__) || defined(__GNUG__)
+#    define FORCEINLINE __attribute__((always_inline)) inline
+#  else
+#    define FORCEINLINE inline
+#  endif
 #endif
 
 /* Shim for mktemp

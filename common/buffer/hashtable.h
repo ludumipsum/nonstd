@@ -113,7 +113,7 @@ public: /*< ## Class Methods */
         // Round the requested capacity up to the nearest power-of-two, and then
         // tack on additional cells enough to handle the maximum miss distance.
         u64 required_capacity = next_power_of_two(capacity);
-        u8  max_miss_distance = n2clamp(
+        u8  max_miss_distance = (u8)n2clamp(
             log2(required_capacity),
             1,
             std::numeric_limits<u8>::max()
@@ -162,7 +162,7 @@ public: /*< ## Class Methods */
         metadata->max_load_factor    = max_load_factor ?
                                        max_load_factor :
                                        default_max_load_factor;
-        metadata->max_miss_distance  = log2(metadata->capacity);
+        metadata->max_miss_distance  = (u8)log2(metadata->capacity);
         metadata->rehash_in_progress = false;
         memset(metadata->map, '\0', data_region_size);
 #if defined(DEBUG)
@@ -427,7 +427,7 @@ protected: /*< ## Protected Member Methods */
         m_metadata                    = (Metadata*)(m_bd->data);
         m_metadata->count             = 0;
         m_metadata->capacity          = new_capacity;
-        m_metadata->max_miss_distance = log2(new_capacity);
+        m_metadata->max_miss_distance = (u8)log2(new_capacity);
         memset(m_metadata->map, '\0', data_region_size);
 
         // Copy all data from the `src` HashTable into `this`.

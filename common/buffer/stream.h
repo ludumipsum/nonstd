@@ -251,7 +251,7 @@ protected: /*< ## Protected Member Methods */
 
     inline u64 decrement(u64 index, i64 n = 1) {
         if (n >= 0) {
-            while (index < n) {
+            while (index < (u64)n) {
                 index += capacity();
             }
             return index - n;
