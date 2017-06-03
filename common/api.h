@@ -31,12 +31,12 @@
 
 struct GameState {
     /* Memory backing all game buffers */
-    struct Memory {
-        Buffer *const (*create)         (c_cstr name, u64 size,
+    struct MemoryAPI {
+        Buffer *const (*allocate)       (c_cstr name, u64 size,
                                          buffer::Flags flags);
         u64           (*resize)         (Buffer *const bd,
                                          u64 new_size);
-        void          (*destroy)        (Buffer *const bd);
+        void          (*free)           (Buffer *const bd);
         Buffer *const (*lookup)         (c_cstr name);
         Buffer *const (*lookupHistoric) (c_cstr name, u64 frame);
     } memory;
