@@ -52,8 +52,8 @@ namespace buffer {
  *  ================
  *  The Platform and Game binaries will each require a separate implementation of
  *  the interface defined in this file. For more code, see,
- *    platform/modules/buffer_helpers.cc
- *    game/modules/buffer_helpers.cc
+ *    platform/modules/buffer.cc
+ *    game/modules/buffer.cc
  */
 
 /* Look up a game buffer by name */
