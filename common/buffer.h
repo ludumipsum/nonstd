@@ -3,22 +3,14 @@
  * Memory management is hard. Memory management in a hot-loading, code-swapping,
  * volatile-memory, context is more so.
  *
- * N2's solution is to allocate/deallocate memory ('Buffers') from exactly one
- * module in the platform layer (the platform::mem module, probably surprising
+ * N2's solution is to allocate/free memory ('Buffers') from exactly one module
+ * in the platform layer (the platform::mem module, probably surprising
  * everyone), provide handles to that data via the `buffer::Descriptor` POD
  * structure (defined in the buffer/descriptor.cc module, again shocking all
  * involved), and expose buffers and buffer views to both the platform and game
  * layers through helper functions defined below. The platform layer will
  * directly access the mem:: module, and the game layer will call through
  * function pointers exposed from the GameState API.
- *
- *#if 0
- * Game code may `sate.memory.create/3` and `state.memory.lookup/1` named memory
- * regions to receive a `Descriptor` from platform code. That data may then be
- * directly modified via the `Descriptor->data` pointer, or a typed 'Buffer
- * View' may be overlaid on top of the `Descriptor` to allow interaction with
- * individual objects.
- *#endif
  *
  * The retention pattern for any given Buffer is defined at create time (and
  * cannot be modified?) using the `buffer::Flags` defined alongside the
@@ -81,32 +73,32 @@ inline void destroy(Buffer *const bd);
  */
 
 template < typename T >
- inline Slice<T> get_slice(c_cstr name);
+inline Optional< Slice<T> > find_slice(c_cstr name);
 template < typename T >
-inline Ring<T> get_ring(c_cstr name);
+inline Optional< Ring<T> > find_ring(c_cstr name);
 template < typename T >
-inline Stream<T> get_stream(c_cstr name);
+inline Optional< Stream<T> > find_stream(c_cstr name);
 template < typename K, typename V >
-inline HashTable<K,V> get_hashtable(c_cstr name);
+inline Optional< HashTable<K,V> > find_hashtable(c_cstr name);
 
 
 template < typename T >
-inline Slice<T> new_slice(
+inline Slice<T> create_slice(
     c_cstr name,
     u64    capacity = Slice<T>::default_capacity,
     Flags  flags    = PASS);
 template < typename T >
-inline Ring<T> new_ring(
+inline Ring<T> create_ring(
     c_cstr name,
     u64    capacity = Ring<T>::default_capacity,
     Flags  flags    = PASS);
 template < typename T >
-inline Stream<T> new_stream(
+inline Stream<T> create_stream(
     c_cstr name,
     u64    capacity = Stream<T>::default_capacity,
     Flags  flags    = PASS);
 template < typename K, typename V >
-inline HashTable<K,V> new_hashtable(
+inline HashTable<K,V> create_hashtable(
     c_cstr name,
     u64    capacity       = HashTable<K,V>::default_capacity,
     u64    miss_tolerance = HashTable<K,V>::default_miss_tolerance,
