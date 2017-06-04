@@ -14,9 +14,9 @@
  *
  * The retention pattern for any given Buffer is defined at create time (and
  * cannot be modified?) using the `buffer::Flags` defined alongside the
- * Buffer:Descriptor. The default behavior for buffers is to make _no guarantee
+ * buffer::Descriptor. The default behavior for buffers is to make _no guarantee
  * that data will be saved between frames_. Once a Buffer is created, it will
- * always be accessible via `lookup` but -- unless the `PERSIST` flag is set --
+ * always be accessible via `find` but -- unless the `PERSIST` flag is set --
  * the data stored in that buffer might not be accessible once a frame boundary
  * is reached.
  *
