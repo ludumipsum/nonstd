@@ -80,4 +80,4 @@ inline Descriptor make_buffer(ptr p, u64 size, Flags flags = CLEAR_CURSOR) {
 
 using Buffer = buffer::Descriptor;
 
-using BufferResizeFn = u64 (*)(Buffer * const u64);
+using BufferResizeFn = u64 (*)(Buffer * const, u64);

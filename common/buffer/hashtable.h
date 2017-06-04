@@ -69,6 +69,7 @@
 #include "primitive_types.h"
 #include "compare.h"
 #include "hash.h"
+#include "optional.h"
 #include "logging.h"
 #include "mathutils.h"
 
