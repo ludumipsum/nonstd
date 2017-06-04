@@ -23,7 +23,6 @@
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
-#include <limits.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -34,8 +33,9 @@
 
 /* # C++ Standard Library Includes */
 #include <functional>
-#include <type_traits>
+#include <limits>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 
 
