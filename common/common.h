@@ -31,11 +31,11 @@
 
 /* N2 memory managment classes */
 #include "buffer.h"
+#include "buffer/descriptor.h"
 #include "buffer/hashtable.h"
 #include "buffer/ring.h"
 #include "buffer/slice.h"
 #include "buffer/stream.h"
-#include "buffer/buffer_helpers.h"
 
 /* Should-be-standard Library */
 #include "optional.h"
