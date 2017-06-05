@@ -14,13 +14,17 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
-#include "buffer.h"
+// NB. We don't `using mem::Buffer` after this include, because api.h is
+// included _everywhere_, and we don't want to prematurely pollute the global
+// namespace with that alias.
+#include "mem.h"
 #include "crash.h"
 
 #include "cvar.h"
 #include "data/ui_command.h"
 #include "data/vg_command.h"
 #include "data/input_event.h"
+
 
 /* Game State
    ==========
@@ -32,12 +36,13 @@
 struct GameState {
     /* Memory backing all game buffers */
     struct MemoryAPI {
-        Buffer *const (*allocate)       (c_cstr name, u64 size,
-                                         buffer::Flags flags);
-        u64           (*resize)         (Buffer *const bd, u64 new_size);
-        void          (*free)           (Buffer *const bd);
-        Buffer *const (*lookup)         (c_cstr name);
-        Buffer *const (*lookupHistoric) (c_cstr name, u64 frame);
+        mem::Buffer *const           (*allocate)     (c_cstr name, u64 size,
+                                                      mem::Flags flags);
+        u64                          (*resize)       (mem::Buffer *const bd,
+                                                      u64 new_size);
+        void                         (*release)      (mem::Buffer *const bd);
+        Optional<mem::Buffer *const> (*find)         (c_cstr name);
+        Optional<mem::Buffer *const> (*findHistoric) (c_cstr name, u64 frame);
     } memory;
 
     struct RngAPI {
