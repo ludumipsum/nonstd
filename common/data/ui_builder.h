@@ -29,12 +29,11 @@ public:
     inline UI(mem::Buffer *const buffer)
              : m_current ( { 0 }  )
              , m_uicl    ( buffer ) { }
-    //TODO: Test if we can now use mem::find for this ctor.
     inline UI(GameState& state)
              : m_current ( { 0 }                                 )
              , m_uicl    (
-                *(state.memory.find(state.out.ui_command_buffer_id)),
-                state.memory.resize
+                *(mem::find(state.out.ui_command_buffer_id)),
+                mem::resize
              ) { }
 
     inline ~UI() { commit(); }

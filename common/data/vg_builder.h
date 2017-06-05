@@ -46,12 +46,11 @@ public:
         m_current.type = VG_COMMAND_TYPE_META_STATE_FRAME_PUSH;
         commit();
     }
-    //TODO: Test if we can now use mem::find for this ctor.
     inline VG(GameState& state)
         : m_current      ( { 0 }                                 )
         , m_vgcl (
-            *(state.memory.find(state.out.vg_command_buffer_id)),
-            state.memory.resize
+            *(mem::find(state.out.vg_command_buffer_id)),
+            mem::resize
         )
         , m_fill         ( false                                 )
         , m_fill_color   ( { 0 }                                 )
