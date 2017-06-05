@@ -1,16 +1,19 @@
-/* N2 Buffers
- * ==========
+/* N2 Memory Management
+ * ====================
  * Memory management is hard. Memory management in a hot-loading, code-swapping,
  * volatile-memory, context is more so.
  *
  * N2's solution is to allocate/free memory ('Buffers') from exactly one module
- * in the platform layer (the platform::mem module, probably surprising
- * everyone), provide handles to that data via the `buffer::Descriptor` POD
- * structure (defined in the buffer/descriptor.cc module, again shocking all
- * involved), and expose buffers and buffer views to both the platform and game
- * layers through helper functions defined below. The platform layer will
- * directly access the mem:: module, and the game layer will call through
- * function pointers exposed from the GameState API.
+ * in the platform layer (the platform::mem implementation, probably surprising
+ * everyone), provide handles to that data via the `mem::Buffer` POD structure,
+ * and expose Buffers and Buffer Views to both the platform and game layers
+ * through this shared interface. The platform layer will allocate, free, and
+ * directly manage the memory for N2, and the game layer will use the same
+ * system via function pointers exposed through the GameState API.
+ *
+ * TODO: Work out how the retention system _should_ function. We probably don't
+ * need or want to keep persist- and clear-mode metadata in the buffer itself.
+ * Rather, we should store that only in the memory subsystem.
  *
  * The retention pattern for any given Buffer is defined at create time (and
  * cannot be modified?) using the `buffer::Flags` defined alongside the
