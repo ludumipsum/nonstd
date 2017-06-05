@@ -3,15 +3,15 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
-#include "buffer.h"
-#include "buffer/slice.h"
+#include "mem.h"
+#include "mem/slice.h"
 #include "vg_command.h"
 
 #include "api.h"
 
 class VG {
 protected:
-    using VGCommandList = buffer::Slice<VGCommand>;
+    using VGCommandList = mem::view::Slice<VGCommand>;
 
     VGCommand        m_current;
     VGCommandList    m_vgcl;
@@ -32,7 +32,7 @@ protected:
     }
 
 public:
-    inline VG(Buffer *const buffer)
+    inline VG(mem::Buffer *const buffer)
         : m_current      ( { 0 }  )
         , m_vgcl         ( buffer )
         , m_fill         ( false  )
@@ -46,10 +46,11 @@ public:
         m_current.type = VG_COMMAND_TYPE_META_STATE_FRAME_PUSH;
         commit();
     }
+    //TODO: Test if we can now use mem::find for this ctor.
     inline VG(GameState& state)
         : m_current      ( { 0 }                                 )
         , m_vgcl (
-            state.memory.lookup(state.out.vg_command_buffer_id),
+            *(state.memory.find(state.out.vg_command_buffer_id)),
             state.memory.resize
         )
         , m_fill         ( false                                 )

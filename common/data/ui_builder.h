@@ -3,15 +3,15 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
-#include "buffer.h"
-#include "buffer/slice.h"
+#include "mem.h"
+#include "mem/slice.h"
 #include "ui_command.h"
 
 #include "api.h"
 
 class UI {
 protected:
-    using UICommandList = buffer::Slice<UICommand>;
+    using UICommandList = mem::view::Slice<UICommand>;
 
     UICommand        m_current;
     UICommandList    m_uicl;
@@ -26,13 +26,14 @@ protected:
         m_current.state = UI_STATE_DEFAULT;
     }
 public:
-    inline UI(Buffer *const buffer)
+    inline UI(mem::Buffer *const buffer)
              : m_current ( { 0 }  )
              , m_uicl    ( buffer ) { }
+    //TODO: Test if we can now use mem::find for this ctor.
     inline UI(GameState& state)
              : m_current ( { 0 }                                 )
              , m_uicl    (
-                state.memory.lookup(state.out.ui_command_buffer_id),
+                *(state.memory.find(state.out.ui_command_buffer_id)),
                 state.memory.resize
              ) { }
 
