@@ -29,12 +29,13 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 #include "logging.h"
+#include "crash.h"
 
-#include "buffer.h"
-#include "buffer/slice.h"
+#include "mem/buffer.h"
 
 
-namespace buffer {
+namespace mem {
+namespace view {
 
 template<typename T>
 class Stream {
@@ -56,7 +57,7 @@ public: /*< ## Class Methods */
         return sizeof(Metadata) + sizeof(T) * capacity;
     }
 
-    inline static void initializeBuffer(Descriptor *const bd) {
+    inline static void initializeBuffer(Buffer *const bd) {
         Metadata * metadata = (Metadata*)bd->data;
         /* If the type check is correct, no initialization is required. */
         if (metadata->magic == magic) { return; }
@@ -86,14 +87,14 @@ public: /*< ## Class Methods */
 
 
 protected: /*< ## Public Member Variables */
-    Descriptor * const m_bd;
-    Metadata   *       m_metadata;
-    BufferResizeFn     m_resize;
+    Buffer   *const m_bd;
+    Metadata *      m_metadata;
+    ResizeFn        m_resize;
 
 public: /*< ## Ctors, Detors, and Assignments */
     // TODO: Magic number check?
-    Stream(Descriptor *const bd,
-           BufferResizeFn resize = nullptr)
+    Stream(Buffer *const bd,
+           ResizeFn resize = nullptr)
         : m_bd       ( bd                      )
         , m_metadata ( (Metadata*)(m_bd->data) )
         , m_resize   ( resize                  ) { }
@@ -265,4 +266,5 @@ protected: /*< ## Protected Member Methods */
     ENFORCE_POD(T);
 };
 
-} /* namespace buffer */
+} /* namesapce view */
+} /* namespace mem  */

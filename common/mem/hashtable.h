@@ -67,17 +67,17 @@
 
 #include "batteries_included.h"
 #include "primitive_types.h"
+#include "logging.h"
+#include "crash.h"
 #include "compare.h"
 #include "hash.h"
 #include "optional.h"
-#include "logging.h"
 #include "mathutils.h"
 
-#include "api.h"
-#include "buffer.h"
+#include "mem/buffer.h"
 
-
-namespace buffer {
+namespace mem {
+namespace view {
 
 template<typename T_KEY, typename T_VAL>
 class HashTable {
@@ -123,7 +123,7 @@ public: /*< ## Class Methods */
                 (sizeof(Cell) * (required_capacity + max_miss_distance)));
     }
 
-    inline static void initializeBuffer(Descriptor *const bd,
+    inline static void initializeBuffer(Buffer *const bd,
                                         f32 max_load_factor = 0) {
         Metadata * metadata = (Metadata *)(bd->data);
 #if defined(DEBUG)
@@ -188,14 +188,14 @@ public: /*< ## Contained-Type Accessors */
 
 
 protected: /*< ## Public Member Variables */
-    Descriptor * const m_bd;
-    Metadata   *       m_metadata;
-    BufferResizeFn     m_resize;
+    Buffer   *const m_bd;
+    Metadata *      m_metadata;
+    ResizeFn        m_resize;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    HashTable(Descriptor *const bd,
-              BufferResizeFn resize)
+    HashTable(Buffer *const bd,
+              ResizeFn resize)
         : m_bd       ( bd                      )
         , m_metadata ( (Metadata*)(m_bd->data) )
         , m_resize   ( resize                  ) { }
@@ -409,7 +409,7 @@ protected: /*< ## Protected Member Methods */
 
         memset(intermediate_data, 0xFF, m_bd->size);
 
-        Buffer intermediate_bd = make_buffer(intermediate_data, m_bd->size);
+        Buffer intermediate_bd = makeBuffer(intermediate_data, m_bd->size);
         memcpy(intermediate_bd.data, m_bd->data, m_bd->size);
 
         HashTable src(&intermediate_bd, nullptr);
@@ -639,4 +639,5 @@ public:
     ENFORCE_POD(T_VAL);
 };
 
-} /* namespace buffer */
+} /* namespace view */
+} /* namespace mem  */

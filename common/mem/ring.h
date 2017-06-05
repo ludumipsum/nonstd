@@ -32,12 +32,13 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 #include "logging.h"
+#include "crash.h"
 
-#include "buffer.h"
-#include "buffer/slice.h"
+#include "mem/buffer.h"
 
 
-namespace buffer {
+namespace mem {
+namespace view {
 
 /* NB. This can only handle 63 bits of addressing, so if you have more than
  *     9.2 Exabytes of data in one Ring, rethink life.
@@ -53,14 +54,14 @@ public: /*< ## Class Methods */
 
 
 protected: /*< ## Public Member Variables */
-    Descriptor * const m_bd;
-    BufferResizeFn     m_resize;
-    u64                m_capacity;
-    u64                m_write_head;
+    Buffer *const m_bd;
+    ResizeFn      m_resize;
+    u64           m_capacity;
+    u64           m_write_head;
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Ring(Descriptor *const bd,
-         BufferResizeFn resize = nullptr)
+    Ring(Buffer *const bd,
+         ResizeFn resize = nullptr)
         : m_bd         ( bd                   )
         , m_resize     ( resize               )
         , m_capacity   ( bd->size / sizeof(T) )
@@ -185,4 +186,5 @@ protected: /*< ## Protected Member Methods */
     ENFORCE_POD(T);
 };
 
-} /* namespace buffer */
+} /* namespace view */
+} /* namespace mem  */

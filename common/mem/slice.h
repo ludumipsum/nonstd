@@ -19,12 +19,13 @@
 #include "primitive_types.h"
 #include "mathutils.h"
 #include "logging.h"
+#include "crash.h"
 
-#include "api.h"
-#include "buffer.h"
+#include "mem/buffer.h"
 
 
-namespace buffer {
+namespace mem {
+namespace view {
 
 template<typename T>
 class Slice {
@@ -37,11 +38,11 @@ public: /*< ## Class Methods */
 
 
 protected: /*< ## Public Member Variables */
-    Descriptor *const m_bd;
-    BufferResizeFn    m_resize;
+    Buffer *const m_bd;
+    ResizeFn      m_resize;
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Slice(Descriptor *const bd, BufferResizeFn resize = nullptr)
+    Slice(Buffer *const bd, ResizeFn resize = nullptr)
         : m_bd     ( bd      )
         , m_resize ( resize  ) { }
 
@@ -127,8 +128,8 @@ public: /*< ## Public Memeber Methods */
     }
 
     /* Erase a range of objects from this Slice.
-     * This will correctly adjust the buffer::Descriptor's cursor, and correctly
-     * sift existing data s.t. the contiguity of data remains consistent. */
+     * This will correctly adjust the mem::Buffer's cursor, and correctly shift
+     * existing data s.t. the contiguity of data remains consistent. */
     inline void erase(T* range_begin, T* range_end) {
 #if defined(DEBUG)
         bool begins_before_buffer  = range_begin < begin(),
@@ -160,4 +161,5 @@ public: /*< ## Public Memeber Methods */
     ENFORCE_POD(T);
 };
 
-} /* namespace buffer */
+} /* namespace view */
+} /* namespace mem  */
