@@ -50,10 +50,10 @@ struct GameState {
                   c_cstr file, u64 line, c_cstr funcsig);
     } crash;
 
-    struct timeAPI {
+    struct chronoAPI {
         /* Get the current time */
         u64 (*now)();
-    } time;
+    } chrono;
 
     struct CVarAPI {
       /* Configuration variable accessors */
