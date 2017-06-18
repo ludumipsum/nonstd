@@ -1,13 +1,12 @@
-/* Platform API
-   ============
-
-   This file defines the API for all platform-layer code. Each platform's
-   implementation can be found in modules prefixed with the corresponding
-   platform name (e.g. win32_all.cc or win32_audio.cc).
-
-   Because it is included everywhere, it also transitively includes common
-   utility macros we need in all sources.
-*/
+/** Platform API
+ *  ============
+ *  This file defines the API for all platform-layer code. Each platform's
+ *  implementation can be found in modules prefixed with the corresponding
+ *  platform name (e.g. win32_all.cc or win32_audio.cc).
+ *
+ *  Because it is included everywhere, it also transitively includes common
+ *  utility macros we need in all sources.
+ */
 
 #pragma once
 
@@ -26,12 +25,11 @@
 #include "data/input_event.h"
 
 
-/* Game State
-   ==========
-
-   All state used by the game is stored in this structure: memory pools,
-   platform resources, timing information, and so on.
-*/
+/** Game State
+ *  ==========
+ *  All state used by the game is stored in this structure: memory pools,
+ *  platform resources, timing information, and so on.
+ */
 
 struct GameState {
     /* Memory backing all game buffers */
@@ -44,6 +42,26 @@ struct GameState {
         Optional<mem::Buffer *const> (*find)         (c_cstr name);
         Optional<mem::Buffer *const> (*findHistoric) (c_cstr name, u64 frame);
     } memory;
+
+    struct crashAPI {
+      /* Signal the platform that the game has encountered an unrecoverable
+         error. The platform may or may not itself die in response. */
+      int (*crash)(N2Error error, c_cstr reason,
+                  c_cstr file, u64 line, c_cstr funcsig);
+    } crash;
+
+    struct timeAPI {
+        /* Get the current time */
+        u64 (*now)();
+    } time;
+
+    struct CVarAPI {
+      /* Configuration variable accessors */
+      CVar_i* (*find_cvar_i)(c_cstr name);
+      CVar_f* (*find_cvar_f)(c_cstr name);
+      CVar_b* (*find_cvar_b)(c_cstr name);
+      CVar_s* (*find_cvar_s)(c_cstr name);
+    } cvar;
 
     struct RngAPI {
         u64  (*integer)  (u64 min, u64 max);
@@ -87,31 +105,14 @@ struct GameState {
     /* Fraction of a frame period left over after rendering the current frame */
     f32 accumulator;
 
-    /* Platform functions exposed directly to gamecode */
-    struct PlatformFunctions {
-        /* Configuration variable accessors */
-        CVar_i* (*find_cvar_i)(c_cstr name);
-        CVar_f* (*find_cvar_f)(c_cstr name);
-        CVar_b* (*find_cvar_b)(c_cstr name);
-        CVar_s* (*find_cvar_s)(c_cstr name);
-
-        /* Get the current time */
-        u64 (*now)();
-
-        /* Signal the platform that the game has encountered an unrecoverable
-           error. The platform may or may not itself die in response. */
-        int (*crash)(N2Error error, c_cstr reason,
-                     c_cstr file, u64 line, c_cstr funcsig);
-    } functions;
 }; ENFORCE_POD(GameState);
 
 
-/* Platform Hooks
-   ==============
-
-   Functions exposed to the platform code, called at particular times in the
-   game loop to generate data the platform layer needs per frame.
-*/
+/** Platform Hooks
+ *  ==============
+ *  Functions exposed to the platform code, called at particular times in the
+ *  game loop to generate data the platform layer needs per frame.
+ */
 
 extern "C" {
 
