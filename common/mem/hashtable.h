@@ -108,7 +108,8 @@ protected: /*< ## Inner-Types */
 
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity        = 64;
-    static constexpr f32 default_max_load_factor = 0.6f;
+    //TODO: Run some tests to see what load factors we can handle.
+    static constexpr f32 default_max_load_factor = 0.8f;
 
     inline static u64 precomputeSize(u64 capacity = default_capacity) {
         // Round the requested capacity up to the nearest power-of-two, and then
