@@ -107,9 +107,9 @@ inline Stream<T> allocateStream(
 template < typename K, typename V >
 inline HashTable<K,V> allocateHashTable(
     c_cstr name,
-    u64    capacity       = HashTable<K,V>::default_capacity,
-    u64    miss_tolerance = HashTable<K,V>::default_miss_tolerance,
-    Flags  flags          = PASS);
+    u64    capacity        = HashTable<K,V>::default_capacity,
+    f32    max_load_factor = HashTable<K,V>::default_max_load_factor,
+    Flags  flags           = PASS);
 
 } /* namespace view */
 } /* namespace mem  */
