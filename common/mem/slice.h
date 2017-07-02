@@ -150,7 +150,7 @@ public: /*< ## Public Memeber Methods */
         }
 #endif
         memmove(range_begin, range_end, end() - range_end);
-        m_bd->cursor = range_end;
+        m_bd->cursor = (ptr)range_end;
     }
     inline void erase(u64 index_begin, u64 index_end) {
         erase(((T*)(m_bd->data) + index_begin), ((T*)(m_bd->data) + index_end));
