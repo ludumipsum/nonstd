@@ -95,9 +95,9 @@ public: /*< ## Ctors, Detors, and Assignments */
     // TODO: Magic number check?
     Stream(Buffer *const bd,
            ResizeFn resize = nullptr)
-        : m_bd       ( bd                      )
-        , m_metadata ( (Metadata*)(m_bd->data) )
-        , m_resize   ( resize                  ) { }
+        : m_bd       ( bd                    )
+        , m_metadata ( (Metadata*)(bd->data) )
+        , m_resize   ( resize                ) { }
 
 
 public: /*< ## Public Memeber Methods */
