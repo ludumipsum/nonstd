@@ -197,9 +197,9 @@ protected: /*< ## Public Member Variables */
 public: /*< ## Ctors, Detors, and Assignments */
     HashTable(Buffer *const bd,
               ResizeFn resize)
-        : m_bd       ( bd                      )
-        , m_metadata ( (Metadata*)(m_bd->data) )
-        , m_resize   ( resize                  ) { }
+        : m_bd       ( bd                    )
+        , m_metadata ( (Metadata*)(bd->data) )
+        , m_resize   ( resize                ) { }
 
 
 public: /*< ## Public Member Methods */
