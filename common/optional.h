@@ -439,7 +439,7 @@ public:
      * deleted in Optional<T>. */
     constexpr _Optional_ValueBase(_Optional_ValueBase && other)
     noexcept(IS_NOTHROW_MOVE_CONSTRUCTIBLE(T))
-        : _storage ( std::move(other._storage.value) ) { }
+        : _storage ( std::move(other._storage) ) { }
 
     /* In-Place Value Ctor
      * ------------------- */
