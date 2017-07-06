@@ -1,30 +1,25 @@
-/* Typed Rings Buffer
- * ==================
-
- * Buffer Rings are a View over Buffer Descriptors that present a simple typed
- * ring-buffer over an entire buffer descriptor. These buffers have no concept
- * of partial-fullness, so iterations over a Ring will always yield `capacity()`
- * objects. The buffer's data is assumed to be initialized to `\0`, so "empty"
- * data should be an expected and valid return for all iterations and subscript
- * operations.
+/** Typed Ring View
+ *  ===============
+ *  Ring Views present a typed ring-buffer over an entire memory buffer. These
+ *  views have no concept of partial-fullness, so iterations over a Ring will
+ *  always yield `capacity()` objects. The buffer's data is assumed to be
+ *  initialized to `\0`, so "empty" data should be an expected and valid return
+ *  for all iterations and subscript operations over Rings.
  *
- * The write head of the ring buffer will be stored directly in the buffer
- * descriptor as the `.cursor`, and will point to the last object written. For
- * writes, the write_head will be incremented, then the write will be performed.
- * For iterations and for the subscripting, the first object returned will
- * always be one index past the write_head.
+ *  The write head of the Ring will be stored directly in the memory buffer's
+ *  UserData `d1.u`, and will point to the last object written. For writes, the
+ *  write head will be incremented, then the write will be performed. For
+ *  iterations and subscripting the zero'th object will always be one index past
+ *  the write head.
  *
- * Resizes are permitted (assuming a resize callback has been provided), though
- * will never occur automatically.
- * TODO: Define resize semantics. For upward resizes, will we shift memory s.t.
- *       the original object ordering is retained? For downward resizes, will we
- *       do anything to maintain object ordering, or just `drop()` then resize?
- * TODO: Figure out consume. Does it mean anything in this context? If not, are
- *       user's going to be limited to adding objects one at a time? If so, how
- *       do we deal with split memory regions? (Scratch buffer, maybe? Unless
- *       the scratch is a ring....)
- * TODO: Better comments.
- * TODO: Tests.
+ *  Resizes are permitted, though will never occur automatically.
+ *  TODO: Define resize semantics.
+ *  TODO: Figure out consume. Does it mean anything in this context? If not, are
+ *        user's going to be limited to adding objects one at a time? If so, how
+ *        do we deal with split memory regions? (Scratch buffer, maybe? Unless
+ *        the scratch is a ring....)
+ *  TODO: Better comments.
+ *  TODO: Tests.
  */
 
 #pragma once
@@ -54,39 +49,39 @@ public: /*< ## Class Methods */
 
 
 protected: /*< ## Public Member Variables */
-    Buffer *const m_bd;
+    Buffer *const m_buf;
     ResizeFn      m_resize;
-    u64           m_capacity;
-    u64           m_write_head;
+    u64 &         m_write_index;
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Ring(Buffer *const bd,
-         ResizeFn resize = nullptr)
-        : m_bd         ( bd                   )
-        , m_resize     ( resize               )
-        , m_capacity   ( bd->size / sizeof(T) )
-        , m_write_head ( (bd->cursor - bd->data) / sizeof(T) ) { }
+    Ring(Buffer *const buf, ResizeFn resize = nullptr)
+        : m_buf         ( buf                  )
+        , m_resize      ( resize               )
+        , m_write_index ( buf->userdata1.u_int ) { }
 
 
 public: /*< ## Public Memeber Methods */
-    inline u64    size()     { return m_bd->size; }
-    inline u64    capacity() { return m_capacity; }
-    inline u64    count()    { return m_capacity; }
-    inline c_cstr name()     { return m_bd->name; }
+    inline u64    size()     { return m_buf->size;             }
+    inline u64    count()    { return capacity();              }
+    inline u64    capacity() { return m_buf->size / sizeof(T); }
+    inline c_cstr name()     { return m_buf->name;             }
 
     inline void drop() {
-        memset(m_bd->data, '\0', m_bd->size);
-        m_bd->cursor = m_bd->data;
+        memset(m_buf->data, '\0', m_buf->size);
+        m_write_index = 0;
     }
 
-    inline u64 resize(u64 capacity) {
-        N2CRASH_IF(m_resize == nullptr, N2Error::MissingData,
-                   "Unable to resize ring %s (resize function not set)",
-                   name());
-        auto required_size = Ring<T>::precomputeSize(capacity);
-        auto new_size = m_resize(m_bd, required_size);
-        m_capacity = new_size / sizeof(T);
-        return m_capacity;
+    inline u64 resize(u64 new_capacity) {
+#if defined(DEBUG)
+        N2CRASH_IF(m_resize == nullptr, N2Error::NullPtr,
+            "Attempting to resize a Ring that has no associated "
+            "resize function.\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            m_buf->name, m_buf);
+#endif
+        auto required_size = Ring<T>::precomputeSize(new_capacity);
+        m_resize(m_buf, required_size);
+        return capacity();
     }
 
     inline T* consume(u64 count) {
@@ -94,23 +89,22 @@ public: /*< ## Public Memeber Methods */
     }
 
     inline T& operator[](i64 index) {
-        u64 target_index = increment(m_write_head, (index));
-        return *((T*)(m_bd->data) + target_index);
+        u64 target_index = increment(m_write_index, index);
+        return *((T*)(m_buf->data) + target_index);
     }
 
     inline T& push(T value) {
-        T* mem       = (T*)(m_bd->data) + m_write_head;
+        T* mem       = (T*)(m_buf->data) + m_write_index;
         *mem         = value;
-        m_write_head = increment(m_write_head);
-        m_bd->cursor = (ptr)((T*)(m_bd->data) + m_write_head);
+        m_write_index = increment(m_write_index, 1);
         return *mem;
     }
 
 
     /* ## Nested Iterorator class */
     class iterator;
-    inline iterator begin() { return { *this }; }
-    inline iterator end()   { return { *this,  capacity() }; }
+    inline iterator begin() { return { *this, 0          }; }
+    inline iterator end()   { return { *this, capacity() }; }
 
     class iterator {
     public:
