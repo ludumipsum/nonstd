@@ -1,16 +1,12 @@
-/* Typed Buffer Slice
- * ==================
+/** Typed Array View
+ *  ================
+ *  Array views present a typed, std::vector-like abstraction over memory
+ *  buffers, allowing their use as iterable containers of a given type. Note
+ *  that resizes may be automatically performed on `consume` and `push` calls,
+ *  and that bounds-checking on subscript operators will be performed in
+ *  DEBUG mode.
  *
- * Buffer Slices provide simple, std::array-like abstraction over game memory
- * buffers, allowing their use as iterable containers of a given type. Since
- * game buffers are not stored with a type, take some care to not use slices of
- * different types over the same buffer, or you're likely to get
- * "interesting" results.
- *
- * Do not retain a buffer slice across frames unless you really know what you're
- * trying to accomplish by doing that --- it will, _at best_  refer to a buffer
- * backed by a previous frame's state, which is unlikely to be quite what
- * you want.
+ *  TODO: Rename this struct/file to Array.
  */
 
 #pragma once
@@ -38,57 +34,58 @@ public: /*< ## Class Methods */
 
 
 protected: /*< ## Public Member Variables */
-    Buffer *const m_bd;
+    Buffer *const m_buf;
     ResizeFn      m_resize;
+    u64 &         m_write_index;
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Slice(Buffer *const bd, ResizeFn resize = nullptr)
-        : m_bd     ( bd      )
-        , m_resize ( resize  ) { }
+    Slice(Buffer *const buf, ResizeFn resize = nullptr)
+        : m_buf         ( buf                  )
+        , m_resize      ( resize               )
+        , m_write_index ( buf->userdata1.u_int ) { }
 
 
 public: /*< ## Public Memeber Methods */
-    /* Return the size of the Slice in bytes. */
-    inline u64 size()      { return m_bd->size; }
-    /* Return the number of objects currently stored in the Slice. */
-    inline u64 count()     { return (m_bd->cursor - m_bd->data) / sizeof(T); }
-    /* Return the maximum number of objects the Slice may store. */
-    inline u64 capacity()  { return m_bd->size / sizeof(T); }
+    inline u64    size()     { return m_buf->size;             }
+    inline u64    count()    { return m_write_index;           }
+    inline u64    capacity() { return m_buf->size / sizeof(T); }
+    inline c_cstr name()     { return m_buf->name;             }
 
     /* Drop all elements of the region without reinitializing memory. */
     inline void drop() {
-        m_bd->cursor = m_bd->data;
+        m_write_index = 0;
     }
 
-    inline void resize(u64 size_bytes) {
+    inline u64 resize(u64 new_capacity) {
 #if defined(DEBUG)
         N2CRASH_IF(m_resize == nullptr, N2Error::NullPtr,
             "Attempting to resize a Slice that has no associated "
             "resize function.\n"
             "Underlying buffer is named %s, and it is located at %p.",
-            m_bd->name, m_bd);
+            m_buf->name, m_buf);
 #endif
-        m_resize(m_bd, size_bytes);
+        auto required_size = Slice<T>::precomputeSize(new_capacity);
+        m_resize(m_buf, required_size);
+        return capacity();
     }
 
     /* Get a pointer to `count` consecutive elements in the view, resizing
      * if necessary. No initialization is done on this data. */
     inline T* consume(u64 count=1) {
-        // Compute the buffer endpoint, and the end of the memory we want
-        T *region_end    = (T*)( (u8*)(m_bd->data) + m_bd->size   ),
-          *requested_end = (T*)( (T*) (m_bd->cursor) + count );
-
         // Resize if this consume call would stretch past the end of the buffer.
-        if (m_resize && requested_end > region_end) {
-            u64 requested_size = m_bd->size + ( sizeof(T) * count );
+        //TODO: Make sure I've not off-by-one'd here.
+        if (m_write_index + count >= capacity()) {
+            u64 requested_size = m_buf->size + ( sizeof(T) * count );
             u64 padded_size = n2max((u64)(1.2f * requested_size),
                                     requested_size + sizeof(T));
-            resize(padded_size);
+            this->resize(padded_size);
         }
 
-        // Return the address of the requested amount of space
-        T* ret = (T*) m_bd->cursor;
-        m_bd->cursor = (ptr) ( ((T*)(m_bd->cursor)) + count );
+        // Find the address of the request data region, increment the write
+        // index, and return.
+        T* ret = (T*)(m_buf->data) + m_write_index;
+        m_write_index += count;
+
         return ret;
     }
 
@@ -101,35 +98,30 @@ public: /*< ## Public Memeber Methods */
     inline T& push_back(T value) { return push(value); }
 
     /* Iterator access to support range-based for */
-    inline T* begin(void) const      { return (T*)(m_bd->data); }
-    inline T* end(void) const        { return (T*)(m_bd->cursor); }
+    inline T* begin(void) const { return (T*)(m_buf->data);                 }
+    inline T* end(void) const   { return (T*)(m_buf->data) + m_write_index; }
     inline T* buffer_end(void) const {
-        return (T*)((u8*)(m_bd->data) + m_bd->size);
+        return (T*)(m_buf->data + m_buf->size);
     }
 
     /* Direct index operator. */
     inline T& operator[](u64 index) {
 #if defined(DEBUG)
-        if (index > count() && index < capacity()) {
-            LOG("WARNING: Accessing an uninitialized object in a Slice at "
-                Fu64 ".\n"
-                "This will invalidate count() and range-based iterators."
-                "Please be sure you're remaining within the bounds of consumed "
-                "data in this Slice.\n"
-                "Underlying buffer is named %s, and it is located at %p.",
-                index, m_bd->name, m_bd);
-        }
         N2CRASH_IF(index >= capacity(), N2Error::OutOfBounds,
-            "Entry %d / %d.\n"
+            "Entry " Fu64 " / " Fu64 ".\n"
             "Underlying buffer is named %s, and it is located at %p.",
-            index, capacity(), m_bd->name, m_bd);
+            index, capacity(), m_buf->name, m_buf);
+        N2CRASH_IF(index >= count(), N2Error::OutOfBounds,
+            "Entry " Fu64 " / " Fu64 " (of " Fu64 ").\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            index, count(), capacity(), m_buf->name, m_buf);
 #endif
-        return *((T*)(m_bd->data) + index);
+        return *((T*)(m_buf->data) + index);
     }
 
     /* Erase a range of objects from this Slice.
-     * This will correctly adjust the mem::Buffer's cursor, and correctly shift
-     * existing data s.t. the contiguity of data remains consistent. */
+     * This will correctly adjust the mem::Buffer's user data, and correctly
+     * shift existing data s.t. the contiguity of data remains consistent. */
     inline void erase(T* range_begin, T* range_end) {
 #if defined(DEBUG)
         bool begins_before_buffer  = range_begin < begin(),
@@ -144,16 +136,17 @@ public: /*< ## Public Memeber Methods */
                 "  begin       : %p\n"
                 "  range begin : %p\n"
                 "  range end   : %p\n"
-                "  end         : %p",
+                "  end         : %p\n",
                 "Underlying buffer is named %s, and it is located at %p.",
-                begin(), range_begin, range_end, end(), m_bd->name, m_bd);
+                begin(), range_begin, range_end, end(), m_buf->name, m_buf);
         }
 #endif
         memmove(range_begin, range_end, end() - range_end);
-        m_bd->cursor = (ptr)range_end;
+        m_write_index -= (range_end - range_begin) / sizeof(T);
     }
     inline void erase(u64 index_begin, u64 index_end) {
-        erase(((T*)(m_bd->data) + index_begin), ((T*)(m_bd->data) + index_end));
+        erase( (T*)(m_buf->data) + index_begin,
+               (T*)(m_buf->data) + index_end    );
     }
 
 
