@@ -40,7 +40,6 @@ struct GameState {
                                                       u64 new_size);
         void                         (*release)      (mem::Buffer *const bd);
         Optional<mem::Buffer *const> (*find)         (c_cstr name);
-        Optional<mem::Buffer *const> (*findHistoric) (c_cstr name, u64 frame);
     } memory;
 
     struct crashAPI {

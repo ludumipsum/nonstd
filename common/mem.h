@@ -11,18 +11,6 @@
  *  directly manage the memory for N2, and the game layer will use the same
  *  system via function pointers exposed through the GameState API.
  *
- *  TODO: Work out how the retention system _should_ function. We probably don't
- *  need or want to keep persist- and clear-mode metadata in the buffer itself.
- *  Rather, we should store that only in the memory subsystem.
- *
- *  The retention pattern for any given Buffer is defined at create time (and
- *  cannot be modified?) using the `buffer::Flags` defined alongside the
- *  buffer::Descriptor. The default behavior for buffers is to make _no
- *  guarantee that data will be saved between frames_. Once a Buffer is created,
- *  it will always be accessible via `find` but -- unless the `PERSIST` flag is
- *  set -- the data stored in that buffer might not be accessible once a frame
- *  boundary is reached.
- *
  *  NB. As there is no real guarantee of what the platform layer will or won't
  *  do to your data pointers between frames -- or even if your game state is
  *  actually "between" frames; think of state loads, A-B repeats, state shared
@@ -66,8 +54,6 @@ inline void release(Buffer *const bd);
 
 /* Look up a memory buffer by name */
 inline Optional<Buffer *const> find(c_cstr name);
-/* Look up a persisted buffer from a previous frame */
-inline Optional<Buffer *const> findHistoric(c_cstr name, u64 frame);
 
 
 namespace view {
