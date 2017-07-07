@@ -18,16 +18,33 @@ namespace mem {
  *  ownership of or sharing information about transient data regions (scratch
  *  memory space, sub-sections of retained buffers, etc.).
  *
+ *  The UserData nested union is designed to allow users or Buffer Views to
+ *  persist state data without increasing the size of the stored data region.
+ *  TODO: Move the magic number for View "type checks" into the buffer, and hide
+ *        them behind the DEBUG flag.
+ *
  *  Note that the `data` pointer is the first member of the Memory Buffer. This
  *  allows us to make the mistake of directly casting or dereferencing a Buffer
  *  and still receive a valid data handle. Please use `(ptr)(buf->data)` and not
  *  `(ptr)(buf)`, but know that both work.
  */
 struct Buffer {
-    ptr    data;
+
+    union UserData {
+        u64     uint;
+        i64     iint;
+        ptrdiff ptrdiff;
+    };
+
+    ptr      data;
+    u64      size;
+    c_cstr   name;
+    UserData userdata1;
+    UserData userdata2;
+
+    //TODO: Convert all views to use the UserData members, then remove this.
     ptr    cursor;
-    u64    size;
-    c_cstr name;
+
 }; ENFORCE_POD(Buffer);
 
 
@@ -48,7 +65,7 @@ using ResizeFn = u64 (*)(Buffer * const, u64);
  *  they never persist between frames.
  */
 inline Buffer makeBuffer(ptr p, u64 size, c_cstr name = "transient_buffer") {
-    return Buffer { p, p, size, name };
+    return Buffer { p, size, name, { 0 }, { 0 }, p };
 }
 
 } /* namespace buffer */
