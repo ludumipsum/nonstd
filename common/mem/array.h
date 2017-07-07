@@ -37,7 +37,7 @@ protected: /*< ## Public Member Variables */
     u64 &         m_write_index;
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Slice(Buffer *const buf, ResizeFn resize = nullptr)
+    Array(Buffer *const buf, ResizeFn resize = nullptr)
         : m_buf         ( buf                  )
         , m_resize      ( resize               )
         , m_write_index ( buf->userdata1.u_int ) { }
