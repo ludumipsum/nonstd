@@ -31,9 +31,9 @@ namespace mem {
 struct Buffer {
 
     union UserData {
-        u64     uint;
-        i64     iint;
-        ptrdiff ptrdiff;
+        u64     u_int;
+        i64     i_int;
+        ptrdiff ptr_diff;
     };
 
     ptr      data;
