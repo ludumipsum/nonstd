@@ -47,7 +47,7 @@ struct GameState {
       /* Signal the platform that the game has encountered an unrecoverable
          error. The platform may or may not itself die in response. */
       int (*crash)(N2Error error, c_cstr reason,
-                  c_cstr file, u64 line, c_cstr funcsig);
+                   c_cstr file, u64 line, c_cstr funcsig);
     } crash;
 
     struct chronoAPI {
