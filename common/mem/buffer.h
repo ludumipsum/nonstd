@@ -47,8 +47,8 @@ using ResizeFn = u64 (*)(Buffer * const, u64);
  *  Buffers created in this way are not added to the platform's Buffer Map, so
  *  they never persist between frames.
  */
-inline Buffer makeBuffer(ptr p, u64 size) {
-    return Buffer { p, p, size, "transient_buffer" };
+inline Buffer makeBuffer(ptr p, u64 size, c_cstr name = "transient_buffer") {
+    return Buffer { p, p, size, name };
 }
 
 } /* namespace buffer */
