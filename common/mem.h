@@ -66,7 +66,7 @@ namespace view {
  */
 
 template < typename T >
-inline Optional< Slice<T> > findSlice(c_cstr name);
+inline Optional< Array<T> > findArray(c_cstr name);
 template < typename T >
 inline Optional< Ring<T> > findRing(c_cstr name);
 template < typename T >
@@ -76,9 +76,9 @@ inline Optional< HashTable<K,V> > findHashTable(c_cstr name);
 
 
 template < typename T >
-inline Slice<T> allocateSlice(
+inline Array<T> allocateArray(
     c_cstr name,
-    u64    capacity = Slice<T>::default_capacity);
+    u64    capacity = Array<T>::default_capacity);
 template < typename T >
 inline Ring<T> allocateRing(
     c_cstr name,

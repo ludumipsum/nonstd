@@ -4,14 +4,14 @@
 #include "primitive_types.h"
 
 #include "mem.h"
-#include "mem/slice.h"
+#include "mem/array.h"
 #include "vg_command.h"
 
 #include "api.h"
 
 class VG {
 protected:
-    using VGCommandList = mem::view::Slice<VGCommand>;
+    using VGCommandList = mem::view::Array<VGCommand>;
 
     VGCommand        m_current;
     VGCommandList    m_vgcl;
