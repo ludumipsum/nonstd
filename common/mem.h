@@ -31,9 +31,9 @@
 #include "primitive_types.h"
 
 #include "mem/buffer.h"
+#include "mem/array.h"
 #include "mem/hashtable.h"
 #include "mem/ring.h"
-#include "mem/slice.h"
 #include "mem/stream.h"
 
 

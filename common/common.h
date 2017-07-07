@@ -32,9 +32,9 @@
 /* N2 memory managment classes */
 #include "mem.h"
 #include "mem/buffer.h"
+#include "mem/array.h"
 #include "mem/hashtable.h"
 #include "mem/ring.h"
-#include "mem/slice.h"
 #include "mem/stream.h"
 
 /* Should-be-standard Library */

@@ -5,8 +5,6 @@
  *  that resizes may be automatically performed on `consume` and `push` calls,
  *  and that bounds-checking on subscript operators will be performed in
  *  DEBUG mode.
- *
- *  TODO: Rename this struct/file to Array.
  */
 
 #pragma once
@@ -24,7 +22,7 @@ namespace mem {
 namespace view {
 
 template<typename T>
-class Slice {
+class Array {
 public: /*< ## Class Methods */
     static const u64 default_capacity = 64;
 
@@ -59,12 +57,12 @@ public: /*< ## Public Memeber Methods */
     inline u64 resize(u64 new_capacity) {
 #if defined(DEBUG)
         N2CRASH_IF(m_resize == nullptr, N2Error::NullPtr,
-            "Attempting to resize a Slice that has no associated "
+            "Attempting to resize a Array that has no associated "
             "resize function.\n"
             "Underlying buffer is named %s, and it is located at %p.",
             m_buf->name, m_buf);
 #endif
-        auto required_size = Slice<T>::precomputeSize(new_capacity);
+        auto required_size = Array<T>::precomputeSize(new_capacity);
         m_resize(m_buf, required_size);
         return capacity();
     }
@@ -119,7 +117,7 @@ public: /*< ## Public Memeber Methods */
         return *((T*)(m_buf->data) + index);
     }
 
-    /* Erase a range of objects from this Slice.
+    /* Erase a range of objects from this Array.
      * This will correctly adjust the mem::Buffer's user data, and correctly
      * shift existing data s.t. the contiguity of data remains consistent. */
     inline void erase(T* range_begin, T* range_end) {
