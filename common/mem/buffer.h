@@ -42,9 +42,6 @@ struct Buffer {
     UserData userdata1;
     UserData userdata2;
 
-    //TODO: Convert all views to use the UserData members, then remove this.
-    ptr    cursor;
-
 }; ENFORCE_POD(Buffer);
 
 
@@ -65,7 +62,7 @@ using ResizeFn = u64 (*)(Buffer * const, u64);
  *  they never persist between frames.
  */
 inline Buffer makeBuffer(ptr p, u64 size, c_cstr name = "transient_buffer") {
-    return Buffer { p, size, name, { 0 }, { 0 }, p };
+    return Buffer { p, size, name, { 0 }, { 0 } };
 }
 
 } /* namespace buffer */
