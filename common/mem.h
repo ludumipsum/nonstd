@@ -46,7 +46,7 @@ namespace mem {
  */
 
 /* Create a new memory buffer */
-inline Buffer *const allocate(c_cstr name, u64 size, mem::Flags flags = PASS);
+inline Buffer *const allocate(c_cstr name, u64 size);
 /* Resize a memory buffer (using `realloc` memory-movement semantics) */
 inline u64 resize(Buffer *const bd, u64 new_size);
 /* Release a memory buffer (`free`ing the memory stored therein) */
@@ -78,24 +78,20 @@ inline Optional< HashTable<K,V> > findHashTable(c_cstr name);
 template < typename T >
 inline Slice<T> allocateSlice(
     c_cstr name,
-    u64    capacity = Slice<T>::default_capacity,
-    Flags  flags    = PASS);
+    u64    capacity = Slice<T>::default_capacity);
 template < typename T >
 inline Ring<T> allocateRing(
     c_cstr name,
-    u64    capacity = Ring<T>::default_capacity,
-    Flags  flags    = PASS);
+    u64    capacity = Ring<T>::default_capacity);
 template < typename T >
 inline Stream<T> allocateStream(
     c_cstr name,
-    u64    capacity = Stream<T>::default_capacity,
-    Flags  flags    = PASS);
+    u64    capacity = Stream<T>::default_capacity);
 template < typename K, typename V >
 inline HashTable<K,V> allocateHashTable(
     c_cstr name,
     u64    capacity        = HashTable<K,V>::default_capacity,
-    f32    max_load_factor = HashTable<K,V>::default_max_load_factor,
-    Flags  flags           = PASS);
+    f32    max_load_factor = HashTable<K,V>::default_max_load_factor);
 
 } /* namespace view */
 } /* namespace mem  */

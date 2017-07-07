@@ -34,12 +34,11 @@
 struct GameState {
     /* Memory backing all game buffers */
     struct MemoryAPI {
-        mem::Buffer *const           (*allocate)     (c_cstr name, u64 size,
-                                                      mem::Flags flags);
-        u64                          (*resize)       (mem::Buffer *const bd,
-                                                      u64 new_size);
-        void                         (*release)      (mem::Buffer *const bd);
-        Optional<mem::Buffer *const> (*find)         (c_cstr name);
+        mem::Buffer *const           (*allocate) (c_cstr name, u64 size);
+        u64                          (*resize)   (mem::Buffer *const bd,
+                                                  u64 new_size);
+        void                         (*release)  (mem::Buffer *const bd);
+        Optional<mem::Buffer *const> (*find)     (c_cstr name);
     } memory;
 
     struct crashAPI {
