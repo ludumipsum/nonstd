@@ -138,10 +138,12 @@ public: /*< ## Public Memeber Methods */
                 begin(), range_begin, range_end, end(), m_buf->name, m_buf);
         }
 #endif
-        memmove(range_begin, range_end, end() - range_end);
-        m_write_index -= (range_end - range_begin) / sizeof(T);
+        memmove(range_begin, range_end, (end() - range_end) * sizeof(T));
+        m_write_index -= (range_end - range_begin);
     }
-    inline void erase(u64 index_begin, u64 index_end) {
+    inline void erase(u64 index_begin, u64 index_end = 0) {
+        // Poor-man's relative default. If only index_begin is given, erase it.
+        if (index_end == 0) { index_end = (index_begin + 1); }
         erase( (T*)(m_buf->data) + index_begin,
                (T*)(m_buf->data) + index_end    );
     }
