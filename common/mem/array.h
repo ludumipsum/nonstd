@@ -71,12 +71,11 @@ public: /*< ## Public Memeber Methods */
      * if necessary. No initialization is done on this data. */
     inline T* consume(u64 count=1) {
         // Resize if this consume call would stretch past the end of the buffer.
-        //TODO: Make sure I've not off-by-one'd here.
-        if (m_write_index + count >= capacity()) {
-            u64 requested_size = m_buf->size + ( sizeof(T) * count );
-            u64 padded_size = n2max((u64)(1.2f * requested_size),
-                                    requested_size + sizeof(T));
-            this->resize(padded_size);
+        if (m_write_index + count > capacity()) {
+            u64 requested_count = (m_write_index + count);
+            u64 padded_count    = (u64)(1.2f * requested_count);
+            u64 clamped_count   = n2max(padded_count, requested_count+1);
+            resize(clamped_count);
         }
 
         // Find the address of the request data region, increment the write
@@ -108,11 +107,11 @@ public: /*< ## Public Memeber Methods */
         N2CRASH_IF(index >= capacity(), N2Error::OutOfBounds,
             "Entry " Fu64 " / " Fu64 ".\n"
             "Underlying buffer is named %s, and it is located at %p.",
-            index, capacity(), m_buf->name, m_buf);
+            index, capacity()-1, m_buf->name, m_buf);
         N2CRASH_IF(index >= count(), N2Error::OutOfBounds,
             "Entry " Fu64 " / " Fu64 " (of " Fu64 ").\n"
             "Underlying buffer is named %s, and it is located at %p.",
-            index, count(), capacity(), m_buf->name, m_buf);
+            index, count()-1, capacity()-1, m_buf->name, m_buf);
 #endif
         return *((T*)(m_buf->data) + index);
     }
