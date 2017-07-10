@@ -221,6 +221,11 @@ public: /*< ## Public Memeber Methods */
             // Perform the resize.
             m_resize(m_buf, required_size);
 
+            // Recapture the locations of section_a and section_b; the n2realloc
+            // call may have moved the base data pointer.
+            section_a = (ptr)((T*)(m_buf->data) + m_write_index);
+            section_b = m_buf->data;
+
             // Fetch enough scratch space to move section B aside.
             ptr scratch = n2malloc(size_of_b);
             N2CRASH_IF(scratch == nullptr, N2Error::System,
