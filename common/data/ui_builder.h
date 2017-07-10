@@ -4,14 +4,14 @@
 #include "primitive_types.h"
 
 #include "mem.h"
-#include "mem/slice.h"
+#include "mem/array.h"
 #include "ui_command.h"
 
 #include "api.h"
 
 class UI {
 protected:
-    using UICommandList = mem::view::Slice<UICommand>;
+    using UICommandList = mem::view::Array<UICommand>;
 
     UICommand        m_current;
     UICommandList    m_uicl;
