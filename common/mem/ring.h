@@ -45,17 +45,12 @@ public: /*< ## Class Methods */
         return sizeof(T) * capacity;
     }
 
-    enum class ResizeMode {
-        ShiftLeft,
-        ShiftRight,
-        Drop,
-    };
-
 
 protected: /*< ## Public Member Variables */
     Buffer *const m_buf;
     ResizeFn      m_resize;
     u64 &         m_write_index;
+
 
 public: /*< ## Ctors, Detors, and Assignments */
     Ring(Buffer *const buf, ResizeFn resize = nullptr)
@@ -75,28 +70,31 @@ public: /*< ## Public Memeber Methods */
         m_write_index = 0;
     }
 
-    inline u64 resize(u64 new_capacity,
-                      ResizeMode mode = ResizeMode::ShiftLeft)
-    {
+    /** Resize Methods
+     *  --------------
+     * These resizes involve moving memory around, so they're a bit tricky
+     * to reason about. As such, we're going to use pictures! Remember that
+     * there are no empty elements in Rings, so all indexes must be
+     * considered when when moving data for the resize. All of our examples
+     * are going to start with,
+     *
+     *       B       A
+     * /----------/V---/
+     * #################
+     *
+     * `V` indicated the read/write head, `/`s are there primarily to show
+     * the wrap point between the wrapped section (B) and the non-wrapped
+     * section (A), but will remain "after" the "resize" for clarity's sake.
+     * When upsizing, a new section (C) will be added. When downsizing, some
+     * elements from either section A or B will be removed from the buffer.
+     */
+    inline u64 resize(u64 new_capacity) {
+        return resizeShiftingLeft(new_capacity);
+    }
+    inline u64 resizeShiftingLeft(u64 new_capacity) {
         N2CRASH_IF(m_resize == nullptr, N2Error::MissingData,
                    "Unable to resize ring %s (resize function not set)",
                    name());
-
-        // These resizes involve moving memory around, so they're a bit tricky
-        // to reason about. As such, we're going to use pictures! Remember that
-        // there are no empty elements in Rings, so all indexes must be
-        // considered when when moving data for the resize. All of our examples
-        // are going to start with,
-        //
-        //       B       A
-        // /----------/V---/
-        // #################
-        //
-        // `V` indicated the read/write head, `/`s are there primarily to show
-        // the wrap point between the wrapped section (B) and the non-wrapped
-        // section (A), but will remain "after" the "resize" for clarity's sake.
-        // When upsizing, a new section (C) will be added. When downsizing, some
-        // elements from either section A or B will be removed from the buffer.
 
         size_t required_size = Ring<T>::precomputeSize(new_capacity);
 
@@ -105,103 +103,167 @@ public: /*< ## Public Memeber Methods */
         size_t size_of_b = m_write_index * sizeof(T);
         size_t size_of_a = m_buf->size - size_of_b;
 
-        switch (mode) {
-        case ResizeMode::ShiftLeft: {
-            if (new_capacity > capacity()) {
-                // Upsizing Left Shift
-                //       B       A
-                // /----------/V---/
-                // #################
-                //
-                //   A        B         C
-                // V---//----------//--------
-                // ##########################
+        if (new_capacity > capacity()) {
+            /** Upsize Shifting Left
+             *  ----------------------
+             *        B       A
+             *  /----------/V---/
+             *  #################
+             *
+             *    A        B         C
+             *  V---//----------//--------
+             *  ##########################
+             */
+            auto bytes_added = required_size - m_buf->size;
 
-                // Fetch enough scratch space to move section B aside.
-                ptr scratch = n2malloc(size_of_b);
+            // Fetch enough scratch space to move section B aside.
+            ptr scratch = n2malloc(size_of_b);
+            N2CRASH_IF(scratch == nullptr, N2Error::System,
+                       "Failed to allocate memory. Godspeed.");
+
+            // Move section B aside.
+            memmove(scratch, section_b, size_of_b);
+
+            // Move section A to the front.
+            memmove(m_buf->data, section_a, size_of_a);
+
+            // Reinsert section B.
+            memmove((m_buf->data + size_of_a), scratch, size_of_b);
+
+            // Perform the resize, and reset the write index.
+            m_resize(m_buf, required_size);
+            m_write_index = 0;
+
+            // Null the newly allcoated region
+            memset(m_buf->data + size_of_a + size_of_b, '\0', bytes_added);
+        } else if (new_capacity < capacity()) {
+            /** Downsize Shifting Left
+             *  ----------------------
+             *        B       A
+             *         abcde12345
+             *  /----------/V---/
+             *  #################
+             *
+             *    A      B
+             *  12345       ab
+             *  V---//-------/
+             *  ##############
+             */
+
+            auto bytes_removed = m_buf->size - required_size;
+
+            if (size_of_b > bytes_removed) {
+                // There will be data retained from section B. Fetch enough
+                // scratch space to move that data aside.
+                size_t bytes_retained_from_b = size_of_b - bytes_removed;
+                ptr scratch = n2malloc(bytes_retained_from_b);
                 N2CRASH_IF(scratch == nullptr, N2Error::System,
                            "Failed to allocate memory. Godspeed.");
 
                 // Move section B aside.
-                memmove(scratch, section_b, size_of_b);
+                memmove(scratch, section_b, bytes_retained_from_b);
 
                 // Move section A to the front.
                 memmove(m_buf->data, section_a, size_of_a);
 
-                // Reinsert section B.
-                memmove((m_buf->data + size_of_a), scratch, size_of_b);
+                // Reinsert what's left of section B.
+                memmove((m_buf->data + size_of_a),
+                        scratch,
+                        bytes_retained_from_b);
 
                 // Perform the resize, and reset the write index.
                 m_resize(m_buf, required_size);
                 m_write_index = 0;
-            } else if (new_capacity < capacity()) {
-                // Downsizing Left Shift
-                //       B       A
-                //        abcde12345
-                // /----------/V---/
-                // #################
-                //
-                //   A      B
-                // 12345       ab
-                // V---//-------/
-                // ##############
+            } else {
+                // There will not be data retained from section B, so all
+                // of the data saved will come from section A. Helpfully,
+                // this means we don't have to move data aside.
+                size_t bytes_retained_from_a = required_size;
 
-                auto bytes_removed = m_buf->size - required_size;
+                // Move what's left of section A to the front.
+                memmove(m_buf->data, section_a, bytes_retained_from_a);
 
-                if (size_of_b > bytes_removed) {
-                    // There will be data retained from section B. Fetch enough
-                    // scratch space to move that data aside.
-                    size_t bytes_retained_from_b = size_of_b - bytes_removed;
-                    ptr scratch = n2malloc(bytes_retained_from_b);
-                    N2CRASH_IF(scratch == nullptr, N2Error::System,
-                               "Failed to allocate memory. Godspeed.");
-
-                    // Move section B aside.
-                    memmove(scratch, section_b, bytes_retained_from_b);
-
-                    // Move section A to the front.
-                    memmove(m_buf->data, section_a, size_of_a);
-
-                    // Reinsert what's left of section B.
-                    memmove((m_buf->data + size_of_a),
-                            scratch,
-                            bytes_retained_from_b);
-
-                    // Perform the resize, and reset the write index.
-                    m_resize(m_buf, required_size);
-                    m_write_index = 0;
-                } else {
-                    // There will not be data retained from section B, so all
-                    // of the data saved will come from section A. Helpfully,
-                    // this means we don't have to move data aside.
-                    size_t bytes_retained_from_a = required_size;
-
-                    // Move what's left of section A to the front.
-                    memmove(m_buf->data, section_a, bytes_retained_from_a);
-
-                    // Perform the resize, and reset the write index.
-                    m_resize(m_buf, required_size);
-                    m_write_index = 0;
-                }
-            }
-        } break;
-        case ResizeMode::ShiftRight: {
-            if (new_capacity > capacity()) {
-                // Upsizing Right Shift
-                //       B       A
-                // /----------/V---/
-                // #################
-                //
-                //     C      A        B
-                // V-------//---//----------/
-                // ##########################
-
-                auto bytes_added = required_size - m_buf->size;
-
-                // Perform the resize.
+                // Perform the resize, and reset the write index.
                 m_resize(m_buf, required_size);
+                m_write_index = 0;
+            }
+        }
 
-                // Fetch enough scratch space to move section B aside.
+        return capacity();
+    }
+
+    inline u64 resizeShiftingRight(u64 new_capacity) {
+        N2CRASH_IF(m_resize == nullptr, N2Error::MissingData,
+                   "Unable to resize ring %s (resize function not set)",
+                   name());
+
+        size_t required_size = Ring<T>::precomputeSize(new_capacity);
+
+        ptr section_a = (ptr)((T*)(m_buf->data) + m_write_index);
+        ptr section_b = m_buf->data;
+        size_t size_of_b = m_write_index * sizeof(T);
+        size_t size_of_a = m_buf->size - size_of_b;
+
+        if (new_capacity > capacity()) {
+            /** Upsizing Shifting Right
+             *  -------------------------
+             *        B       A
+             *  /----------/V---/
+             *  #################
+             *
+             *      C      A        B
+             *  V-------//---//----------/
+             *  ##########################
+             */
+
+            auto bytes_added = required_size - m_buf->size;
+
+            // Perform the resize.
+            m_resize(m_buf, required_size);
+
+            // Fetch enough scratch space to move section B aside.
+            ptr scratch = n2malloc(size_of_b);
+            N2CRASH_IF(scratch == nullptr, N2Error::System,
+                       "Failed to allocate memory. Godspeed.");
+
+            // Move section B aside.
+            memmove(scratch, section_b, size_of_b);
+
+            // Move section A into place (bytes_added away from the front).
+            memmove((m_buf->data + bytes_added),
+                    section_a,
+                    size_of_a);
+
+            // Reinsert section B.
+            memmove((m_buf->data + bytes_added + size_of_a),
+                    scratch,
+                    size_of_b);
+
+            // Reset the write index to the beginning of the Ring.
+            m_write_index = 0;
+
+            // Null the newly allcoated region
+            memset(m_buf->data, '\0', bytes_added);
+        } else if (new_capacity < capacity()) {
+            /** Downsizing Shifting Right
+             *  -------------------------
+             *        B       A
+             *         abcde12345
+             *  /----------/V---/
+             *  #################
+             *
+             *   A       B
+             *  345       abcde
+             *  V-//----------/
+             *  ##############
+             */
+
+            auto bytes_removed = m_buf->size - required_size;
+
+            if (size_of_a > bytes_removed) {
+                // There will be data retained from section A, so we have to
+                // move section B aside to make room for that. Fetch enough
+                // scratch space to move section B aside.
                 ptr scratch = n2malloc(size_of_b);
                 N2CRASH_IF(scratch == nullptr, N2Error::System,
                            "Failed to allocate memory. Godspeed.");
@@ -209,82 +271,54 @@ public: /*< ## Public Memeber Methods */
                 // Move section B aside.
                 memmove(scratch, section_b, size_of_b);
 
-                // Move section A into place (bytes_added away from the front).
-                memmove((m_buf->data + bytes_added),
-                        section_a,
-                        size_of_a);
+                // Move what's left of section A to the front.
+                size_t bytes_retained_from_a = size_of_a - bytes_removed;
+                memmove(m_buf->data,
+                        (section_a + bytes_removed),
+                        bytes_retained_from_a);
 
                 // Reinsert section B.
-                memmove((m_buf->data + bytes_added + size_of_a),
+                memmove((m_buf->data + bytes_retained_from_a),
                         scratch,
                         size_of_b);
 
-                // Reset the write index to the beginning of the Ring.
+                // Perform the resize, and reset the write index.
+                m_resize(m_buf, required_size);
                 m_write_index = 0;
-            } else if (new_capacity < capacity()) {
-                // Downsizing Right Shift
-                //       B       A
-                //        abcde12345
-                // /----------/V---/
-                // #################
-                //
-                //  A       B
-                // 345       abcde
-                // V-//----------/
-                // ##############
+            } else {
+                // There will not be data retained from section A, so all
+                // of the data saved will come from section B. Helpfully,
+                // this means we don't need to move data aside.
+                size_t bytes_retained_from_b = required_size;
 
-                auto bytes_removed = m_buf->size - required_size;
+                // Move what's left of section B to the front.
+                memmove(m_buf->data,
+                        (section_b + size_of_b - bytes_retained_from_b),
+                        bytes_retained_from_b);
 
-                if (size_of_a > bytes_removed) {
-                    // There will be data retained from section A, so we have to
-                    // move section B aside to make room for that. Fetch enough
-                    // scratch space to move section B aside.
-                    ptr scratch = n2malloc(size_of_b);
-                    N2CRASH_IF(scratch == nullptr, N2Error::System,
-                               "Failed to allocate memory. Godspeed.");
-
-                    // Move section B aside.
-                    memmove(scratch, section_b, size_of_b);
-
-                    // Move what's left of section A to the front.
-                    size_t bytes_retained_from_a = size_of_a - bytes_removed;
-                    memmove(m_buf->data,
-                            (section_a + bytes_removed),
-                            bytes_retained_from_a);
-
-                    // Reinsert section B.
-                    memmove((m_buf->data + bytes_retained_from_a),
-                            scratch,
-                            size_of_b);
-
-                    // Perform the resize, and reset the write index.
-                    m_resize(m_buf, required_size);
-                    m_write_index = 0;
-                } else {
-                    // There will not be data retained from section A, so all
-                    // of the data saved will come from section B. Helpfully,
-                    // this means we don't need to move data aside.
-                    size_t bytes_retained_from_b = required_size;
-
-                    // Move what's left of section B to the front.
-                    memmove(m_buf->data,
-                            (section_b + size_of_b - bytes_retained_from_b),
-                            bytes_retained_from_b);
-
-                    // Perform the resize, and reset the write index.
-                    m_resize(m_buf, required_size);
-                    m_write_index = 0;
-                }
+                // Perform the resize, and reset the write index.
+                m_resize(m_buf, required_size);
+                m_write_index = 0;
             }
-        } break;
-        case ResizeMode::Drop: {
-            drop(); //< This will correctly reset the write index.
-            m_resize(m_buf, required_size);
-        } break;
         }
 
         return capacity();
     }
+
+    inline u64 resizeAfterDropping(u64 new_capacity) {
+        N2CRASH_IF(m_resize == nullptr, N2Error::MissingData,
+                   "Unable to resize ring %s (resize function not set)",
+                   name());
+
+        size_t required_size = Ring<T>::precomputeSize(new_capacity);
+        m_resize(m_buf, required_size);
+
+        // This will correctly null the ring's data, and reset the write index.
+        drop();
+
+        return capacity();
+    }
+
 
     inline T* consume(u64 count) {
         N2CRASH(N2Error::UnimplementedCode, "");
