@@ -1,27 +1,30 @@
-/* Typed Circular Buffer Stream
- * ============================
- * Buffer Streams are a View over Buffer Descriptors that present a typed
- * circular-buffer stream. Resize operations are permitted, though will never
- * occur automatically. When the Stream is full, additional `push()` and
- * `consume()` operations will overwrite the oldest piece of data in the stream.
- * Both subscript operations (`(*this)[0]`) and iteration start from the oldest
- * object in the Stream, and continue to the newest --- this means that
- * iterations may not yield `capacity()` objects, and that `(*this)[count()+1]`
- * is undefined.
+/** Typed Stream View
+ *  =================
+ *  Stream Views present a typed circular buffer over a subsection of a Memory
+ *  Buffer. Unlike Rings, this view is aware of both its capacity and its
+ *  count, and tracks usage within the metadata block. Only the used sub-section
+ *  of a Stream's data will be accessible through indexing or iterating, so no
+ *  `\0`-initialized data will ever be accessible. When in DEBUG mode, bounds
+ *  checking is performed on index operations to insure that out-of-bounds data
+ *  is never read.
  *
- * The Stream::Metadata tracks both the `read_head` and `write_head`. When
- * `read_head == write_head`, the Stream is empty. On `push()` and `consume()`
- * operations, the `write_head` will be advanced, the `read_head` will
- * optionally be advanced to one past the `write_head`, then writes will be
- * performed.
+ *  Iteration and subscript operations are 0-indexed to the oldest element in
+ *  the Stream. Because only the used sub-section of data is available to be
+ *  read, iterations across a Stream may not yield `capacity()` elements, and
+ *  `capacity()-1` may not be a valid index. When `push()` or `consume()` are
+ *  called against a full Stream, the oldest data in the Stream will be replaced
+ *  with incoming data.
  *
- * TODO: Fix resizing; define semantics, rework implementation.
- * TODO: Figure out consume. Does it mean anything in this context? If not, are
- *       user's going to be limited to adding objects one at a time? If so, how
- *       do we deal with split memory regions? (Scratch buffer, maybe? Unless
- *       the scratch is a ring....)
- * TODO: Better comments.
- * TODO: Tests.
+ *  Stream::Metadata tracks both the `read_head` and `write_head`. When
+ *  `read_head == write_head`, the Stream is empty. On `push()` and `consume()`,
+ *  the `write_head` will be advanced, the `read_head` will optionally be
+ *  advanced to one past the `write_head`.
+ *
+ *  TODO: Figure out consume. Does it mean anything in this context? If not, are
+ *        user's going to be limited to adding objects one at a time? If so, how
+ *        do we deal with split memory regions? (Scratch buffer, maybe? Unless
+ *        the scratch is a ring....)
+ *  TODO: Tests.
  */
 
 #pragma once
@@ -50,6 +53,7 @@ protected: /*< ## Innter-Types */
         T   data[];
     };
 
+
 public: /*< ## Class Methods */
     static const u64 default_capacity = 64;
 
@@ -57,8 +61,15 @@ public: /*< ## Class Methods */
         return sizeof(Metadata) + sizeof(T) * capacity;
     }
 
-    inline static void initializeBuffer(Buffer *const bd) {
-        Metadata * metadata = (Metadata*)bd->data;
+    inline static void initializeBuffer(Buffer *const buf) {
+        Metadata * metadata = (Metadata*)buf->data;
+#if defined(DEBUG)
+        N2CRASH_IF(buf->size < sizeof(Metadata), N2Error::InsufficientMemory,
+            "Buffer Stream is being overlaid onto a Buffer that is too small ("
+            Fu64 ") to fit the Stream Metadata (" Fu64 ").\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            buf->size, sizeof(Metadata), buf->name, buf);
+#endif
         /* If the type check is correct, no initialization is required. */
         if (metadata->magic == magic) { return; }
         if (metadata->magic && metadata->magic != magic) {
@@ -67,122 +78,95 @@ public: /*< ## Class Methods */
                 "number was expected to be %x, but is %x.\n"
                 "Clearing all associated data (" Fu64 " elements) and "
                 "reinitializing the Stream",
-                bd->name, bd, magic, metadata->magic, metadata->count);
+                buf->name, buf, magic, metadata->magic, metadata->count);
             DEBUG_BREAKPOINT();
         }
-#if defined(DEBUG)
-        N2CRASH_IF(bd->size < sizeof(Metadata), N2Error::InsufficientMemory,
-            "Buffer Stream is being overlaid onto a Buffer that is too small ("
-            Fu64 ") to fit the Stream Metadata (" Fu64 ").\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            bd->size, sizeof(Metadata), bd->name, bd);
-#endif
         metadata->magic      = magic;
-        metadata->capacity   = (bd->size - sizeof(Metadata)) / sizeof(T);
+        metadata->capacity   = (buf->size - sizeof(Metadata)) / sizeof(T);
         metadata->count      = 0;
         metadata->write_head = 0;
         metadata->read_head  = 0;
-        memset(metadata->data, '\0', (bd->size - sizeof(Metadata)));
+        memset(metadata->data, '\0', (buf->size - sizeof(Metadata)));
     }
 
 
 protected: /*< ## Public Member Variables */
-    Buffer   *const m_bd;
+    Buffer   *const m_buf;
     Metadata *      m_metadata;
     ResizeFn        m_resize;
+    u64 &           m_capacity;
+    u64 &           m_count;
+    u64 &           m_write_head;
+    u64 &           m_read_head;
+
 
 public: /*< ## Ctors, Detors, and Assignments */
     // TODO: Magic number check?
-    Stream(Buffer *const bd,
+    Stream(Buffer *const buf,
            ResizeFn resize = nullptr)
-        : m_bd       ( bd                    )
-        , m_metadata ( (Metadata*)(bd->data) )
-        , m_resize   ( resize                ) { }
+        : m_buf        ( buf                    )
+        , m_metadata   ( (Metadata*)(buf->data) )
+        , m_resize     ( resize                 )
+        , m_capacity   ( m_metadata->capacity   )
+        , m_count      ( m_metadata->count      )
+        , m_write_head ( m_metadata->write_head )
+        , m_read_head  ( m_metadata->read_head  ) { }
 
 
 public: /*< ## Public Memeber Methods */
-    inline u64 size()     { return m_bd->size; }
-    inline u64 count()    { return m_metadata->count; }
-    inline u64 capacity() { return m_metadata->capacity; }
+    inline u64 size()     { return m_buf->size; }
+    inline u64 count()    { return m_count; }
+    inline u64 capacity() { return m_capacity; }
 
     inline void drop() {
-        m_metadata->read_head = m_metadata->write_head = m_metadata->count = 0;
+        m_read_head = m_write_head = m_count = 0;
     }
 
-    inline u64 resize(u64 capacity) {
-#if 0
-        // TODO: So many more safety checks...
-        if (m_resize) {
-            m_resize(m_bd, precomputeSize(capacity));
+    /* Push a new value into the Stream. */
+    inline T& push(T value) {
+        T& mem = m_metadata->data[m_write_head];
+        mem = value;
+
+        /* The write head needs to be incremented, and either
+         *  - The Stream is full, the oldest element in the stream has been
+         *    overwritten, and the read head needs to be similarly bumped.
+         *  - The Stream has one more element in it than it did previously, and
+         *    the current count() needs to be incremented.
+         */
+        m_write_head = increment(m_write_head);
+        if (count() == capacity()) {
+            m_read_head = increment(m_read_head);
+        } else {
+            m_count += 1;
         }
-        else { BREAKPOINT(); }
-#endif
-        N2CRASH(N2Error::UnimplementedCode, "");
+
+        return mem;
     }
 
     inline T* consume(u64 count) {
         N2CRASH(N2Error::UnimplementedCode, "");
     }
 
-    /**
-     * Subscript indexing for reading / writing values in the stream.
-     * @param  index Target element index, indexing from the last-written
-     *               element; `[0]` will always return the oldest element in the
-     *               stream, and `[count()-1]` will always return the newest.
-     * @return       A reference to the given element; assignments to the
-     *               returned element will be recorded in the Stream.
-     * If the element indexed is the first uninitialized element (if `count() <
-     * capacity()` and `index == count()`) `count` will be incremented using the
-     * same logic that governs `push()`.
-     * NOTE: This implementation may be deficient. It may be better to wrap the
-     * return of this function in a modified Optional. If `index` is the first
-     * uninitialized element, this Optional could "read" as `false`, but the
-     * write overload could correctly assign to the Stream and increment
-     * `count`. For a rough implementation of this sort of, see,
-     * http://stackoverflow.com/questions/3581981
-     */
+    /* Direct subscript operator. */
     inline T& operator[](u64 index) {
 #if defined(DEBUG)
-        // TODO: Better logging
         N2CRASH_IF(index >= capacity(), N2Error::OutOfBounds,
-            "Entry %d / %d (%d maximum capacity).\n"
+            "Stream index access exceeds maximum capacity.\n"
+            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
             "Underlying buffer is named %s, and it is located at %p.",
-            index, count(), capacity(), m_bd->name, m_bd);
-        /* NB. Access `index == count()` is valid behavior. */
-        N2CRASH_IF(index > count(), N2Error::UninitializedMemory,
-            "Invalid access of %d / %d (%d maximum capacity).\n"
+            index+1, count(), capacity(), m_buf->name, m_buf);
+        N2CRASH_IF(index >= count(), N2Error::OutOfBounds,
+            "Stream index access exceeds current count.\n"
+            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
             "Underlying buffer is named %s, and it is located at %p.",
-            index, count(), capacity(), m_bd->name, m_bd);
+            index+1, count(), capacity(), m_buf->name, m_buf);
 #endif
-        u64 target_index = increment(m_metadata->read_head, index);
-        T& mem = m_metadata->data[target_index];
-
-        // If the index that has been fetched is the "next" element -- the
-        // element that would be written to if `push()` were called -- we need
-        // to increment the write_head, and either increment the read head (if
-        // the Stream is full), or increment the current count.
-        if (index == count()) {
-            m_metadata->write_head = increment(m_metadata->write_head);
-            if (count() == capacity()) {
-                m_metadata->read_head = increment(m_metadata->read_head);
-            } else {
-                m_metadata->count += 1;
-            }
-        }
-
-        return mem;
+        u64 target_index = increment(m_read_head, index);
+        return m_metadata->data[target_index];
     }
 
-    inline T& push(T value) {
-        T& mem = m_metadata->data[m_metadata->write_head];
-        mem = value;
-        m_metadata->write_head = increment(m_metadata->write_head);
-        if (count() == capacity()) {
-            m_metadata->read_head = increment(m_metadata->read_head);
-        } else {
-            m_metadata->count += 1;
-        }
-        return mem;
+    inline u64 resize(u64 capacity) {
+        N2CRASH(N2Error::UnimplementedCode, "");
     }
 
 
