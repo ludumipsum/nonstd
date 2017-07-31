@@ -13,6 +13,7 @@
  *  the write head.
  *
  *  Resizes are permitted, though will never occur automatically.
+ *
  *  TODO: Figure out consume. Does it mean anything in this context? If not, are
  *        user's going to be limited to adding objects one at a time? If so, how
  *        do we deal with split memory regions? (Scratch buffer, maybe? Unless
@@ -64,6 +65,22 @@ public: /*< ## Public Memeber Methods */
     inline u64    count()    { return capacity();              }
     inline u64    capacity() { return m_buf->size / sizeof(T); }
     inline c_cstr name()     { return m_buf->name;             }
+
+    inline T& push(T value) {
+        T* mem       = (T*)(m_buf->data) + m_write_index;
+        *mem         = value;
+        m_write_index = increment(m_write_index, 1);
+        return *mem;
+    }
+
+    inline T* consume(u64 count) {
+        N2CRASH(N2Error::UnimplementedCode, "");
+    }
+
+    inline T& operator[](i64 index) {
+        u64 target_index = increment(m_write_index, index);
+        return *((T*)(m_buf->data) + target_index);
+    }
 
     inline void drop() {
         memset(m_buf->data, '\0', m_buf->size);
@@ -322,23 +339,6 @@ public: /*< ## Public Memeber Methods */
         drop();
 
         return capacity();
-    }
-
-
-    inline T* consume(u64 count) {
-        N2CRASH(N2Error::UnimplementedCode, "");
-    }
-
-    inline T& operator[](i64 index) {
-        u64 target_index = increment(m_write_index, index);
-        return *((T*)(m_buf->data) + target_index);
-    }
-
-    inline T& push(T value) {
-        T* mem       = (T*)(m_buf->data) + m_write_index;
-        *mem         = value;
-        m_write_index = increment(m_write_index, 1);
-        return *mem;
     }
 
 

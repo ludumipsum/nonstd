@@ -49,23 +49,13 @@ public: /*< ## Public Memeber Methods */
     inline u64    capacity() { return m_buf->size / sizeof(T); }
     inline c_cstr name()     { return m_buf->name;             }
 
-    /* Drop all elements of the region without reinitializing memory. */
-    inline void drop() {
-        m_write_index = 0;
+    /* Push a value on the back of the Buffer */
+    inline T& push(T value) {
+        T* mem = consume();
+        *mem = value;
+        return *mem;
     }
-
-    inline u64 resize(u64 new_capacity) {
-#if defined(DEBUG)
-        N2CRASH_IF(m_resize == nullptr, N2Error::NullPtr,
-            "Attempting to resize a Array that has no associated "
-            "resize function.\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            m_buf->name, m_buf);
-#endif
-        auto required_size = Array<T>::precomputeSize(new_capacity);
-        m_resize(m_buf, required_size);
-        return capacity();
-    }
+    inline T& push_back(T value) { return push(value); }
 
     /* Get a pointer to `count` consecutive elements in the view, resizing
      * if necessary. No initialization is done on this data. */
@@ -86,34 +76,26 @@ public: /*< ## Public Memeber Methods */
         return ret;
     }
 
-    /* Push a value on the back of the Buffer */
-    inline T& push(T value) {
-        T* mem = consume();
-        *mem = value;
-        return *mem;
-    }
-    inline T& push_back(T value) { return push(value); }
-
-    /* Iterator access to support range-based for */
-    inline T* begin(void) const { return (T*)(m_buf->data);                 }
-    inline T* end(void) const   { return (T*)(m_buf->data) + m_write_index; }
-    inline T* buffer_end(void) const {
-        return (T*)(m_buf->data + m_buf->size);
-    }
-
     /* Direct index operator. */
     inline T& operator[](u64 index) {
 #if defined(DEBUG)
         N2CRASH_IF(index >= capacity(), N2Error::OutOfBounds,
-            "Entry " Fu64 " / " Fu64 ".\n"
+            "Array index operation exceeds maximum capacity.\n"
+            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
             "Underlying buffer is named %s, and it is located at %p.",
-            index, capacity()-1, m_buf->name, m_buf);
+            index+1, count(), capacity(), m_buf->name, m_buf);
         N2CRASH_IF(index >= count(), N2Error::OutOfBounds,
-            "Entry " Fu64 " / " Fu64 " (of " Fu64 ").\n"
+            "Array index operation exceeds current count.\n"
+            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
             "Underlying buffer is named %s, and it is located at %p.",
-            index, count()-1, capacity()-1, m_buf->name, m_buf);
+            index+1, count(), capacity(), m_buf->name, m_buf);
 #endif
         return *((T*)(m_buf->data) + index);
+    }
+
+    /* Drop all elements of the region without reinitializing memory. */
+    inline void drop() {
+        m_write_index = 0;
     }
 
     /* Erase a range of objects from this Array.
@@ -146,6 +128,26 @@ public: /*< ## Public Memeber Methods */
         if (index_end == 0) { index_end = (index_begin + 1); }
         erase( (T*)(m_buf->data) + index_begin,
                (T*)(m_buf->data) + index_end    );
+    }
+
+    inline u64 resize(u64 new_capacity) {
+#if defined(DEBUG)
+        N2CRASH_IF(m_resize == nullptr, N2Error::NullPtr,
+            "Attempting to resize a Array that has no associated "
+            "resize function.\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            m_buf->name, m_buf);
+#endif
+        auto required_size = Array<T>::precomputeSize(new_capacity);
+        m_resize(m_buf, required_size);
+        return capacity();
+    }
+
+    /* Iterator access to support range-based for */
+    inline T* begin(void) const { return (T*)(m_buf->data);                 }
+    inline T* end(void) const   { return (T*)(m_buf->data) + m_write_index; }
+    inline T* buffer_end(void) const {
+        return (T*)(m_buf->data + m_buf->size);
     }
 
 
