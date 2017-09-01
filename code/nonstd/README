@@ -1,0 +1,17 @@
+# Terraform Nonstandard Library
+
+This library is our version of a standard library for C++. It includes polyfills
+to bring future features back to older language versions, a suite of macros to
+ease metaprogramming in the patterns we typically use, and a slew of typedefs
+which give us short unambiguous names for primitives.
+
+It also includes some STL-like features that are either not present in the STL,
+are implemented too generically for our purposes, or did not exist at the time
+we added the features to the nonstandard library.
+
+Depending on the eponymous `nonstd` target will put the whole library in scope
+for you, and `#include "nonstd.h"` will bring the whole shebang in to the file
+you're working in. This should be present in *all* terraform code.
+
+If you're feeling ambitious and want to hack some build time off our binaries,
+see if you can figure out how to turn that target into a precompiled header.
