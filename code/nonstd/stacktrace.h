@@ -24,7 +24,7 @@
 
 static const u32 g_trace_skip = 1;
 
-#if defined(__APPLE)
+#if defined(__APPLE__)
 #define SIGTABLE sys_signame
 #else
 #define SIGTABLE sys_siglist
