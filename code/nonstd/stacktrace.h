@@ -92,11 +92,11 @@ inline void stacktrace_callback(int signum) {
 
             // Dump the result to stderr
             fprintf(stderr, "%5d %*p   %s + %zd\n",
-                    i,                          /* frame number */
-                    u32(2 + sizeof(void*) * 2), /* padding */
-                    stack[i],                   /* frame address */
-                    demangle_detail,            /* demangled name */
-                    trace_offset                /* trace offset */
+                            i,                          /* frame number */
+                            u32(2 + sizeof(void*) * 2), /* padding */
+                            stack[i],                   /* frame address */
+                            demangle_detail,            /* demangled name */
+                            trace_offset                /* trace offset */
             );
 
             free(demangled);
