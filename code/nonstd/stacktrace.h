@@ -24,6 +24,12 @@
 
 static const u32 g_trace_skip = 1;
 
+#if defined(__APPLE)
+#define SIGTABLE sys_signame
+#else
+#define SIGTABLE sys_siglist
+#endif
+
 inline void stacktrace_callback(int signum) {
     void *stack[128];
     u32 max_frame_count = sizeof(stack) / sizeof(stack[0]);
@@ -39,7 +45,7 @@ inline void stacktrace_callback(int signum) {
     fflush(stderr);
 
     // Print an error trap banner
-    cstr signame = strdup(sys_signame[signum]);
+    cstr signame = strdup(SIGTABLE[signum]);
     u32 namelen = strlen(signame);
     for (u32 i = 0; i < namelen; ++i) { signame[i] = toupper(signame[i]); }
     fprintf(stderr, "\n***** CAUGHT SIG%s (%d) *****\n\n",
