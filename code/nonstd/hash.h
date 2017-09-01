@@ -1,6 +1,5 @@
 /** Hash Functions
  *  ==============
- *
  *  General-purpose hash functions. You probably already know which one you want.
  */
 
@@ -57,7 +56,7 @@ u64 shift64(u64 key)
  *  ---------
  *  Simple bytestring to 64bit integer hash function. It's blazing fast and
  *  probably won't corrupt your data. Probably.
-*/
+ */
 inline u64 djb2(c_cstr str) {
   u64 hash = 5381;
   i32 c;
@@ -76,7 +75,7 @@ inline u64 djb2(c_cstr str) {
  *  produce the same hashes as the sha1 binary on the computer I used to steal
  *  it, but I can't vouch for it beyond that. It may contain snakes, dragons,
  *  and stuxnet.
-*/
+ */
 
 /* Macros to make stolen code build better */
 
@@ -271,13 +270,12 @@ inline uint8_t* sha1_resultHmac(sha1nfo *s) {
 
 } /* namespace stolen */
 
-/** Hash `num_bytes` from `data` into 41 bytes at sha_out. This is done by
- *  representing the 20-byte sha1 as 40 bytes in the ASCII range -- it's the same
- *  format you get from git, for example.
+/* Hash `num_bytes` from `data` into 41 bytes at sha_out. This is done by
+ * representing the 20-byte sha1 as 40 bytes in the ASCII range -- it's the same
+ * format you get from git, for example.
  *
- *  TODO: Use a more flexible string representation to return the hash instead of
- *        the c-style unowned-return-pointer-as-parameter
- */
+ * TODO: Use a more flexible string representation to return the hash instead of
+ *       the c-style unowned-return-pointer-as-parameter. */
 inline void sha1(u8 const*const data, u64 num_bytes, cstr sha_out) {
     using namespace stolen;
     sha1nfo si;

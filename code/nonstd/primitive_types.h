@@ -1,9 +1,8 @@
 /** Primitive Types
  *  ===============
- *
  *  Defines some basic types used across different pieces of game and platform
  *  code. Things like shorthand basic types, colors, and vectors.
-*/
+ */
 
 #pragma once
 
@@ -66,20 +65,18 @@ inline void n2alignment_correct_free(ptr p, bool aligned) {
     alignment_correct_free( (void *)( p ), aligned);
 }
 
-/** IDs uniquely identify game entities. We reserve the bottom few for special
- *  meanings in our container types (unset, deleted, etc).
- */
+/* IDs uniquely identify game entities. We reserve the bottom few for special
+   meanings in our container types (unset, deleted, etc). */
 typedef u64 ID;
 
-/** Power-of-two Byte Prefixes
- *  NB. these implicitly cast the provided value to 64-bit int
- */
+/* Power-of-two Byte Prefixes
+   NB. these implicitly cast the provided value to 64-bit int */
 #define KBYTES(N) ((i64)N*1024)
 #define MBYTES(N) ((i64)N*1024*1024)
 #define GBYTES(N) ((i64)N*1024*1024*1024)
 #define TBYTES(N) ((i64)N*1024*1024*1024*1024)
 
-/** Human-readable temporal unit conversions */
+/* Human-readable temporal unit conversions */
 #define NS_PER_NS  1
 #define NS_PER_US  1000
 #define NS_PER_MS  1000000
@@ -114,10 +111,10 @@ struct Color {
 }; ENFORCE_POD(Color); ENFORCE_SIZE(Color, 4);
 
 
-/** Construct empty */
+/* Construct empty */
 inline Color color() { return Color {0}; }
 
-/** Construct from 4 numeric parameters */
+/* Construct from 4 numeric parameters */
 template <class T, class U, class V, class W> inline
 Color color(T r, U g, V b, W a) {
     return Color { (u8)r, (u8)g, (u8)b, (u8)a };
@@ -127,11 +124,11 @@ Color color(T i[4]) {
     return Color { (u8)i[0], (u8)i[1], (u8)i[2], (u8)i[3] };
 }
 
-/** Construct from 3 numeric parameters */
+/* Construct from 3 numeric parameters */
 template <class T, class U, class V> inline
 Color color(T r, U g, V b) { return color(r, g, b, 0xFF); }
 
-/** Construct from 1 numeric parameter */
+/* Construct from 1 numeric parameter */
 template <class T> inline
 Color color(T c) { return color(c, c, c); }
 

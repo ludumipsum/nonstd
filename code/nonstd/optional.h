@@ -45,7 +45,8 @@
  *  value access. If we ever attempt to access a non-containing Optional, while
  *  `N2_CHECKED_OPTIONALS` is explicitly set to `true`, a forced breakpoint will
  *  occur. If we're confident that we never misuse Optionals, allowing this
- *  default-to-false to occur will let us skip that branch. */
+ *  default-to-false to occur will let us skip that branch.
+ */
 #if !defined(N2_CHECKED_OPTIONALS)
 #define N2_CHECKED_OPTIONALS false
 #endif
@@ -59,8 +60,8 @@ namespace n2_ {
 
 struct nullopt_t {
     /* Explicitly delete the default constructor, and define an explicit
-     * constexpr constructor that will be hard to accidentally invoke.
-     * Let's use the `n2_::in_place_t` tag for that. */
+       constexpr constructor that will be hard to accidentally invoke.
+       Let's use the `n2_::in_place_t` tag for that. */
     nullopt_t() = delete;
     explicit constexpr nullopt_t(n2_::in_place_t) { }
 };
@@ -120,7 +121,8 @@ class Optional;
  *  (`using _Optional_*Base::_Optional_*Base`) to pull in all of the
  *  constructors defined by the Base s.t. the complete Optional will be able to
  *  correctly initialize without needing any details regarding the storage of
- *  its value. */
+ *  its value.
+ */
 template <typename T>
 class _Optional_ValueBase;
 
@@ -170,7 +172,8 @@ struct _Optional_LValRefStorage;
 
 /**
  *  Storage for types with trivial construction and trivial destruction
- *  ------------------------------------------------------------------- */
+ *  -------------------------------------------------------------------
+ */
 template < typename T >
 struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ true,
                             /* DestructorIsTrivial        */ true>
@@ -217,7 +220,8 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ true,
 
 
 /** Storage for types with non-trivial construction & trivial destruction
- *  --------------------------------------------------------------------- */
+ *  ---------------------------------------------------------------------
+ */
 template < typename T >
 struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
                             /* DestructorIsTrivial        */ true>
@@ -290,7 +294,8 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
 
 
 /** Storage for types with non-trivial construction & non-trivial destruction
- *  ------------------------------------------------------------------------- */
+ *  -------------------------------------------------------------------------
+ */
 template < typename T >
 struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
                             /* DestructorIsTrivial        */ false>
@@ -364,7 +369,8 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
 
 
 /** Storage for LValue Reference types
- *  ---------------------------------- */
+ *  ----------------------------------
+ */
 template < typename T >
 struct _Optional_LValRefStorage {
     static_assert(IS_POINTER(T),
@@ -398,7 +404,7 @@ struct _Optional_LValRefStorage {
 
 
 /** Optional Construction Logic and Storage for Value Types
- *  ============================================================================
+ *  =======================================================
  */
 
 template < typename T >
