@@ -11,6 +11,9 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
+#include <stdio.h>
+#include <stdarg.h>
+
 
 /** Variadic Message Format Expander
  *  --------------------------------
