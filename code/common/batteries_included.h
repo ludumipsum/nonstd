@@ -385,7 +385,7 @@ using decay_t = typename ::std::decay<T>::type;
  */
 inline char const* const bool2string(bool b) {
     return b ? "true" : "false";
-};
+}
 
 /* Alignment Macro
  * ---------------
