@@ -33,6 +33,7 @@
 #pragma once
 #include "batteries_included.h"
 #include "primitive_types.h"
+#include "break.h"
 
 
 /** Utilities

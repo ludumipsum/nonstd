@@ -404,29 +404,6 @@ inline char const* const bool2string(bool b) {
 #   define ALIGNAS(X) alignas(X)
 #endif
 
-/** BREAKPOINT
- *  ----------
- *  Programmatically force a breakpoint on X86
- */
-#ifdef _MSC_VER
-# ifdef _X86_
-#  define _debug_break_impl { __asm { int 3 } }
-# else
-#  define _debug_break_impl  { __debugbreak(); } // need <intrin.h>
-# endif
-#else
-# include "signal.h"
-# define _debug_break_impl { raise(SIGINT); } // GCC x86/64
-#endif
-
-#define BREAKPOINT() { _debug_break_impl; }
-
-#if defined(DEBUG) || !defined(NDEBUG)
-# define DEBUG_BREAKPOINT() { _debug_break_impl; }
-#else
-# define DEBUG_BREAKPOINT()
-#endif
-
 /** ALIGNMENT CORRECT FREE
  *  ----------------------
  *  Alias the appropriate free function for destroying underlying buffers. This
