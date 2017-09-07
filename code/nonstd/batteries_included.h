@@ -362,6 +362,13 @@ using decay_t = typename ::std::decay<T>::type;
 #define ENFORCE_MAX_SIZE(T, max_bytes) \
     static_assert(sizeof(T) <= bytes, "Type '" STRING(T) "' is the wrong size (it is required to be at most " STRING(bytes) " bytes).")
 
+/** ENFORCE_SAME_TYPE
+ *  -----------------
+ */
+#define ENFORCE_SAME_TYPE(LEFT, RIGHT) \
+    static_assert(HAS_SAME_TYPE(LEFT, RIGHT), \
+        "Type '" STRING(LEFT) "' is not the same as Type '" STRING(RIGHT) "'.")
+
 
 
 /** Platform Homogenization Macros
