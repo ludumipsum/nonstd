@@ -2,6 +2,7 @@
 
 #include "batteries_included.h"
 #include "primitive_types.h"
+#include "error_types.h"
 #include "log.h"
 
 /** Programmatic Breakpoint
@@ -40,8 +41,9 @@
  *  Convenience Macro to ensure the function name, file, and line number are
  *  correctly captured on breaks.
  */
-#define N2BREAK(REASON, ...)                            \
+#define N2BREAK(ERROR, REASON, ...)                     \
     ::_n2::logAndBreak(                                 \
+        ERROR,                                          \
         _variadicExpand(REASON, ##__VA_ARGS__).c_str(), \
         __PRETTY_FUNCTION__, __FILE__, __LINE__)
 
@@ -53,9 +55,10 @@
  *  `_variadicExpand` to ensure c_cstr variables are correctly passed through
  *  the macros.
  */
-#define N2BREAK_IF(COND, REASON, ...)            \
+#define N2BREAK_IF(COND, ERROR, REASON, ...)     \
     ( (COND) ?                                   \
       N2BREAK(                                   \
+          (ERROR),                               \
           _variadicExpand("%s\n"                 \
                           "%s",                  \
                   "Condition met ( " #COND " )", \
@@ -69,6 +72,7 @@
     ( (COND) ?                                       \
       0 :                                            \
       N2BREAK(                                       \
+          (ERROR),                                   \
           _variadicExpand("%s\n"                     \
                           "%s",                      \
                   "Condition not met ( " #COND " )", \
@@ -85,7 +89,7 @@
  */
 namespace _n2 {
 
-inline i32 logAndBreak(c_cstr reason,
+inline i32 logAndBreak(N2Error error, c_cstr reason,
                        c_cstr function, c_cstr file, u64 line) {
     #if defined(_MSC_VER)
         static const char path_delimiter = '\\';
@@ -96,17 +100,21 @@ inline i32 logAndBreak(c_cstr reason,
     if (filename==NULL) {
         return printf("Fatal Error:\n"
                       "Breaking in %s -- %s:" Fu64 "\n"
-                      "%s",
+                      "Error:  %d (%s)\n"
+                      "Reason: %s",
                       function, file, line,
+                      (i32)error, n2strerr(error),
                       reason);
     }
     return printf("Fatal Error:\n"
                   "Breaking in %s -- %s:" Fu64 "\n"
-                  "%s",
+                  "Error:  %d (%s)\n"
+                  "Reason: %s",
                   function, filename, line,
+                  (i32)error, n2strerr(error),
                   reason);
     BREAKPOINT();
-    exit(1);
+    exit((i32)(error));
 }
 
 } /* namespace _n2 */
