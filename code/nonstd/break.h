@@ -91,28 +91,16 @@ namespace _n2 {
 
 inline i32 logAndBreak(N2Error error, c_cstr reason,
                        c_cstr function, c_cstr file, u64 line) {
-    #if defined(_MSC_VER)
-        static const char path_delimiter = '\\';
-    #else
-        static const char path_delimiter = '/';
-    #endif
-    cstr filename = (cstr)strrchr(file, path_delimiter);
-    if (filename==NULL) {
-        return printf("Fatal Error:\n"
-                      "Breaking in %s -- %s:" Fu64 "\n"
-                      "Error:  %d (%s)\n"
-                      "Reason: %s",
-                      function, file, line,
-                      (i32)error, n2strerr(error),
-                      reason);
-    }
-    return printf("Fatal Error:\n"
-                  "Breaking in %s -- %s:" Fu64 "\n"
-                  "Error:  %d (%s)\n"
-                  "Reason: %s",
-                  function, filename, line,
-                  (i32)error, n2strerr(error),
-                  reason);
+    printf("~~~~~~~~~~~~~~~\n"
+           "Fatal Error in:\n"
+           "    %s\n"
+           "    %s:" Fu64 "\n"
+           "Errno:  %d (%s)\n"
+           "Reason: %s\n"
+           "~~~~~~~~~~~~~~~\n",
+           function, file, line,
+           (i32)error, n2strerr(error),
+           reason);
     BREAKPOINT();
     exit((i32)(error));
 }
