@@ -14,7 +14,9 @@
 #include "primitive_types.h"
 
 // Terraform extensions
+#include "break.h"
 #include "compare.h"
+#include "error_types.h"
 #include "hash.h"
 #include "iterator.h"
 #include "log.h"
