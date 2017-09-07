@@ -54,13 +54,15 @@
  *  -- to the user-provided `REASON` string. This is accomplished using
  *  `_variadicExpand` to ensure c_cstr variables are correctly passed through
  *  the macros.
+ *  Also note, the user string is re-included with eight spaces to its left;
+ *  this vertically aligns it with `"Reason: "`.
  */
 #define N2BREAK_IF(COND, ERROR, REASON, ...)     \
     ( (COND) ?                                   \
       N2BREAK(                                   \
           (ERROR),                               \
           _variadicExpand("%s\n"                 \
-                          "%s",                  \
+                          "        %s",          \
                   "Condition met ( " #COND " )", \
                   (REASON)                       \
               ).c_str(),                         \
@@ -74,7 +76,7 @@
       N2BREAK(                                       \
           (ERROR),                                   \
           _variadicExpand("%s\n"                     \
-                          "%s",                      \
+                          "        %s",              \
                   "Condition not met ( " #COND " )", \
                   (REASON)                           \
               ).c_str(),                             \
