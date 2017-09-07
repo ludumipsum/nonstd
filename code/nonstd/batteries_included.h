@@ -15,7 +15,7 @@
 #pragma once
 
 /* If we're not explicitly in a debug build, make sure NDEBUG is defined */
-#if !defined(DEBUG) && !defined(_DEBUG)
+#if !defined(DEBUG) && !defined(_DEBUG) && !defined(NDEBUG)
 # define NDEBUG
 #endif
 
