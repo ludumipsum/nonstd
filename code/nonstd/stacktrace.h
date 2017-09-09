@@ -57,13 +57,17 @@ inline void stacktrace_callback(int signum) {
     fprintf(stderr, "-----   ----------------   ---------------\n");
 
     // Iterate over each frame and print the data we can get out of it
+    c_cstr previous_fname = nullptr;
     for (u32 i = g_trace_skip; i < frame_count; ++i) {
-        // fprintf(stderr, "    %3d\t", i);
-        // fprintf(stderr, "%s", symbols[i]);
-
         // Figure out how to display the symbol's name
         Dl_info info;
         if (dladdr(stack[i], &info) && info.dli_sname) {
+            if (info.dli_fname != previous_fname) {
+                previous_fname = info.dli_fname;
+                auto print_addr = strrchr(previous_fname, '/') + 1;
+                fprintf(stderr, "%s\n", print_addr);
+            }
+
             cstr demangled = nullptr;
             int demangle_status = -2;
             // Detect mangled C++ names
