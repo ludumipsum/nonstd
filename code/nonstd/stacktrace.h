@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+namespace sighandler {
+
 static const u32 g_trace_skip = 1;
 
 #if defined(__APPLE__)
@@ -30,12 +32,15 @@ static const u32 g_trace_skip = 1;
 #define SIGTABLE sys_siglist
 #endif
 
-inline void stacktrace_callback(int signum) {
+inline void stacktrace_callback(int signum, siginfo_t *info, ucontext_t *uap) {
     void *stack[128];
     u32 max_frame_count = sizeof(stack) / sizeof(stack[0]);
 
     // get the list of frame pointers on the stack
     u32 frame_count = backtrace(stack, max_frame_count);
+
+    // Replace sigtramp with the origination site for the signal
+    stack[1] = (void *)uap->uc_stack.ss_sp;
 
     // symbolize all the frames we got in the trace
     cstr* symbols = backtrace_symbols(stack, frame_count);
@@ -58,6 +63,7 @@ inline void stacktrace_callback(int signum) {
 
     // Iterate over each frame and print the data we can get out of it
     c_cstr previous_fname = nullptr;
+    u32 resolved_frame = 0;
     for (u32 i = g_trace_skip; i < frame_count; ++i) {
         // Figure out how to display the symbol's name
         Dl_info info;
@@ -96,7 +102,7 @@ inline void stacktrace_callback(int signum) {
 
             // Dump the result to stderr
             fprintf(stderr, "%5d %*p   %s + %zd\n",
-                            i,                          /* frame number */
+                            resolved_frame,             /* frame number */
                             u32(2 + sizeof(void*) * 2), /* padding */
                             stack[i],                   /* frame address */
                             demangle_detail,            /* demangled name */
@@ -105,6 +111,7 @@ inline void stacktrace_callback(int signum) {
 
             free(demangled);
             demangled = nullptr;
+            resolved_frame += 1;
         }
     }
 
@@ -115,10 +122,23 @@ inline void stacktrace_callback(int signum) {
     exit(signum);
 }
 
-#define REGISTER_STACK_HANDLERS()             \
-        signal(SIGSEGV, stacktrace_callback); \
-        signal(SIGINT, stacktrace_callback);  \
-        signal(SIGHUP, stacktrace_callback)
+using _trace_cb=decltype(stacktrace_callback);
+inline void register_signal(int signal, _trace_cb* callback) {
+    struct sigaction sa;
+
+    sa.sa_sigaction = (decltype(sa.sa_sigaction)) callback;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART | SA_SIGINFO;
+
+    sigaction(signal, &sa, NULL);
+}
+
+} /* namespace sighandler */
+
+#define REGISTER_STACK_HANDLERS()                                              \
+        sighandler::register_signal(SIGSEGV, sighandler::stacktrace_callback); \
+        sighandler::register_signal(SIGINT,  sighandler::stacktrace_callback); \
+        sighandler::register_signal(SIGHUP,  sighandler::stacktrace_callback)
 
 #else
 
