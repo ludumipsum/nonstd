@@ -39,6 +39,9 @@ inline void stacktrace_callback(int signum, siginfo_t *info, ucontext_t *uap) {
     // get the list of frame pointers on the stack
     u32 frame_count = backtrace(stack, max_frame_count);
 
+    // Replace sigtramp with the origination site for the signal
+    stack[1] = (void *)uap->uc_stack.ss_sp;
+
     // symbolize all the frames we got in the trace
     cstr* symbols = backtrace_symbols(stack, frame_count);
 
@@ -60,6 +63,7 @@ inline void stacktrace_callback(int signum, siginfo_t *info, ucontext_t *uap) {
 
     // Iterate over each frame and print the data we can get out of it
     c_cstr previous_fname = nullptr;
+    u32 resolved_frame = 0;
     for (u32 i = g_trace_skip; i < frame_count; ++i) {
         // Figure out how to display the symbol's name
         Dl_info info;
@@ -98,7 +102,7 @@ inline void stacktrace_callback(int signum, siginfo_t *info, ucontext_t *uap) {
 
             // Dump the result to stderr
             fprintf(stderr, "%5d %*p   %s + %zd\n",
-                            i,                          /* frame number */
+                            resolved_frame,             /* frame number */
                             u32(2 + sizeof(void*) * 2), /* padding */
                             stack[i],                   /* frame address */
                             demangle_detail,            /* demangled name */
@@ -107,6 +111,7 @@ inline void stacktrace_callback(int signum, siginfo_t *info, ucontext_t *uap) {
 
             free(demangled);
             demangled = nullptr;
+            resolved_frame += 1;
         }
     }
 
