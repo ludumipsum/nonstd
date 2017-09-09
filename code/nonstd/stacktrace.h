@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+namespace sighandler {
+
 static const u32 g_trace_skip = 1;
 
 #if defined(__APPLE__)
@@ -30,7 +32,7 @@ static const u32 g_trace_skip = 1;
 #define SIGTABLE sys_siglist
 #endif
 
-inline void stacktrace_callback(int signum) {
+inline void stacktrace_callback(int signum, siginfo_t *info, ucontext_t *uap) {
     void *stack[128];
     u32 max_frame_count = sizeof(stack) / sizeof(stack[0]);
 
@@ -115,10 +117,23 @@ inline void stacktrace_callback(int signum) {
     exit(signum);
 }
 
-#define REGISTER_STACK_HANDLERS()             \
-        signal(SIGSEGV, stacktrace_callback); \
-        signal(SIGINT, stacktrace_callback);  \
-        signal(SIGHUP, stacktrace_callback)
+using _trace_cb=decltype(stacktrace_callback);
+inline void register_signal(int signal, _trace_cb* callback) {
+    struct sigaction sa;
+
+    sa.sa_sigaction = (decltype(sa.sa_sigaction)) callback;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART | SA_SIGINFO;
+
+    sigaction(signal, &sa, NULL);
+}
+
+} /* namespace sighandler */
+
+#define REGISTER_STACK_HANDLERS()                                              \
+        sighandler::register_signal(SIGSEGV, sighandler::stacktrace_callback); \
+        sighandler::register_signal(SIGINT,  sighandler::stacktrace_callback); \
+        sighandler::register_signal(SIGHUP,  sighandler::stacktrace_callback)
 
 #else
 
