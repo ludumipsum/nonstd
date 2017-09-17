@@ -1,13 +1,12 @@
-/* Type-Aware Comparison Functions
- * ===============================
- * General-purpose hash comparison functions.
+/** Type-Aware Comparison Functions
+ *  ===============================
+ *  General-purpose hash comparison functions.
  */
 
 #pragma once
 
 #include "batteries_included.h"
 #include "primitive_types.h"
-#include "crash.h"
 
 template<typename L, typename R> constexpr
 FORCEINLINE bool n2equals(L left, R right) {

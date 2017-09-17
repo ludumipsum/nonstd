@@ -1,9 +1,9 @@
-/* Loggin' Utilities
- * =================
- * Utility functions and macros for logging, variadic printf-expansion, and
- * similar chores.
+/** Loggin' Utilities
+ *  =================
+ *  Utility functions and macros for logging, variadic printf-expansion, and
+ *  similar chores.
  *
- * https://www.youtube.com/watch?v=siwpn14IE7E
+ *  https://www.youtube.com/watch?v=siwpn14IE7E
  */
 
 #pragma once
@@ -11,14 +11,17 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
+#include <stdio.h>
+#include <stdarg.h>
 
-/* Variadic Message Format Expander
- * --------------------------------
- * _variadicExpand allows the `MESSAGE` parameter that's passed into `LOG` take
- * the form of a format string.
- * Modified from Erik Aronesty's answer of this SO question:
- * http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
- * but also: http://stackoverflow.com/questions/7825648/vscprintf-equivalent-on-android/
+
+/** Variadic Message Format Expander
+ *  --------------------------------
+ *  _variadicExpand allows the `MESSAGE` parameter that's passed into `LOG` take
+ *  the form of a format string.
+ *  Modified from Erik Aronesty's answer of this SO question:
+ *  http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
+ *  but also: http://stackoverflow.com/questions/7825648/vscprintf-equivalent-on-android/
  */
 inline std::string _variadicExpand(c_cstr message, ...)
 {
@@ -39,9 +42,9 @@ inline std::string _variadicExpand(c_cstr message, ...)
     return expanded;
 }
 
-/* Logging Implementation
- * ----------------------
- * Actually emit text from calls made with LOG(...)
+/** Logging Implementation
+ *  ----------------------
+ *  Actually emit text from calls made with LOG(...)
  */
 inline i32 _logMessage(c_cstr    message,
                        c_cstr    file,
@@ -64,16 +67,16 @@ inline i32 _logMessage(c_cstr    message,
                   function, message);
 }
 
-/* Logging Macro Shorthand
- * -----------------------
- * If you want to log a thing, you almost 100% definitely certainly want to
- * probably use this one.
- * If you've compiled with DEBUG active, we're not just going to munge and print
- * your message. We're also going to run it through an `snprintf(NULL, 0, ...)`
- * to give your compiler a change to check that your format string is correctly
- * structured. Actually using `NULL` doesn't work here, unfortunately, so this
- * trick will add the cost of writing `\0` into `format_verification` to every
- * message actually printed.
+/** Logging Macro Shorthand
+ *  -----------------------
+ *  If you want to log a thing, you almost 100% definitely certainly want to
+ *  probably use this one.
+ *  If you've compiled with DEBUG active, we're not just going to munge and print
+ *  your message. We're also going to run it through an `snprintf(NULL, 0, ...)`
+ *  to give your compiler a change to check that your format string is correctly
+ *  structured. Actually using `NULL` doesn't work here, unfortunately, so this
+ *  trick will add the cost of writing `\0` into `format_verification` to every
+ *  message actually printed.
  */
 #if defined(N2_DISABLE_LOGGING)
     #define LOG(MESSAGE, ...)

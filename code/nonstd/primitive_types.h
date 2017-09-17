@@ -1,17 +1,16 @@
-/* Primitive Types
-   ===============
-
-   Defines some basic types used across different pieces of game and platform
-   code. Things like shorthand basic types, colors, and vectors.
-*/
+/** Primitive Types
+ *  ===============
+ *  Defines some basic types used across different pieces of game and platform
+ *  code. Things like shorthand basic types, colors, and vectors.
+ */
 
 #pragma once
 
 #include "batteries_included.h"
 
-/* Basic Types
-   -----------
-*/
+/** Basic Types
+ *  -----------
+ */
 typedef uint8_t          u8;        ENFORCE_SIZE(u8,  1);
 typedef uint16_t        u16;        ENFORCE_SIZE(u16, 2);
 typedef uint32_t        u32;        ENFORCE_SIZE(u32, 4);
@@ -67,13 +66,11 @@ inline void n2alignment_correct_free(ptr p, bool aligned) {
 }
 
 /* IDs uniquely identify game entities. We reserve the bottom few for special
-   meanings in our container types (unset, deleted, etc).
-*/
+   meanings in our container types (unset, deleted, etc). */
 typedef u64 ID;
 
 /* Power-of-two Byte Prefixes
-   NB. these implicitly cast the provided value to 64-bit int
-*/
+   NB. these implicitly cast the provided value to 64-bit int */
 #define KBYTES(N) ((i64)N*1024)
 #define MBYTES(N) ((i64)N*1024*1024)
 #define GBYTES(N) ((i64)N*1024*1024*1024)
@@ -91,10 +88,10 @@ typedef u64 ID;
 #define MS_PER_SEC 1000
 
 
-/* COLORS
-   ------
-   Simple 4-vector of u8s used to represent RGB colors.
-*/
+/** COLORS
+ *  ------
+ *  Simple 4-vector of u8s used to represent RGB colors.
+ */
 struct Color {
     union {
         u8 rgba[4];

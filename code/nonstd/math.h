@@ -1,7 +1,7 @@
-/* Math Utilities
- * ==============
- * A small library of commonly-used math functions. Stuff like interpolators
- * and rescalers.
+/** Math Utilities
+ *  ==============
+ *  A small library of commonly-used math functions. Stuff like interpolators
+ *  and rescalers.
  */
 
 #pragma once
@@ -9,9 +9,9 @@
 #include "batteries_included.h"
 #include "primitive_types.h"
 
-/* Min/Max Macros
- * --------------
- * Both type- and compiler-safe.
+/** Min/Max Macros
+ *  --------------
+ *  Both type- and compiler-safe.
  */
 #ifndef n2max
 #define n2max(a,b) (((a) > (b)) ? (a) : (b))
@@ -27,9 +27,9 @@
 #endif
 
 
-/* Range Rescaling
- * ---------------
- * Take a value in a given domain and rescale it to the provided range.
+/** Range Rescaling
+ *  ---------------
+ *  Take a value in a given domain and rescale it to the provided range.
  */
 template<typename T> inline
 T rescale(T value, decltype(value) domain_min, decltype(value) domain_max,
@@ -45,12 +45,12 @@ T rescale(T value, decltype(value) domain_max,
     return rescale(value, (T)0, domain_max, (T)0, range_max);
 }
 
-/* Bit Mask
- * --------
- * Returns a bit mask of the given type (please only use integer types) with the
- * lowest `nbits` bits set to 1 and the rest set to 0.
- * This implementation was lifted from a PR against the RapidCheck codebase that
- * I (Drew) and RapidCheck's author (emil-e) have been working on.
+/** Bit Mask
+ *  --------
+ *  Returns a bit mask of the given type (please only use integer types) with the
+ *  lowest `nbits` bits set to 1 and the rest set to 0.
+ *  This implementation was lifted from a PR against the RapidCheck codebase that
+ *  I (Drew) and RapidCheck's author (emil-e) have been working on.
  */
 template<typename T> inline
 constexpr T maskLowestBits(u16 nbits) {
@@ -67,23 +67,23 @@ constexpr T maskLowestBits(u16 nbits) {
 }
 
 
-/* Power of 2 Calculations/Comparisons
- * ===================================
- * These were lifted from Sean Eron Anderson's _Bit Twiddling Hacks_.
- * http://graphics.stanford.edu/~seander/bithacks.html
+/** Power of 2 Calculations/Comparisons
+ *  ===================================
+ *  These were lifted from Sean Eron Anderson's _Bit Twiddling Hacks_.
+ *  http://graphics.stanford.edu/~seander/bithacks.html
  */
 
-/* Is Power Of Two?
- * ----------------
+/** Is Power Of Two?
+ *  ----------------
  */
 template<typename T> inline
 constexpr bool is_power_of_two(T num) {
     return (num && !(num & (num - 1)));
 }
 
-/* Powers of Two
- * -------------
- *TODO: Consider making these template specializations based on the size of T.
+/** Powers of Two
+ *  -------------
+ *  TODO: Consider making these template specializations based on the size of T.
  */
 inline u32 next_power_of_two(u32 num) {
     num -= 1;

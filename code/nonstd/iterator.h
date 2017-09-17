@@ -1,10 +1,10 @@
-/* Iteration Tools
-   ===============
-
-   C++11/14 added great automatic deduction and iteration facilities, but it's
-   often missing little conveniences to make the task of using them as simple
-   as it could be.
-*/
+/** Iteration Tools
+ *  ===============
+ *
+ *  C++11/14 added great automatic deduction and iteration facilities, but it's
+ *  often missing little conveniences to make the task of using them as simple
+ *  as it could be.
+ */
 
 #pragma once
 

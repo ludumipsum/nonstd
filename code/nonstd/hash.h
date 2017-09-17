@@ -1,27 +1,25 @@
-/* Hash Functions
-   ==============
-
-   General-purpose hash functions. You probably already know which one you want.
-*/
+/** Hash Functions
+ *  ==============
+ *  General-purpose hash functions. You probably already know which one you want.
+ */
 
 #pragma once
 
 #include "batteries_included.h"
 #include "primitive_types.h"
-#include "crash.h"
 
 inline u64 shift64(u64 key);
 inline u64 djb2(c_cstr str);
 inline void sha1(u8 const*const data, u64 num_bytes, cstr sha_out);
 
 
-/* Default String Hash
-   -------------------
-   Our default string hash is djb2.
-
-   TODO: Write hash verifier to make sure our resources directory doesn't
-         produce djb2 collisions on any filename.
-*/
+/** Default String Hash
+ *  -------------------
+ *  Our default string hash is djb2.
+ *
+ *  TODO: Write hash verifier to make sure our resources directory doesn't
+ *        produce djb2 collisions on any content or filename.
+ */
 #define HASH djb2
 
 template<typename T>
@@ -37,17 +35,10 @@ template<> inline u64 n2hash(i16    key) { return shift64(key); }
 template<> inline u64 n2hash(i32    key) { return shift64(key); }
 template<> inline u64 n2hash(i64    key) { return shift64(key); }
 
-template<typename T>
-inline u64 n2hash(T ket) {
-    // TODO: Implement a type printing process, and print the type here.
-    N2CRASH(N2Error::UnimplementedCode,
-        "This type does not have an associated hashing function.");
-}
 
-
-/* Integer hash based on bitshifts and xors, taken from
-   [here](https://gist.github.com/badboy/6267743).
-*/
+/** Integer hash based on bitshifts and xors, taken from
+ *  [here](https://gist.github.com/badboy/6267743).
+ */
 u64 shift64(u64 key)
 {
     key = (~key) + (key << 21); // key = (key << 21) - key - 1;
@@ -61,11 +52,11 @@ u64 shift64(u64 key)
 }
 
 
-/* DJB2 Hash
-   ---------
-   Simple bytestring to 64bit integer hash function. It's blazing fast and
-   probably won't corrupt your data. Probably.
-*/
+/** DJB2 Hash
+ *  ---------
+ *  Simple bytestring to 64bit integer hash function. It's blazing fast and
+ *  probably won't corrupt your data. Probably.
+ */
 inline u64 djb2(c_cstr str) {
   u64 hash = 5381;
   i32 c;
@@ -75,15 +66,16 @@ inline u64 djb2(c_cstr str) {
 };
 
 
-/* SHA1
-   ----
-   Use this API for slower hashes where you're super freaked out about
-   collisions or cryptographic manipulation by foreign dictators (hi nsa).
-
-   This code is also shamelessly stolen from the internet. It appears to produce
-   the same hashes as the sha1 binary on the computer I used to steal it, but
-   I can't vouch for it beyond that. It may contain snakes, dragons, or stuxnet.
-*/
+/** SHA1
+ *  ----
+ *  Use this API for slower hashes where you're super freaked out about
+ *  collisions or cryptographic manipulation by dictators (hi nsa).
+ *
+ *  This code is also shamelessly stolen from the internet. It appears to produce
+ *  produce the same hashes as the sha1 binary on the computer I used to steal
+ *  it, but I can't vouch for it beyond that. It may contain snakes, dragons,
+ *  and stuxnet.
+ */
 
 /* Macros to make stolen code build better */
 
@@ -279,12 +271,11 @@ inline uint8_t* sha1_resultHmac(sha1nfo *s) {
 } /* namespace stolen */
 
 /* Hash `num_bytes` from `data` into 41 bytes at sha_out. This is done by
-   representing the 20-byte sha1 as 40 bytes in the ASCII range -- it's the same
-   format you get from git, for example.
-
-   TODO: Use a more flexible string representation to return the hash instead of
-         the c-style unowned-return-pointer-as-parameter
-*/
+ * representing the 20-byte sha1 as 40 bytes in the ASCII range -- it's the same
+ * format you get from git, for example.
+ *
+ * TODO: Use a more flexible string representation to return the hash instead of
+ *       the c-style unowned-return-pointer-as-parameter. */
 inline void sha1(u8 const*const data, u64 num_bytes, cstr sha_out) {
     using namespace stolen;
     sha1nfo si;
