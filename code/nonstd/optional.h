@@ -1099,20 +1099,28 @@ public:
 
 /* Create an Optional with no value */
 template<typename T>
-constexpr Optional<T> none() { return Optional<T>(); }
+constexpr Optional<T> none() noexcept { return Optional<T>(); }
 
 /* Create an Optional with a real value */
 template<typename T>
-constexpr Optional<T> just(T value) {
+constexpr Optional<T> just(T value)
+noexcept(IS_NOTHROW_CONSTRUCTIBLE(T)) {
     return Optional<T> { value };
 }
+template<typename T>
+constexpr Optional<T> just(T && value)
+noexcept(IS_NOTHROW_CONSTRUCTIBLE(T &&)) {
+    return Optional<T> { std::move(value) };
+}
 template<typename T, typename... Args>
-constexpr Optional<T> just(n2_::in_place_t /*unused*/, Args && ... args) {
+constexpr Optional<T> just(n2_::in_place_t /*unused*/, Args && ... args)
+noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...)) {
     return Optional<T> { n2_::in_place, std::forward<Args>(args)... };
 }
 template<typename T, typename Il, typename... Args>
 constexpr Optional<T> just(n2_::in_place_t /*unused*/,
-                           std::initializer_list<Il> il, Args && ... args) {
+                           std::initializer_list<Il> il, Args && ... args)
+noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, std::initializer_list<Il>, Args && ...)) {
     return Optional<T> { n2_::in_place, il, std::forward<Args>(args)... };
 }
 
@@ -1122,7 +1130,7 @@ constexpr Optional<T &> just_ref(T & value) {
 }
 
 template<typename T>
-constexpr Optional<T const &> just_cref(T const& value) {
+constexpr Optional<T const &> just_cref(T const & value) {
     return Optional<T const &> { value };
 }
 
