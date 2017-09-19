@@ -198,16 +198,19 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ true,
 
 
     constexpr _Optional_Storage(T const & value)
+    noexcept(IS_NOTHROW_COPY_CONSTRUCTIBLE(T))
         : is_containing ( true  )
         , value         ( value ) { }
 
     constexpr _Optional_Storage(T && value)
+    noexcept(IS_NOTHROW_MOVE_CONSTRUCTIBLE(T))
         : is_containing ( true             )
         , value         ( std::move(value) ) { }
 
     template < typename... Args>
     constexpr _Optional_Storage(n2_::in_place_t,
                                 Args && ... args)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...))
         : is_containing ( true                        )
         , value         ( std::forward<Args>(args)... ) { }
 
@@ -215,6 +218,9 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ true,
     constexpr _Optional_Storage(n2_::in_place_t,
                                 std::initializer_list<Il> il,
                                 Args && ... args)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T,
+                                      std::initializer_list<Il>,
+                                      Args && ...))
         : is_containing ( true                            )
         , value         ( il, std::forward<Args>(args)... ) { }
 };
@@ -239,13 +245,13 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
     // placement new to guarantee the active member is switched.
     template < typename... Args >
     void _construct(Args && ... args)
-    noexcept ( IS_NOTHROW_CONSTRUCTIBLE(T, Args...) ) {
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args...)) {
         new ((void*)(&value)) T(std::forward<Args>(args)...);
         is_containing = true;
     }
 
 
-    constexpr _Optional_Storage()
+    constexpr _Optional_Storage() noexcept
         : is_containing ( false )
         , empty         {       } { }
 
@@ -255,6 +261,7 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
     // is non-containing. I don't know if a compile-time, non-containing, non-
     // trivially constructible Optional will be of use, but... You can do it.
     constexpr _Optional_Storage(_Optional_Storage const & other)
+    noexcept(IS_NOTHROW_COPY_CONSTRUCTIBLE(T))
         : is_containing ( other.is_containing )
         , empty         {                     }
     {
@@ -263,6 +270,7 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
     }
 
     constexpr _Optional_Storage(_Optional_Storage && other)
+    noexcept(IS_NOTHROW_MOVE_CONSTRUCTIBLE(T))
         : is_containing ( other.is_containing )
         , empty         {                     }
     {
@@ -272,16 +280,19 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
 
 
     constexpr _Optional_Storage(T const & value)
+    noexcept(IS_NOTHROW_COPY_CONSTRUCTIBLE(T))
         : is_containing ( true  )
         , value         ( value ) { }
 
     constexpr _Optional_Storage(T && value)
+    noexcept(IS_NOTHROW_MOVE_CONSTRUCTIBLE(T))
         : is_containing ( true             )
         , value         ( std::move(value) ) { }
 
     template < typename... Args>
     constexpr _Optional_Storage(n2_::in_place_t,
                                 Args && ... args)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...))
         : is_containing ( true                        )
         , value         ( std::forward<Args>(args)... ) { }
 
@@ -289,6 +300,9 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
     constexpr _Optional_Storage(n2_::in_place_t,
                                 std::initializer_list<Il> il,
                                 Args && ... args)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T,
+                                      std::initializer_list<Il>,
+                                      Args && ...))
         : is_containing ( true                            )
         , value         ( il, std::forward<Args>(args)... ) { }
 };
@@ -313,23 +327,25 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
     // placement new to guarantee the active member is switched.
     template < typename... Args >
     void _construct(Args && ... args)
-    noexcept ( IS_NOTHROW_CONSTRUCTIBLE(T, Args...) ) {
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...)) {
         new ((void*)(&value)) T(std::forward<Args>(args)...);
         is_containing = true;
     }
 
-    ~_Optional_Storage() {
+    ~_Optional_Storage()
+    noexcept(IS_NOTHROW_DESTRUCTIBLE(T)) {
         if (is_containing)
             value.~T();
     }
 
 
-    constexpr _Optional_Storage()
+    constexpr _Optional_Storage() noexcept
         : is_containing ( false )
         , empty         {       } { }
 
 
     constexpr _Optional_Storage(_Optional_Storage const & other)
+    noexcept(IS_NOTHROW_COPY_CONSTRUCTIBLE(T))
         : is_containing ( other.is_containing )
         , empty         {                     }
     {
@@ -338,6 +354,7 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
     }
 
     constexpr _Optional_Storage(_Optional_Storage && other)
+    noexcept(IS_NOTHROW_MOVE_CONSTRUCTIBLE(T))
         : is_containing ( other.is_containing )
         , empty         {                     }
     {
@@ -347,16 +364,19 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
 
 
     constexpr _Optional_Storage(T const & value)
+    noexcept(IS_NOTHROW_COPY_CONSTRUCTIBLE(T))
         : is_containing ( true  )
         , value         ( value ) { }
 
     constexpr _Optional_Storage(T && value)
+    noexcept(IS_NOTHROW_MOVE_CONSTRUCTIBLE(T))
         : is_containing ( true             )
         , value         ( std::move(value) ) { }
 
     template < typename... Args>
     constexpr _Optional_Storage(n2_::in_place_t,
                                 Args && ... args)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...))
         : is_containing ( true                        )
         , value         ( std::forward<Args>(args)... ) { }
 
@@ -364,6 +384,9 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
     constexpr _Optional_Storage(n2_::in_place_t,
                                 std::initializer_list<Il> il,
                                 Args && ... args)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T,
+                                      std::initializer_list<Il>,
+                                      Args && ...))
         : is_containing ( true                            )
         , value         ( il, std::forward<Args>(args)... ) { }
 };
@@ -380,24 +403,26 @@ struct _Optional_LValRefStorage {
     bool is_containing;
     T    value;
 
-    constexpr _Optional_LValRefStorage()
+    constexpr _Optional_LValRefStorage() noexcept
         : is_containing ( false   )
         , value         ( nullptr ) { }
 
-    constexpr _Optional_LValRefStorage(n2_::nullopt_t /*unused*/)
+    constexpr _Optional_LValRefStorage(n2_::nullopt_t /*unused*/) noexcept
         : is_containing ( false   )
         , value         ( nullptr ) { }
 
 
     constexpr _Optional_LValRefStorage(_Optional_LValRefStorage const & other)
+    noexcept
         : is_containing ( other.is_containing )
         , value         ( other.value         ) { }
 
     constexpr _Optional_LValRefStorage(_Optional_LValRefStorage && other)
-        : is_containing ( other.is_containing )
-        , value         ( other.value         ) { }
+    noexcept
+        : is_containing ( other.is_containing    )
+        , value         ( std::move(other.value) ) { }
 
-    constexpr _Optional_LValRefStorage(T value)
+    constexpr _Optional_LValRefStorage(T value) noexcept
         : is_containing ( true  )
         , value         ( value ) { }
 };
