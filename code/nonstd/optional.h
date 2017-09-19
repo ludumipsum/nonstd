@@ -791,9 +791,12 @@ protected:
         _storage.is_containing = true;
     }
 
-    // TODO: I think these are not noexcept... bad_access exceptions?
-    constexpr T       & _getValue()       noexcept { return _storage.value; }
-    constexpr T const & _getValue() const noexcept { return _storage.value; }
+    // NB. These methods cannot be noexcept because they may access an inactive
+    // member of the `_storage` class' anonymous union. Most internal uses may
+    // be considered noexcept, though, due to the checks that will need to be
+    // performed prior to access.
+    constexpr T       & _getValue()       { return _storage.value; }
+    constexpr T const & _getValue() const { return _storage.value; }
 
     constexpr bool _hasValue() const noexcept { return _storage.is_containing; }
 
@@ -894,9 +897,12 @@ protected:
         _storage.value = nullptr;
     }
 
-    //TODO: Again, I don't think these are really noexcept.
-    constexpr T       & _getValue()       noexcept { return *_storage.value; }
-    constexpr T const & _getValue() const noexcept { return *_storage.value; }
+    // NB. These methods cannot be noexcept because they may access an inactive
+    // member of the `_storage` class' anonymous union. Most internal uses may
+    // be considered noexcept, though, due to the checks that will need to be
+    // performed prior to access.
+    constexpr T       & _getValue()       { return *_storage.value; }
+    constexpr T const & _getValue() const { return *_storage.value; }
 
     constexpr bool _hasValue() const noexcept { return _storage.is_containing; }
 
