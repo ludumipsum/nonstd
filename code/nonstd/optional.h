@@ -411,10 +411,13 @@ struct _Optional_LValRefStorage {
 template < typename T >
 class _Optional_ValueBase {
 private:
-    /* To let us use (and re-use) storage when T is cv qualified, we strip that
+    /* ### A Note on Storage Types
+     * To let us use (and re-use) storage when T is cv qualified, we strip any
      * const-ness when defining our _Optional_Storage type. All public and
      * protected methods will take and return `T`s, though, so the removal of
-     * the cv-qualifier should be entirely invisible. */
+     * the cv-qualifier should be entirely invisible. In fact, most methods in
+     * this class should call `_getValue` to access `_storage.value` so that
+     * they access a `T`, rather than a `REMOVE_CONST_TYPE(T)`. */
     using _Storage_Type = REMOVE_CONST_TYPE(T);
     _Optional_Storage<_Storage_Type> _storage;
 
@@ -426,9 +429,9 @@ public:
 
     /* Empty Ctors
      * ----------- */
-    constexpr _Optional_ValueBase()
+    constexpr _Optional_ValueBase() noexcept
         : _storage ( ) { }
-    constexpr _Optional_ValueBase(n2_::nullopt_t /*unused*/)
+    constexpr _Optional_ValueBase(n2_::nullopt_t /*unused*/) noexcept
         : _storage ( ) { }
 
     /* Copy Ctor
@@ -436,6 +439,7 @@ public:
      * If IS_COPY_CONSTRUCTIBLE(T) == false, this constructor will be explicitly
      * deleted in Optional<T>. */
     constexpr _Optional_ValueBase(_Optional_ValueBase const & other)
+    noexcept(IS_NOTHROW_COPY_CONSTRUCTIBLE(T))
         : _storage ( other._storage ) { }
 
     /* Move Ctor
@@ -451,17 +455,22 @@ public:
     template < typename... Args
              , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T, Args...), int) = 0 >
     constexpr _Optional_ValueBase(n2_::in_place_t /*unused*/, Args && ... args)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...))
         : _storage ( n2_::in_place, std::forward<Args>(args)... ) { }
 
     /* In-Place Initializer List Value Ctor
      * ------------------------------------ */
     template < typename Il
              , typename... Args
-             , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T, std::initializer_list<Il>&,
+             , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T,
+                                                std::initializer_list<Il> &,
                                                 Args && ...), int) = 0 >
     constexpr _Optional_ValueBase(n2_::in_place_t /*unused*/,
                                   std::initializer_list<Il> il,
                                   Args && ... args)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T,
+                                      std::initializer_list<Il> &,
+                                      Args && ...))
         : _storage ( n2_::in_place, il, std::forward<Args>(args)... ) { }
 
     /* Converting Value Move Ctor
@@ -474,6 +483,7 @@ public:
                                 && IS_CONVERTIBLE(U&&, T))
                               , int) = 0 >
     constexpr _Optional_ValueBase(U && value)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U &&))
         : _storage ( std::forward<U>(value) ) { }
 
     template < typename U = T
@@ -484,6 +494,7 @@ public:
                                 && IS_NOT_CONVERTIBLE(U&&, T))
                               , int) = 1 >
     constexpr explicit _Optional_ValueBase(U && value)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U &&))
         : _storage ( std::forward<U>(value) ) { }
 
     /* Converting Copy Ctor
@@ -497,6 +508,7 @@ public:
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
                               , int) = 0>
     constexpr _Optional_ValueBase(Optional<U> const & other)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U))
         : _Optional_ValueBase ( other.hasValue()
                                 ? _Optional_ValueBase(*other)
                                 : _Optional_ValueBase(n2_::nullopt) ) { }
@@ -508,6 +520,7 @@ public:
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
                               , int) = 1>
     constexpr explicit _Optional_ValueBase(Optional<U> const & other)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U))
         : _Optional_ValueBase ( other.hasValue()
                                 ? _Optional_ValueBase(*other)
                                 : _Optional_ValueBase(n2_::nullopt) ) { }
@@ -523,6 +536,7 @@ public:
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
                               , int) = 0>
     constexpr _Optional_ValueBase(Optional<U> && other)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U &&))
         : _Optional_ValueBase ( other.hasValue()
                                 ? _Optional_ValueBase(std::move(*other))
                                 : _Optional_ValueBase(n2_::nullopt)      ) { }
@@ -534,13 +548,15 @@ public:
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
                               , int) = 1>
     constexpr explicit _Optional_ValueBase(Optional<U> && other)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U &&))
         : _Optional_ValueBase ( other.hasValue()
                                 ? _Optional_ValueBase(std::move(*other))
                                 : _Optional_ValueBase(n2_::nullopt)      ) { }
 
     /* Empty Assignment
      * ---------------- */
-    _Optional_ValueBase<T>& operator= (n2_::nullopt_t /*unused*/) noexcept {
+    _Optional_ValueBase<T>& operator= (n2_::nullopt_t /*unused*/)
+    noexcept(IS_NOTHROW_DESTRUCTIBLE(T)) {
         if (_storage.is_containing) { _removeValue(); }
         return *this;
     }
@@ -548,15 +564,29 @@ public:
     /* Copy Assignment
      * ---------------
      * If IS_COPY_CONSTRUCTIBLE(T) == false or IS_COPY_ASSIGNABLE(T) == false,
-     * this Assignment Operator will be explicitly deleted in Optional<T>. */
-    _Optional_ValueBase<T>& operator= (_Optional_ValueBase const & other) {
+     * this Assignment Operator will be explicitly deleted in Optional<T>.
+     *
+     * Remarks on `noexcept`; If any exception is thrown, the result of the
+     * expression bool(*this) remains unchanged. If an exception is thrown
+     * during the call to T’s copy constructor, no effect. If an exception is
+     * thrown during the call to T’s copy assignment, the state of its
+     * contained value is as defined by the exception safety guarantee of T’s
+     * copy assignment. */
+    _Optional_ValueBase<T>& operator= (_Optional_ValueBase const & other)
+    noexcept(   IS_NOTHROW_COPY_ASSIGNABLE(T)
+             && IS_NOTHROW_COPY_CONSTRUCTIBLE(T)
+             && IS_NOTHROW_DESTRUCTIBLE(T)) {
         if (_storage.is_containing && other._storage.is_containing) {
-            // Use _getValue to assign to a `T`, rather than a `REMOVE_CONST(T)`
+            // See the "Note on Storage Types" above.
             _getValue() = other._getValue();
         } else {
             if (other._storage.is_containing) {
+                //TODO: This should maybe be wrapped in a try/catch?
+                //      Maybe this needs to be another SFINAE branch, one for
+                //      noexcept, one for try/catch?
+                //      All _constructValue calls should be treated similarly.
                 _constructValue(other._getValue());
-            } else {
+            } else if (_storage.is_containing) {
                 _removeValue();
             }
         }
@@ -569,14 +599,15 @@ public:
      * this Assignment Operator will be explicitly deleted in Optional<T>. */
     _Optional_ValueBase<T>& operator= (_Optional_ValueBase && other)
     noexcept(   IS_NOTHROW_MOVE_ASSIGNABLE(T)
-             && IS_NOTHROW_MOVE_CONSTRUCTIBLE(T)) {
+             && IS_NOTHROW_MOVE_CONSTRUCTIBLE(T)
+             && IS_NOTHROW_DESTRUCTIBLE(T)) {
         if (_storage.is_containing && other._storage.is_containing) {
-            // Use _getValue to assign to a `T`, rather than a `REMOVE_CONST(T)`
+            // See the "Note on Storage Types" above.
             _getValue() = std::move(other._getValue());
         } else {
             if (other._storage.is_containing) {
                 _constructValue(std::move(other._getValue()));
-            } else {
+            } else if (_storage.is_containing) {
                 _removeValue();
             }
         }
@@ -586,11 +617,11 @@ public:
     /* Converting Value Move Assignment
      * --------------------------------
      * NOTE: There is either a problem with this implementation, or the C++17
-     * n4618 standard. Missing from the SFINAE clause below is the requirement
-     * that "`conjunction_v<is_scalar<T>, is_same<T, decay_t<U>>>` is `false`."
-     * With that clause in place, the assigning a T to a containing Optional
-     * results in an ambiguous implicit constructor call, but assigning an
-     * implicitly-convertible-to-T succeeds. Observe,
+     * n4618 standard. Missing from the implemented SFINAE clauses below is the
+     * requirement that "`conjunction_v<is_scalar<T>, is_same<T, decay_t<U>>>`
+     * is `false`." With that clause in place, assigning a T to a containing
+     * Optional results in an ambiguous implicit constructor call, but assigning
+     * an implicitly-convertible-to-T succeeds. Observe,
      *     Optional<int>  foo = 42; // Works; Calls into the Converting Value
      *                              // Move Ctor, *not* an assignment operator.
      *     foo = 84; // Fails; `operator= (U&& value)` does not participate in
@@ -611,14 +642,16 @@ public:
      *           && IS_SAME_TYPE(DECAY_TYPE(U), T))
      */
     template < typename U = T
-             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(DECAY_TYPE(U),
-                                                       Optional<T>)
-                                &&   IS_CONSTRUCTIBLE(T, U)
-                                &&   IS_ASSIGNABLE(T&, U))
+             , ENABLE_IF_DTYPE((   IS_DIFFERENT_TYPE(DECAY_TYPE(U),
+                                                     Optional<T>)
+                                && IS_CONSTRUCTIBLE(T, U)
+                                && IS_ASSIGNABLE(T&, U))
                               , int) = 0 >
-    _Optional_ValueBase<T>& operator= (U&& value) {
+    _Optional_ValueBase<T>& operator= (U&& value)
+    noexcept(   IS_NOTHROW_ASSIGNABLE(T, U &&)
+             && IS_NOTHROW_CONSTRUCTIBLE(T, U &&)) {
         if (_storage.is_containing) {
-            // Use _getValue to assign to a `T`, rather than a `REMOVE_CONST(T)`
+            // See the "Note on Storage Types" above.
             _getValue() = std::forward<U>(value);
         } else {
             _constructValue(std::forward<U>(value));
@@ -637,14 +670,17 @@ public:
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T)
                                 && ! IS_ASSIGNABLE_FROM_OPTIONAL(U, T))
                               , int) = 0 >
-    _Optional_ValueBase<T>& operator= (Optional<U> const & other) {
+    _Optional_ValueBase<T>& operator= (Optional<U> const & other)
+    noexcept(   IS_NOTHROW_ASSIGNABLE(T, U)
+             && IS_NOTHROW_CONSTRUCTIBLE(T, U)
+             && IS_NOTHROW_DESTRUCTIBLE(T)) {
         if (_storage.is_containing && other.hasValue()) {
-            // Use _getValue to assign to a `T`, rather than a `REMOVE_CONST(T)`
+            // See the "Note on Storage Types" above.
             _getValue() = *other;
         } else {
             if (other.hasValue()) {
                 _constructValue(*other);
-            } else {
+            } else if (_storage.is_containing) {
                 _removeValue();
             }
         }
@@ -662,14 +698,17 @@ public:
                                 && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T)
                                 && ! IS_ASSIGNABLE_FROM_OPTIONAL(U, T))
                               , int) = 0 >
-    _Optional_ValueBase<T>& operator= (Optional<U> && other) {
+    _Optional_ValueBase<T>& operator= (Optional<U> && other)
+    noexcept(   IS_NOTHROW_ASSIGNABLE(T, U &&)
+             && IS_NOTHROW_CONSTRUCTIBLE(T, U &&)
+             && IS_NOTHROW_DESTRUCTIBLE(T)) {
         if (_storage.is_containing && other.hasValue()) {
-            // Use _getValue to assign to a `T`, rather than a `REMOVE_CONST(T)`
+            // See the "Note on Storage Types" above.
             _getValue() = std::move(*other);
         } else {
             if (other.hasValue()) {
                 _constructValue(std::move(*other));
-            } else {
+            } else if (_storage.is_containing) {
                 _removeValue();
             }
         }
@@ -680,7 +719,9 @@ public:
      * ----------- */
     template < typename... Args
              , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T, Args && ...), int) = 0 >
-    _Optional_ValueBase<T>& emplace(Args && ... args) {
+    _Optional_ValueBase<T>& emplace(Args && ... args)
+    noexcept(   IS_NOTHROW_DESTRUCTIBLE(T)
+             && IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...)) {
         if (_storage.is_containing) { _storage.value.~_Storage_Type(); }
         _constructValue(std::forward<Args>(args)...);
         return *this;
@@ -690,10 +731,15 @@ public:
      * --------------------------------- */
     template < typename... Args
              , typename Il
-             , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T, std::initializer_list<Il> &,
+             , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T,
+                                                std::initializer_list<Il> &,
                                                 Args && ...), int) = 0 >
     _Optional_ValueBase<T>& emplace(std::initializer_list<Il> il,
-                                    Args && ... args) {
+                                    Args && ... args)
+    noexcept (   IS_NOTHROW_DESTRUCTIBLE(T)
+              && IS_NOTHROW_CONSTRUCTIBLE(T,
+                                          std::initializer_list<Il> &,
+                                          Args && ...)) {
         if (_storage.is_containing) { _storage.value.~_Storage_Type(); }
         _constructValue(il, std::forward<Args>(args)...);
         return *this;
@@ -703,13 +749,15 @@ protected:
     /* Helper Functions
      * ----------------
      * For destructing, constructing, and fetching values. */
-    void _removeValue() {
+    void _removeValue()
+    noexcept(IS_NOTHROW_DESTRUCTIBLE(T)) {
         _storage.is_containing = false;
         _storage.value.~_Storage_Type();
     }
 
     template < typename... Args >
-    void _constructValue(Args && ... args) {
+    void _constructValue(Args && ... args)
+    noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...)) {
         // We may be trying to switch the active member of the union in
         // _storage to a class with a user-defined constructor. Use
         // Placement New to accomplish this.
@@ -718,6 +766,7 @@ protected:
         _storage.is_containing = true;
     }
 
+    // TODO: I think these are not noexcept... bad_access exceptions?
     constexpr T       & _getValue()       noexcept { return _storage.value; }
     constexpr T const & _getValue() const noexcept { return _storage.value; }
 
