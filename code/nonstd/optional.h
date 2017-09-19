@@ -188,7 +188,7 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ true,
     };
 
 
-    constexpr _Optional_Storage()
+    constexpr _Optional_Storage() noexcept
         : is_containing ( false )
         , empty         {       } { }
 
@@ -781,9 +781,9 @@ protected:
 template < typename T >
 class _Optional_LValRefBase {
 private:
-    /* Reference types can't be directly stored, and can't be reseated once
-     * initialized, so we strip the ref qualifier and store a mutable pointer
-     * to the base type of the reference. */
+    /* Reference types can't be directly stored and can't be reseated once
+     * initialized. To get around this, we strip the ref qualifier and store a
+     * mutable pointer to the base type of the reference. */
     using _Storage_Type = REMOVE_REFERENCE_TYPE(T) *;
 
     _Optional_LValRefStorage<_Storage_Type> _storage;
@@ -864,15 +864,17 @@ public:
     /* Helper Functions
      * ---------------- */
 protected:
-    void _removeValue() {
+    void _removeValue() noexcept {
         _storage.is_containing = false;
         _storage.value = nullptr;
     }
 
+    //TODO: Again, I don't think these are really noexcept.
     constexpr T       & _getValue()       noexcept { return *_storage.value; }
     constexpr T const & _getValue() const noexcept { return *_storage.value; }
 
     constexpr bool _hasValue() const noexcept { return _storage.is_containing; }
+
 };
 
 
