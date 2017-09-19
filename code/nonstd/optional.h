@@ -935,7 +935,9 @@ private:
     /* Helper function to (optionally) check the validity of this Optional. */
     constexpr void checkValue() const {
 #if N2_CHECKED_OPTIONALS
-        if (!this->_hasValue()) { BREAKPOINT(); }
+        N2BREAK_IF(!this->_hasValue(),
+                   N2Error::UninitializedMemory,
+                   "Attempting to access an uninitialized Optional value.");
 #endif
     }
 
@@ -967,6 +969,8 @@ public:
         return this->_hasValue();
     }
 
+    //TODO: These should maybe not have `checkValue()`, and should throw a
+    //      `bad_optional_access` exception if `!this->_hasValue()`
     constexpr       T &  value()       &  {
         checkValue(); return this->_getValue();
     }
@@ -974,10 +978,10 @@ public:
         checkValue(); return this->_getValue();
     }
     constexpr       T && value()       && {
-        checkValue(); return this->_getValue();
+        checkValue(); return std::move(this->_getValue());
     }
     constexpr const T && value() const && {
-        checkValue(); return this->_getValue();
+        checkValue(); return std::move(this->_getValue());
     }
 
     template < typename U = T >
@@ -987,11 +991,12 @@ public:
     }
     template < typename U = T >
     constexpr T valueOr(U && value) && {
-        return this->_hasValue() ? this->_getValue()
+        return this->_hasValue() ? std::move(this->_getValue())
                                  : static_cast<T>(std::forward<U>(value));
     }
 
-    void reset() noexcept {
+    void reset()
+    noexcept(IS_TRIVIALLY_DESTRUCTIBLE(T)) {
         if (this->_hasValue()) { this->_removeValue(); }
     }
 };
@@ -1018,7 +1023,9 @@ private:
     /* Helper function to (optionally) check the validity of this Optional. */
     constexpr void checkValue() const {
 #if N2_CHECKED_OPTIONALS
-        if (!this->_hasValue()) { BREAKPOINT(); }
+        N2BREAK_IF(!this->_hasValue(),
+                   N2Error::UninitializedMemory,
+                   "Attempting to access an uninitialized Optional value.");
 #endif
     }
 
@@ -1030,16 +1037,16 @@ public:
         checkValue(); return &this->_getValue();
     }
 
-    constexpr       T &  operator*  ()       &  {
+    constexpr       T &  operator* ()       &  {
         checkValue(); return this->_getValue();
     }
-    constexpr const T &  operator*  () const &  {
+    constexpr const T &  operator* () const &  {
         checkValue(); return this->_getValue();
     }
-    constexpr       T && operator*  ()       && {
+    constexpr       T && operator* ()       && {
         checkValue(); return std::move(this->_getValue());
     }
-    constexpr const T && operator*  () const && {
+    constexpr const T && operator* () const && {
         checkValue(); return std::move(this->_getValue());
     }
 
@@ -1050,6 +1057,8 @@ public:
         return this->_hasValue();
     }
 
+    //TODO: These should maybe not have `checkValue()`, and should throw a
+    //      `bad_optional_access` exception if `!this->_hasValue()`
     constexpr       T &  value()       &  {
         checkValue(); return this->_getValue();
     }
@@ -1057,10 +1066,10 @@ public:
         checkValue(); return this->_getValue();
     }
     constexpr       T && value()       && {
-        checkValue(); return this->_getValue();
+        checkValue(); return std::move(this->_getValue());
     }
     constexpr const T && value() const && {
-        checkValue(); return this->_getValue();
+        checkValue(); return std::move(this->_getValue());
     }
 
     template < typename U = _Base_Type >
@@ -1072,7 +1081,7 @@ public:
     template < typename U = _Base_Type >
     constexpr _Base_Type valueOr(U && value) && {
         return this->_hasValue()
-                ? this->_getValue()
+                ? std::move(this->_getValue())
                 : static_cast<_Base_Type>(std::forward<U>(value));
     }
 
