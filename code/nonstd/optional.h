@@ -1104,13 +1104,8 @@ constexpr Optional<T> none() noexcept { return Optional<T>(); }
 /* Create an Optional with a real value */
 template<typename T>
 constexpr Optional<T> just(T value)
-noexcept(IS_NOTHROW_CONSTRUCTIBLE(T)) {
+noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, T)) {
     return Optional<T> { value };
-}
-template<typename T>
-constexpr Optional<T> just(T && value)
-noexcept(IS_NOTHROW_CONSTRUCTIBLE(T &&)) {
-    return Optional<T> { std::move(value) };
 }
 template<typename T, typename... Args>
 constexpr Optional<T> just(n2_::in_place_t /*unused*/, Args && ... args)
