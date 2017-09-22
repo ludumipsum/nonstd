@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <cstdarg>
 #include <string>
 
 #include "primitive_types.h"
