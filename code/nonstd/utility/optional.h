@@ -35,7 +35,7 @@
 #include "../cpp1z/in_place_t.h"
 #include "../cpp1z/type_trait_assertions.h"
 #include "../cpp1z/type_traits.h"
-#include "../cpp1z/special_member_disablers.h"
+#include "../cpp1z/special_member_filters.h"
 #include "../core/break.h"
 
 
@@ -110,7 +110,7 @@ constexpr static nullopt_t nullopt { nonstd::in_place };
  *  ----------------------
  *  Will inherit from one of the `_Optional_*Base` classes, using SFINAE to
  *  expand only the salient specialization based on the value_type of `T`.
- *  Will also inherit from the `_Enable[Copy|Move][Ctor|Assign]<B,T>` helper
+ *  Will also inherit from the `Enable[Copy|Move][Ctor|Assign]If<B,T>` helper
  *  classes to conditionally "delete" the relevant special member function based
  *  on the salient type_traits of `T`.
  */
@@ -923,12 +923,12 @@ protected:
 template < typename T >
 class Optional < T, ENABLE_IF_TYPE(IS_NOT_REFERENCE(T)) >
     : private _Optional_ValueBase<T>
-    , private nonstd::_EnableCopyCtor<IS_COPY_CONSTRUCTIBLE(T),     Optional<T>>
-    , private nonstd::_EnableCopyAssign<(IS_COPY_CONSTRUCTIBLE(T)
-                                         && IS_COPY_ASSIGNABLE(T)), Optional<T>>
-    , private nonstd::_EnableMoveCtor<IS_MOVE_CONSTRUCTIBLE(T),     Optional<T>>
-    , private nonstd::_EnableMoveAssign<(IS_MOVE_CONSTRUCTIBLE(T)
-                                         && IS_MOVE_ASSIGNABLE(T)), Optional<T>>
+    , private nonstd::EnableCopyCtorIf<IS_COPY_CONSTRUCTIBLE(T),    Optional<T>>
+    , private nonstd::EnableCopyAssignIf<(IS_COPY_CONSTRUCTIBLE(T)
+                                          && IS_COPY_ASSIGNABLE(T)),Optional<T>>
+    , private nonstd::EnableMoveCtorIf<IS_MOVE_CONSTRUCTIBLE(T),    Optional<T>>
+    , private nonstd::EnableMoveAssignIf<(IS_MOVE_CONSTRUCTIBLE(T)
+                                          && IS_MOVE_ASSIGNABLE(T)),Optional<T>>
 {
 public:
     using _Optional_ValueBase<T>::_Optional_ValueBase;
