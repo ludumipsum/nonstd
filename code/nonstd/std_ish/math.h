@@ -1,10 +1,7 @@
 /** Math Utilities
  *  ==============
- *  A small library of commonly(?) used math functions. Stuff like interpolators
+ *  A small library of commonly used math functions. Stuff like interpolators
  *  and rescalers.
- *
- *  TODO: Clean up the interface some? This splits between c-like macros and
- *        std::-like utility functions.
  */
 
 #pragma once
