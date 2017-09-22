@@ -1,6 +1,6 @@
-/* General Utility Smoke Tests
- * ===========================
- * Smoke tests for common utility functions.
+/* Math Utility Function Smoke Tests
+ * =================================
+ * Smoke tests for common math functions.
  */
 
 #include <testrunner/testrunner.h>
