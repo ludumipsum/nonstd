@@ -10,12 +10,12 @@
 // This whole thing only works on non-msvc compilers
 #if !defined(_MSC_VER)
 
+#include <cctype>
 #include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
-#include <ctype.h>
 #include <cxxabi.h>
 #include <dlfcn.h>
 #include <execinfo.h>

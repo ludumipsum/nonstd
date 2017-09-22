@@ -18,6 +18,7 @@
 
 /* C Standard Library Includes */
 #include <cassert>
+#include <cctype>
 #include <cerrno>
 #include <cinttypes>
 #include <cmath>
