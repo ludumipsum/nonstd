@@ -10,8 +10,8 @@
 
 #include <testrunner/testrunner.h>
 
-#include "../../core/primitive_types.h"
-#include "../type_traits.h"
+#include "nonstd/core/primitive_types.h"
+#include "nonstd/cpp1z/type_traits.h"
 
 
 namespace nonstd_test {

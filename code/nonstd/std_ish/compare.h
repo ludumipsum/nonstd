@@ -7,8 +7,8 @@
 
 #include <cstring>
 
-#include "../preprocessor/homogenize.h"
-#include "../core/primitive_types.h"
+#include "nonstd/preprocessor/homogenize.h"
+#include "nonstd/core/primitive_types.h"
 
 
 namespace nonstd {

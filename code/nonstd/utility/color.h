@@ -4,8 +4,8 @@
  */
 #pragma once
 
-#include "../cpp1z/type_trait_assertions.h"
-#include "../core/primitive_types.h"
+#include "nonstd/cpp1z/type_trait_assertions.h"
+#include "nonstd/core/primitive_types.h"
 
 
 namespace nonstd {

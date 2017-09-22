@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "../cpp1z/type_traits.h"
-#include "../core/primitive_types.h"
+#include "nonstd/cpp1z/type_traits.h"
+#include "nonstd/core/primitive_types.h"
 
 
 namespace nonstd {

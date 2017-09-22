@@ -5,7 +5,7 @@
 
 #include <testrunner/testrunner.h>
 
-#include "../math.h"
+#include "nonstd/std_ish/math.h"
 
 
 namespace nonstd_test {
