@@ -1,59 +1,66 @@
+/** Programmatic Breakpoints
+ *  ========================
+ *  Force a breakpoint on X86 when called, and maybe log, too.
+ *  These procedures should only be used in very low level code. Raising
+ *  exceptions will likely become the better option, but sometimes you just want
+ *  to blow up.
+ */
+
 #pragma once
 
-#include "batteries_included.h"
 #include "primitive_types.h"
 #include "error_types.h"
-#include "log.h"
+#include "variadic_expand.h"
 
-/** Programmatic Breakpoint
- *  =======================
- *  Force a breakpoint on X86 when called.
+#include "../c_ish/n2strerr.h"
+
+
+/** BREAKPOINT and DEBUG_BREAKPOINT
+ *  -------------------------------
+ *  Raises a sigint (or similar) to allow for programmatic breakpoints
  */
 #ifdef _MSC_VER
-# ifdef _X86_
-#  define _DEBUG_BREAK_IMPL { __asm { int 3 } }
-# else
-#  define _DEBUG_BREAK_IMPL  { __debugbreak(); } // need <intrin.h>
-# endif
+#  ifdef _X86_
+#    define _DEBUG_BREAK_IMPL { __asm { int 3 } }
+#  else
+#    define _DEBUG_BREAK_IMPL  { __debugbreak(); }
+#  endif
 #else
-# include <signal.h>
-# define _DEBUG_BREAK_IMPL { raise(SIGINT); } // GCC x86/64
+#  include <signal.h>
+#  define _DEBUG_BREAK_IMPL { raise(SIGINT); } // GCC x86/64
 #endif
+
 
 #define BREAKPOINT() { _DEBUG_BREAK_IMPL; }
 
-
 #if defined(DEBUG)
-# define DEBUG_BREAKPOINT() { _DEBUG_BREAK_IMPL; }
+#  define DEBUG_BREAKPOINT() { _DEBUG_BREAK_IMPL; }
 #else
-# define DEBUG_BREAKPOINT()
+#  define DEBUG_BREAKPOINT()
 #endif
 
-
-/** Log an Error, and Break
- *  =======================
- *  N2BREAK -- and its conditional variants -- should only be used only in very
- *  low-level code. If you would otherwise call `exit(1)`, call N2BREAK.
- */
 
 /** N2BREAK
  *  -------
  *  Convenience Macro to ensure the function name, file, and line number are
  *  correctly captured on breaks.
  */
-#define N2BREAK(ERROR, REASON, ...)                     \
-    ::_n2::logAndBreak(                                 \
-        ERROR,                                          \
-        _variadicExpand(REASON, ##__VA_ARGS__).c_str(), \
+#define N2BREAK(ERROR, REASON, ...)                              \
+    ::nonstd::detail::logAndBreak(                               \
+        ERROR,                                                   \
+        ::nonstd::variadicExpand(REASON, ##__VA_ARGS__).c_str(), \
         __PRETTY_FUNCTION__, __FILE__, __LINE__)
+
 
 /** N2BREAK_IF & N2BREAK_UNLESS
  *  ---------------------------
  *  Conditional N2BREAK helpers.
+ *
  *  Note that these macros prepend a new line -- `"Condition [not ]met (. . .)"`
  *  -- to the user-provided `REASON` string. This is accomplished using
- *  `_variadicExpand` to ensure c_cstr variables are correctly passed through
- *  the macros.
+ *  `::nonstd::variadicExpand` to ensure c_cstr variables are correctly passed
+ *  through the macros.
+ *
  *  Also note, the user string is re-included with eight spaces to its left;
  *  this vertically aligns it with `"Reason: "`.
  */
@@ -61,8 +68,9 @@
     ( (COND) ?                                   \
       N2BREAK(                                   \
           (ERROR),                               \
-          _variadicExpand("%s\n"                 \
-                          "        %s",          \
+          ::nonstd::variadicExpand(              \
+                  "%s\n"                         \
+                  "        %s",                  \
                   "Condition met ( " #COND " )", \
                   (REASON)                       \
               ).c_str(),                         \
@@ -75,8 +83,9 @@
       0 :                                            \
       N2BREAK(                                       \
           (ERROR),                                   \
-          _variadicExpand("%s\n"                     \
-                          "        %s",              \
+          ::nonstd::variadicExpand(                  \
+                  "%s\n"                             \
+                  "        %s",                      \
                   "Condition not met ( " #COND " )", \
                   (REASON)                           \
               ).c_str(),                             \
@@ -89,7 +98,8 @@
  *  Users should never directly call this function, but we do need more than
  *  just macros to correctly log.
  */
-namespace _n2 {
+namespace nonstd {
+namespace detail {
 
 inline i32 logAndBreak(N2Error error, c_cstr reason,
                        c_cstr function, c_cstr file, u64 line) {
@@ -107,4 +117,5 @@ inline i32 logAndBreak(N2Error error, c_cstr reason,
     exit((i32)(error));
 }
 
-} /* namespace _n2 */
+} /* namespace detail */
+} /* namespace nonstd */

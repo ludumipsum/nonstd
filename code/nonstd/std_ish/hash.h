@@ -5,38 +5,44 @@
 
 #pragma once
 
-#include "batteries_included.h"
-#include "primitive_types.h"
+#include <cstring>
 
-inline u64 shift64(u64 key);
-inline u64 djb2(c_cstr str);
-inline void sha1(u8 const*const data, u64 num_bytes, cstr sha_out);
+#include "../core/primitive_types.h"
 
 
-/** Default String Hash
- *  -------------------
+namespace nonstd {
+
+inline u64  shift64(u64 key);
+inline u64  djb2(c_cstr str);
+inline void sha1(u8 const * const data, u64 num_bytes, cstr sha_out);
+
+
+/** nonstd::hash
+ *  ------------
  *  Our default string hash is djb2.
+ *  Our default numerical hash is shift64.
  *
  *  TODO: Write hash verifier to make sure our resources directory doesn't
  *        produce djb2 collisions on any content or filename.
+ *  TODO: Consider passing-through to `std::hash<T>{}(key)` for most operations.
  */
-#define HASH djb2
-
 template<typename T>
-inline u64 n2hash(T key);
+inline u64 hash(T key);
 
-template<> inline u64 n2hash(c_cstr key) { return djb2(key);    }
-template<> inline u64 n2hash(u8     key) { return shift64(key); }
-template<> inline u64 n2hash(u16    key) { return shift64(key); }
-template<> inline u64 n2hash(u32    key) { return shift64(key); }
-template<> inline u64 n2hash(u64    key) { return shift64(key); }
-template<> inline u64 n2hash(i8     key) { return shift64(key); }
-template<> inline u64 n2hash(i16    key) { return shift64(key); }
-template<> inline u64 n2hash(i32    key) { return shift64(key); }
-template<> inline u64 n2hash(i64    key) { return shift64(key); }
+template<> inline u64 hash(c_cstr key) { return djb2(key);    }
+template<> inline u64 hash(u8     key) { return shift64(key); }
+template<> inline u64 hash(u16    key) { return shift64(key); }
+template<> inline u64 hash(u32    key) { return shift64(key); }
+template<> inline u64 hash(u64    key) { return shift64(key); }
+template<> inline u64 hash(i8     key) { return shift64(key); }
+template<> inline u64 hash(i16    key) { return shift64(key); }
+template<> inline u64 hash(i32    key) { return shift64(key); }
+template<> inline u64 hash(i64    key) { return shift64(key); }
 
 
-/** Integer hash based on bitshifts and xors, taken from
+/** shift64 Hash
+ *  ------------
+ *  Integer hash based on bitshifts and xors, taken from
  *  [here](https://gist.github.com/badboy/6267743).
  */
 u64 shift64(u64 key)
@@ -71,7 +77,7 @@ inline u64 djb2(c_cstr str) {
  *  Use this API for slower hashes where you're super freaked out about
  *  collisions or cryptographic manipulation by dictators (hi nsa).
  *
- *  This code is also shamelessly stolen from the internet. It appears to produce
+ *  This code is also shamelessly stolen from the internet. It appears to
  *  produce the same hashes as the sha1 binary on the computer I used to steal
  *  it, but I can't vouch for it beyond that. It may contain snakes, dragons,
  *  and stuxnet.
@@ -86,18 +92,18 @@ namespace stolen {
 #endif
 
 #ifdef __BIG_ENDIAN__
-# define SHA_BIG_ENDIAN
+#  define SHA_BIG_ENDIAN
 #elif defined __LITTLE_ENDIAN__
 /* override */
 #elif defined __BYTE_ORDER
-# if __BYTE_ORDER__ ==  __ORDER_BIG_ENDIAN__
-# define SHA_BIG_ENDIAN
-# endif
+#  if __BYTE_ORDER__ ==  __ORDER_BIG_ENDIAN__
+#    define SHA_BIG_ENDIAN
+#  endif
 #else // ! defined __LITTLE_ENDIAN__
-# include <endian.h> // machine/endian.h
-# if __BYTE_ORDER__ ==  __ORDER_BIG_ENDIAN__
-#  define SHA_BIG_ENDIAN
-# endif
+#  include <endian.h> // machine/endian.h
+#  if __BYTE_ORDER__ ==  __ORDER_BIG_ENDIAN__
+#    define SHA_BIG_ENDIAN
+#  endif
 #endif
 
 #define HASH_LENGTH 20
@@ -270,6 +276,7 @@ inline uint8_t* sha1_resultHmac(sha1nfo *s) {
 
 } /* namespace stolen */
 
+
 /* Hash `num_bytes` from `data` into 41 bytes at sha_out. This is done by
  * representing the 20-byte sha1 as 40 bytes in the ASCII range -- it's the same
  * format you get from git, for example.
@@ -288,3 +295,5 @@ inline void sha1(u8 const*const data, u64 num_bytes, cstr sha_out) {
     }
     sha_out[40] = '\0';
 }
+
+} /* namespace nonstd */

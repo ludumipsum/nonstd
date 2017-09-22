@@ -1,19 +1,21 @@
-/* Batteries Include Smoke Tests
- * =============================
- * Smoke tests for foundational "Batteries Included" functions/macros/structs.
- * NB. This file is breaking our 80-column line limit. I found vertical
- * alignment to greatly aid in both authoring and reading, but that came at the
- * cost of some ~95 column lines. #sorrynotsorry
+/* Type Trait and Type Modifying Macros
+ * ====================================
+ * Smoke tests for foundational type-trait checkers and modifiers.
+ *
+ * Author's Note: This file is breaking our 80-column line limit, sadly but
+ * intentionally. I found vertical alignment to greatly aid in both authoring
+ * and reading, but that came at the cost of some ~95 column lines.
+ * #sorrynotsorry
  */
 
-#include "nonstd/batteries_included.h"
-#include "nonstd/primitive_types.h"
+#include <testrunner/testrunner.h>
 
-#include "testrunner/testrunner.h"
+#include "../../core/primitive_types.h"
+#include "../type_traits.h"
 
 
-namespace test {
-namespace batteries {
+namespace nonstd_test {
+namespace type_macros {
 
 // Dead simple helper structs
 struct ContainerA { u8 an_int; };
@@ -26,7 +28,7 @@ template<typename T> struct TemplateContainer { T member; };
 template<typename T> T identityFunction(T x) { return x; }
 
 
-TEST_CASE("Type Macros", "[common][batteries]") {
+TEST_CASE("Type Macros", "[nonstd][types]") {
 
     SECTION("that check types") {
 
@@ -241,5 +243,5 @@ TEST_CASE("Type Macros", "[common][batteries]") {
     }
 }
 
-} /* namespace batteries */
-} /* namespace test */
+} /* namespace type_macros */
+} /* namespace nonstd_test */

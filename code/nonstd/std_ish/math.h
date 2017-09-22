@@ -1,49 +1,40 @@
 /** Math Utilities
  *  ==============
- *  A small library of commonly-used math functions. Stuff like interpolators
+ *  A small library of commonly(?) used math functions. Stuff like interpolators
  *  and rescalers.
+ *
+ *  TODO: Clean up the interface some? This splits between c-like macros and
+ *        std::-like utility functions.
  */
 
 #pragma once
 
-#include "batteries_included.h"
-#include "primitive_types.h"
+#include "../cpp1z/type_traits.h"
+#include "../core/primitive_types.h"
 
-/** Min/Max Macros
- *  --------------
- *  Both type- and compiler-safe.
- */
-#ifndef n2max
-#define n2max(a,b) (((a) > (b)) ? (a) : (b))
-#endif
-#ifndef n2min
-#define n2min(a,b) (((a) < (b)) ? (a) : (b))
-#endif
-#ifndef n2clamp
-#define n2clamp(v, a, b) (n2min((b), (((v) > (a)) ? v : a)))
-#endif
-#ifndef n2abs
-#define n2abs(n) std::abs(n)
-#endif
 
+namespace nonstd {
 
 /** Range Rescaling
  *  ---------------
  *  Take a value in a given domain and rescale it to the provided range.
  */
-template<typename T> inline
-T rescale(T value, decltype(value) domain_min, decltype(value) domain_max,
-                   decltype(value) range_min,  decltype(value) range_max) {
+template<typename T>
+constexpr inline T rescale(T value,
+                           T domain_min, T domain_max,
+                           T range_min,  T range_max) {
     T range_size = range_max - range_min;
     T domain_size = domain_max - domain_min;
     return range_min + range_size * (value - domain_min) / domain_size;
 }
 
-template<typename T> inline
-T rescale(T value, decltype(value) domain_max,
-                   decltype(value) range_max) {
+template<typename T>
+constexpr inline T rescale(T value,
+                           T domain_max,
+                           T range_max) {
     return rescale(value, (T)0, domain_max, (T)0, range_max);
 }
+
 
 /** Bit Mask
  *  --------
@@ -54,7 +45,7 @@ T rescale(T value, decltype(value) domain_max,
  */
 template<typename T> inline
 constexpr T maskLowestBits(u16 nbits) {
-      using UT = typename std::make_unsigned<T>::type;
+      using UT = MAKE_UNSIGNED(T);
       // There are two pieces of undefined behavior we're avoiding here,
       //   1. Shifting past the width of a type (ex `<< 32` against an `i32`)
       //   2. Shifting a negative operand (which `~0` is for all signed types)
@@ -62,7 +53,7 @@ constexpr T maskLowestBits(u16 nbits) {
       // (assuming we are shifting, and aren't just returning `~0`) we cast `~0`
       // to an explicitly unsigned type before performing the shift.
       return (nbits != (sizeof(UT) * 8)) ?
-             ~T(UT(~UT(0)) << nbits)         :
+             ~T(UT(~UT(0)) << nbits)     :
              ~T(0);
 }
 
@@ -108,6 +99,7 @@ inline u64 next_power_of_two(u64 num) {
     return num;
 }
 
+
 inline u32 previous_power_of_two(u32 num) {
     num |= (num >> 1);
     num |= (num >> 2);
@@ -126,3 +118,5 @@ inline u64 previous_power_of_two(u64 num) {
     num |= (num >> 32);
     return num - (num >> 1);
 }
+
+} /* namespace nonstd */

@@ -5,22 +5,29 @@
 
 #pragma once
 
-#include "batteries_included.h"
-#include "primitive_types.h"
+#include <cstring>
 
-template<typename L, typename R> constexpr
-FORCEINLINE bool n2equals(L left, R right) {
+#include "../preprocessor/homogenize.h"
+#include "../core/primitive_types.h"
+
+
+namespace nonstd {
+
+template<typename L, typename R>
+constexpr FORCEINLINE bool equal_to(L left, R right) {
     return left == right;
 }
 
 template<typename L, typename R>
-FORCEINLINE int n2compare(L left, R right) {
+constexpr FORCEINLINE int compare(L left, R right) {
     if (left > right) { return  1; } else
     if (left < right) { return -1; }
     return 0;
 }
 
 template<>
-inline int n2compare(c_cstr left, c_cstr right) {
+FORCEINLINE int compare(c_cstr left, c_cstr right) {
     return strcmp(left, right);
 }
+
+} /* namespace nonstd */

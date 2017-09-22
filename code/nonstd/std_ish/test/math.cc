@@ -3,18 +3,21 @@
  * Smoke tests for common utility functions.
  */
 
+#include <testrunner/testrunner.h>
 
-#include "nonstd/batteries_included.h"
-#include "nonstd/primitive_types.h"
-#include "nonstd/math.h"
-
-#include "testrunner/testrunner.h"
+#include "../math.h"
 
 
-namespace test {
-namespace utils {
+namespace nonstd_test {
+namespace math_utils {
 
-TEST_CASE("Math Utilities", "[common][utils]") {
+using nonstd::maskLowestBits;
+using nonstd::is_power_of_two;
+using nonstd::next_power_of_two;
+using nonstd::previous_power_of_two;
+
+
+TEST_CASE("Math Utilities", "[nonstd][utils]") {
 
     SECTION("should yield sane and correct bit masks") {
         REQUIRE(maskLowestBits<u8>(0) == 0b00000000);
@@ -104,5 +107,5 @@ TEST_CASE("Math Utilities", "[common][utils]") {
     }
 }
 
-} /* namespace utils */
-} /* namespace test */
+} /* namespace math_utils */
+} /* namespace nonstd_test */
