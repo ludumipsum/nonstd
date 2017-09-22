@@ -55,6 +55,9 @@ typedef u64 ID;
 #define Fptrdiff "%td"
 
 
+//TODO: Keep an eye on this section. If it gets big enough, we should split it
+//      out to its own file.
+
 /* Power-of-two Byte Prefixes
    NB. these implicitly cast the provided value to 64-bit int */
 #define KBYTES(N) ((i64)N*1024)

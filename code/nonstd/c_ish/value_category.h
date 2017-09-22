@@ -5,6 +5,10 @@
  *
  *  Usage;
  *      printf("The category is %s\n", VALUE_CATEGORY(std::move(4)));
+ *
+ *  TODO: If we make serious use of these at any point, we should consider
+ *  moving the whole construct into to_cstr.h; map from value type to enum, from
+ *  enum to c_cstr, return the c_cstr to be printf'd.
  */
 
 #pragma once
