@@ -21,9 +21,9 @@
  *  idea_ why this was done, and have chosen to not replicate that definition.
  *
  *  NB. We would like the constexpr instances of these types as inline variables
- *  so we external linkage is applied to them, but constexpr inline variables
- *  are a C++17 thing, so we're going to have to rely on the compiler to not
- *  make a million copies of each.
+ *  s.t. external linkage is applied to them, but constexpr inline variables are
+ *  a C++17 thing, so we're going to have to rely on the compiler to not make a
+ *  million copies of each.
  */
 
 #pragma once

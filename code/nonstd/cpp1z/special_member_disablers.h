@@ -9,7 +9,7 @@
  *  - Let's say we have a wrapper class `<template T> class Foo`, and we want
  *    the assignment operators to not be defined unless `T` is
  *    trivially assignable.
- *  - Rename `Foo` to `_Foo_Base` [TODO: Come up wit a better name].
+ *  - Rename `Foo` to `_Foo_Base`
  *  - Create a new `Foo` using the below definition pattern;
  *        template <typename T>
  *        class Foo

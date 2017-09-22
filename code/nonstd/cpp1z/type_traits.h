@@ -17,7 +17,7 @@
  *  =====
  *  Mapping exactly to `[type_trait]<Ts..>::type`.
  *
- *  NB. If didn't want to remain consistent with the ::value helpers, these
+ *  NB. If we didn't want to remain consistent with the ::value helpers, these
  *  could (probably?) be accomplished with, ex;
  *  ```
  *  template<T>
