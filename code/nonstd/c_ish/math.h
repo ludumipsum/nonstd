@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <cmath>
+
 
 #ifndef n2max
 #define n2max(a,b) (((a) > (b)) ? (a) : (b))
