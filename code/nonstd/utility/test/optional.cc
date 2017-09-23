@@ -9,13 +9,17 @@
  *  - Test accessors and initializers over reference types
  */
 
-#include "nonstd/optional.h"
+#include <testrunner/testrunner.h>
 
-#include "testrunner/testrunner.h"
+#include "nonstd/utility/optional.h"
 
 
-namespace test {
+
+namespace nonstd_test {
 namespace optional {
+
+using nonstd::in_place;
+using nonstd::nullopt;
 
 /* Simple POD datatype used to test non-builtin-type Optionals */
 struct PODType {
@@ -83,7 +87,7 @@ inline bool operator == (NonTrivialType const & l,
  *  confused about how they are supposed to work.
  */
 
-TEST_CASE("Optionals API Demo", "[api][common]") {
+TEST_CASE("Optionals API Demo", "[nonstd][optionals]") {
 
     /** Creating Optionals
      *  ------------------
@@ -100,8 +104,8 @@ TEST_CASE("Optionals API Demo", "[api][common]") {
         Optional<i32> very_empty { };
         // The `none<>()` helper (though you still have to provide a type),
         auto          still_empty = none<c_cstr>();
-        // Or the `n2_::nullopt` tag.
-        Optional<u64> empty_by_tag = n2_::nullopt;
+        // Or the `nonstd::nullopt` tag.
+        Optional<u64> empty_by_tag = nullopt;
 
         // For Containing Optionals, you can do much the same...
         // Assigned with a braced initializer,
@@ -121,7 +125,7 @@ TEST_CASE("Optionals API Demo", "[api][common]") {
         // Optionals from other Optionals,
         auto also_empty = empty;
         auto also_very_empty { very_empty };
-        auto movingly_empty { Optional<ptr> { } };
+        auto elidingly_empty { Optional<ptr> { } };
 
         Optional<u16> also_16 { definitely_16 };
         auto          still_16  = also_16;
@@ -131,8 +135,6 @@ TEST_CASE("Optionals API Demo", "[api][common]") {
         auto moved_farther = std::move(moved_16);
 
         // For more complex datatypes that, you have a couple more options.
-        // (Note that all of the below work as both assignment initialization
-        // and direct initialization.)
         // Double Braced initialization --- For direct initialization only, plz.
         // Note that this resolves as a braced initialization of the stored
         // type, passed into a braced initialization of an Optional, passed into
@@ -140,12 +142,13 @@ TEST_CASE("Optionals API Demo", "[api][common]") {
         Optional<PODType> simple_pod = {{ 1, 2 }};
         // Explicit value assignment,
         Optional<CompoundType> explicit_compound = CompoundType{ 3, 4 };
-        // In-place Construction via the `n2_::in_place` tag.
-        // NOTE: An explicit constructor is required for this form;
-        // Optional<PODType>      broken_hopes        = { n2_::in_place, 5, 6 };
-        // Optional<CompoundType> shattered_dreams    = { n2_::in_place, 5, 6 };
-        Optional<NonPODType>      in_place_nonpod     = { n2_::in_place, 5, 6 };
-        Optional<NonTrivialType>  in_place_nontrivial = { n2_::in_place, 5, 6 };
+        // In-place Construction via the `nonstd::in_place` tag.
+        // NOTE: An explicit constructor of the wrapped type is required for
+        // this form;
+        // Optional<PODType>      broken_hopes        { in_place, 5, 6 };
+        // Optional<CompoundType> shattered_dreams    { in_place, 5, 6 };
+        Optional<NonPODType>      in_place_nonpod     { in_place, 5, 6 };
+        Optional<NonTrivialType>  in_place_nontrivial { in_place, 5, 6 };
         // In-place via the `.emplace` member method (post initialization).
         // NOTE: The same limitation that applies to the in_place form applies
         // to the `.emplace` method.
@@ -157,7 +160,7 @@ TEST_CASE("Optionals API Demo", "[api][common]") {
         auto just_maybe_pod = just(PODType { 8, 16 });
         // ... And through in-place initialization (when the type has a matching
         // explicit constructor)
-        auto just_in_place = just<NonTrivialType>(n2_::in_place, 42, 84);
+        auto just_in_place = just<NonTrivialType>(in_place, 42, 84);
 
         // Lastly, it's worth noting that Optionals are able to leverage their
         // value-type's implicit conversions.
@@ -345,7 +348,7 @@ TEST_CASE("Optionals API Demo", "[api][common]") {
         REQUIRE(other);
 
         maybe.reset();
-        other = n2_::nullopt;
+        other = nullopt;
         REQUIRE_FALSE(maybe);
         REQUIRE_FALSE(other);
     }
@@ -664,4 +667,4 @@ TEST_CASE("Optional types", "[optional]") {
 }
 
 } /* namespace optional */
-} /* namespace test */
+} /* namespace nonstd_test */

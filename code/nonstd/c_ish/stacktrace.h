@@ -10,26 +10,29 @@
 // This whole thing only works on non-msvc compilers
 #if !defined(_MSC_VER)
 
-#include "batteries_included.h"
-#include "primitive_types.h"
+#include <cctype>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include <cxxabi.h>
 #include <dlfcn.h>
 #include <execinfo.h>
-
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 
+#include "nonstd/core/primitive_types.h"
+
+
+namespace nonstd {
 namespace sighandler {
 
 static const u32 g_trace_skip = 1;
 
 #if defined(__APPLE__)
-#define SIGTABLE sys_signame
+#  define SIGTABLE sys_signame
 #else
-#define SIGTABLE sys_siglist
+#  define SIGTABLE sys_siglist
 #endif
 
 inline void stacktrace_callback(int signum, siginfo_t *info, ucontext_t *uap) {
@@ -134,13 +137,14 @@ inline void register_signal(int signal, _trace_cb* callback) {
 }
 
 } /* namespace sighandler */
+} /* namespace nonstd */
 
-#define REGISTER_STACK_HANDLERS()                                              \
-        sighandler::register_signal(SIGSEGV, sighandler::stacktrace_callback); \
-        sighandler::register_signal(SIGINT,  sighandler::stacktrace_callback); \
-        sighandler::register_signal(SIGHUP,  sighandler::stacktrace_callback)
+#define REGISTER_STACK_HANDLERS()                                                        \
+        ::nonstd::sighandler::register_signal(SIGSEGV, sighandler::stacktrace_callback); \
+        ::nonstd::sighandler::register_signal(SIGINT,  sighandler::stacktrace_callback); \
+        ::nonstd::sighandler::register_signal(SIGHUP,  sighandler::stacktrace_callback)
 
-#else
+#else /* if defined(_MSC_VER) */
 
 #define REGISTER_STACK_HANDLERS()
 

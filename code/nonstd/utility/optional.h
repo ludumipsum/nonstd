@@ -31,9 +31,13 @@
  */
 
 #pragma once
-#include "batteries_included.h"
-#include "primitive_types.h"
-#include "break.h"
+
+#include "nonstd/preprocessor/homogenize.h"
+#include "nonstd/cpp1z/in_place_t.h"
+#include "nonstd/cpp1z/type_trait_assertions.h"
+#include "nonstd/cpp1z/type_traits.h"
+#include "nonstd/cpp1z/special_member_filters.h"
+#include "nonstd/core/break.h"
 
 
 /** Utilities
@@ -55,21 +59,21 @@
 /** Null Optional Type
  *  ------------------
  *  Tag Type to explicitly create non-containing Optionals (and friends).
- *  Namespace'd to `n2_` to match the C++17 `std::nullopt_t`.
+ *  Namespace'd to `nonstd::` to match the C++17 `std::nullopt_t`.
  */
-namespace n2_ {
+namespace nonstd {
 
 struct nullopt_t {
     /* Explicitly delete the default constructor, and define an explicit
        constexpr constructor that will be hard to accidentally invoke.
-       Let's use the `n2_::in_place_t` tag for that. */
+       Let's use the `nonstd::in_place_t` tag for that. */
     nullopt_t() = delete;
-    explicit constexpr nullopt_t(n2_::in_place_t) { }
+    explicit constexpr nullopt_t(nonstd::in_place_t) { }
 };
 
-constexpr static nullopt_t nullopt { n2_::in_place };
+constexpr static nullopt_t nullopt { nonstd::in_place };
 
-} /* namespace n2_ */
+} /* namespace nonstd */
 
 
 /** Helper Defines
@@ -94,7 +98,7 @@ constexpr static nullopt_t nullopt { n2_::in_place };
     || IS_ASSIGNABLE(T&, Optional<U> const &&) )
 
 #define __OPT_ENABLE_IF_IS_CONVERTABLE(U,T) \
-    typename ENABLE_IF_TYPE(IS_CONVERTIBLE(U,T))* = nullptr
+    ENABLE_IF_TYPE(IS_CONVERTIBLE(U,T))* = nullptr
 
 
 
@@ -107,7 +111,7 @@ constexpr static nullopt_t nullopt { n2_::in_place };
  *  ----------------------
  *  Will inherit from one of the `_Optional_*Base` classes, using SFINAE to
  *  expand only the salient specialization based on the value_type of `T`.
- *  Will also inherit from the `_Enable[Copy|Move][Ctor|Assign]<B,T>` helper
+ *  Will also inherit from the `Enable[Copy|Move][Ctor|Assign]If<B,T>` helper
  *  classes to conditionally "delete" the relevant special member function based
  *  on the salient type_traits of `T`.
  */
@@ -208,16 +212,16 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ true,
         , value         ( std::move(value) ) { }
 
     template < typename... Args>
-    constexpr _Optional_Storage(n2_::in_place_t,
-                                Args && ... args)
+    constexpr explicit _Optional_Storage(nonstd::in_place_t,
+                                         Args && ... args)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...))
         : is_containing ( true                        )
         , value         ( std::forward<Args>(args)... ) { }
 
     template < typename Il, typename... Args>
-    constexpr _Optional_Storage(n2_::in_place_t,
-                                std::initializer_list<Il> il,
-                                Args && ... args)
+    constexpr explicit _Optional_Storage(nonstd::in_place_t,
+                                         std::initializer_list<Il> il,
+                                         Args && ... args)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T,
                                       std::initializer_list<Il>,
                                       Args && ...))
@@ -290,16 +294,16 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
         , value         ( std::move(value) ) { }
 
     template < typename... Args>
-    constexpr _Optional_Storage(n2_::in_place_t,
-                                Args && ... args)
+    constexpr explicit _Optional_Storage(nonstd::in_place_t,
+                                         Args && ... args)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...))
         : is_containing ( true                        )
         , value         ( std::forward<Args>(args)... ) { }
 
     template < typename Il, typename... Args>
-    constexpr _Optional_Storage(n2_::in_place_t,
-                                std::initializer_list<Il> il,
-                                Args && ... args)
+    constexpr explicit _Optional_Storage(nonstd::in_place_t,
+                                         std::initializer_list<Il> il,
+                                         Args && ... args)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T,
                                       std::initializer_list<Il>,
                                       Args && ...))
@@ -374,16 +378,16 @@ struct _Optional_Storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
         , value         ( std::move(value) ) { }
 
     template < typename... Args>
-    constexpr _Optional_Storage(n2_::in_place_t,
-                                Args && ... args)
+    constexpr explicit _Optional_Storage(nonstd::in_place_t,
+                                         Args && ... args)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...))
         : is_containing ( true                        )
         , value         ( std::forward<Args>(args)... ) { }
 
     template < typename Il, typename... Args>
-    constexpr _Optional_Storage(n2_::in_place_t,
-                                std::initializer_list<Il> il,
-                                Args && ... args)
+    constexpr explicit _Optional_Storage(nonstd::in_place_t,
+                                         std::initializer_list<Il> il,
+                                         Args && ... args)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T,
                                       std::initializer_list<Il>,
                                       Args && ...))
@@ -407,7 +411,7 @@ struct _Optional_LValRefStorage {
         : is_containing ( false   )
         , value         ( nullptr ) { }
 
-    constexpr _Optional_LValRefStorage(n2_::nullopt_t /*unused*/) noexcept
+    constexpr _Optional_LValRefStorage(nonstd::nullopt_t /*unused*/) noexcept
         : is_containing ( false   )
         , value         ( nullptr ) { }
 
@@ -456,7 +460,7 @@ public:
      * ----------- */
     constexpr _Optional_ValueBase() noexcept
         : _storage ( ) { }
-    constexpr _Optional_ValueBase(n2_::nullopt_t /*unused*/) noexcept
+    constexpr _Optional_ValueBase(nonstd::nullopt_t /*unused*/) noexcept
         : _storage ( ) { }
 
     /* Copy Ctor
@@ -479,9 +483,10 @@ public:
      * ------------------- */
     template < typename... Args
              , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T, Args...), int) = 0 >
-    constexpr _Optional_ValueBase(n2_::in_place_t /*unused*/, Args && ... args)
+    constexpr explicit _Optional_ValueBase(nonstd::in_place_t /*unused*/,
+                                           Args && ... args)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...))
-        : _storage ( n2_::in_place, std::forward<Args>(args)... ) { }
+        : _storage ( nonstd::in_place, std::forward<Args>(args)... ) { }
 
     /* In-Place Initializer List Value Ctor
      * ------------------------------------ */
@@ -490,19 +495,19 @@ public:
              , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T,
                                                 std::initializer_list<Il> &,
                                                 Args && ...), int) = 0 >
-    constexpr _Optional_ValueBase(n2_::in_place_t /*unused*/,
-                                  std::initializer_list<Il> il,
-                                  Args && ... args)
+    constexpr explicit _Optional_ValueBase(nonstd::in_place_t /*unused*/,
+                                           std::initializer_list<Il> il,
+                                           Args && ... args)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T,
                                       std::initializer_list<Il> &,
                                       Args && ...))
-        : _storage ( n2_::in_place, il, std::forward<Args>(args)... ) { }
+        : _storage ( nonstd::in_place, il, std::forward<Args>(args)... ) { }
 
     /* Converting Value Move Ctor
      * -------------------------- */
     template < typename U = T
              , ENABLE_IF_DTYPE((   IS_DIFFERENT_TYPE(DECAY_TYPE(U),
-                                                     n2_::in_place_t)
+                                                     nonstd::in_place_t)
                                 && IS_DIFFERENT_TYPE(DECAY_TYPE(U), Optional<T>)
                                 && IS_CONSTRUCTIBLE(T, U&&)
                                 && IS_CONVERTIBLE(U&&, T))
@@ -513,7 +518,7 @@ public:
 
     template < typename U = T
              , ENABLE_IF_DTYPE((   IS_DIFFERENT_TYPE(DECAY_TYPE(U),
-                                                     n2_::in_place_t)
+                                                     nonstd::in_place_t)
                                 && IS_DIFFERENT_TYPE(DECAY_TYPE(U), Optional<T>)
                                 && IS_CONSTRUCTIBLE(T, U&&)
                                 && IS_NOT_CONVERTIBLE(U&&, T))
@@ -535,8 +540,8 @@ public:
     constexpr _Optional_ValueBase(Optional<U> const & other)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U))
         : _Optional_ValueBase ( other.hasValue()
-                                ? _Optional_ValueBase(*other)
-                                : _Optional_ValueBase(n2_::nullopt) ) { }
+                                ? _Optional_ValueBase{ *other          }
+                                : _Optional_ValueBase{ nonstd::nullopt } ) { }
 
     template < typename U
              , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
@@ -547,8 +552,8 @@ public:
     constexpr explicit _Optional_ValueBase(Optional<U> const & other)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U))
         : _Optional_ValueBase ( other.hasValue()
-                                ? _Optional_ValueBase(*other)
-                                : _Optional_ValueBase(n2_::nullopt) ) { }
+                                ? _Optional_ValueBase{ *other          }
+                                : _Optional_ValueBase{ nonstd::nullopt } ) { }
 
     /* Converting Move Ctor
      * --------------------
@@ -563,8 +568,8 @@ public:
     constexpr _Optional_ValueBase(Optional<U> && other)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U &&))
         : _Optional_ValueBase ( other.hasValue()
-                                ? _Optional_ValueBase(std::move(*other))
-                                : _Optional_ValueBase(n2_::nullopt)      ) { }
+                                ? _Optional_ValueBase{ std::move(*other) }
+                                : _Optional_ValueBase{ nonstd::nullopt   } ) { }
 
     template < typename U
              , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
@@ -575,12 +580,12 @@ public:
     constexpr explicit _Optional_ValueBase(Optional<U> && other)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U &&))
         : _Optional_ValueBase ( other.hasValue()
-                                ? _Optional_ValueBase(std::move(*other))
-                                : _Optional_ValueBase(n2_::nullopt)      ) { }
+                                ? _Optional_ValueBase{ std::move(*other) }
+                                : _Optional_ValueBase{ nonstd::nullopt   } ) { }
 
     /* Empty Assignment
      * ---------------- */
-    _Optional_ValueBase<T>& operator= (n2_::nullopt_t /*unused*/)
+    _Optional_ValueBase<T>& operator= (nonstd::nullopt_t /*unused*/)
     noexcept(IS_NOTHROW_DESTRUCTIBLE(T)) {
         if (_storage.is_containing) { _removeValue(); }
         return *this;
@@ -821,7 +826,7 @@ public:
      * ----------- */
     constexpr _Optional_LValRefBase() noexcept
         : _storage ( ) { }
-    constexpr _Optional_LValRefBase(n2_::nullopt_t /*unused*/) noexcept
+    constexpr _Optional_LValRefBase(nonstd::nullopt_t /*unused*/) noexcept
         : _storage ( ) { }
 
     /* Copy Ctor
@@ -842,7 +847,8 @@ public:
 
     /* Empty Assignment
      * ---------------- */
-    _Optional_LValRefBase<T&>& operator= (n2_::nullopt_t /*unused*/) noexcept {
+    _Optional_LValRefBase<T&>& operator= (nonstd::nullopt_t /*unused*/)
+    noexcept {
         _removeValue();
         return *this;
     }
@@ -918,12 +924,12 @@ protected:
 template < typename T >
 class Optional < T, ENABLE_IF_TYPE(IS_NOT_REFERENCE(T)) >
     : private _Optional_ValueBase<T>
-    , private n2_::_EnableCopyCtor<IS_COPY_CONSTRUCTIBLE(T),     Optional<T>>
-    , private n2_::_EnableCopyAssign<(IS_COPY_CONSTRUCTIBLE(T)
-                                      && IS_COPY_ASSIGNABLE(T)), Optional<T>>
-    , private n2_::_EnableMoveCtor<IS_MOVE_CONSTRUCTIBLE(T),     Optional<T>>
-    , private n2_::_EnableMoveAssign<(IS_MOVE_CONSTRUCTIBLE(T)
-                                      && IS_MOVE_ASSIGNABLE(T)), Optional<T>>
+    , private nonstd::EnableCopyCtorIf<IS_COPY_CONSTRUCTIBLE(T),    Optional<T>>
+    , private nonstd::EnableCopyAssignIf<(IS_COPY_CONSTRUCTIBLE(T)
+                                          && IS_COPY_ASSIGNABLE(T)),Optional<T>>
+    , private nonstd::EnableMoveCtorIf<IS_MOVE_CONSTRUCTIBLE(T),    Optional<T>>
+    , private nonstd::EnableMoveAssignIf<(IS_MOVE_CONSTRUCTIBLE(T)
+                                          && IS_MOVE_ASSIGNABLE(T)),Optional<T>>
 {
 public:
     using _Optional_ValueBase<T>::_Optional_ValueBase;
@@ -1108,15 +1114,15 @@ noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, T)) {
     return Optional<T> { value };
 }
 template<typename T, typename... Args>
-constexpr Optional<T> just(n2_::in_place_t /*unused*/, Args && ... args)
+constexpr Optional<T> just(nonstd::in_place_t /*unused*/, Args && ... args)
 noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...)) {
-    return Optional<T> { n2_::in_place, std::forward<Args>(args)... };
+    return Optional<T> { nonstd::in_place, std::forward<Args>(args)... };
 }
 template<typename T, typename Il, typename... Args>
-constexpr Optional<T> just(n2_::in_place_t /*unused*/,
+constexpr Optional<T> just(nonstd::in_place_t /*unused*/,
                            std::initializer_list<Il> il, Args && ... args)
 noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, std::initializer_list<Il>, Args && ...)) {
-    return Optional<T> { n2_::in_place, il, std::forward<Args>(args)... };
+    return Optional<T> { nonstd::in_place, il, std::forward<Args>(args)... };
 }
 
 template<typename T>
@@ -1191,56 +1197,68 @@ constexpr bool operator <= (Optional<T> const & lhs, Optional<U> const & rhs) {
  *   * A `nullopt` and a non-containing Optional are considered equal.
  */
 template < typename T >
-constexpr bool operator == (Optional<T> const & lhs, n2_::nullopt_t) noexcept {
+constexpr inline bool operator == (Optional<T> const & lhs, nonstd::nullopt_t)
+noexcept {
     return !(bool)(lhs);
 }
 template < typename T >
-constexpr bool operator == (n2_::nullopt_t, Optional<T> const & rhs) noexcept {
+constexpr inline bool operator == (nonstd::nullopt_t, Optional<T> const & rhs)
+noexcept {
     return !(bool)(rhs);
 }
 
 template < typename T >
-constexpr bool operator != (Optional<T> const & lhs, n2_::nullopt_t) noexcept {
+constexpr inline bool operator != (Optional<T> const & lhs, nonstd::nullopt_t)
+noexcept {
     return  (bool)(lhs);
 }
 template < typename T >
-constexpr bool operator != (n2_::nullopt_t, Optional<T> const & rhs) noexcept {
+constexpr inline bool operator != (nonstd::nullopt_t, Optional<T> const & rhs)
+noexcept {
     return  (bool)(rhs);
 }
 
 template < typename T >
-constexpr bool operator <  (Optional<T> const & lhs, n2_::nullopt_t) noexcept {
+constexpr inline bool operator <  (Optional<T> const & lhs, nonstd::nullopt_t)
+noexcept {
     return false;
 }
 template < typename T >
-constexpr bool operator <  (n2_::nullopt_t, Optional<T> const & rhs) noexcept {
+constexpr inline bool operator <  (nonstd::nullopt_t, Optional<T> const & rhs)
+noexcept {
     return (bool)(rhs);
 }
 
 template < typename T >
-constexpr bool operator <= (Optional<T> const & lhs, n2_::nullopt_t) noexcept {
+constexpr inline bool operator <= (Optional<T> const & lhs, nonstd::nullopt_t)
+noexcept {
     return !(bool)(lhs);
 }
 template < typename T >
-constexpr bool operator <= (n2_::nullopt_t, Optional<T> const & rhs) noexcept {
+constexpr inline bool operator <= (nonstd::nullopt_t, Optional<T> const & rhs)
+noexcept {
     return true;
 }
 
 template < typename T >
-constexpr bool operator >  (Optional<T> const & lhs, n2_::nullopt_t) noexcept {
+constexpr inline bool operator >  (Optional<T> const & lhs, nonstd::nullopt_t)
+noexcept {
     return (bool)(lhs);
 }
 template < typename T >
-constexpr bool operator >  (n2_::nullopt_t, Optional<T> const & rhs) noexcept {
+constexpr inline bool operator >  (nonstd::nullopt_t, Optional<T> const & rhs)
+noexcept {
     return false;
 }
 
 template < typename T >
-constexpr bool operator >= (Optional<T> const & lhs, n2_::nullopt_t) noexcept {
+constexpr inline bool operator >= (Optional<T> const & lhs, nonstd::nullopt_t)
+noexcept {
     return true;
 }
 template < typename T >
-constexpr bool operator >= (n2_::nullopt_t, Optional<T> const & rhs) noexcept {
+constexpr inline bool operator >= (nonstd::nullopt_t, Optional<T> const & rhs)
+noexcept {
     return !(bool)(rhs);
 }
 
@@ -1249,55 +1267,55 @@ constexpr bool operator >= (n2_::nullopt_t, Optional<T> const & rhs) noexcept {
  *   * An Empty Optional is always considered to be less than a Value.
  */
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator == (Optional<T> const & lhs, Value const & rhs) {
+constexpr inline bool operator == (Optional<T> const & lhs, Value const & rhs) {
     return   (bool)(lhs) && *lhs == rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator == (Value const & lhs, Optional<T> const & rhs) {
+constexpr inline bool operator == (Value const & lhs, Optional<T> const & rhs) {
     return   (bool)(rhs) && lhs == *rhs;
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator != (Optional<T> const & lhs, Value const & rhs) {
+constexpr inline bool operator != (Optional<T> const & lhs, Value const & rhs) {
     return ! (bool)(lhs) || *lhs != rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator != (Value const & lhs, Optional<T> const & rhs) {
+constexpr inline bool operator != (Value const & lhs, Optional<T> const & rhs) {
     return ! (bool)(rhs) || lhs != *rhs;
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator >  (Optional<T> const & lhs, Value const & rhs) {
+constexpr inline bool operator >  (Optional<T> const & lhs, Value const & rhs) {
     return   (bool)(lhs) && *lhs > rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator >  (Value const & lhs, Optional<T> const & rhs) {
+constexpr inline bool operator >  (Value const & lhs, Optional<T> const & rhs) {
     return ! (bool)(rhs) || lhs > *rhs;
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator >= (Optional<T> const & lhs, Value const & rhs) {
+constexpr inline bool operator >= (Optional<T> const & lhs, Value const & rhs) {
     return   (bool)(lhs) && *lhs >= rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator >= (Value const & lhs, Optional<T> const & rhs) {
+constexpr inline bool operator >= (Value const & lhs, Optional<T> const & rhs) {
     return ! (bool)(rhs) || lhs >= *rhs;
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator <  (Optional<T> const & lhs, Value const & rhs) {
+constexpr inline bool operator <  (Optional<T> const & lhs, Value const & rhs) {
     return ! (bool)(lhs) || *lhs < rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator <  (Value const & lhs, Optional<T> const & rhs) {
+constexpr inline bool operator <  (Value const & lhs, Optional<T> const & rhs) {
     return   (bool)(rhs) && lhs < *rhs;
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator <= (Optional<T> const & lhs, Value const & rhs) {
+constexpr inline bool operator <= (Optional<T> const & lhs, Value const & rhs) {
     return ! (bool)(lhs) || *lhs <= rhs;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr bool operator <= (Value const & lhs, Optional<T> const & rhs) {
+constexpr inline bool operator <= (Value const & lhs, Optional<T> const & rhs) {
     return   (bool)(rhs) && lhs <= *rhs;
 }

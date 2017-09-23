@@ -1,10 +1,17 @@
+/** N2 Custom Error Types
+ *  =====================
+ *  What it says on the tin.
+ *
+ *  TODO: Move towards uisng exceptions, rather than hand-rolled error codes.
+ */
 #pragma once
 
-#include "batteries_included.h"
 #include "primitive_types.h"
 
+
 /** N2 Error Codes
- *  -------------- */
+ *  --------------
+ */
 enum class N2Error {
     Success,
     Undefined,
@@ -25,9 +32,11 @@ enum class N2Error {
 
 /** N2 Error Strings
  *  ----------------
- *  Note that these have to be ordered identically to the above.
+ *  These _must_ be ordered identically to the above.
+ *
  *  TODO: Come up with a constexpr function to associate a specific N2Error
- *        with a string, so we don't have to manually maintain an order.*/
+ *        with a string, so we don't have to manually maintain an order.
+ */
 constexpr c_cstr N2_ERROR_STRINGS[] = {
     /* Success */
                 "No error. (Please update this to a clean exit).",
@@ -60,7 +69,3 @@ constexpr c_cstr N2_ERROR_STRINGS[] = {
     /* InvalidArguments */
                 "Operation executed with invalid arguments.",
 };
-
-inline c_cstr n2strerr(N2Error err) {
-    return N2_ERROR_STRINGS[(i32)(err)];
-}

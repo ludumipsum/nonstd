@@ -1,6 +1,5 @@
 /** Iteration Tools
  *  ===============
- *
  *  C++11/14 added great automatic deduction and iteration facilities, but it's
  *  often missing little conveniences to make the task of using them as simple
  *  as it could be.
@@ -8,22 +7,26 @@
 
 #pragma once
 
-#include "batteries_included.h"
-#include "primitive_types.h"
+#include <iterator>
+
+#include "nonstd/core/primitive_types.h"
 
 
-/* Lazily yield Ts in the range provided. Emulates python 3's range() */
+/** Range
+ *  =====
+ *  Lazily yield Ts in the range provided. Emulates python 3's range()
+ */
 template <typename T>
 class Range {
 public:
     /* named start / stop to avoid colliding with begin() / end() */
     T start, stop, step;
 
-    inline Range(T begin, T end, T step=1)
+    constexpr inline Range(T begin, T end, T step=1)
         : start ( begin )
         , stop  ( end   )
         , step  ( step  ) { }
-    inline Range(T end)
+    constexpr inline Range(T end)
         : start ( 0   )
         , stop  ( end )
         , step  ( 1   ) { }
@@ -35,70 +38,81 @@ public:
         Range const& r;
         T value;
 
-        inline iterator(Range const& r, T value)
+        constexpr inline iterator(Range const& r, T value)
             : r     ( r     )
             , value ( value ) { }
-        inline iterator(iterator const& i)
+        constexpr inline iterator(iterator const& i)
             : r     ( i.r     )
             , value ( i.value ) { }
-        inline iterator& operator=(iterator const& i) {
+        constexpr inline iterator& operator=(iterator const& i) {
             if (this != &i) {
                 this->r = i.r;
                 this->value = i.value;
             }
         }
 
-        inline T operator*() { return value; }
+        constexpr inline T operator*() { return value; }
 
-        inline bool operator==(iterator const& i) { return value == i.value; }
-        inline bool operator!=(iterator const& i) { return value != i.value; }
+        constexpr inline bool operator==(iterator const& i) {
+            return value == i.value;
+        }
+        constexpr inline bool operator!=(iterator const& i) {
+            return value != i.value;
+        }
 
-        inline iterator& operator++() {
+        constexpr inline iterator& operator++() {
             value += r.step;
             return *this;
         }
-        inline iterator operator++(int) {
+        constexpr inline iterator operator++(int) {
             iterator ret(r, value);
             value += r.step;
             return ret;
         }
 
-        inline iterator& operator--() {
+        constexpr inline iterator& operator--() {
             value -= r.step;
             return *this;
         }
-        inline iterator operator--(int) {
+        constexpr inline iterator operator--(int) {
             iterator ret(r, value);
             value -= r.step;
             return ret;
         }
 
-        inline iterator& operator+=(T steps) {
+        constexpr inline iterator& operator+=(T steps) {
             value += (steps * r.step);
             return *this;
         }
-        inline iterator& operator-=(T steps) {
+        constexpr inline iterator& operator-=(T steps) {
             value -= (steps * r.step);
             return *this;
         }
     };
 
-    inline iterator begin() const { return Range<T>::iterator(*this, start); }
-    inline iterator end() const { return Range<T>::iterator(*this, stop); }
+    constexpr inline iterator begin() const {
+        return Range<T>::iterator(*this, start);
+    }
+    constexpr inline iterator end() const {
+        return Range<T>::iterator(*this, stop);
+    }
 };
 
-/* Lazily yield Ts in the range provided. Emulates python 3's range() */
-template<typename T> inline
-Range<T> range(T begin, T end, T step = 1) {
+template<typename T>
+constexpr inline Range<T> range(T begin, T end, T step = 1) {
     return Range<T>(begin, end, step);
 }
-/* Lazily yield Ts in the range provided. Emulates python 3's range() */
-template<typename T> inline
-Range<T> range(T end) { return Range<T>(0, end, 1); }
+
+template<typename T>
+inline constexpr Range<T> range(T end) {
+    return Range<T>(0, end, 1);
+}
 
 
-
-/* Lazily iterate over `count` elements from the typed pointer `data` . */
+/** Slice
+ *  =====
+ *  Lazily iterate over `count` elements from the typed pointer `data`.
+ */
 template<typename T>
 class Slice {
 public:
@@ -106,11 +120,11 @@ public:
     T*  stop;
     u64 stride;
 
-    inline Slice(T* data, u64 count, u64 stride = 1)
+    constexpr inline Slice(T* data, u64 count, u64 stride = 1)
         : start  ( data       )
         , stop   ( data+count )
         , stride ( stride     ) { }
-    inline Slice(void* data, u64 count, u64 stride = 1)
+    constexpr inline Slice(void* data, u64 count, u64 stride = 1)
         : start  ( (T*)data           )
         , stop   ( ((T*)data) + count )
         , stride ( stride             ) { }
@@ -126,56 +140,64 @@ public:
         Slice const& s;
         T* cursor;
 
-        inline iterator(Slice const& s, u64 offset = 0)
+        constexpr inline iterator(Slice const& s, u64 offset = 0)
             : s      ( s                )
             , cursor ( s.start + offset ) { }
-        inline iterator(iterator const& i)
+        constexpr inline iterator(iterator const& i)
             : s      ( i.s      )
             , cursor ( i.cursor ) { }
-        inline iterator& operator=(iterator const& i) {
+        constexpr inline iterator& operator=(iterator const& i) {
             if (this != &i) {
                 this->s      = i.s;
                 this->cursor = i.cursor;
             }
         }
 
-        inline T& operator*() { return *cursor; }
+        constexpr inline T& operator*() { return *cursor; }
 
-        inline bool operator==(iterator const& i) { return cursor == i.cursor; }
-        inline bool operator!=(iterator const& i) { return cursor != i.cursor; }
+        constexpr inline bool operator==(iterator const& i) {
+            return cursor == i.cursor;
+        }
+        constexpr inline bool operator!=(iterator const& i) {
+            return cursor != i.cursor;
+        }
 
-        inline iterator& operator++() {
+        constexpr inline iterator& operator++() {
             cursor += s.stride;
             return *this;
         }
-        inline iterator operator++(int) {
+        constexpr inline iterator operator++(int) {
             iterator ret(*this);
             cursor += s.stride;
             return ret;
         }
 
-        inline iterator& operator--() {
+        constexpr inline iterator& operator--() {
             cursor -= s.stride;
             return *this;
         }
-        inline iterator operator--(int) {
+        constexpr inline iterator operator--(int) {
             iterator ret(*this);
             cursor -= s.stride;
             return ret;
         }
 
-        inline iterator& operator+=(u64 steps) {
+        constexpr inline iterator& operator+=(u64 steps) {
             cursor += (steps * s.stride);
             return *this;
         }
-        inline iterator& operator-=(u64 steps) {
+        constexpr inline iterator& operator-=(u64 steps) {
             cursor -= (steps * s.stride);
             return *this;
         }
     };
 
-    inline iterator begin() const { return Slice<T>::iterator(*this, 0); }
-    inline iterator end() const   { return Slice<T>::iterator(*this, stop - start); }
+    constexpr inline iterator begin() const {
+        return Slice<T>::iterator(*this, 0);
+    }
+    constexpr inline iterator end()   const {
+        return Slice<T>::iterator(*this, stop - start);
+    }
 };
 
 /* Create a lazy iterator over `count` elements from the typed pointer `data`. */
