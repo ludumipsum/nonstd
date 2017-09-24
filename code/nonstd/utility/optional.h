@@ -952,16 +952,16 @@ public:
     using _Optional_ValueBase<T>::_Optional_ValueBase;
     using _Optional_ValueBase<T>::operator=;
     using _Optional_ValueBase<T>::emplace;
-    // TODO: Test that the second two of these `using` declarations are needed.
 
 private:
     /* Helper function to (optionally) check the validity of this Optional. */
-    constexpr void checkValue() const {
+    constexpr inline void checkValue() const {
 #if N2_CHECKED_OPTIONALS
-        N2BREAK_IF(!this->_hasValue(),
-                   N2Error::UninitializedMemory,
-                   "Attempting to access an uninitialized Optional value.");
+        if (!this->_hasValue()) {
+            throw nonstd::exception::bad_optional_access{};
+        }
 #endif
+        return;
     }
 
 public:
@@ -992,8 +992,6 @@ public:
         return this->_hasValue();
     }
 
-    //TODO: These should maybe not have `checkValue()`, and should throw a
-    //      `bad_optional_access` exception if `!this->_hasValue()`
     constexpr       T &  value()       &  {
         checkValue(); return this->_getValue();
     }
@@ -1044,12 +1042,13 @@ public:
 
 private:
     /* Helper function to (optionally) check the validity of this Optional. */
-    constexpr void checkValue() const {
+    constexpr inline void checkValue() const {
 #if N2_CHECKED_OPTIONALS
-        N2BREAK_IF(!this->_hasValue(),
-                   N2Error::UninitializedMemory,
-                   "Attempting to access an uninitialized Optional value.");
+        if (!this->_hasValue()) {
+            throw nonstd::exception::bad_optional_access();
+        }
 #endif
+        return;
     }
 
 public:
@@ -1080,8 +1079,6 @@ public:
         return this->_hasValue();
     }
 
-    //TODO: These should maybe not have `checkValue()`, and should throw a
-    //      `bad_optional_access` exception if `!this->_hasValue()`
     constexpr       T &  value()       &  {
         checkValue(); return this->_getValue();
     }
