@@ -87,7 +87,7 @@ inline bool operator == (NonTrivialType const & l,
  *  confused about how they are supposed to work.
  */
 
-TEST_CASE("Optionals API Demo", "[nonstd][optionals]") {
+TEST_CASE("Optionals API Demo", "[nonstd][api][optionals]") {
 
     /** Creating Optionals
      *  ------------------
@@ -385,8 +385,8 @@ TEST_CASE("Optionals API Demo", "[nonstd][optionals]") {
  *  "Optional types over nones should coerce to boolean correctly."
  */
 
-TEST_CASE("Optional types", "[optional]") {
-    SECTION("over nones") {
+TEST_CASE("Optional types", "[nonstd][optional]") {
+    SECTION("that do not contain value") {
         Optional<u64> maybe_value = { };
         Optional<u64> none_value = none<u64>();
         Optional<u64 &> maybe_ref = { };
@@ -465,7 +465,34 @@ TEST_CASE("Optional types", "[optional]") {
             };
             REQUIRE_FALSE(noneforwarder());
         }
+
+#if N2_CHECKED_OPTIONALS
+        SECTION("should correctly except on accessors") {
+            Optional<u64>        simple_none  = { };
+            Optional<PODType>    pod_none     = { };
+            Optional<NonPODType> non_pod_none = { };
+
+            REQUIRE_THROWS_AS([=](){ auto _ = *simple_none; }(),
+                              nonstd::exception::bad_optional_access);
+            REQUIRE_THROWS_AS([=](){ auto _ = simple_none.value(); }(),
+                              nonstd::exception::bad_optional_access);
+
+            REQUIRE_THROWS_AS([=](){ auto _ = *pod_none; }(),
+                              nonstd::exception::bad_optional_access);
+            REQUIRE_THROWS_AS([=](){ auto _ = pod_none->a; }(),
+                              nonstd::exception::bad_optional_access);
+            REQUIRE_THROWS_AS([=](){ auto _ = pod_none.value(); }(),
+                              nonstd::exception::bad_optional_access);
+
+            REQUIRE_THROWS_AS([=](){ auto _ = *non_pod_none; }(),
+                              nonstd::exception::bad_optional_access);
+            REQUIRE_THROWS_AS([=](){ auto _ = non_pod_none->m_b; }(),
+                              nonstd::exception::bad_optional_access);
+            REQUIRE_THROWS_AS([=](){ auto _ = non_pod_none.value(); }(),
+                              nonstd::exception::bad_optional_access);
+        }
     }
+#endif
 
     SECTION("over built-in types") {
         u64 initial_value = 42;
