@@ -56,13 +56,13 @@
 #define N2_CHECKED_OPTIONALS false
 #endif
 
+namespace nonstd {
+
 /** Null Optional Type
  *  ------------------
  *  Tag Type to explicitly create non-containing Optionals (and friends).
  *  Namespace'd to `nonstd::` to match the C++17 `std::nullopt_t`.
  */
-namespace nonstd {
-
 struct nullopt_t {
     /* Explicitly delete the default constructor, and define an explicit
        constexpr constructor that will be hard to accidentally invoke.
@@ -73,6 +73,23 @@ struct nullopt_t {
 
 constexpr static nullopt_t nullopt { nonstd::in_place };
 
+
+namespace exception {
+
+/** Bad Optional Access Exception
+ *  -----------------------------
+ *  The exception type to be thrown when an attempt is made to access the value
+ *  of a non-containing Optional.
+ */
+class bad_optional_access : public ::std::logic_error {
+public:
+    bad_optional_access()
+        : ::std::logic_error("Attempted to access the value of a "
+                             "non-containing Optional.")
+        { }
+};
+
+} /* namespace exception */
 } /* namespace nonstd */
 
 
