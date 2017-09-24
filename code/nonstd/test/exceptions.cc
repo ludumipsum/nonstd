@@ -1,5 +1,5 @@
-/** Platform Smoke Tests
- *  ====================
+/** Exception Smoke Tests
+ *  =====================
  *  To make sure C++ works the way we think it should work.
  */
 
@@ -7,7 +7,7 @@
 
 
 namespace nonstd_test {
-namespace platform {
+namespace exceptions {
 
 TEST_CASE("Exception handlers") {
     SECTION("should throw and catch") {
@@ -18,4 +18,4 @@ TEST_CASE("Exception handlers") {
 }
 
 } /* namespace nonstd_test */
-} /* namespace platform */
+} /* namespace exceptions */
