@@ -80,6 +80,7 @@
 #include "utility/color.h"
 #include "utility/four_char_code.h"
 #include "utility/iterator.h"
+#include "utility/nop.h"
 #include "utility/optional.h"
 
 
