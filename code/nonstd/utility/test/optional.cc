@@ -491,8 +491,8 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
             REQUIRE_THROWS_AS([=](){ auto _ = non_pod_none.value(); }(),
                               nonstd::exception::bad_optional_access);
         }
-    }
 #endif
+    }
 
     SECTION("over built-in types") {
         u64 initial_value = 42;
