@@ -14,20 +14,57 @@
 namespace nonstd {
 
 template<typename L, typename R>
-constexpr FORCEINLINE bool equal_to(L left, R right) {
+constexpr FORCEINLINE auto equal_to(L left, R right)
+-> ENABLE_IF_DTYPE(!(IS_ARITHMETIC(L) && IS_ARITHMETIC(R)), bool) {
     return left == right;
 }
 
 template<typename L, typename R>
-constexpr FORCEINLINE int compare(L left, R right) {
+constexpr FORCEINLINE auto equal_to(L left, R right) noexcept
+-> ENABLE_IF_DTYPE( (IS_ARITHMETIC(L) && IS_ARITHMETIC(R)), bool) {
+    return left == right;
+}
+
+FORCEINLINE auto equal_to(c_cstr left, c_cstr right)
+-> bool {
+    return (strcmp(left, right) == 0);
+}
+
+// Additional noexcept overloads may be added with ex;
+//     template<typename L, typename R>
+//     constexpr inline auto equal_to(Optional<L> left, Optional<R> right)
+//     noexcept {
+//         return left == right;
+//     }
+
+
+template<typename L, typename R>
+constexpr FORCEINLINE auto compare(L left, R right)
+-> ENABLE_IF_DTYPE(!(IS_ARITHMETIC(L) && IS_ARITHMETIC(R)), int) {
     if (left > right) { return  1; } else
     if (left < right) { return -1; }
     return 0;
 }
 
-template<>
+template<typename L, typename R>
+constexpr FORCEINLINE auto compare(L left, R right) noexcept
+-> ENABLE_IF_DTYPE( (IS_ARITHMETIC(L) && IS_ARITHMETIC(R)), int) {
+    if (left > right) { return  1; } else
+    if (left < right) { return -1; }
+    return 0;
+}
+
 FORCEINLINE int compare(c_cstr left, c_cstr right) {
     return strcmp(left, right);
 }
+
+// Additional noexcept overloads may be added with ex;
+//    template<typename L, typename R>
+//    constexpr inline auto compare(Optional<L> left, Optional<R> right)
+//    noexcept {
+//        if (left > right) { return  1; } else
+//        if (left < right) { return -1; }
+//        return 0;
+//    }
 
 } /* namespace nonstd */
