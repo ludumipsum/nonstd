@@ -7,6 +7,7 @@
 #include <testrunner/testrunner.h>
 
 #include "nonstd/std_ish/compare.h"
+#include "nonstd/utility/optional.h"
 
 
 namespace nonstd_test {
@@ -45,6 +46,26 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(compare((f64)1, (i8)2)  <  0);
             REQUIRE(compare((u8)2,  (u64)1) >  0);
         }
+
+        SECTION("of Optional variations") {
+            Optional<u32> maybe_int = { 1 };
+            Optional<u32> none_int  = { };
+            Optional<c_cstr> maybe_string = { "Foo" };
+            Optional<c_cstr> none_string  = { };
+
+            /* Remember */
+            REQUIRE(0 == strcmp("a", "a"));
+            REQUIRE(0 <  strcmp("b", "a"));
+            REQUIRE(0 >  strcmp("a", "b"));
+
+            REQUIRE(0 == nonstd::compare(maybe_int, just<u32>(1)));
+            REQUIRE(0 <  nonstd::compare(maybe_int, none_int));
+            REQUIRE(0 <  nonstd::compare(maybe_int, nonstd::nullopt));
+            REQUIRE(0 == nonstd::compare(just<c_cstr>("A"), "A"));
+            REQUIRE(0 >  nonstd::compare(just<c_cstr>("A"), "B"));
+            REQUIRE(0 <  nonstd::compare(maybe_string, none_string));
+            REQUIRE(0 == nonstd::compare(nonstd::nullopt, none_string));
+        }
     }
 
     SECTION("should correctly calculate equality") {
@@ -60,6 +81,21 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(equal_to((i32)1, (u64)1));
             REQUIRE(equal_to((u8)2,  (u64)2));
             REQUIRE(equal_to((f64)2, (i8)2));
+        }
+
+        SECTION("of Optional variations") {
+            Optional<u32> maybe_int = { 1 };
+            Optional<u32> none_int  = { };
+            Optional<c_cstr> maybe_string = { "Foo" };
+            Optional<c_cstr> none_string  = { };
+
+            REQUIRE( nonstd::equal_to(maybe_int, just<u32>(1)));
+            REQUIRE(!nonstd::equal_to(maybe_int, none_int));
+            REQUIRE(!nonstd::equal_to(maybe_int, nonstd::nullopt));
+            REQUIRE( nonstd::equal_to(maybe_string, "Foo"));
+            REQUIRE(!nonstd::equal_to(maybe_string, "Bar"));
+            REQUIRE(!nonstd::equal_to(maybe_string, none_string));
+            REQUIRE( nonstd::equal_to(nonstd::nullopt, none_string));
         }
     }
 }
