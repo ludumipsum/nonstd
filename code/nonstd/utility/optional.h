@@ -1350,8 +1350,8 @@ namespace nonstd {
  */
 template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
 constexpr bool equal_to(Optional<T> const & lhs, Optional<U> const & rhs) {
-    if ((bool)(lhs) != (bool)(rhs)) { return false; }
-    if ((bool)(lhs))                { return *lhs == *rhs; }
+    if ((bool)(lhs) != (bool)(rhs)) { return false;                        }
+    if ((bool)(lhs))                { return nonstd::equal_to(*lhs, *rhs); }
     return true;
 }
 
@@ -1398,11 +1398,11 @@ noexcept {
  */
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr inline bool equal_to(Optional<T> const & lhs, Value const & rhs) {
-    return (bool)(lhs) && *lhs == rhs;
+    return (bool)(lhs) && nonstd::equal_to(*lhs, rhs);
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr inline bool equal_to(Value const & lhs, Optional<T> const & rhs) {
-    return (bool)(rhs) && lhs == *rhs;
+    return (bool)(rhs) && nonstd::equal_to(lhs, *rhs);
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
