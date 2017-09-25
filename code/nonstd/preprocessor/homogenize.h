@@ -4,6 +4,7 @@
 
 #pragma once
 
+
 /* Compiler-specific warning suppressions */
 //TODO: Should these be moved to cmake?
 #if defined(_MSC_VER)
