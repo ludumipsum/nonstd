@@ -115,27 +115,41 @@
 #define IS_RVAL_REFERENCE(T)      (::std::is_rvalue_reference<T>::value)
 #define IS_NOT_RVAL_REFERENCE(T) !(::std::is_rvalue_reference<T>::value)
 
-/** IS_SCALAR (and friends)
- *  -----------------------
- *  Macros wrapping std::is_scalar<T>::value, and specializations thereon.
- */
-#define IS_SCALAR(T)      (std::is_scalar<T>::value)
-#define IS_NOT_SCALAR(T) !(std::is_scalar<T>::value)
 
-#define IS_ARITHMETIC(T)      (std::is_arithmetic<T>::value)
-#define IS_NOT_ARITHMETIC(T) !(std::is_arithmetic<T>::value)
-
-#define IS_ENUM(T)      (std::is_enum<T>::value)
-#define IS_NOT_ENUM(T) !(std::is_enum<T>::value)
+/** Primary Type Properties
+ *  ----------------------- */
+#define IS_VOID(T)      (std::is_void<t>::value)
+#define IS_NOT_VOID(T) !(std::is_void<t>::value)
 
 #define IS_POINTER(T)      (std::is_pointer<T>::value)
 #define IS_NOT_POINTER(T) !(std::is_pointer<T>::value)
 
+#define IS_NULL_POINTER(T)      (std::is_null_pointer<T>::value)
+#define IS_NOT_NULL_POINTER(T) !(std::is_null_pointer<T>::value)
+
+#define IS_INTEGRAL(T)      (std::is_integral<T>::value)
+#define IS_NOT_INTEGRAL(T) !(std::is_integral<T>::value)
+
+#define IS_FLOATING_POINT(T)      (std::is_floating_point<T>::value)
+#define IS_NOT_FLOATING_POINT(T) !(std::is_floating_point<T>::value)
+
+
+/** IS_SCALAR (and friends)
+ *  -----------------------
+ *  Macros wrapping std::is_scalar<T>::value, and specializations thereon.
+ */
+#define IS_ARITHMETIC(T)      (std::is_arithmetic<T>::value)
+#define IS_NOT_ARITHMETIC(T) !(std::is_arithmetic<T>::value)
+
+#define IS_SCALAR(T)      (std::is_scalar<T>::value)
+#define IS_NOT_SCALAR(T) !(std::is_scalar<T>::value)
+
+#define IS_ENUM(T)      (std::is_enum<T>::value)
+#define IS_NOT_ENUM(T) !(std::is_enum<T>::value)
+
 #define IS_MEMBER_POINTER(T)      (std::is_member_pointer<T>::value)
 #define IS_NOT_MEMBER_POINTER(T) !(std::is_member_pointer<T>::value)
 
-#define IS_NULL_POINTER(T)      (std::is_null_pointer<T>::value)
-#define IS_NOT_NULL_POINTER(T) !(std::is_null_pointer<T>::value)
 
 /** IS_CONVERTIBLE
  *  --------------
