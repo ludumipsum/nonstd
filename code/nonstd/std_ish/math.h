@@ -41,7 +41,7 @@ constexpr inline T rescale(T value,
  *  I (Drew) and RapidCheck's author (emil-e) have been working on.
  */
 template<typename T> inline
-constexpr T maskLowestBits(u16 nbits) {
+constexpr T maskLowestBits(u16 nbits) noexcept {
       using UT = MAKE_UNSIGNED(T);
       // There are two pieces of undefined behavior we're avoiding here,
       //   1. Shifting past the width of a type (ex `<< 32` against an `i32`)
@@ -65,7 +65,7 @@ constexpr T maskLowestBits(u16 nbits) {
  *  ----------------
  */
 template<typename T> inline
-constexpr bool is_power_of_two(T num) {
+constexpr bool is_power_of_two(T num) noexcept {
     return (num && !(num & (num - 1)));
 }
 
@@ -73,7 +73,7 @@ constexpr bool is_power_of_two(T num) {
  *  -------------
  *  TODO: Consider making these template specializations based on the size of T.
  */
-inline u32 next_power_of_two(u32 num) {
+inline u32 next_power_of_two(u32 num) noexcept {
     num -= 1;
     num |= num >> 1;
     num |= num >> 2;
@@ -84,7 +84,7 @@ inline u32 next_power_of_two(u32 num) {
     return num;
 }
 
-inline u64 next_power_of_two(u64 num) {
+inline u64 next_power_of_two(u64 num) noexcept {
     num -= 1;
     num |= num >> 1;
     num |= num >> 2;
@@ -97,7 +97,7 @@ inline u64 next_power_of_two(u64 num) {
 }
 
 
-inline u32 previous_power_of_two(u32 num) {
+inline u32 previous_power_of_two(u32 num) noexcept {
     num |= (num >> 1);
     num |= (num >> 2);
     num |= (num >> 4);
@@ -106,7 +106,7 @@ inline u32 previous_power_of_two(u32 num) {
     return num - (num >> 1);
 }
 
-inline u64 previous_power_of_two(u64 num) {
+inline u64 previous_power_of_two(u64 num) noexcept {
     num |= (num >> 1);
     num |= (num >> 2);
     num |= (num >> 4);
