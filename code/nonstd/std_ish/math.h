@@ -97,7 +97,7 @@ inline u64 roundUpToPowerOfTwo(u64 num) noexcept {
 }
 
 
-inline u32 previous_power_of_two(u32 num) noexcept {
+inline u32 roundDownToPowerOfTwo(u32 num) noexcept {
     num |= (num >> 1);
     num |= (num >> 2);
     num |= (num >> 4);
@@ -106,7 +106,7 @@ inline u32 previous_power_of_two(u32 num) noexcept {
     return num - (num >> 1);
 }
 
-inline u64 previous_power_of_two(u64 num) noexcept {
+inline u64 roundDownToPowerOfTwo(u64 num) noexcept {
     num |= (num >> 1);
     num |= (num >> 2);
     num |= (num >> 4);

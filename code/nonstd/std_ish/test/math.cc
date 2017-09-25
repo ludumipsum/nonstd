@@ -14,7 +14,7 @@ namespace math {
 using nonstd::maskLowestBits;
 using nonstd::isPowerOfTwo;
 using nonstd::roundUpToPowerOfTwo;
-using nonstd::previous_power_of_two;
+using nonstd::roundDownToPowerOfTwo;
 
 
 TEST_CASE("Math Utilities", "[nonstd]") {
@@ -86,24 +86,24 @@ TEST_CASE("Math Utilities", "[nonstd]") {
     }
 
     SECTION("should correctly round numbers down to the nearest power of two") {
-        REQUIRE(previous_power_of_two((u32)0) == 0);
-        REQUIRE(previous_power_of_two((u32)1) == 1);
-        REQUIRE(previous_power_of_two((u32)2) == 2);
-        REQUIRE(previous_power_of_two((u32)3) == 2);
-        REQUIRE(previous_power_of_two((u32)4) == 4);
-        REQUIRE(previous_power_of_two((u32)5) == 4);
-        REQUIRE(previous_power_of_two((u32)7) == 4);
-        REQUIRE(previous_power_of_two((u32)8) == 8);
+        REQUIRE(roundDownToPowerOfTwo((u32)0) == 0);
+        REQUIRE(roundDownToPowerOfTwo((u32)1) == 1);
+        REQUIRE(roundDownToPowerOfTwo((u32)2) == 2);
+        REQUIRE(roundDownToPowerOfTwo((u32)3) == 2);
+        REQUIRE(roundDownToPowerOfTwo((u32)4) == 4);
+        REQUIRE(roundDownToPowerOfTwo((u32)5) == 4);
+        REQUIRE(roundDownToPowerOfTwo((u32)7) == 4);
+        REQUIRE(roundDownToPowerOfTwo((u32)8) == 8);
 
-        REQUIRE(previous_power_of_two((u32)(0x07000000)) == (u32)(0x04000000));
-        REQUIRE(previous_power_of_two((u32)(0x08000001)) == (u32)(0x08000000));
-        REQUIRE(previous_power_of_two((u32)(0x80000000)) == (u32)(0x80000000));
+        REQUIRE(roundDownToPowerOfTwo((u32)(0x07000000)) == (u32)(0x04000000));
+        REQUIRE(roundDownToPowerOfTwo((u32)(0x08000001)) == (u32)(0x08000000));
+        REQUIRE(roundDownToPowerOfTwo((u32)(0x80000000)) == (u32)(0x80000000));
 
-        REQUIRE(previous_power_of_two((u64)(0x07FFFFFFFFFFFFF))
+        REQUIRE(roundDownToPowerOfTwo((u64)(0x07FFFFFFFFFFFFF))
                 ==                    (u64)(0x040000000000000));
-        REQUIRE(previous_power_of_two((u64)(0x080000000000001))
+        REQUIRE(roundDownToPowerOfTwo((u64)(0x080000000000001))
                 ==                    (u64)(0x080000000000000));
-        REQUIRE(previous_power_of_two((u64)(0x800000000000000))
+        REQUIRE(roundDownToPowerOfTwo((u64)(0x800000000000000))
                 ==                    (u64)(0x800000000000000));
     }
 }
