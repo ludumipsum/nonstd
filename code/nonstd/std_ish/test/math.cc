@@ -9,15 +9,15 @@
 
 
 namespace nonstd_test {
-namespace math_utils {
+namespace math {
 
 using nonstd::maskLowestBits;
-using nonstd::is_power_of_two;
-using nonstd::next_power_of_two;
-using nonstd::previous_power_of_two;
+using nonstd::isPowerOfTwo;
+using nonstd::roundUpToPowerOfTwo;
+using nonstd::roundDownToPowerOfTwo;
 
 
-TEST_CASE("Math Utilities", "[nonstd][utils]") {
+TEST_CASE("Math Utilities", "[nonstd]") {
 
     SECTION("should yield sane and correct bit masks") {
         REQUIRE(maskLowestBits<u8>(0) == 0b00000000);
@@ -44,65 +44,66 @@ TEST_CASE("Math Utilities", "[nonstd][utils]") {
     }
 
     SECTION("should correctly detect power-of-two numbers") {
-        REQUIRE(is_power_of_two(1));
-        REQUIRE(is_power_of_two(2));
-        REQUIRE(is_power_of_two(4));
-        REQUIRE(is_power_of_two(8));
-        REQUIRE(is_power_of_two( (u64)(0x8000000000000000) ));
+        REQUIRE(isPowerOfTwo(1));
+        REQUIRE(isPowerOfTwo(2));
+        REQUIRE(isPowerOfTwo(4));
+        REQUIRE(isPowerOfTwo(8));
+        REQUIRE(isPowerOfTwo( (u64)(0x8000000000000000) ));
 
-        REQUIRE_FALSE(is_power_of_two(0));
-        REQUIRE_FALSE(is_power_of_two(3));
-        REQUIRE_FALSE(is_power_of_two(5));
-        REQUIRE_FALSE(is_power_of_two( (u64)(0x7FFFFFFFFFFFFFFF) ));
-        REQUIRE_FALSE(is_power_of_two( (u64)(0x8000000000000001) ));
+        REQUIRE_FALSE(isPowerOfTwo(0));
+        REQUIRE_FALSE(isPowerOfTwo(3));
+        REQUIRE_FALSE(isPowerOfTwo(5));
+        REQUIRE_FALSE(isPowerOfTwo( (u64)(0x7FFFFFFFFFFFFFFF) ));
+        REQUIRE_FALSE(isPowerOfTwo( (u64)(0x8000000000000001) ));
     }
 
     SECTION("should correctly round numbers up to the nearest power of two") {
-        REQUIRE(next_power_of_two((u32)1) == 1);
-        REQUIRE(next_power_of_two((u32)2) == 2);
-        REQUIRE(next_power_of_two((u32)3) == 4);
-        REQUIRE(next_power_of_two((u32)4) == 4);
-        REQUIRE(next_power_of_two((u32)5) == 8);
-        REQUIRE(next_power_of_two((u32)7) == 8);
+        REQUIRE(roundUpToPowerOfTwo((u32)0) == 0);
+        REQUIRE(roundUpToPowerOfTwo((u32)1) == 1);
+        REQUIRE(roundUpToPowerOfTwo((u32)2) == 2);
+        REQUIRE(roundUpToPowerOfTwo((u32)3) == 4);
+        REQUIRE(roundUpToPowerOfTwo((u32)4) == 4);
+        REQUIRE(roundUpToPowerOfTwo((u32)5) == 8);
+        REQUIRE(roundUpToPowerOfTwo((u32)7) == 8);
 
-        REQUIRE(next_power_of_two((u32)(0x07000000)) == (u32)(0x08000000));
-        REQUIRE(next_power_of_two((u32)(0x08000001)) == (u32)(0x10000000));
-        REQUIRE(next_power_of_two((u32)(0x80000000)) == (u32)(0x80000000));
+        REQUIRE(roundUpToPowerOfTwo((u32)(0x07000000)) == (u32)(0x08000000));
+        REQUIRE(roundUpToPowerOfTwo((u32)(0x08000001)) == (u32)(0x10000000));
+        REQUIRE(roundUpToPowerOfTwo((u32)(0x80000000)) == (u32)(0x80000000));
 
-        REQUIRE(next_power_of_two((u64)(0x07FFFFFFFFFFFFF))
+        REQUIRE(roundUpToPowerOfTwo((u64)(0x07FFFFFFFFFFFFF))
                 ==                (u64)(0x080000000000000));
-        REQUIRE(next_power_of_two((u64)(0x080000000000001))
+        REQUIRE(roundUpToPowerOfTwo((u64)(0x080000000000001))
                 ==                (u64)(0x100000000000000));
-        REQUIRE(next_power_of_two((u64)(0x800000000000000))
+        REQUIRE(roundUpToPowerOfTwo((u64)(0x800000000000000))
                 ==                (u64)(0x800000000000000));
 
         /* UNDESIRABLE BEHAVIOR
          * ====================
-         * The first is a limitation of the `next_power_of_two` function,
+         * The first is a limitation of the `roundUpToPowerOfTwo` function,
          * the second is a limitation of C. */
-        REQUIRE(next_power_of_two((u32)0) == 0);
-        REQUIRE(next_power_of_two((u32)(0x90000000)) == (u32)(0x00000000));
+        REQUIRE(roundUpToPowerOfTwo((u32)0) == 0);
+        REQUIRE(roundUpToPowerOfTwo((u32)(0x90000000)) == (u32)(0x00000000));
     }
 
     SECTION("should correctly round numbers down to the nearest power of two") {
-        REQUIRE(previous_power_of_two((u32)0) == 0);
-        REQUIRE(previous_power_of_two((u32)1) == 1);
-        REQUIRE(previous_power_of_two((u32)2) == 2);
-        REQUIRE(previous_power_of_two((u32)3) == 2);
-        REQUIRE(previous_power_of_two((u32)4) == 4);
-        REQUIRE(previous_power_of_two((u32)5) == 4);
-        REQUIRE(previous_power_of_two((u32)7) == 4);
-        REQUIRE(previous_power_of_two((u32)8) == 8);
+        REQUIRE(roundDownToPowerOfTwo((u32)0) == 0);
+        REQUIRE(roundDownToPowerOfTwo((u32)1) == 1);
+        REQUIRE(roundDownToPowerOfTwo((u32)2) == 2);
+        REQUIRE(roundDownToPowerOfTwo((u32)3) == 2);
+        REQUIRE(roundDownToPowerOfTwo((u32)4) == 4);
+        REQUIRE(roundDownToPowerOfTwo((u32)5) == 4);
+        REQUIRE(roundDownToPowerOfTwo((u32)7) == 4);
+        REQUIRE(roundDownToPowerOfTwo((u32)8) == 8);
 
-        REQUIRE(previous_power_of_two((u32)(0x07000000)) == (u32)(0x04000000));
-        REQUIRE(previous_power_of_two((u32)(0x08000001)) == (u32)(0x08000000));
-        REQUIRE(previous_power_of_two((u32)(0x80000000)) == (u32)(0x80000000));
+        REQUIRE(roundDownToPowerOfTwo((u32)(0x07000000)) == (u32)(0x04000000));
+        REQUIRE(roundDownToPowerOfTwo((u32)(0x08000001)) == (u32)(0x08000000));
+        REQUIRE(roundDownToPowerOfTwo((u32)(0x80000000)) == (u32)(0x80000000));
 
-        REQUIRE(previous_power_of_two((u64)(0x07FFFFFFFFFFFFF))
+        REQUIRE(roundDownToPowerOfTwo((u64)(0x07FFFFFFFFFFFFF))
                 ==                    (u64)(0x040000000000000));
-        REQUIRE(previous_power_of_two((u64)(0x080000000000001))
+        REQUIRE(roundDownToPowerOfTwo((u64)(0x080000000000001))
                 ==                    (u64)(0x080000000000000));
-        REQUIRE(previous_power_of_two((u64)(0x800000000000000))
+        REQUIRE(roundDownToPowerOfTwo((u64)(0x800000000000000))
                 ==                    (u64)(0x800000000000000));
     }
 }
