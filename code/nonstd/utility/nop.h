@@ -18,7 +18,7 @@ namespace nonstd {
  *  -------------------
  *  This function literally does nothing. Your compiler should optimize it out.
  */
-inline void nop() {
+constexpr inline void nop() noexcept {
     return;
 }
 
@@ -29,7 +29,7 @@ inline void nop() {
  *  discard crap that happens in an inline asm block, so only use this if you
  *  really want to make sure there's a function call at the site of your nop.
  */
-inline void asm_nop() {
+inline void asm_nop() noexcept {
     #if defined(_MSC_VER)
         __nop();
     #else

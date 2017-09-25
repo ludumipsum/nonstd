@@ -13,6 +13,6 @@
 #include "nonstd/core/primitive_types.h"
 
 
-inline c_cstr n2strerr(N2Error err) {
+constexpr inline c_cstr n2strerr(N2Error err) noexcept {
     return N2_ERROR_STRINGS[(i32)(err)];
 }

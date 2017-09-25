@@ -48,14 +48,14 @@ namespace detail {
 
 template<typename Type>
 struct TypeName {
-    static constexpr c_cstr _getName() {
+    static constexpr c_cstr _getName() noexcept {
         c_cstr p = __PRETTY_FUNCTION__;
         while (*(++p) != '='); // Skip p to the first `=`.
         while (*(++p) == ' '); // Skip p past any spaces.
         return p;
     }
 
-    static constexpr i32 const _getLength() {
+    static constexpr i32 const _getLength() noexcept {
         c_cstr p     = _getName();
         c_cstr p2    = p;
         i32    count = 1;
