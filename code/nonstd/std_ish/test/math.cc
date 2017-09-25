@@ -9,7 +9,7 @@
 
 
 namespace nonstd_test {
-namespace math_utils {
+namespace math {
 
 using nonstd::maskLowestBits;
 using nonstd::is_power_of_two;
@@ -17,7 +17,7 @@ using nonstd::next_power_of_two;
 using nonstd::previous_power_of_two;
 
 
-TEST_CASE("Math Utilities", "[nonstd][utils]") {
+TEST_CASE("Math Utilities", "[nonstd]") {
 
     SECTION("should yield sane and correct bit masks") {
         REQUIRE(maskLowestBits<u8>(0) == 0b00000000);
@@ -58,6 +58,7 @@ TEST_CASE("Math Utilities", "[nonstd][utils]") {
     }
 
     SECTION("should correctly round numbers up to the nearest power of two") {
+        REQUIRE(next_power_of_two((u32)0) == 0);
         REQUIRE(next_power_of_two((u32)1) == 1);
         REQUIRE(next_power_of_two((u32)2) == 2);
         REQUIRE(next_power_of_two((u32)3) == 4);
