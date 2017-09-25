@@ -25,14 +25,13 @@ constexpr FORCEINLINE auto equal_to(L left, R right) noexcept
     return left == right;
 }
 
-FORCEINLINE auto equal_to(c_cstr left, c_cstr right)
--> bool {
+FORCEINLINE bool equal_to(c_cstr left, c_cstr right) {
     return (strcmp(left, right) == 0);
 }
 
 // Additional noexcept overloads may be added with ex;
 //     template<typename L, typename R>
-//     constexpr inline auto equal_to(Optional<L> left, Optional<R> right)
+//     constexpr inline bool equal_to(Optional<L> left, Optional<R> right)
 //     noexcept {
 //         return left == right;
 //     }
@@ -60,7 +59,7 @@ FORCEINLINE int compare(c_cstr left, c_cstr right) {
 
 // Additional noexcept overloads may be added with ex;
 //    template<typename L, typename R>
-//    constexpr inline auto compare(Optional<L> left, Optional<R> right)
+//    constexpr inline bool compare(Optional<L> left, Optional<R> right)
 //    noexcept {
 //        if (left > right) { return  1; } else
 //        if (left < right) { return -1; }
