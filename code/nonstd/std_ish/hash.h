@@ -12,7 +12,7 @@
 
 namespace nonstd {
 
-inline u64  shift64(u64 key);
+constexpr inline u64 shift64(u64 key) noexcept;
 inline u64  djb2(c_cstr str);
 inline void sha1(u8 const * const data, u64 num_bytes, cstr sha_out);
 
@@ -22,6 +22,9 @@ inline void sha1(u8 const * const data, u64 num_bytes, cstr sha_out);
  *  Our default string hash is djb2.
  *  Our default numerical hash is shift64.
  *
+ *  NB. We overload -- rather than specialize on -- hash to allow us to change
+ *  the noexcept specifier.
+ *
  *  TODO: Write hash verifier to make sure our resources directory doesn't
  *        produce djb2 collisions on any content or filename.
  *  TODO: Consider passing-through to `std::hash<T>{}(key)` for most operations.
@@ -29,15 +32,16 @@ inline void sha1(u8 const * const data, u64 num_bytes, cstr sha_out);
 template<typename T>
 inline u64 hash(T key);
 
-template<> inline u64 hash(c_cstr key) { return djb2(key);    }
-template<> inline u64 hash(u8     key) { return shift64(key); }
-template<> inline u64 hash(u16    key) { return shift64(key); }
-template<> inline u64 hash(u32    key) { return shift64(key); }
-template<> inline u64 hash(u64    key) { return shift64(key); }
-template<> inline u64 hash(i8     key) { return shift64(key); }
-template<> inline u64 hash(i16    key) { return shift64(key); }
-template<> inline u64 hash(i32    key) { return shift64(key); }
-template<> inline u64 hash(i64    key) { return shift64(key); }
+inline u64 hash(c_cstr key) { return djb2(key);    }
+
+constexpr inline u64 hash(u8  key) noexcept { return shift64(key); }
+constexpr inline u64 hash(u16 key) noexcept { return shift64(key); }
+constexpr inline u64 hash(u32 key) noexcept { return shift64(key); }
+constexpr inline u64 hash(u64 key) noexcept { return shift64(key); }
+constexpr inline u64 hash(i8  key) noexcept { return shift64(key); }
+constexpr inline u64 hash(i16 key) noexcept { return shift64(key); }
+constexpr inline u64 hash(i32 key) noexcept { return shift64(key); }
+constexpr inline u64 hash(i64 key) noexcept { return shift64(key); }
 
 
 /** shift64 Hash
@@ -45,8 +49,7 @@ template<> inline u64 hash(i64    key) { return shift64(key); }
  *  Integer hash based on bitshifts and xors, taken from
  *  [here](https://gist.github.com/badboy/6267743).
  */
-u64 shift64(u64 key)
-{
+constexpr inline u64 shift64(u64 key) noexcept {
     key = (~key) + (key << 21); // key = (key << 21) - key - 1;
     key = key ^ (key >> 24);
     key = (key + (key << 3)) + (key << 8); // key * 265
