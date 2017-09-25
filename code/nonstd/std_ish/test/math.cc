@@ -13,7 +13,7 @@ namespace math {
 
 using nonstd::maskLowestBits;
 using nonstd::isPowerOfTwo;
-using nonstd::next_power_of_two;
+using nonstd::roundUpToPowerOfTwo;
 using nonstd::previous_power_of_two;
 
 
@@ -58,31 +58,31 @@ TEST_CASE("Math Utilities", "[nonstd]") {
     }
 
     SECTION("should correctly round numbers up to the nearest power of two") {
-        REQUIRE(next_power_of_two((u32)0) == 0);
-        REQUIRE(next_power_of_two((u32)1) == 1);
-        REQUIRE(next_power_of_two((u32)2) == 2);
-        REQUIRE(next_power_of_two((u32)3) == 4);
-        REQUIRE(next_power_of_two((u32)4) == 4);
-        REQUIRE(next_power_of_two((u32)5) == 8);
-        REQUIRE(next_power_of_two((u32)7) == 8);
+        REQUIRE(roundUpToPowerOfTwo((u32)0) == 0);
+        REQUIRE(roundUpToPowerOfTwo((u32)1) == 1);
+        REQUIRE(roundUpToPowerOfTwo((u32)2) == 2);
+        REQUIRE(roundUpToPowerOfTwo((u32)3) == 4);
+        REQUIRE(roundUpToPowerOfTwo((u32)4) == 4);
+        REQUIRE(roundUpToPowerOfTwo((u32)5) == 8);
+        REQUIRE(roundUpToPowerOfTwo((u32)7) == 8);
 
-        REQUIRE(next_power_of_two((u32)(0x07000000)) == (u32)(0x08000000));
-        REQUIRE(next_power_of_two((u32)(0x08000001)) == (u32)(0x10000000));
-        REQUIRE(next_power_of_two((u32)(0x80000000)) == (u32)(0x80000000));
+        REQUIRE(roundUpToPowerOfTwo((u32)(0x07000000)) == (u32)(0x08000000));
+        REQUIRE(roundUpToPowerOfTwo((u32)(0x08000001)) == (u32)(0x10000000));
+        REQUIRE(roundUpToPowerOfTwo((u32)(0x80000000)) == (u32)(0x80000000));
 
-        REQUIRE(next_power_of_two((u64)(0x07FFFFFFFFFFFFF))
+        REQUIRE(roundUpToPowerOfTwo((u64)(0x07FFFFFFFFFFFFF))
                 ==                (u64)(0x080000000000000));
-        REQUIRE(next_power_of_two((u64)(0x080000000000001))
+        REQUIRE(roundUpToPowerOfTwo((u64)(0x080000000000001))
                 ==                (u64)(0x100000000000000));
-        REQUIRE(next_power_of_two((u64)(0x800000000000000))
+        REQUIRE(roundUpToPowerOfTwo((u64)(0x800000000000000))
                 ==                (u64)(0x800000000000000));
 
         /* UNDESIRABLE BEHAVIOR
          * ====================
-         * The first is a limitation of the `next_power_of_two` function,
+         * The first is a limitation of the `roundUpToPowerOfTwo` function,
          * the second is a limitation of C. */
-        REQUIRE(next_power_of_two((u32)0) == 0);
-        REQUIRE(next_power_of_two((u32)(0x90000000)) == (u32)(0x00000000));
+        REQUIRE(roundUpToPowerOfTwo((u32)0) == 0);
+        REQUIRE(roundUpToPowerOfTwo((u32)(0x90000000)) == (u32)(0x00000000));
     }
 
     SECTION("should correctly round numbers down to the nearest power of two") {
