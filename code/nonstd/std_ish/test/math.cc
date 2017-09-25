@@ -12,7 +12,7 @@ namespace nonstd_test {
 namespace math {
 
 using nonstd::maskLowestBits;
-using nonstd::is_power_of_two;
+using nonstd::isPowerOfTwo;
 using nonstd::next_power_of_two;
 using nonstd::previous_power_of_two;
 
@@ -44,17 +44,17 @@ TEST_CASE("Math Utilities", "[nonstd]") {
     }
 
     SECTION("should correctly detect power-of-two numbers") {
-        REQUIRE(is_power_of_two(1));
-        REQUIRE(is_power_of_two(2));
-        REQUIRE(is_power_of_two(4));
-        REQUIRE(is_power_of_two(8));
-        REQUIRE(is_power_of_two( (u64)(0x8000000000000000) ));
+        REQUIRE(isPowerOfTwo(1));
+        REQUIRE(isPowerOfTwo(2));
+        REQUIRE(isPowerOfTwo(4));
+        REQUIRE(isPowerOfTwo(8));
+        REQUIRE(isPowerOfTwo( (u64)(0x8000000000000000) ));
 
-        REQUIRE_FALSE(is_power_of_two(0));
-        REQUIRE_FALSE(is_power_of_two(3));
-        REQUIRE_FALSE(is_power_of_two(5));
-        REQUIRE_FALSE(is_power_of_two( (u64)(0x7FFFFFFFFFFFFFFF) ));
-        REQUIRE_FALSE(is_power_of_two( (u64)(0x8000000000000001) ));
+        REQUIRE_FALSE(isPowerOfTwo(0));
+        REQUIRE_FALSE(isPowerOfTwo(3));
+        REQUIRE_FALSE(isPowerOfTwo(5));
+        REQUIRE_FALSE(isPowerOfTwo( (u64)(0x7FFFFFFFFFFFFFFF) ));
+        REQUIRE_FALSE(isPowerOfTwo( (u64)(0x8000000000000001) ));
     }
 
     SECTION("should correctly round numbers up to the nearest power of two") {

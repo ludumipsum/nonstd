@@ -65,7 +65,7 @@ constexpr T maskLowestBits(u16 nbits) noexcept {
  *  ----------------
  */
 template<typename T> inline
-constexpr bool is_power_of_two(T num) noexcept {
+constexpr bool isPowerOfTwo(T num) noexcept {
     return (num && !(num & (num - 1)));
 }
 
