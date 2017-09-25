@@ -12,7 +12,7 @@
 
 namespace nonstd {
 
-constexpr inline u32 four_char_code(u8 a, u8 b, u8 c, u8 d) {
+constexpr inline u32 four_char_code(u8 a, u8 b, u8 c, u8 d) noexcept {
     return (u32)( (u32(d) << 24 )
                 | (u32(c) << 16 )
                 | (u32(b) <<  8 )

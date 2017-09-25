@@ -30,7 +30,7 @@ struct Color {
 
 
 /* Construct empty */
-inline Color color() { return Color {0}; }
+constexpr inline Color color() noexcept { return Color { 0 }; }
 
 /* Construct from 4 numeric parameters */
 template <typename T, typename U, typename V, typename W>
