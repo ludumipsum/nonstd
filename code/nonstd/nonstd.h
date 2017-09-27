@@ -49,6 +49,10 @@
 /* {{fmt}} printing library
  * see http://fmtlib.net/latest/api.html */
 #include <fmt/format.h>
+#include <fmt/ostream.h>
+#include <fmt/printf.h>
+#include <fmt/string.h>
+#include <fmt/time.h>
 
 
 /* Nitrogen Extensions */
