@@ -34,6 +34,8 @@
 #include <functional>
 #include <iterator>
 #include <limits>
+#include <ostream>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
