@@ -46,6 +46,10 @@
 #include <alloca.h> // alloca
 #endif
 
+/* {{fmt}} printing library
+ * see http://fmtlib.net/latest/api.html */
+#include <fmt/format.h>
+
 
 /* Nitrogen Extensions */
 #include "preprocessor/disallow_copy_and_assign.h"
