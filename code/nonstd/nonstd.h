@@ -63,6 +63,7 @@
 #include "preprocessor/symbol_stringifier.h"
 #include "preprocessor/unused.h"
 
+#include "cpp1z/any_t.h"
 #include "cpp1z/in_place_t.h"
 #include "cpp1z/special_member_filters.h"
 #include "cpp1z/type_trait_assertions.h"
