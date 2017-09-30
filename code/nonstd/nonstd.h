@@ -48,8 +48,7 @@
 #include <alloca.h> // alloca
 #endif
 
-/* {{fmt}} printing library
- * see http://fmtlib.net/latest/api.html */
+/* {{fmt}} printing library */
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
