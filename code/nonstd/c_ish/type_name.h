@@ -78,20 +78,42 @@ public:
  */
 template <class T>
 constexpr StaticString type_name() {
-    c_cstr p = __PRETTY_FUNCTION__;
-    while (*(++p) != '='); // Skip p to the first `=`.
-    while (*(++p) == ' '); // Skip p past any spaces.
+    #if !defined(_MSC_VER)
+        // TODO: Document the output format for clang and gcc
+        c_cstr p = __PRETTY_FUNCTION__;
+        while (*(++p) != '='); // Skip p to the first `=`.
+        while (*(++p) == ' '); // Skip p past any spaces.
 
-    c_cstr q = p;
-    u16 count = 1; // We will have skipped over the first '['. Find its pair.
-    while (count > 0) {
-        ++q;
-        switch (*q) {
-        case '[': { ++count; } break;
-        case ']': { --count; } break;
+        c_cstr q = p;
+        u16 count = 1; // We will have skipped over the first '['. Find its pair.
+        while (count > 0) {
+            ++q;
+            switch (*q) {
+            case '[': { ++count; } break;
+            case ']': { --count; } break;
+            }
         }
-    }
-    return StaticString(p, (i32)(q-p));
+        return StaticString(p, (i32)(q-p));
+    #else
+        // Visual studio __PRETTY_FUNCTION__ emits templates in this form:
+        //
+        //     class nonstd::StaticString __cdecl nonstd::type_name<struct SDL_main::SomeBullshit>(void)
+        //
+        // To parse that, we need to find the stuff between the first < and the
+        // last >, since that'll be everything within our class' template.
+
+        // Find the start of our typename
+        c_cstr p = __PRETTY_FUNCTION__;
+        while (*(++p) != '<');
+        p += 1;
+
+        // Find the end of our typename
+        c_cstr q = p;
+        while (*(++q) != '\0');
+        while (*(--q) != '>');
+
+        return StaticString(p, (i32)(q-p));
+    #endif
 }
 
 
