@@ -32,12 +32,19 @@
 
 #pragma once
 
+#include <iostream>
+
+#include <fmt/format.h>
+#include <fmt/string.h>
+
 #include "nonstd/preprocessor/homogenize.h"
 #include "nonstd/cpp1z/in_place_t.h"
 #include "nonstd/cpp1z/type_trait_assertions.h"
 #include "nonstd/cpp1z/type_traits.h"
 #include "nonstd/cpp1z/special_member_filters.h"
+#include "nonstd/cpp1z/valid_expression_tester.h"
 #include "nonstd/core/break.h"
+#include "nonstd/c_ish/type_name.h"
 
 
 /** Utilities
@@ -1412,6 +1419,90 @@ constexpr inline int compare(Optional<T> const & lhs, Value const & rhs) {
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr inline int compare(Value const & lhs, Optional<T> const & rhs) {
     return (bool)(rhs) ? nonstd::compare(lhs, *rhs) : 1;
+}
+
+
+/** Print Specializations, Both `ostream & operator<<` And {fmt}
+ *  ============================================================
+ *  Allows for `std::cout << opt <<"\n"` and `fmt::print("{}\n", opt);` style
+ *  formatting, and will only print the contained value if said value can be
+ *  passed into an `ostream &` via `operator <<`.
+ *
+ *  NB. Because of {fmt}'s implementation of its `format_arg` global function
+ *  (specifically how it's arguments are templated), we can't test for the
+ *  existence of a global override (it exists for all types). Contained types
+ *  _may_ override this function, for improved printing speeds, but in order for
+ *  this pretty print to print them, they _must_ also override
+ *  `ostream & operator <<`
+ *
+ *  Usage;
+ *      fmt::print("{}\n", Optional<f32>{ 4.f });
+ *      std::count <<      Optional<f32>{     } << "\n";
+ *      fmt::print("{}\n", Optional<c_cstr>{ "Hello" });
+ *      std::count <<      Optional<c_cstr>{         }) << "\n";
+ *      std::count <<      Optional<NoPrintOverload<f32>>{{ 4.f }}) << "\n";
+ *      fmt::print("{}\n", Optional<NoPrintOverload<f32>>{       });
+ *  >>
+ *      [Optional<float>{ 4 }]
+ *      [Optional<float>{  }]
+ *      [Optional<const char *>{ Hello }]
+ *      [Optional<const char *>{  }]
+ *      [Optional<StructWithoutOStreamPrinter<float>>{ /unprintable/ }]
+ *      [Optional<StructWithoutOStreamPrinter<float>>{  }]
+ */
+namespace detail {
+    auto has_insertion_operator = N2VET_TESTER(
+            N2VET_WITH_ARGS(t),
+            N2VET_TESTING_EXPRESSION(std::cout << t)
+        );
+}
+
+/** OStream Insertion Operator
+ *  -------------------------- */
+template <typename T>
+ENABLE_IF_DTYPE(N2VET_IS_VALID(detail::has_insertion_operator,
+                               N2VET_WITH_TYPES(T)),
+    std::ostream &)
+operator << (std::ostream & s, Optional<T> const & opt) {
+    return s << "[Optional<" << type_name<T>() << ">{ "
+             << ((bool)opt ? fmt::format("{}", *opt).c_str() : "")
+             << " }]";
+}
+
+template <typename T>
+ENABLE_IF_DTYPE(!N2VET_IS_VALID(detail::has_insertion_operator,
+                                N2VET_WITH_TYPES(T)),
+    std::ostream &)
+operator << (std::ostream & s, Optional<T> const & opt) {
+    return s << "[Optional<" << type_name<T>() << ">{ "
+             << ((bool)opt ? "/unprintable/" : "")
+             << " }]";
+}
+
+/** {fmt} args overload
+ *  ------------------- */
+template <typename T>
+ENABLE_IF_DTYPE(N2VET_IS_VALID(detail::has_insertion_operator,
+                              N2VET_WITH_TYPES(T)),
+    void)
+format_arg(fmt::BasicFormatter<char> & f,
+           c_cstr                    & format_str,
+           Optional<T> const         & opt) {
+    f.writer().write("[Optional<{}>{{ {} }}]",
+                     type_name<T>(),
+                     (bool)opt ? fmt::format("{}", *opt).c_str() : "");
+}
+
+template <typename T>
+ENABLE_IF_DTYPE(!N2VET_IS_VALID(detail::has_insertion_operator,
+                               N2VET_WITH_TYPES(T)),
+    void)
+format_arg(fmt::BasicFormatter<char> & f,
+           c_cstr                    & format_str,
+           Optional<T> const         & opt) {
+    f.writer().write("[Optional<{}>{{ {} }}]",
+                     type_name<T>(),
+                     (bool)opt ? "/unprintable/" : "");
 }
 
 } /* namespace nonstd */
