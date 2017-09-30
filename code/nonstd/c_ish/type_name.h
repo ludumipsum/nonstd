@@ -38,22 +38,6 @@
 
 namespace nonstd {
 
-/** CPP14_CONSTEXPR
- *  ---------------
- *  At the time of writing, MSVC hasn't implemented the C++14 extended
- *  constexpr specification, so we're limited in our use of `constexpr`.
- */
-#if defined(_MSC_VER)
-#  if _MSC_VER < 2000
-#    define CPP14_CONSTEXPR
-#  else
-#    define CPP14_CONSTEXPR constexpr
-#  endif
-#else
-#  define CPP14_CONSTEXPR constexpr
-#endif
-
-
 /** StaticString
  *  ------------
  *  Very similar to std::string, without many (most) of the bells and whistles,
@@ -84,7 +68,6 @@ public:
     constexpr char operator[](size_t n) const {
         return n < len ? p[n] : throw std::out_of_range("StaticString");
     }
-
 };
 
 
@@ -94,21 +77,21 @@ public:
  *  points to the name of the template argument passed in to its invocation.
  */
 template <class T>
-CPP14_CONSTEXPR StaticString type_name() {
-#ifdef __clang__
-    StaticString p = __PRETTY_FUNCTION__;
-    return StaticString(p.data() + 46, p.size() - 46 - 1);
-#elif defined(__GNUC__)
-    StaticString p = __PRETTY_FUNCTION__;
-#  if __cplusplus < 201402
-    return StaticString(p.data() + 36, p.size() - 36 - 1);
-#  else
-    return StaticString(p.data() + 46, p.size() - 46 - 1);
-#  endif
-#elif defined(_MSC_VER)
-    StaticString p = __FUNCSIG__;
-    return StaticString(p.data() + 38, p.size() - 38 - 7);
-#endif
+constexpr StaticString type_name() {
+    c_cstr p = __PRETTY_FUNCTION__;
+    while (*(++p) != '='); // Skip p to the first `=`.
+    while (*(++p) == ' '); // Skip p past any spaces.
+
+    c_cstr q = p;
+    u16 count = 1; // We will have skipped over the first '['. Find its pair.
+    while (count > 0) {
+        ++q;
+        switch (*q) {
+        case '[': { ++count; } break;
+        case ']': { --count; } break;
+        }
+    }
+    return StaticString(p, (i32)(q-p));
 }
 
 
