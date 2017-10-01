@@ -26,7 +26,6 @@
 #define    N2VET_EXPAND          BOOST_PP_SEQ_ENUM
 #define    N2VET_MAP             BOOST_PP_SEQ_FOR_EACH
 #define    N2VET_VARIADIC_TO_SEQ BOOST_PP_VARIADIC_TO_SEQ
-#define foo BOOST_PP_SEQ_ENUM_0
 
 /** N2VET_TESTER(Args: SEQ, Expression: SEQ)
  *  ==========================================
