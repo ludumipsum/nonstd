@@ -35,6 +35,9 @@
 #define TYPE_NAME(T) (int)nonstd::type_name<T>().size(), \
                           nonstd::type_name<T>().data()
 
+#define TYPE_NAME_OF(Var) (int)nonstd::type_name_of(Var).size(), \
+                               nonstd::type_name_of(Var).data()
+
 
 namespace nonstd {
 
@@ -76,17 +79,28 @@ public:
  *  Returns a compile-time (if possible, runtime if not) StaticString that
  *  points to the name of the template argument passed in to its invocation.
  */
-template <class T>
+template <typename T>
 constexpr StaticString type_name() {
     #if !defined(_MSC_VER)
-        // TODO: Document the output format for clang and gcc
+        // Clang (Apple LLVM version 9.0.0 (clang-900.0.37) ) emits
+        // __PRETTY_FUNCTION__ strings that include templated in this form:
+        //
+        //     nonstd::StaticString nonstd::type_name() [T = SomeBullshit]
+        //
+        // GCC (5.4.0) emits templated strings in this form:
+        //
+        //      nonstd::StaticString nonstd::type_name() [with T = SomeBullshit]
+        //
+        // To parse these, we need to find the stuff betwee the first `= ` and
+        // last `]`, since that will be the type included in the template.
         c_cstr p = __PRETTY_FUNCTION__;
-        while (*(++p) != '='); // Skip p to the first `=`.
-        while (*(++p) == ' '); // Skip p past any spaces.
+        while (*(++p) != '='); //< Find the first `=`.
+        while (*(++p) == ' '); //< Move past any spaces.
 
         c_cstr q = p;
-        u16 count = 1; // We will have skipped over the first '['. Find its pair.
-        while (count > 0) {
+        u16 count = 1; //< Track how many `[`s we've seen in order to find the
+                       //< final `]`.
+        while (count > 0 && *q != '\0') {
             ++q;
             switch (*q) {
             case '[': { ++count; } break;
@@ -95,9 +109,9 @@ constexpr StaticString type_name() {
         }
         return StaticString(p, (i32)(q-p));
     #else
-        // Visual studio __PRETTY_FUNCTION__ emits templates in this form:
+        // Visual Studio emits templated strings in this form:
         //
-        //     class nonstd::StaticString __cdecl nonstd::type_name<struct SDL_main::SomeBullshit>(void)
+        //     class nonstd::StaticString __cdecl nonstd::type_name<struct SomeBullshit>(void)
         //
         // To parse that, we need to find the stuff between the first < and the
         // last >, since that'll be everything within our class' template.
@@ -109,11 +123,22 @@ constexpr StaticString type_name() {
 
         // Find the end of our typename
         c_cstr q = p;
-        while (*(++q) != '\0');
-        while (*(--q) != '>');
-
+        u16 count = 1; //< Track how many `<`s we've seen, in order to find the
+                       //< final `>`.
+        while (count > 0 && *q != '\0') {
+            ++q;
+            switch (*q) {
+            case '<': { ++count; } break;
+            case '>': { --count; } break;
+            }
+        }
         return StaticString(p, (i32)(q-p));
     #endif
+}
+
+template <typename T>
+constexpr StaticString type_name_of(T const & /*unused*/) {
+    return type_name<T>();
 }
 
 
