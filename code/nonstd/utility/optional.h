@@ -1421,6 +1421,8 @@ constexpr inline int compare(Value const & lhs, Optional<T> const & rhs) {
     return (bool)(rhs) ? nonstd::compare(lhs, *rhs) : 1;
 }
 
+} /* namespace nonstd */
+
 
 /** Print Specializations, Both `ostream & operator<<` And {fmt}
  *  ============================================================
@@ -1450,31 +1452,31 @@ constexpr inline int compare(Value const & lhs, Optional<T> const & rhs) {
  *      [Optional<StructWithoutOStreamPrinter<float>>{ /unprintable/ }]
  *      [Optional<StructWithoutOStreamPrinter<float>>{  }]
  */
-namespace detail {
-    auto has_insertion_operator = N2VET_TESTER(
-            N2VET_WITH_ARGS(t),
-            N2VET_TESTING_EXPRESSION(std::cout << t)
-        );
-}
+auto optional__has_insertion_operator = nonstd::valid_expression_tester(
+        [](auto && t) -> decltype(std::cout << t) { }
+    );
+
+template <typename T>
+using optional__has_insertion_operator_alias =
+    decltype(operator_detail__has_insertion_operator(std::declval<T>()));
+
 
 /** OStream Insertion Operator
  *  -------------------------- */
 template <typename T>
-ENABLE_IF_DTYPE(N2VET_IS_VALID(detail::has_insertion_operator,
-                               N2VET_WITH_TYPES(T)),
+ENABLE_IF_DTYPE( optional__has_insertion_operator_alias<T>::value,
     std::ostream &)
 operator << (std::ostream & s, Optional<T> const & opt) {
-    return s << "[Optional<" << type_name<T>() << ">{ "
+    return s << "[Optional<" << nonstd::type_name<T>() << ">{ "
              << ((bool)opt ? fmt::format("{}", *opt).c_str() : "")
              << " }]";
 }
 
 template <typename T>
-ENABLE_IF_DTYPE(!N2VET_IS_VALID(detail::has_insertion_operator,
-                                N2VET_WITH_TYPES(T)),
+ENABLE_IF_DTYPE(!optional__has_insertion_operator_alias<T>::value,
     std::ostream &)
 operator << (std::ostream & s, Optional<T> const & opt) {
-    return s << "[Optional<" << type_name<T>() << ">{ "
+    return s << "[Optional<" << nonstd::type_name<T>() << ">{ "
              << ((bool)opt ? "/unprintable/" : "")
              << " }]";
 }
@@ -1482,27 +1484,21 @@ operator << (std::ostream & s, Optional<T> const & opt) {
 /** {fmt} args overload
  *  ------------------- */
 template <typename T>
-ENABLE_IF_DTYPE(N2VET_IS_VALID(detail::has_insertion_operator,
-                              N2VET_WITH_TYPES(T)),
-    void)
+ENABLE_IF_TYPE(optional__has_insertion_operator_alias<T>::value)
 format_arg(fmt::BasicFormatter<char> & f,
            c_cstr                    & format_str,
            Optional<T> const         & opt) {
     f.writer().write("[Optional<{}>{{ {} }}]",
-                     type_name<T>(),
+                     nonstd::type_name<T>(),
                      (bool)opt ? fmt::format("{}", *opt).c_str() : "");
 }
 
 template <typename T>
-ENABLE_IF_DTYPE(!N2VET_IS_VALID(detail::has_insertion_operator,
-                               N2VET_WITH_TYPES(T)),
-    void)
+ENABLE_IF_TYPE(!optional__has_insertion_operator_alias<T>::value)
 format_arg(fmt::BasicFormatter<char> & f,
            c_cstr                    & format_str,
            Optional<T> const         & opt) {
     f.writer().write("[Optional<{}>{{ {} }}]",
-                     type_name<T>(),
+                     nonstd::type_name<T>(),
                      (bool)opt ? "/unprintable/" : "");
 }
-
-} /* namespace nonstd */
