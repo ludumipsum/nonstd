@@ -5,7 +5,7 @@
  *  https://jguegant.github.io/blogs/tech/sfinae-introduction.html
  *
  *  The simplest way to leverage this construct is via the `N2VET_PARAM_TESTER`
- *  and `N2VET_TYPE_TESTER` construction macros. Long story short;
+ *  and `N2VET_TYPES_TESTER` construction macros. Long story short;
  *
  *      namespace can_do_stuff {
  *          N2VET_PARAMS_TESTER(
@@ -13,7 +13,7 @@
  *              N2VET_WITH_ARGS(t, u),
  *              N2VET_TESTING_EXPRESSION(t.doStuff(u))
  *          );
- *          N2VET_TYPE_TESTER(
+ *          N2VET_TYPES_TESTER(
  *              N2VET_NAMED(types),
  *              N2VET_FROM_PARAMS_TESTER(params),
  *              N2VET_WITH_TEMPLATE_ARGS(T, U)
@@ -61,7 +61,7 @@
  *        These constructs **must** be used in return-type SFINAE calls
  *
  *  * A great deal of complexity here is mandated by MSVC's interpretation of
- *    SFINAE rules. In Clang and GCC, the `N2VET_TYPE_TESTER` is actually
+ *    SFINAE rules. In Clang and GCC, the `N2VET_TYPES_TESTER` is actually
  *    redundant, but MSVC requires that additional layer of template
  *    specialization to parse and compile. If the below ever compiles on MSVC,
  *    we could revisit and simplify this construct.
@@ -140,7 +140,7 @@
     N2VET_VARIADIC_TO_SEQ(__VA_ARGS__)
 
 
-/** N2VET_TYPE_TESTER(Name: Identifier,
+/** N2VET_TYPES_TESTER(Name: Identifier,
  *                    ParamTester: N2VET_PARAM_TESTER,
  *                    TemplateArgs: SEQ)
  *  ==================================================
@@ -151,7 +151,7 @@
  *  use and implementation in-line with `N2VET_PARAMS_TESTER`. Use
  *  `N2VET_WITH_TEMPLATE_ARGS` to pass in template arguments.
  */
-#define N2VET_TYPE_TESTER(Name, ParamTester, TemplateArgs)              \
+#define N2VET_TYPES_TESTER(Name, ParamTester, TemplateArgs)              \
     template <N2VET_MAP_TYPENAME(TemplateArgs)>                         \
     using Name = decltype(ParamTester(N2VET_MAP_DECLVAL(TemplateArgs)))
 

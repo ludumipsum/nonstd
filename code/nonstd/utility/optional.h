@@ -1462,7 +1462,7 @@ namespace has_insertion_operator {
         N2VET_TESTING_EXPRESSION(std::cout << t)
     );
 
-    N2VET_TYPE_TESTER(
+    N2VET_TYPES_TESTER(
         N2VET_NAMED(types),
         N2VET_FROM_PARAM_TESTER(params),
         N2VET_WITH_TEMPLATE_ARGS(T)
