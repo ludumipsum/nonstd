@@ -1458,7 +1458,7 @@ auto optional__has_insertion_operator = nonstd::valid_expression_tester(
 
 template <typename T>
 using optional__has_insertion_operator_alias =
-    decltype(operator_detail__has_insertion_operator(std::declval<T>()));
+    decltype(optional__has_insertion_operator(std::declval<T>()));
 
 
 /** OStream Insertion Operator
