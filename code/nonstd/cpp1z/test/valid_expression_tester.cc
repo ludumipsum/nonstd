@@ -28,10 +28,18 @@ N2VET_TYPES_TESTER(
     N2VET_WITH_TEMPLATE_ARGS(T)
 );
 
-static_assert( is_convertible_to_f32<u32>::value,
-              "u32s are convertible to f32.");
-static_assert(!is_convertible_to_f32<std::string>::value,
-              "std::strings are not convertible to f32.");
+
+TEST_CASE("Simple N2VET Testers", "[nonstd][sfinae]") {
+    SECTION("should function at both compile time, and at run time") {
+        static_assert( is_convertible_to_f32<u32>::value,         "");
+        static_assert(!is_convertible_to_f32<std::string>::value, "");
+
+        u32 u = 1;
+        std::string s = "one";
+        REQUIRE(is_convertible_to_f32_param_tester(u).value == true);
+        REQUIRE(is_convertible_to_f32_param_tester(s).value == false);
+    }
+}
 
 
 /** Class Member Tests
@@ -95,14 +103,6 @@ struct E {
     Functor stringify;
 };
 
-/* Static Tests! */
-static_assert( ! has_stringify::types<A>::value, "");
-static_assert(   has_stringify::types<B>::value, "");
-static_assert( ! has_stringify::types<C>::value, "");
-static_assert(   has_stringify::types<D>::value, "");
-static_assert(   has_stringify::types<E>::value, "");
-
-
 /** SFINAE'd Template Function Specializations
  *  ------------------------------------------
  *  Like it says on the tin. This is probably the way to get run-time goodness
@@ -116,16 +116,27 @@ ENABLE_IF_DTYPE(!has_stringify::types<T>::value, std::string)
 /* std::string */globalStringify(T& obj) { return to_string(obj); }
 
 
-TEST_CASE("The N2VET_TESTER Construct", "[nonstd][sfinae]") {
+TEST_CASE("Complex N2VET TESTER", "[nonstd][sfinae]") {
+    SECTION("should function at both compile time, and at run time") {
+        static_assert( ! has_stringify::types<A>::value, "");
+        static_assert(   has_stringify::types<B>::value, "");
+        static_assert( ! has_stringify::types<C>::value, "");
+        static_assert(   has_stringify::types<D>::value, "");
+        static_assert(   has_stringify::types<E>::value, "");
 
-    SECTION("should be able to correctly... function") {
+        A a; REQUIRE(has_stringify::params(a).value == false);
+        B b; REQUIRE(has_stringify::params(b).value == true );
+        C c; REQUIRE(has_stringify::params(c).value == false);
+        D d; REQUIRE(has_stringify::params(d).value == true );
+        E e; REQUIRE(has_stringify::params(e).value == true );
+    }
 
+    SECTION("should function in SFINAE template resolution") {
         A a; REQUIRE(std::string{"A::to_string"} == globalStringify(a));
         B b; REQUIRE(std::string{"B::stringify"} == globalStringify(b));
         C c; REQUIRE(std::string{"C::to_string"} == globalStringify(c));
         D d; REQUIRE(std::string{"D::stringify"} == globalStringify(d));
         E e; REQUIRE(std::string{"E::stringify"} == globalStringify(e));
-
     }
 }
 
