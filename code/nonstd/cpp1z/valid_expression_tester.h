@@ -156,11 +156,11 @@
     using Name = decltype(ParamTester(N2VET_MAP_DECLVAL(TemplateArgs)))
 
 
-/** N2VET_FROM_PARAM_TESTER(ParamTester: Identifier)
- *  ------------------------------------------------
+/** N2VET_FROM_PARAMS_TESTER(ParamTester: Identifier)
+ *  -------------------------------------------------
  *  Pass-through, just for readability's sake.
  */
-#define N2VET_FROM_PARAM_TESTER(ParamTester) \
+#define N2VET_FROM_PARAMS_TESTER(ParamTester) \
     ParamTester
 
 /** N2VET_WITH_TEMPLATE_ARGS(...)
