@@ -1470,18 +1470,18 @@ template <typename T>
 ENABLE_IF_DTYPE( detail::has_insertion_operator<T>::value,
     std::ostream &)
 operator << (std::ostream & s, Optional<T> const & opt) {
-    return s << "[Optional<" << type_name<T>() << ">{ "
+    return s << "Optional<" << type_name<T>() << ">{ "
              << ((bool)opt ? fmt::format("{}", *opt).c_str() : "")
-             << " }]";
+             << " }";
 }
 
 template <typename T>
 ENABLE_IF_DTYPE(!detail::has_insertion_operator<T>::value,
     std::ostream &)
 operator << (std::ostream & s, Optional<T> const & opt) {
-    return s << "[Optional<" << type_name<T>() << ">{ "
+    return s << "Optional<" << type_name<T>() << ">{ "
              << ((bool)opt ? "/unprintable/" : "")
-             << " }]";
+             << " }";
 }
 
 /** {fmt} args overload
@@ -1491,7 +1491,7 @@ ENABLE_IF_TYPE( detail::has_insertion_operator<T>::value)
 format_arg(fmt::BasicFormatter<char> & f,
            c_cstr                    & format_str,
            Optional<T> const         & opt) {
-    f.writer().write("[Optional<{}>{{ {} }}]",
+    f.writer().write("Optional<{}>{{ {} }}",
                      type_name<T>(),
                      (bool)opt ? fmt::format("{}", *opt).c_str() : "");
 }
@@ -1501,7 +1501,7 @@ ENABLE_IF_TYPE(!detail::has_insertion_operator<T>::value)
 format_arg(fmt::BasicFormatter<char> & f,
            c_cstr                    & format_str,
            Optional<T> const         & opt) {
-    f.writer().write("[Optional<{}>{{ {} }}]",
+    f.writer().write("Optional<{}>{{ {} }}",
                      type_name<T>(),
                      (bool)opt ? "/unprintable/" : "");
 }
