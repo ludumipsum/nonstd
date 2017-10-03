@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <iostream>
+
+#include <fmt/format.h>
+
 #include "primitive_types.h"
 #include "variadic_expand.h"
 
@@ -24,19 +28,12 @@
  *  message actually printed.
  */
 #if defined(N2_DISABLE_LOGGING)
-    #define LOG(MESSAGE, ...)
+#   define LOG(FMT_STRING, ...)
 #elif defined(DEBUG)
-    static char format_verification[1] = {0};
-    #define LOG(MESSAGE, ...)                                         \
-        snprintf(format_verification, 0, MESSAGE, ##__VA_ARGS__);     \
-        ::nonstd::detail::logMessage(                                 \
-            ::nonstd::variadicExpand(MESSAGE, ##__VA_ARGS__).c_str(), \
-            __FILE__, __LINE__, __FUNCTION__)
-#else
-    #define LOG(MESSAGE, ...)                                         \
-        ::nonstd::detail::logMessage(                                 \
-            ::nonstd::variadicExpand(MESSAGE, ##__VA_ARGS__).c_str(), \
-            __FILE__, __LINE__, __FUNCTION__)
+#   define LOG(FMT_STRING, ...)                                        \
+        ::nonstd::detail::logMessage(FMT_STRING,                       \
+                                     __FILE__, __LINE__, __FUNCTION__, \
+                                     ##__VA_ARGS__)
 #endif
 
 
@@ -45,27 +42,31 @@ namespace detail {
 
 /** Logging Implementation
  *  ----------------------
- *  Actually emit text from calls made with LOG(...)
+ *  Actually emit text from `LOG(...)` invocations.
  */
-inline i32 logMessage(c_cstr    message,
-                      c_cstr    file,
-                      i32 const line,
-                      c_cstr    function)
-{
+template <typename ... Args>
+inline void logMessage(c_cstr    format_str,
+                       c_cstr    __file__,
+                       i32 const __line__,
+                       c_cstr    __pretty_function__,
+                       Args ...  args) {
     #if defined(_MSC_VER)
         static const char path_delimiter = '\\';
     #else
         static const char path_delimiter = '/';
     #endif
-    cstr filename = (cstr)strrchr(file, path_delimiter);
-    if (filename==NULL) {
-        return printf("%s:%d %s -- %s\n",
-                      file, line,
-                      function, message);
+    cstr filename = (cstr)strrchr(__file__, path_delimiter)+1;
+
+    fmt::MemoryWriter o;
+    if (filename) {
+        o.write("{}:{} {} -- ", filename, __line__, __pretty_function__);
+    } else {
+        o.write("{}:{} {} -- ", __file__, __line__, __pretty_function__);
     }
-    return printf("%s:%d %s -- %s\n",
-                  filename+1, line,
-                  function, message);
+    o.write(format_str, args...);
+    o.write("\n");
+    std::cout << o.str();
+    return;
 }
 
 } /* namespace detail */
