@@ -51,9 +51,6 @@
 /* {{fmt}} printing library */
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <fmt/printf.h>
-#include <fmt/string.h>
-#include <fmt/time.h>
 
 
 /* Nitrogen Extensions */
