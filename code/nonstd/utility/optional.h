@@ -1450,57 +1450,66 @@ constexpr inline int compare(Value const & lhs, Optional<T> const & rhs) {
  *      [Optional<StructWithoutOStreamPrinter<float>>{ /unprintable/ }]
  *      [Optional<StructWithoutOStreamPrinter<float>>{  }]
  */
-namespace detail {
-    auto has_insertion_operator = N2VET_TESTER(
-            N2VET_WITH_ARGS(t),
-            N2VET_TESTING_EXPRESSION(std::cout << t)
-        );
-}
+// TODO: These namespaces are... sub-par. That I felt the need to make them
+//       suggests that leaving Optional in the global namespace is... bad.
+//       Come up with a better solution to both problems.
+namespace optional {
+namespace has_insertion_operator {
+
+    N2VET_PARAMS_TESTER(
+        N2VET_NAMED(params),
+        N2VET_WITH_ARGS(t),
+        N2VET_TESTING_EXPRESSION(std::cout << t)
+    );
+
+    N2VET_TYPES_TESTER(
+        N2VET_NAMED(types),
+        N2VET_FROM_PARAMS_TESTER(params),
+        N2VET_WITH_TEMPLATE_ARGS(T)
+    );
+
+} /* namespace has_insertion_operator */
+} /* namespace optional */
+
 
 /** OStream Insertion Operator
  *  -------------------------- */
 template <typename T>
-ENABLE_IF_DTYPE(N2VET_IS_VALID(detail::has_insertion_operator,
-                               N2VET_WITH_TYPES(T)),
-    std::ostream &)
-operator << (std::ostream & s, Optional<T> const & opt) {
-    return s << "[Optional<" << type_name<T>() << ">{ "
+ENABLE_IF_DTYPE(optional::has_insertion_operator::types<T>::value,
+                std::ostream &)
+/* std::ostream& */ operator << (std::ostream & s, Optional<T> const & opt) {
+    return s << "Optional<" << type_name<T>() << ">{ "
              << ((bool)opt ? fmt::format("{}", *opt).c_str() : "")
-             << " }]";
+             << " }";
 }
 
 template <typename T>
-ENABLE_IF_DTYPE(!N2VET_IS_VALID(detail::has_insertion_operator,
-                                N2VET_WITH_TYPES(T)),
-    std::ostream &)
-operator << (std::ostream & s, Optional<T> const & opt) {
-    return s << "[Optional<" << type_name<T>() << ">{ "
+ENABLE_IF_DTYPE(!optional::has_insertion_operator::types<T>::value,
+                std::ostream &)
+/* std::ostream& */ operator << (std::ostream & s, Optional<T> const & opt) {
+    return s << "Optional<" << type_name<T>() << ">{ "
              << ((bool)opt ? "/unprintable/" : "")
-             << " }]";
+             << " }";
 }
 
 /** {fmt} args overload
  *  ------------------- */
 template <typename T>
-ENABLE_IF_DTYPE(N2VET_IS_VALID(detail::has_insertion_operator,
-                              N2VET_WITH_TYPES(T)),
-    void)
+ENABLE_IF_TYPE( optional::has_insertion_operator::types<T>::value)
 format_arg(fmt::BasicFormatter<char> & f,
            c_cstr                    & format_str,
            Optional<T> const         & opt) {
-    f.writer().write("[Optional<{}>{{ {} }}]",
+    f.writer().write("Optional<{}>{{ {} }}",
                      type_name<T>(),
                      (bool)opt ? fmt::format("{}", *opt).c_str() : "");
 }
 
 template <typename T>
-ENABLE_IF_DTYPE(!N2VET_IS_VALID(detail::has_insertion_operator,
-                               N2VET_WITH_TYPES(T)),
-    void)
+ENABLE_IF_TYPE(!optional::has_insertion_operator::types<T>::value)
 format_arg(fmt::BasicFormatter<char> & f,
            c_cstr                    & format_str,
            Optional<T> const         & opt) {
-    f.writer().write("[Optional<{}>{{ {} }}]",
+    f.writer().write("Optional<{}>{{ {} }}",
                      type_name<T>(),
                      (bool)opt ? "/unprintable/" : "");
 }
