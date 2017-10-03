@@ -34,6 +34,8 @@
 #include <functional>
 #include <iterator>
 #include <limits>
+#include <ostream>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -46,9 +48,12 @@
 #include <alloca.h> // alloca
 #endif
 
-/* {{fmt}} printing library
- * see http://fmtlib.net/latest/api.html */
+/* {{fmt}} printing library */
 #include <fmt/format.h>
+#include <fmt/ostream.h>
+#include <fmt/printf.h>
+#include <fmt/string.h>
+#include <fmt/time.h>
 
 
 /* Nitrogen Extensions */
@@ -57,6 +62,7 @@
 #include "preprocessor/symbol_stringifier.h"
 #include "preprocessor/unused.h"
 
+#include "cpp1z/any_t.h"
 #include "cpp1z/in_place_t.h"
 #include "cpp1z/special_member_filters.h"
 #include "cpp1z/type_trait_assertions.h"
