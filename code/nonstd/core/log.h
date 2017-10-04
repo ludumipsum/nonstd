@@ -44,8 +44,34 @@ namespace log {
         __FILE__, __LINE__, __FUNCTION__                                      \
     }
 
-/** Logging Implementation
- *  ----------------------
+/** Persisted Logging
+ *  -----------------
+ *  If you want to aggregate multiple log lines across multiple calls into a
+ *  single log entry, you can definitely choose to use this instead of something
+ *  that's not this.
+ *
+ *  Usage;
+ *      { SCOPE_LOG(logger, info)
+ *          logger << "Some text\n";
+ *          for (auto && i : Range(10)) {
+ *              logger.align() << i << " more text\n";
+ *          }
+ *      }
+ */
+#define SCOPE_LOG(...) \
+    BOOST_PP_OVERLOAD(SCOPE_LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
+#define SCOPE_LOG_IMPL2(NAME, LEVEL) \
+    SCOPE_LOG_IMPL3(NAME, ::spdlog::get(GLOBAL_LOGGER_NAME), LEVEL)
+#define SCOPE_LOG_IMPL3(NAME, LOGGER, LEVEL)                                  \
+    ::nonstd::log::scope_logger NAME {                                        \
+        LOGGER,                                                               \
+        ::spdlog::level::LEVEL, /*[trace, debug, info, warn, err, critical]*/ \
+        __FILE__, __LINE__, __FUNCTION__                                      \
+    };
+
+
+/** Basic Logging Object
+ *  --------------------
  *  An object that will accept and buffer ostream-style char inputs and send the
  *  buffered data to the given spdlog::logger upon destruction.
  *
@@ -82,6 +108,46 @@ public:
     }
     ~stream_logger() {
         logger->log(level, this->str());
+    }
+};
+
+
+/** Persisted Logging Object
+ *  ------------------------
+ *  Specialization on stream_logger that captures some additional metadata from
+ *  the stream_logger initialization, and exposes a `.align()` method that
+ *  allows instances of this class to insert whitespace equal to the length of
+ *  the spdlog and log macro preambles.
+ *
+ *  Usage;
+ *      { SCOPE_LOG(logger, info)
+ *          logger << "Some text\n";
+ *          for (auto && i : Range(10)) {
+ *              logger.align() << i << " more text\n";
+ *          }
+ *      }
+ */
+class scope_logger : public stream_logger {
+protected:
+    size_t padding;
+
+public:
+    scope_logger(::std::shared_ptr<spdlog::logger> logger,
+                ::spdlog::level::level_enum        level,
+                c_cstr                             __file__,
+                i32 const                          __line__,
+                c_cstr                             __function__)
+        : stream_logger(logger, level, __file__, __line__, __function__)
+    {
+        padding = 22 //< length of spdlog preamble, discounting logger title
+                + logger->name().length() //< length of the logger title
+                + this->str().length()    //< length of the macro preamble
+                -  2;                     //< number of special chars
+    }
+
+    inline ::std::stringstream & align() {
+        *this << std::string(padding, ' ') << "..";
+        return *this;
     }
 };
 
