@@ -8,68 +8,84 @@
 
 #pragma once
 
-#include <iostream>
+#include <sstream>
 
+#include <boost/preprocessor/facilities/overload.hpp>
 #include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 #include "primitive_types.h"
-#include "variadic_expand.h"
-
-
-/** Logging Macro Shorthand
- *  -----------------------
- *  If you want to log a thing, you almost 100% definitely certainly want to
- *  probably use this one.
- *  If you've compiled with DEBUG active, we're not just going to munge and print
- *  your message. We're also going to run it through an `snprintf(NULL, 0, ...)`
- *  to give your compiler a change to check that your format string is correctly
- *  structured. Actually using `NULL` doesn't work here, unfortunately, so this
- *  trick will add the cost of writing `\0` into `format_verification` to every
- *  message actually printed.
- */
-#if defined(N2_DISABLE_LOGGING)
-#   define LOG(FMT_STRING, ...)
-#elif defined(DEBUG)
-#   define LOG(FMT_STRING, ...)                                        \
-        ::nonstd::detail::logMessage(FMT_STRING,                       \
-                                     __FILE__, __LINE__, __FUNCTION__, \
-                                     ##__VA_ARGS__)
-#endif
-
 
 namespace nonstd {
-namespace detail {
+namespace log {
+
+#define GLOBAL_LOGGER_NAME "N2"
+
+/** Basic Logging
+ *  -------------
+ *  If you want to log a thing, you almost 100% definitely certainly want to
+ *  probably use this one.
+ *
+ *  Usage;
+ *      LOG(info)  << "This is an info message";
+ *      LOG(err)   << "Uh oh! An error! " << strerr(errno);
+ *      Log(debug) << "This has some complex formatting; "
+ *                    "{}: ({}) -- {}"_format(foo, bar, baz);
+ */
+#define LOG(...) \
+    BOOST_PP_OVERLOAD(LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
+#define LOG_IMPL1(LEVEL) \
+    LOG_IMPL2(::spdlog::get(GLOBAL_LOGGER_NAME), LEVEL)
+
+#define LOG_IMPL2(LOGGER, LEVEL)                                              \
+    ::nonstd::log::stream_logger {                                            \
+        LOGGER,                                                               \
+        ::spdlog::level::LEVEL, /*[trace, debug, info, warn, err, critical]*/ \
+        __FILE__, __LINE__, __FUNCTION__                                      \
+    }
 
 /** Logging Implementation
  *  ----------------------
- *  Actually emit text from `LOG(...)` invocations.
+ *  An object that will accept and buffer ostream-style char inputs and send the
+ *  buffered data to the given spdlog::logger upon destruction.
+ *
+ *  Usage;
+ *      LOG(info)  << "This is an info message";
+ *      LOG(err)   << "Uh oh! An error! " << strerr(errno);
+ *      Log(debug) << "This has some complex formatting; "
+ *                    "{}: ({}) -- {}"_format(foo, bar, baz);
  */
-template <typename ... Args>
-inline void logMessage(c_cstr    format_str,
-                       c_cstr    __file__,
-                       i32 const __line__,
-                       c_cstr    __pretty_function__,
-                       Args ...  args) {
-    #if defined(_MSC_VER)
-        static const char path_delimiter = '\\';
-    #else
-        static const char path_delimiter = '/';
-    #endif
-    cstr filename = (cstr)strrchr(__file__, path_delimiter)+1;
+class stream_logger : public ::std::stringstream {
+protected:
+    ::std::shared_ptr<spdlog::logger> logger;
+    ::spdlog::level::level_enum       level;
 
-    fmt::MemoryWriter o;
-    if (filename) {
-        o.write("{}:{} {} -- ", filename, __line__, __pretty_function__);
-    } else {
-        o.write("{}:{} {} -- ", __file__, __line__, __pretty_function__);
+public:
+    stream_logger(::std::shared_ptr<spdlog::logger> logger,
+                  ::spdlog::level::level_enum       level,
+                  c_cstr                            __file__,
+                  i32 const                         __line__,
+                  c_cstr                            __function__)
+        : logger  ( logger )
+        , level   ( level  )
+    {
+        #if defined(_MSC_VER)
+            static const char pathDelimiter = '\\';
+        #else
+            static const char pathDelimiter = '/';
+        #endif
+        c_cstr filename = (c_cstr)strrchr(__file__, pathDelimiter);
+        if (!filename) { filename = __file__; } //< reset the target
+        else           { filename += 1;       } //< move past the leading '/'
+
+        *this << "{}:{} {} -- "_format(filename, __line__, __function__);
     }
-    o.write(format_str, args...);
-    o.write("\n");
-    std::cout << o.str();
-    return;
-}
+    ~stream_logger() {
+        logger->log(level, this->str());
+    }
+};
 
-} /* namespace detail */
+} /* namespace log */
 } /* namespace nonstd */
 
 

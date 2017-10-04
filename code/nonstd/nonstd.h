@@ -35,6 +35,7 @@
 #include <iterator>
 #include <limits>
 #include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -48,9 +49,25 @@
 #include <alloca.h> // alloca
 #endif
 
+/* Boot Preprocessor */
+// This library is 3.1Mb. Import only what we use.
+#include <boost/preprocessor/facilities/overload.hpp>
+#include <boost/preprocessor/seq.hpp>
+#include <boost/preprocessor/seq/enum.hpp>
+#include <boost/preprocessor/seq/for_each.hpp>
+#include <boost/preprocessor/variadic/to_seq.hpp>
+
+
 /* {{fmt}} printing library */
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+
+// Allow access to ex; `"Hello {}"_format("World")` style fmt literals
+using namespace fmt::literals;
+
+
+/* spdlog logging library */
+#include <spdlog/spdlog.h>
 
 
 /* Nitrogen Extensions */
