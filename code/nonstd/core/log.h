@@ -19,6 +19,9 @@
 namespace nonstd {
 namespace log {
 
+using ::std::shared_ptr;
+using ::std::stringstream;
+
 #define GLOBAL_LOGGER_NAME "N2"
 
 /** Basic Logging
@@ -81,19 +84,21 @@ namespace log {
  *      Log(debug) << "This has some complex formatting; "
  *                    "{}: ({}) -- {}"_format(foo, bar, baz);
  */
-class stream_logger : public ::std::stringstream {
+class stream_logger : public stringstream {
 protected:
-    ::std::shared_ptr<spdlog::logger> logger;
-    ::spdlog::level::level_enum       level;
+    shared_ptr<spdlog::logger>  logger;
+    ::spdlog::level::level_enum level;
+    bool                        should_log;
 
 public:
-    stream_logger(::std::shared_ptr<spdlog::logger> logger,
-                  ::spdlog::level::level_enum       level,
-                  c_cstr                            __file__,
-                  i32 const                         __line__,
-                  c_cstr                            __function__)
-        : logger  ( logger )
-        , level   ( level  )
+    stream_logger(shared_ptr<spdlog::logger>  logger,
+                  ::spdlog::level::level_enum level,
+                  c_cstr                      __file__,
+                  i32 const                   __line__,
+                  c_cstr                      __function__)
+        : logger     ( logger )
+        , level      ( level  )
+        , should_log ( true   )
     {
         #if defined(_MSC_VER)
             static const char pathDelimiter = '\\';
@@ -107,7 +112,16 @@ public:
         *this << "{}:{} {} -- "_format(filename, __line__, __function__);
     }
     ~stream_logger() {
-        logger->log(level, this->str());
+        if (should_log) { logger->log(level, this->str()); }
+    }
+
+    inline stringstream & when(bool cond) noexcept {
+        should_log = cond;
+        return *this;
+    }
+    inline stringstream & unless(bool cond) noexcept {
+        should_log = !cond;
+        return *this;
     }
 };
 
@@ -132,20 +146,20 @@ protected:
     size_t padding;
 
 public:
-    scope_logger(::std::shared_ptr<spdlog::logger> logger,
-                ::spdlog::level::level_enum        level,
-                c_cstr                             __file__,
-                i32 const                          __line__,
-                c_cstr                             __function__)
+    scope_logger(shared_ptr<spdlog::logger>  logger,
+                 ::spdlog::level::level_enum level,
+                 c_cstr                      __file__,
+                 i32 const                   __line__,
+                 c_cstr                      __function__)
         : stream_logger(logger, level, __file__, __line__, __function__)
     {
         padding = 22 //< length of spdlog preamble, discounting logger title
-                + logger->name().length() //< length of the logger title
-                + this->str().length()    //< length of the macro preamble
-                -  2;                     //< number of special chars
+                + this->logger->name().length() //< length of the logger title
+                + this->str().length()          //< length of the macro preamble
+                -  2;                           //< number of special chars
     }
 
-    inline ::std::stringstream & align() {
+    inline stringstream & align() {
         *this << std::string(padding, ' ') << "..";
         return *this;
     }
