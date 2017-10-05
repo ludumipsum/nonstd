@@ -22,6 +22,21 @@ namespace log {
 using ::std::shared_ptr;
 using ::std::stringstream;
 
+/* Map spdlog log levels for easier writing, reading, and debugging. */
+using levels_t = typename spdlog::level::level_enum;
+namespace levels {
+    constexpr levels_t trace    = spdlog::level::level_enum::trace;
+    constexpr levels_t debug    = spdlog::level::level_enum::debug;
+    constexpr levels_t info     = spdlog::level::level_enum::info;
+    constexpr levels_t warning  = spdlog::level::level_enum::warn;
+    constexpr levels_t warn     = spdlog::level::level_enum::warn;
+    constexpr levels_t error    = spdlog::level::level_enum::err;
+    constexpr levels_t err      = spdlog::level::level_enum::err;
+    constexpr levels_t critical = spdlog::level::level_enum::critical;
+    constexpr levels_t crit     = spdlog::level::level_enum::critical;
+}
+
+
 #define GLOBAL_LOGGER_NAME "N2"
 
 /** Basic Logging
@@ -31,21 +46,20 @@ using ::std::stringstream;
  *
  *  Usage;
  *      LOG(info)  << "This is an info message";
- *      LOG(err)   << "Uh oh! An error! " << strerr(errno);
+ *      LOG(error) << "Uh oh! An error! " << strerr(errno);
  *      Log(debug) << "This has some complex formatting; "
- *                    "{}: ({}) -- {}"_format(foo, bar, baz);
+ *                    "{}:{} -- ({})"_format(foo, bar, baz);
  */
 #define LOG(...) \
     BOOST_PP_OVERLOAD(LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
 #define LOG_IMPL1(LEVEL) \
     LOG_IMPL2(::spdlog::get(GLOBAL_LOGGER_NAME), LEVEL)
-
-#define LOG_IMPL2(LOGGER, LEVEL)                                              \
-    ::nonstd::log::stream_logger {                                            \
-        LOGGER,                                                               \
-        ::spdlog::level::LEVEL, /*[trace, debug, info, warn, err, critical]*/ \
-        __FILE__, __LINE__, __FUNCTION__                                      \
-    }
+/* We play with the formatting here to make error messages look better */
+#define LOG_IMPL2(LOGGER, LEVEL)     \
+  ::nonstd::log::stream_logger {     \
+    LOGGER,                          \
+    ::nonstd::log::levels::LEVEL, /* ## Should be [trace, debug, info, warn, error, or critical] */\
+    __FILE__, __LINE__, __FUNCTION__ }
 
 /** Persisted Logging
  *  -----------------
@@ -65,12 +79,12 @@ using ::std::stringstream;
     BOOST_PP_OVERLOAD(SCOPE_LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
 #define SCOPE_LOG_IMPL2(NAME, LEVEL) \
     SCOPE_LOG_IMPL3(NAME, ::spdlog::get(GLOBAL_LOGGER_NAME), LEVEL)
-#define SCOPE_LOG_IMPL3(NAME, LOGGER, LEVEL)                                  \
-    ::nonstd::log::scope_logger NAME {                                        \
-        LOGGER,                                                               \
-        ::spdlog::level::LEVEL, /*[trace, debug, info, warn, err, critical]*/ \
-        __FILE__, __LINE__, __FUNCTION__                                      \
-    };
+/* We play with the formatting here to make error messages look better */
+#define SCOPE_LOG_IMPL3(NAME, LOGGER, LEVEL) \
+  ::nonstd::log::scope_logger NAME {         \
+    LOGGER,                                  \
+    ::nonstd::log::levels::LEVEL, /* ## Should be [trace, debug, info, warn, error, or critical] */\
+    __FILE__, __LINE__, __FUNCTION__ };
 
 
 /** Basic Logging Object
@@ -80,9 +94,9 @@ using ::std::stringstream;
  *
  *  Usage;
  *      LOG(info)  << "This is an info message";
- *      LOG(err)   << "Uh oh! An error! " << strerr(errno);
+ *      LOG(error) << "Uh oh! An error! " << strerr(errno);
  *      Log(debug) << "This has some complex formatting; "
- *                    "{}: ({}) -- {}"_format(foo, bar, baz);
+ *                    "{}:{} -- ({})"_format(foo, bar, baz);
  */
 class stream_logger : public stringstream {
 protected:
@@ -91,11 +105,11 @@ protected:
     bool                        should_log;
 
 public:
-    stream_logger(shared_ptr<spdlog::logger>  logger,
-                  ::spdlog::level::level_enum level,
-                  c_cstr                      __file__,
-                  i32 const                   __line__,
-                  c_cstr                      __function__)
+    stream_logger(shared_ptr<spdlog::logger> logger,
+                  ::nonstd::log::levels_t    level,
+                  c_cstr                     __file__,
+                  i32 const                  __line__,
+                  c_cstr                     __function__)
         : logger     ( logger )
         , level      ( level  )
         , should_log ( true   )
