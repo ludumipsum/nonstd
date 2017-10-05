@@ -29,6 +29,7 @@ namespace log {
 
 using ::std::shared_ptr;
 using ::std::stringstream;
+using ::nonstd::preferred_separator;
 
 /* Name of the should-always-be-available logger instance. */
 constexpr c_cstr globalLoggerName = "N2";
@@ -156,12 +157,7 @@ public:
         , level      ( level  )
         , should_log ( true   )
     {
-        #if defined(_MSC_VER)
-            static const char pathDelimiter = '\\';
-        #else
-            static const char pathDelimiter = '/';
-        #endif
-        c_cstr filename = (c_cstr)strrchr(__file__, pathDelimiter);
+        c_cstr filename = (c_cstr)strrchr(__file__, preferred_separator);
         if (!filename) { filename = __file__; } //< reset the target
         else           { filename += 1;       } //< move past the leading '/'
 
