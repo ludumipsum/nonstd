@@ -167,14 +167,14 @@ public:
                  c_cstr                      __function__)
         : stream_logger(logger, level, __file__, __line__, __function__)
     {
-        padding = 22 //< length of spdlog preamble, discounting logger title
+        padding = 30 //< length of spdlog preamble, discounting logger title
                 + this->logger->name().length() //< length of the logger title
                 + this->str().length()          //< length of the macro preamble
                 -  2;                           //< number of special chars
     }
 
     inline stringstream & align() {
-        *this << std::string(padding, ' ') << "..";
+        *this << std::string(padding, ' ') << ".. ";
         return *this;
     }
 };
