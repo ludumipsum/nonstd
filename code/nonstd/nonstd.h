@@ -112,5 +112,6 @@ using namespace fmt::literals;
 namespace nonstd {
     inline void init(void) {
         REGISTER_STACK_HANDLERS();
+        log::init();
     }
 }

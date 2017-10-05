@@ -1,9 +1,17 @@
 /** Loggin' Utilities
  *  =================
- *  Utility functions and macros for logging, variadic printf-expansion, and
- *  similar chores.
- *
+ *  Utility functions, classes, and macros for logging.
  *  https://www.youtube.com/watch?v=siwpn14IE7E
+ *
+ *  TODO: Always initializing into async mode makes test output kinda weird. I
+ *        don't know how to make this configurable, but we should make
+ *        that configurable.
+ *  TODO: The basic, LOG/1 macro relies on `spdlog::get(globalLoggerName)` to
+ *        find itself a logger instance with which to log. This locks a mutex,
+ *        and performs a std::unsorted_map::find. Seems less than ideal for our
+ *        basic use case.
+ *        Figure out if there's something we can do to easily store the
+ *        std::shared_ptr that spdlog::get returns, and use that in our macros.
  */
 
 #pragma once
@@ -22,7 +30,14 @@ namespace log {
 using ::std::shared_ptr;
 using ::std::stringstream;
 
-/* Map spdlog log levels for easier writing, reading, and debugging. */
+/* Name of the should-always-be-available logger instance. */
+constexpr c_cstr globalLoggerName = "N2";
+
+/** Log Levels
+ *  ----------
+ *  Map spdlog log levels into a namespace that we control for easier writing,
+ *  reading, and debugging.
+ */
 using levels_t = typename spdlog::level::level_enum;
 namespace levels {
     constexpr levels_t trace    = spdlog::level::level_enum::trace;
@@ -36,8 +51,35 @@ namespace levels {
     constexpr levels_t crit     = spdlog::level::level_enum::critical;
 }
 
+/** Initialization Logic
+ *  --------------------
+ *  We're using a stateful logging system, so set it up state.
+ */
+inline void init() {
+    // Configure spdlog to log asynchronously.
+    // From https://github.com/gabime/spdlog/wiki/6.-Asynchronous-logging
+    //
+    // > Memory consumption (important)
+    // >
+    // > Each logger pre allocates on the heap a buffer whose size is
+    // > `queue_size` x `sizeof(slot)`.
+    // >
+    // > Each slot (in 64 bits) is 104 bytes, so for example
+    // > `set_async_mode(8192)` would allocate on the heap 8192*104=832KB for
+    // > each async logger.
+    spdlog::set_async_mode(1024);
 
-#define GLOBAL_LOGGER_NAME "N2"
+    // Configure the default spdlog pattern.
+    // 1. HH:MM:SS.Microseconds
+    // 2. Thread ID
+    // 3. Logger Name
+    // 4. Log Text        1.      2.   3.  4.
+    spdlog::set_pattern("[%T.%f] [%t] [%n] %v");
+
+    // Initialize the global logger.
+    spdlog::stdout_color_mt(globalLoggerName);
+}
+
 
 /** Basic Logging
  *  -------------
@@ -53,7 +95,7 @@ namespace levels {
 #define LOG(...) \
     BOOST_PP_OVERLOAD(LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
 #define LOG_IMPL1(LEVEL) \
-    LOG_IMPL2(::spdlog::get(GLOBAL_LOGGER_NAME), LEVEL)
+    LOG_IMPL2(::spdlog::get(::nonstd::log::globalLoggerName), LEVEL)
 /* We play with the formatting here to make error messages look better */
 #define LOG_IMPL2(LOGGER, LEVEL)     \
   ::nonstd::log::stream_logger {     \
@@ -78,7 +120,7 @@ namespace levels {
 #define SCOPE_LOG(...) \
     BOOST_PP_OVERLOAD(SCOPE_LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
 #define SCOPE_LOG_IMPL2(NAME, LEVEL) \
-    SCOPE_LOG_IMPL3(NAME, ::spdlog::get(GLOBAL_LOGGER_NAME), LEVEL)
+    SCOPE_LOG_IMPL3(NAME, ::spdlog::get(::nonstd::log::globalLoggerName), LEVEL)
 /* We play with the formatting here to make error messages look better */
 #define SCOPE_LOG_IMPL3(NAME, LOGGER, LEVEL) \
   ::nonstd::log::scope_logger NAME {         \
@@ -181,5 +223,3 @@ public:
 
 } /* namespace log */
 } /* namespace nonstd */
-
-
