@@ -60,7 +60,7 @@ namespace levels {
 
 /** Initialization Logic
  *  --------------------
- *  We're using a stateful logging system, so set it up state.
+ *  We're using a stateful logging system, so set up that state.
  */
 inline void init() {
     // Configure spdlog to log asynchronously.
@@ -141,7 +141,6 @@ inline void init() {
  *  See the `aligned_newline_t` below
  */
 #define LOG_LINE ::nonstd::log::aligned_newline
-
 
 
 /** Aligned Log Newline Type
@@ -250,8 +249,10 @@ public:
         return logger;
     }
 
-    /** Helper Functions
-     *  ---------------- */
+    /** Length Helper
+     *  -------------
+     *  Get the current length of the underlying buffer **without copies**.
+     */
     inline u32 length() {
         // Capture the current write head offset
         stream_logger::pos_type current_position = this->tellg();
