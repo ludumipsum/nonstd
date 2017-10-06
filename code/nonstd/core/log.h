@@ -12,6 +12,11 @@
  *        basic use case.
  *        Figure out if there's something we can do to easily store the
  *        std::shared_ptr that spdlog::get returns, and use that in our macros.
+ *  TODO: For some reason `auto logger = LOG(info);` fails to compile; it's
+ *        attempting to invoke the copy ctor (rather than the move ctor), and
+ *        std::stringstream (which is the parent class of stream_logger)
+ *        explicitly deletes its copy ctor. It would be nice to remove the SLOG
+ *        macros and just use the above, but... :shrugs:
  */
 
 #pragma once
@@ -51,6 +56,7 @@ namespace levels {
     constexpr levels_t critical = spdlog::level::level_enum::critical;
     constexpr levels_t crit     = spdlog::level::level_enum::critical;
 }
+
 
 /** Initialization Logic
  *  --------------------
@@ -111,13 +117,14 @@ inline void init() {
  *  that's not this.
  *
  *  Usage;
- *      { SCOPED_LOG(logger, info)
+ *      {SCOPED_LOG(logger, info)
  *          logger << "Some text\n";
  *          for (auto && i : Range(10)) {
  *              logger.align() << i << " more text\n";
  *          }
  *      }
  */
+#define SLOG(...) SCOPED_LOG(__VA_ARGS__)
 #define SCOPED_LOG(...) \
     BOOST_PP_OVERLOAD(SCOPED_LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
 #define SCOPED_LOG_IMPL2(NAME, LEVEL) \
@@ -129,8 +136,33 @@ inline void init() {
     ::nonstd::log::levels::LEVEL, /* ## Should be [trace, debug, info, warn, error, or critical] */\
     __FILE__, __LINE__, __FUNCTION__ };
 
-/* Shorthand */
-#define SLOG(...) SCOPED_LOG(__VA_ARGS__)
+/** Aligned Log Line
+ *  ----------------
+ *  See the `aligned_newline_t` below
+ */
+#define LOG_LINE ::nonstd::log::aligned_newline
+
+
+
+/** Aligned Log Newline Type
+ *  ------------------------
+ *  Tag Type to explicitly inject an aligned newline into a log stream.
+ *  Aliased from the LOG_LINE #define.
+ *
+ *  Usage;
+ *      LOG(info) << "One line..."    << nonstd::log::aligned_newline
+ *                << "Another line."  << nonstd::log::aligned_newline
+ *                << "So many lines!" << nonstd::log::aligned_newline
+ */
+struct aligned_newline_t {
+    /* Explicitly delete the default constructor, and define an explicit
+       constexpr constructor that will be hard to accidentally invoke.
+       Let's use the `nonstd::in_place_t` tag for that. */
+    aligned_newline_t() = delete;
+    explicit constexpr aligned_newline_t(nonstd::in_place_t) { }
+};
+constexpr static aligned_newline_t aligned_newline { nonstd::in_place };
+
 
 /** Basic Logging Object
  *  --------------------
@@ -146,8 +178,8 @@ inline void init() {
  *  If a single log message needs to be built up over over multiple calls, the
  *  SCOPED_LOG macro can be used to construct and retain a logger object.
  *
- *  usage;
- *      { SCOPED_LOG(logger, info)
+ *  Usage;
+ *      {SCOPED_LOG(logger, info)
  *          logger << "Some text";
  *          for (auto && i : Range(10)) {
  *              logger.line() << i << " more text";
@@ -195,11 +227,11 @@ public:
      *  LOG(critical).when(false) << "This will never log!";
      *  LOG(critical).unless(keep_quiet) << "Should I make noise?";
      */
-    inline stringstream & when(bool cond) noexcept {
+    inline stream_logger & when(bool cond) noexcept {
         should_log = cond;
         return *this;
     }
-    inline stringstream & unless(bool cond) noexcept {
+    inline stream_logger & unless(bool cond) noexcept {
         should_log = !cond;
         return *this;
     }
@@ -208,9 +240,14 @@ public:
      *  --------------
      *  The magic that injects padded lines.
      */
-    inline stringstream & line() {
+    inline stream_logger & line() {
         *this << "\n" << std::string(padding, ' ') << ".. ";
         return *this;
+    }
+    friend inline stream_logger & operator<< (stream_logger & logger,
+                                              aligned_newline_t /*unused*/) {
+        logger << "\n" << std::string(logger.padding, ' ') << ".. ";
+        return logger;
     }
 
     /** Helper Functions
