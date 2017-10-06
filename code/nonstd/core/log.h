@@ -175,6 +175,18 @@ public:
         should_log = !cond;
         return *this;
     }
+
+    inline u32 length() {
+        // Capture the current write head offset
+        stream_logger::pos_type current_position = this->tellg();
+        // Move to the end, get the current length
+        this->seekg(0, stream_logger::end);
+        u32 ret = this->tellg();
+        // Reset the write head
+        this->seekg(current_position, stream_logger::beg);
+
+        return ret;
+    }
 };
 
 
@@ -207,7 +219,7 @@ public:
     {
         padding = 30 //< length of spdlog preamble, discounting logger title
                 + this->logger->name().length() //< length of the logger title
-                + this->str().length()          //< length of the macro preamble
+                + this->length()                //< length of the macro preamble
                 -  2;                           //< number of special chars
     }
 
