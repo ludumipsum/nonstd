@@ -181,15 +181,15 @@ public:
 /** Persisted Logging Object
  *  ------------------------
  *  Specialization on stream_logger that captures some additional metadata from
- *  the stream_logger initialization, and exposes a `.align()` method that
- *  allows instances of this class to insert whitespace equal to the length of
- *  the spdlog and log macro preambles.
+ *  the stream_logger initialization, and exposes a `.line()` method that
+ *  allows instances of this class to insert a newline followed whitespace equal
+ *  to the length of the spdlog and log macro preambles.
  *
  *  Usage;
  *      { SCOPE_LOG(logger, info)
- *          logger << "Some text\n";
+ *          logger << "Some text";
  *          for (auto && i : Range(10)) {
- *              logger.align() << i << " more text\n";
+ *              logger.line() << i << " more text";
  *          }
  *      }
  */
@@ -211,8 +211,8 @@ public:
                 -  2;                           //< number of special chars
     }
 
-    inline stringstream & align() {
-        *this << std::string(padding, ' ') << ".. ";
+    inline stringstream & line() {
+        *this << "\n" << std::string(padding, ' ') << ".. ";
         return *this;
     }
 };
