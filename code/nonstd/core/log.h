@@ -111,24 +111,26 @@ inline void init() {
  *  that's not this.
  *
  *  Usage;
- *      { SCOPE_LOG(logger, info)
+ *      { SCOPED_LOG(logger, info)
  *          logger << "Some text\n";
  *          for (auto && i : Range(10)) {
  *              logger.align() << i << " more text\n";
  *          }
  *      }
  */
-#define SCOPE_LOG(...) \
-    BOOST_PP_OVERLOAD(SCOPE_LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
-#define SCOPE_LOG_IMPL2(NAME, LEVEL) \
-    SCOPE_LOG_IMPL3(NAME, ::spdlog::get(::nonstd::log::globalLoggerName), LEVEL)
+#define SCOPED_LOG(...) \
+    BOOST_PP_OVERLOAD(SCOPED_LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
+#define SCOPED_LOG_IMPL2(NAME, LEVEL) \
+    SCOPED_LOG_IMPL3(NAME, ::spdlog::get(::nonstd::log::globalLoggerName), LEVEL)
 /* We play with the formatting here to make error messages look better */
-#define SCOPE_LOG_IMPL3(NAME, LOGGER, LEVEL) \
-  ::nonstd::log::scope_logger NAME {         \
-    LOGGER,                                  \
+#define SCOPED_LOG_IMPL3(NAME, LOGGER, LEVEL) \
+  ::nonstd::log::stream_logger NAME {         \
+    LOGGER,                                   \
     ::nonstd::log::levels::LEVEL, /* ## Should be [trace, debug, info, warn, error, or critical] */\
     __FILE__, __LINE__, __FUNCTION__ };
 
+/* Shorthand */
+#define SLOG(...) SCOPED_LOG(__VA_ARGS__)
 
 /** Basic Logging Object
  *  --------------------
@@ -140,12 +142,24 @@ inline void init() {
  *      LOG(error) << "Uh oh! An error! " << strerr(errno);
  *      Log(debug) << "This has some complex formatting; "
  *                    "{}:{} -- ({})"_format(foo, bar, baz);
+ *
+ *  If a single log message needs to be built up over over multiple calls, the
+ *  SCOPED_LOG macro can be used to construct and retain a logger object.
+ *
+ *  usage;
+ *      { SCOPED_LOG(logger, info)
+ *          logger << "Some text";
+ *          for (auto && i : Range(10)) {
+ *              logger.line() << i << " more text";
+ *          }
+ *      }
  */
 class stream_logger : public stringstream {
 protected:
     shared_ptr<spdlog::logger>  logger;
     ::spdlog::level::level_enum level;
     bool                        should_log;
+    size_t                      padding;
 
 public:
     stream_logger(shared_ptr<spdlog::logger> logger,
@@ -156,17 +170,31 @@ public:
         : logger     ( logger )
         , level      ( level  )
         , should_log ( true   )
+        , padding    ( 0      ) //< Will be calculated in the ctor body
     {
+        // If possible, remove the /path/to the file name.
         c_cstr filename = (c_cstr)strrchr(__file__, preferred_separator);
         if (!filename) { filename = __file__; } //< reset the target
         else           { filename += 1;       } //< move past the leading '/'
 
         *this << "{}:{} {} -- "_format(filename, __line__, __function__);
+
+        // Capture the amount of padding needed to align "\n"s with the initial
+        // spdlog + file/line/fn preamble
+        padding = 30 //< length of spdlog preamble, discounting logger title
+                + this->logger->name().length() //< length of the logger title
+                + this->length()                //< length of the above insert
+                -  2;                           //< number of special chars
     }
     ~stream_logger() {
         if (should_log) { logger->log(level, this->str()); }
     }
 
+    /** Conditional Logging
+     *  -------------------
+     *  LOG(critical).when(false) << "This will never log!";
+     *  LOG(critical).unless(keep_quiet) << "Should I make noise?";
+     */
     inline stringstream & when(bool cond) noexcept {
         should_log = cond;
         return *this;
@@ -176,6 +204,17 @@ public:
         return *this;
     }
 
+    /** Line Injection
+     *  --------------
+     *  The magic that injects padded lines.
+     */
+    inline stringstream & line() {
+        *this << "\n" << std::string(padding, ' ') << ".. ";
+        return *this;
+    }
+
+    /** Helper Functions
+     *  ---------------- */
     inline u32 length() {
         // Capture the current write head offset
         stream_logger::pos_type current_position = this->tellg();
@@ -186,46 +225,6 @@ public:
         this->seekg(current_position, stream_logger::beg);
 
         return ret;
-    }
-};
-
-
-/** Persisted Logging Object
- *  ------------------------
- *  Specialization on stream_logger that captures some additional metadata from
- *  the stream_logger initialization, and exposes a `.line()` method that
- *  allows instances of this class to insert a newline followed whitespace equal
- *  to the length of the spdlog and log macro preambles.
- *
- *  Usage;
- *      { SCOPE_LOG(logger, info)
- *          logger << "Some text";
- *          for (auto && i : Range(10)) {
- *              logger.line() << i << " more text";
- *          }
- *      }
- */
-class scope_logger : public stream_logger {
-protected:
-    size_t padding;
-
-public:
-    scope_logger(shared_ptr<spdlog::logger>  logger,
-                 ::spdlog::level::level_enum level,
-                 c_cstr                      __file__,
-                 i32 const                   __line__,
-                 c_cstr                      __function__)
-        : stream_logger(logger, level, __file__, __line__, __function__)
-    {
-        padding = 30 //< length of spdlog preamble, discounting logger title
-                + this->logger->name().length() //< length of the logger title
-                + this->length()                //< length of the macro preamble
-                -  2;                           //< number of special chars
-    }
-
-    inline stringstream & line() {
-        *this << "\n" << std::string(padding, ' ') << ".. ";
-        return *this;
     }
 };
 
