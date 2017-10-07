@@ -44,7 +44,7 @@ constexpr c_cstr globalLoggerName = "N2";
  *  Map spdlog log levels into a namespace that we control for easier writing,
  *  reading, and debugging.
  */
-using levels_t = typename spdlog::level::level_enum;
+using levels_t = spdlog::level::level_enum;
 namespace levels {
     constexpr levels_t trace    = spdlog::level::level_enum::trace;
     constexpr levels_t debug    = spdlog::level::level_enum::debug;
@@ -235,6 +235,19 @@ public:
         return *this;
     }
 
+    /** Insertion Operator Overloads
+     *  ----------------------------
+     *  Overload **everything** s.t. chains of `<<` operators correctly return
+     *  references to stream_logger, rather than stringstream.
+     *  I cannot imagine this is cheap to compile....
+     */
+    template<typename T>
+    stream_logger & operator<< (T const & v) {
+        (*(std::ostringstream*)this) << v;
+        return *this;
+    }
+
+
     /** Line Injection
      *  --------------
      *  The magic that injects padded lines.
@@ -243,10 +256,9 @@ public:
         *this << "\n" << std::string(padding, ' ') << ".. ";
         return *this;
     }
-    friend inline stream_logger & operator<< (stream_logger & logger,
-                                              aligned_newline_t /*unused*/) {
-        logger << "\n" << std::string(logger.padding, ' ') << ".. ";
-        return logger;
+    inline stream_logger & operator<< (aligned_newline_t /*unused*/) {
+        *this << "\n" << std::string(padding, ' ') << ".. ";
+        return *this;
     }
 
     /** Length Helper
