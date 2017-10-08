@@ -99,8 +99,13 @@ inline void init() {
  *      Log(debug) << "This has some complex formatting; "
  *                    "{}:{} -- ({})"_format(foo, bar, baz);
  */
-#define LOG(...) \
-    BOOST_PP_OVERLOAD(LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
+#if !BOOST_PP_VARIADICS_MSVC
+#  define LOG(...) \
+      BOOST_PP_OVERLOAD(LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
+#else // MSVC doesn't comply with C99 macro parsing. Gotta work around that.
+#  define LOG(...) \
+      BOOST_PP_CAT(BOOST_PP_OVERLOAD(LOG_IMPL,__VA_ARGS__)(__VA_ARGS__),BOOST_PP_EMPTY())
+#endif
 #define LOG_IMPL1(LEVEL) \
     LOG_IMPL2(::spdlog::get(::nonstd::log::globalLoggerName), LEVEL)
 /* We play with the formatting here to make error messages look better */
@@ -125,6 +130,13 @@ inline void init() {
  *      }
  */
 #define SLOG(...) SCOPED_LOG(__VA_ARGS__)
+#if !BOOST_PP_VARIADICS_MSVC
+#  define SCOPED_LOG(...) \
+      BOOST_PP_OVERLOAD(SCOPED_LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
+#else // MSVC doesn't comply with C99 macro parsing. Gotta work around that.
+#  define SCOPED_LOG(...) \
+      BOOST_PP_CAT(BOOST_PP_OVERLOAD(SCOPED_LOG_IMPL,__VA_ARGS__)(__VA_ARGS__),BOOST_PP_EMPTY())
+#endif
 #define SCOPED_LOG(...) \
     BOOST_PP_OVERLOAD(SCOPED_LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
 #define SCOPED_LOG_IMPL2(NAME, LEVEL) \
