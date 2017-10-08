@@ -137,8 +137,6 @@ inline void init() {
 #  define SCOPED_LOG(...) \
       BOOST_PP_CAT(BOOST_PP_OVERLOAD(SCOPED_LOG_IMPL,__VA_ARGS__)(__VA_ARGS__),BOOST_PP_EMPTY())
 #endif
-#define SCOPED_LOG(...) \
-    BOOST_PP_OVERLOAD(SCOPED_LOG_IMPL, __VA_ARGS__)(__VA_ARGS__)
 #define SCOPED_LOG_IMPL2(NAME, LEVEL) \
     SCOPED_LOG_IMPL3(NAME, ::spdlog::get(::nonstd::log::globalLoggerName), LEVEL)
 /* We play with the formatting here to make error messages look better */
