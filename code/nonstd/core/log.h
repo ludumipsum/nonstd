@@ -56,6 +56,12 @@ namespace levels {
 }
 
 
+/** Global Constants
+ *  ---------------- */
+static constexpr c_cstr global_logger_name = "N2";
+constexpr u32 async_queue_size = 1024;
+
+
 /** Global Logging Object Initialization
  *  ------------------------------------
  *  Because we're lazy, we don't want to worry about carrying around a reference
@@ -76,25 +82,23 @@ namespace levels {
  *  nonstd::init (and the functions it calls) a templates, or look into the
  *  Schwarz Counter idiom if we ever get bit by that issue.
  */
-static constexpr c_cstr global_logger_name = "N2";
 template <typename U = void>
 struct global_t {
-    static const     shared_ptr<spdlog::logger> logger;
+    static const shared_ptr<spdlog::logger> logger;
 };
 template <typename U>
 const shared_ptr<spdlog::logger> global_t<U>::logger =
     spdlog::stdout_color_mt(global_logger_name);
 using global = global_t<>;
 
-
-/** Initialization Logic
- *  --------------------
- *  We're using a stateful logging system, so set up that state.
+/** Enable or Disable Async Logger Creation
+ *  ---------------------------------------
+ *  Defaults new loggers to be created as async loggers.
+ *  NB. According to the salient spdlog comments, this doesn't effect loggers
+ *  that were created before this call. So. Nuts to that.
  */
-inline void init() {
-    // Configure spdlog to log asynchronously.
+inline void enable_async() {
     // From https://github.com/gabime/spdlog/wiki/6.-Asynchronous-logging
-    //
     // > Memory consumption (important)
     // >
     // > Each logger pre allocates on the heap a buffer whose size is
@@ -103,14 +107,39 @@ inline void init() {
     // > Each slot (in 64 bits) is 104 bytes, so for example
     // > `set_async_mode(8192)` would allocate on the heap 8192*104=832KB for
     // > each async logger.
-    spdlog::set_async_mode(1024);
-
-    // Configure the default spdlog pattern.
+    spdlog::set_async_mode(async_queue_size);
+}
+inline void disable_async() {
+    spdlog::set_sync_mode();
+}
+/** Setup spdlog Preamble
+ *  ---------------------
+ *  Our logging utilities rely on this format, so be careful when defining
+ *  something else for local logger.
+ */
+inline void set_default_pattern() {
     // 1. HH:MM:SS.Microseconds
     // 2. Thread ID
     // 3. Logger Name
-    // 4. Log Text        1.      2.   3.  4.
+    // 4. Log Text
     spdlog::set_pattern("[%T.%f] [%t] [%n] %v");
+    //                    1.      2.   3.  4.
+}
+/** Basic Initialization
+ *  --------------------  */
+inline void init() {
+    set_default_pattern();
+    enable_async();
+}
+/** Basic Tear-Down
+ *  ---------------
+ *  From https://github.com/gabime/spdlog/wiki/6.-Asynchronous-logging
+ *  > There is a bug in VS runtime that cause the application dead lock when it
+ *  > exits. If you use async logging, please make sure to call
+ *  > spdlog::drop_all() before main() exit.
+ */
+inline void deinit() {
+    spdlog::drop_all();
 }
 
 
