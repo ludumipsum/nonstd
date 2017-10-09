@@ -36,8 +36,6 @@ using ::std::shared_ptr;
 using ::std::stringstream;
 using ::nonstd::preferred_separator;
 
-/* Name of the should-always-be-available logger instance. */
-constexpr c_cstr globalLoggerName = "N2";
 
 /** Log Levels
  *  ----------
@@ -56,6 +54,37 @@ namespace levels {
     constexpr levels_t critical = spdlog::level::level_enum::critical;
     constexpr levels_t crit     = spdlog::level::level_enum::critical;
 }
+
+
+/** Global Logging Object Initialization
+ *  ------------------------------------
+ *  Because we're lazy, we don't want to worry about carrying around a reference
+ *  to a default logging object. Instead, we want a globally unique, globally
+ *  accessible identifier that correctly initializes itself. Because this is C,
+ *  we can't make it Just Work. But we can abuse the way the One Definition Rule
+ *  interacts with templates.
+ *
+ *  Does this trick have an associated idiom? Template Static Globals? idk.
+ *  Anyway, this works because the linker is required to collapse identical
+ *  definitions of templates. the global_struct is a templatized struct, so the
+ *  static storage of the shared_ptr will collapse across all TUs, and the
+ *  out-of-line definition of the ::logger member is a templatized variable, so
+ *  it's definition will also be collapsed.
+ *
+ *  NB. This setup may be vulnerable to Static Initialization Order issues, but
+ *  maybe only if we try to log something during static init. Consider making
+ *  nonstd::init (and the functions it calls) a templates, or look into the
+ *  Schwarz Counter idiom if we ever get bit by that issue.
+ */
+static constexpr c_cstr global_logger_name = "N2";
+template <typename U = void>
+struct global_t {
+    static const     shared_ptr<spdlog::logger> logger;
+};
+template <typename U>
+const shared_ptr<spdlog::logger> global_t<U>::logger =
+    spdlog::stdout_color_mt(global_logger_name);
+using global = global_t<>;
 
 
 /** Initialization Logic
@@ -82,9 +111,6 @@ inline void init() {
     // 3. Logger Name
     // 4. Log Text        1.      2.   3.  4.
     spdlog::set_pattern("[%T.%f] [%t] [%n] %v");
-
-    // Initialize the global logger.
-    spdlog::stdout_color_mt(globalLoggerName);
 }
 
 
@@ -107,7 +133,7 @@ inline void init() {
       BOOST_PP_CAT(BOOST_PP_OVERLOAD(LOG_IMPL,__VA_ARGS__)(__VA_ARGS__),BOOST_PP_EMPTY())
 #endif
 #define LOG_IMPL1(LEVEL) \
-    LOG_IMPL2(::spdlog::get(::nonstd::log::globalLoggerName), LEVEL)
+    LOG_IMPL2(::nonstd::log::global::logger, LEVEL)
 /* We play with the formatting here to make error messages look better */
 #define LOG_IMPL2(LOGGER, LEVEL)     \
   ::nonstd::log::stream_logger {     \
@@ -138,7 +164,7 @@ inline void init() {
       BOOST_PP_CAT(BOOST_PP_OVERLOAD(SCOPED_LOG_IMPL,__VA_ARGS__)(__VA_ARGS__),BOOST_PP_EMPTY())
 #endif
 #define SCOPED_LOG_IMPL2(NAME, LEVEL) \
-    SCOPED_LOG_IMPL3(NAME, ::spdlog::get(::nonstd::log::globalLoggerName), LEVEL)
+    SCOPED_LOG_IMPL3(NAME, ::nonstd::log::global::logger, LEVEL)
 /* We play with the formatting here to make error messages look better */
 #define SCOPED_LOG_IMPL3(NAME, LOGGER, LEVEL) \
   ::nonstd::log::stream_logger NAME {         \
