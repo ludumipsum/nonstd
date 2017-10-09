@@ -4,7 +4,6 @@
 
 #include <testrunner/testrunner.h>
 
-#include <nonstd/core/log.h>
 #include "nonstd/utility/scope_guard.h"
 
 namespace nonstd_test {
@@ -12,11 +11,11 @@ namespace scope_guard {
 
 using nonstd::make_guard;
 
-i32 freeFunction() { LOG(info) << "Bing"; return 0; }
+i32 freeFunction() { return 0; }
 
 struct Functor {
     i32 operator()() {
-        LOG(info) << "Bang"; return 0;
+        return 0;
     }
 };
 
@@ -26,7 +25,7 @@ TEST_CASE("Scope Guard API Demo", "[nonstd][api][scop guards]") {
     Functor functor;
 
     SECTION("Creating Scope Guards") {
-        auto from_lambdas  = make_guard([&](){ LOG(info) << "Boom"; return 0; });
+        auto from_lambdas  = make_guard([&](){ return 0; });
         auto from_funtions = make_guard(freeFunction);
         auto from_functors = make_guard(functor);
     }
