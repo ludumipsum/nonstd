@@ -107,6 +107,7 @@ using namespace fmt::literals;
 #include "utility/iterator.h"
 #include "utility/nop.h"
 #include "utility/optional.h"
+#include "utility/scope_guard.h"
 
 
 /* Nonstandard library initialization */
