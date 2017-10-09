@@ -18,7 +18,6 @@
 #include <ostream>
 
 #include <fmt/format.h>
-#include <fmt/printf.h>
 
 #include "nonstd/preprocessor/homogenize.h"
 #include "nonstd/core/primitive_types.h"
@@ -32,6 +31,10 @@
  */
 #define Ftype "%.*s"
 
+//TODO: These macros are brittle on MSVC because of its inability to act on
+//      parens and braces in macro arguments. If we want to continue to using
+//      these macros (I'd rather rely on fmt), we should accept a variadic set
+//      instead of one `T` (or `Var`), and concat them.
 #define TYPE_NAME(T) (int)nonstd::type_name<T>().size(), \
                           nonstd::type_name<T>().data()
 
@@ -155,7 +158,11 @@ inline std::ostream & operator << (std::ostream & ostream,
 inline void format_arg(fmt::BasicFormatter<char> & f,
                        char const * & format_str,
                        nonstd::StaticString const & str) {
-    f.writer().write(fmt::sprintf(Ftype, str.size(), str.data()));
+    // NB. `str.data()` is not guaranteed to be null terminated, and fmt writers
+    // have no way of accepting a specific `count` of chars. One work around for
+    // this is to construct a temporary string, limit it to `str.size()` chars,
+    // and let it append a '\0' for fmt to find.
+    f.writer().write(std::string(str.data(), str.size()));
 }
 
 } /* namespace nonstd */

@@ -44,3 +44,14 @@
 #    define FORCEINLINE inline
 #  endif
 #endif
+
+/** Preferred Path Separator
+ *  ------------------------
+ */
+namespace nonstd {
+#if defined(_MSC_VER)
+    constexpr char preferred_separator = '\\';
+#else
+    constexpr char preferred_separator = '/';
+#endif
+}
