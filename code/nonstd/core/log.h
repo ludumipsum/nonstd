@@ -60,6 +60,11 @@ namespace levels {
  *  ---------------- */
 static constexpr c_cstr global_logger_name = "N2";
 constexpr u32 async_queue_size = 1024;
+#if defined(_MSC_VER)
+using spdlog_colorized_stdout_sink_mt = spdlog::sinks::wincolor_stdout_sink_mt;
+#else
+using spdlog_colorized_stdout_sink_mt = spdlog::sinks::ansicolor_stdout_sink_mt;
+#endif
 
 
 /** Global Logging Object Initialization
@@ -88,7 +93,9 @@ struct global_t {
 };
 template <typename U>
 const shared_ptr<spdlog::logger> global_t<U>::logger =
-    spdlog::stdout_color_mt(global_logger_name);
+    spdlog::create_async(global_logger_name,
+                         std::make_shared<spdlog_colorized_stdout_sink_mt>(),
+                         async_queue_size);
 using global = global_t<>;
 
 /** Enable or Disable Async Logger Creation
