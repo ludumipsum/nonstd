@@ -86,6 +86,12 @@ using spdlog_colorized_stdout_sink_mt = spdlog::sinks::ansicolor_stdout_sink_mt;
  *  maybe only if we try to log something during static init. Consider making
  *  nonstd::init (and the functions it calls) a templates, or look into the
  *  Schwarz Counter idiom if we ever get bit by that issue.
+ *
+ *  FIXME: There's a per-platform branch on the call used to create the global
+ *         logger because there's apparently a runtime error that deadlocks
+ *         MSVC when attempting to close out async loggers. That we're hitting
+ *         the deadlock after calling `drop_all` is likely indicative of a
+ *         deeper flaw in this architecture, buuuuut this seems to work for now.
  */
 template <typename U = void>
 struct global_t {
@@ -93,9 +99,13 @@ struct global_t {
 };
 template <typename U>
 const shared_ptr<spdlog::logger> global_t<U>::logger =
+#if defined(_MSC_VER)
+    spdlog::stdout_color_mt(global_logger_name);
+#else
     spdlog::create_async(global_logger_name,
                          std::make_shared<spdlog_colorized_stdout_sink_mt>(),
                          async_queue_size);
+#endif
 using global = global_t<>;
 
 /** Enable or Disable Async Logger Creation
