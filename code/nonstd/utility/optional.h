@@ -35,7 +35,6 @@
 #include <iostream>
 
 #include <fmt/format.h>
-#include <fmt/string.h>
 
 #include "nonstd/preprocessor/homogenize.h"
 #include "nonstd/cpp1z/in_place_t.h"
