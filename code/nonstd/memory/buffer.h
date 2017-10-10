@@ -61,7 +61,7 @@ struct Buffer {
     using ResizeFn = u64 (*)(Buffer * const, u64);
 
 
-    /** "Actual" Buffer Struct Members
+    /** "Actual" Buffer Members
      *  --------------------------------------------------------------------- */
     /** ### User Data
      *  The UserData nested-union is designed to allow users or containers  to
