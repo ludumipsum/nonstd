@@ -89,6 +89,8 @@ using namespace fmt::literals;
 #include "core/primitive_types.h"
 #include "core/variadic_expand.h"
 
+#include "memory/buffer.h"
+
 #include "c_ish/math.h"
 #include "c_ish/mem.h"
 #include "c_ish/n2strerr.h"
