@@ -91,6 +91,7 @@ using namespace fmt::literals;
 
 #include "memory/buffer.h"
 #include "memory/array.h"
+#include "memory/hashtable.h"
 
 #include "c_ish/math.h"
 #include "c_ish/mem.h"
