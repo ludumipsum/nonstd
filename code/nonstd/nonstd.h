@@ -90,6 +90,7 @@ using namespace fmt::literals;
 #include "core/variadic_expand.h"
 
 #include "memory/buffer.h"
+#include "memory/array.h"
 
 #include "c_ish/math.h"
 #include "c_ish/mem.h"
