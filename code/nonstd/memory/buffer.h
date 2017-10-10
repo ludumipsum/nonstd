@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <nonstd/cpp1z/type_trait_assertions.h>
 #include <nonstd/core/primitive_types.h>
 
 
