@@ -93,6 +93,7 @@ using namespace fmt::literals;
 #include "memory/array.h"
 #include "memory/hashtable.h"
 #include "memory/ring.h"
+#include "memory/stream.h"
 
 #include "c_ish/math.h"
 #include "c_ish/mem.h"
