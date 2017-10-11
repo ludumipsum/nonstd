@@ -89,7 +89,7 @@ struct Buffer {
     c_cstr      name;
     UserData    userdata1;
     UserData    userdata2;
-    type_id::_t type_id;
+    type_id::_t type;
 
 }; ENFORCE_POD(Buffer);
 

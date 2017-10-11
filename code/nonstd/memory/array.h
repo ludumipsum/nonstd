@@ -29,19 +29,19 @@ public: /*< ## Class Methods */
 
     inline static void initializeBuffer(Buffer *const buf) {
         /* If the type check is correct, no initialization is required. */
-        if (buf->type_id == Buffer::type_id::array) { return; }
+        if (buf->type == Buffer::type_id::array) { return; }
 
 #if defined(DEBUG)
-        N2BREAK_IF((buf->type_id != Buffer::type_id::raw &&
-                    buf->type_id != Buffer::type_id::array),
+        N2BREAK_IF((buf->type != Buffer::type_id::raw &&
+                    buf->type != Buffer::type_id::array),
                    N2Error::InvalidMemory,
                    "Array corruption detected by type_id --- 0x%X is neither 0 "
                    "nor 0x%X.\n"
                    "Underlying buffer is named %s and is located at %p.",
-                   buf->type_id, Buffer::type_id::array, buf->name, buf);
+                   buf->type, Buffer::type_id::array, buf->name, buf);
 #endif
 
-        buf->type_id = Buffer::type_id::array;
+        buf->type = Buffer::type_id::array;
     }
 
 
