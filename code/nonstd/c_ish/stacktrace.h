@@ -142,6 +142,7 @@ inline void register_signal(int signal, _trace_cb* callback) {
 #define REGISTER_STACK_HANDLERS()                                                        \
         ::nonstd::sighandler::register_signal(SIGSEGV, sighandler::stacktrace_callback); \
         ::nonstd::sighandler::register_signal(SIGINT,  sighandler::stacktrace_callback); \
+        ::nonstd::sighandler::register_signal(SIGABRT, sighandler::stacktrace_callback); \
         ::nonstd::sighandler::register_signal(SIGHUP,  sighandler::stacktrace_callback)
 
 #else /* if defined(_MSC_VER) */
