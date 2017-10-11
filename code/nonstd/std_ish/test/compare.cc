@@ -48,21 +48,21 @@ TEST_CASE("Comparison utilities") {
         }
 
         SECTION("of Optional variations") {
-            Optional<u32> maybe_int = { 1 };
-            Optional<u32> none_int  = { };
-            Optional<c_cstr> maybe_string = { "Foo" };
-            Optional<c_cstr> none_string  = { };
+            nonstd::Optional<u32> maybe_int = { 1 };
+            nonstd::Optional<u32> none_int  = { };
+            nonstd::Optional<c_cstr> maybe_string = { "Foo" };
+            nonstd::Optional<c_cstr> none_string  = { };
 
             /* Remember */
             REQUIRE(0 == strcmp("a", "a"));
             REQUIRE(0 <  strcmp("b", "a"));
             REQUIRE(0 >  strcmp("a", "b"));
 
-            REQUIRE(0 == nonstd::compare(maybe_int, just<u32>(1)));
+            REQUIRE(0 == nonstd::compare(maybe_int, nonstd::just<u32>(1)));
             REQUIRE(0 <  nonstd::compare(maybe_int, none_int));
             REQUIRE(0 <  nonstd::compare(maybe_int, nonstd::nullopt));
-            REQUIRE(0 == nonstd::compare(just<c_cstr>("A"), "A"));
-            REQUIRE(0 >  nonstd::compare(just<c_cstr>("A"), "B"));
+            REQUIRE(0 == nonstd::compare(nonstd::just<c_cstr>("A"), "A"));
+            REQUIRE(0 >  nonstd::compare(nonstd::just<c_cstr>("A"), "B"));
             REQUIRE(0 <  nonstd::compare(maybe_string, none_string));
             REQUIRE(0 == nonstd::compare(nonstd::nullopt, none_string));
         }
@@ -84,12 +84,12 @@ TEST_CASE("Comparison utilities") {
         }
 
         SECTION("of Optional variations") {
-            Optional<u32> maybe_int = { 1 };
-            Optional<u32> none_int  = { };
-            Optional<c_cstr> maybe_string = { "Foo" };
-            Optional<c_cstr> none_string  = { };
+            nonstd::Optional<u32> maybe_int = { 1 };
+            nonstd::Optional<u32> none_int  = { };
+            nonstd::Optional<c_cstr> maybe_string = { "Foo" };
+            nonstd::Optional<c_cstr> none_string  = { };
 
-            REQUIRE( nonstd::equal_to(maybe_int, just<u32>(1)));
+            REQUIRE( nonstd::equal_to(maybe_int, nonstd::just<u32>(1)));
             REQUIRE(!nonstd::equal_to(maybe_int, none_int));
             REQUIRE(!nonstd::equal_to(maybe_int, nonstd::nullopt));
             REQUIRE( nonstd::equal_to(maybe_string, "Foo"));

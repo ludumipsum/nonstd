@@ -20,6 +20,11 @@ namespace optional {
 
 using nonstd::in_place;
 using nonstd::nullopt;
+using nonstd::Optional;
+using nonstd::just;
+using nonstd::just_ref;
+using nonstd::just_cref;
+using nonstd::none;
 
 /* Simple POD datatype used to test non-builtin-type Optionals */
 struct PODType {
