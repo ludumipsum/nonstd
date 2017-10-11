@@ -66,10 +66,6 @@
 using namespace fmt::literals;
 
 
-/* spdlog logging library */
-#include <spdlog/spdlog.h>
-
-
 /* Nitrogen Extensions */
 #include "preprocessor/disallow_copy_and_assign.h"
 #include "preprocessor/homogenize.h"
@@ -85,7 +81,6 @@ using namespace fmt::literals;
 
 #include "core/break.h"
 #include "core/error_types.h"
-#include "core/log.h"
 #include "core/primitive_types.h"
 #include "core/variadic_expand.h"
 
@@ -93,6 +88,7 @@ using namespace fmt::literals;
 #include "memory/array.h"
 #include "memory/hashtable.h"
 #include "memory/ring.h"
+#include "memory/stream.h"
 
 #include "c_ish/math.h"
 #include "c_ish/mem.h"
@@ -117,6 +113,5 @@ using namespace fmt::literals;
 namespace nonstd {
     inline void init(void) {
         REGISTER_STACK_HANDLERS();
-        log::init();
     }
 }
