@@ -43,12 +43,14 @@ struct Buffer {
      *  so these type IDs have to be >= 32 bits. As such, we get <= 8 hex digits
      *  to play with when coming up with recognizable hex-words for these types.
      */
-    enum type_id : u32 {
-        raw        = 0,
-        array      = 0xACED,
-        hash_table = 0xCAFE,
-        ring       = 0xBEEF,
-        stream     = 0x57AB,
+    struct type_id {
+        enum _t : u32 {
+            raw        = 0,
+            array      = 0xACED,
+            hash_table = 0xCAFE,
+            ring       = 0xBEEF,
+            stream     = 0x57AB,
+        };
     };
 
 
@@ -82,12 +84,12 @@ struct Buffer {
      *  Please use `(ptr)(buf->data)` and not `(ptr)(buf)`, but know that both
      *  will work.
      */
-    ptr      data;
-    u64      size;
-    c_cstr   name;
-    UserData userdata1;
-    UserData userdata2;
-    type_id  type_id;
+    ptr         data;
+    u64         size;
+    c_cstr      name;
+    UserData    userdata1;
+    UserData    userdata2;
+    type_id::_t type_id;
 
 }; ENFORCE_POD(Buffer);
 
