@@ -30,6 +30,9 @@ public:
         : fn     ( std::move_if_noexcept(fn) )
         , active ( true ) { }
 
+    scope_guard(scope_guard const &) = delete;
+    scope_guard & operator= (scope_guard const &) = delete;
+
     scope_guard(scope_guard && other)
     noexcept(IS_NOTHROW_MOVE_CONSTRUCTIBLE(Fn_T))
         : fn     ( std::move_if_noexcept(other.fn) )
@@ -43,10 +46,6 @@ public:
         active = other.active;
         other.dismiss();
     }
-    scope_guard() = delete;
-    scope_guard(scope_guard const &) = delete;
-    scope_guard & operator= (scope_guard const &) = delete;
-    void * operator new (size_t) = delete;
 
     ~scope_guard() noexcept {
         if (active) {
