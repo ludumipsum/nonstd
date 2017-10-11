@@ -102,7 +102,7 @@ struct Buffer {
  *  they never persist between frames.
  */
 inline Buffer makeBuffer(ptr p, u64 size, c_cstr name = "transient_buffer") {
-    return Buffer { p, size, name, { 0 }, { 0 } };
+    return Buffer { p, size, name, { 0 }, { 0 }, Buffer::type_id::raw };
 }
 
 } /* namespace nonstd */
