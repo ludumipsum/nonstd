@@ -5,9 +5,10 @@
  *  and "simple" `ostream & <<`s.
  *
  *  Usage;
- *      LOG("\n"     "LOG macro  :: " Ftype "", TYPE_NAME(u32));
- *      fmt::print(  "fmt format :: {}\n", nonstd::type_name<u32>());
- *      std::cout << "std::cout  :: " << nonstd::type_name<u32>() << '\n';
+ *      LOG(info) << "LOG macro      :: " << nonstd::type_name<u32>() << '\n';
+ *      printf(      "C-style prints :: " Ftype "\n", TYPE_NAME(u32));
+ *      std::cout << "std::cout      :: " << nonstd::type_name<u32>() << '\n';
+ *      fmt::print(  "fmt format     :: {}\n", nonstd::type_name<u32>());
  */
 
 #pragma once
