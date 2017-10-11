@@ -96,7 +96,6 @@ public:
 };
 
 } /* namespace exception */
-} /* namespace nonstd */
 
 
 /** Helper Defines
@@ -1345,8 +1344,6 @@ constexpr inline bool operator <= (Value const & lhs, Optional<T> const & rhs) {
  *  ============================================================================
  */
 
-namespace nonstd {
-
 /** Compare two Optionals
  *  ---------------------
  *   * If both Optionals are containing, compare their values as normal.
@@ -1421,8 +1418,8 @@ constexpr inline int compare(Value const & lhs, Optional<T> const & rhs) {
 }
 
 
-/** Print Specializations, Both `ostream & operator<<` And {fmt}
- *  ============================================================
+/** Print Specializations, both `ostream & operator<<` And {fmt}
+ *  ============================================================================
  *  Allows for `std::cout << opt <<"\n"` and `fmt::print("{}\n", opt);` style
  *  formatting, and will only print the contained value if said value can be
  *  passed into an `ostream &` via `operator <<`.
