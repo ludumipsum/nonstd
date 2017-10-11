@@ -53,8 +53,11 @@ public:
             try {
                 fn();
             } catch (...) {
-                std::cout << "scope_guard destructions cannot correctly throw. "
-                             "Calling std::terminate.";
+                std::cout
+                    << std::string(20, '~') << "\n"
+                    << "CRITICAL FAILURE: scope_guard executions cannot throw. "
+                       "Calling std::terminate." << "\n"
+                    << std::string(20, '~') << "\n";
                 std::terminate();
             }
         }
