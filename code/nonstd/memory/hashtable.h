@@ -130,16 +130,16 @@ public: /*< ## Class Methods */
     inline static void initializeBuffer(Buffer *const buf) {
         Metadata * metadata = (Metadata *)(buf->data);
         /* If the type check is correct, no initialization is required. */
-        if (buf->type_id == Buffer::type_id::hash_table) { return; }
+        if (buf->type == Buffer::type_id::hash_table) { return; }
 
 #if defined(DEBUG)
-        N2BREAK_IF((buf->type_id != Buffer::type_id::raw &&
-                    buf->type_id != Buffer::type_id::array),
+        N2BREAK_IF((buf->type != Buffer::type_id::raw &&
+                    buf->type != Buffer::type_id::array),
                    N2Error::InvalidMemory,
                    "Array corruption detected by type_id --- 0x%X is neither 0 "
                    "nor 0x%X.\n"
                    "Underlying buffer is named %s and is located at %p.",
-                   buf->type_id, Buffer::type_id::array, buf->name, buf);
+                   buf->type, Buffer::type_id::array, buf->name, buf);
 #endif
         N2BREAK_IF(metadata->rehash_in_progress, N2Error::PEBCAK,
                    "Buffer HashTable has been reinitialized while "
@@ -171,7 +171,7 @@ public: /*< ## Class Methods */
                    required_capacity,
                    buf->name, buf);
 
-        buf->type_id = Buffer::type_id::hash_table;
+        buf->type = Buffer::type_id::hash_table;
         metadata->capacity           = practical_capacity;
         metadata->count              = 0;
         metadata->max_miss_distance  = max_miss_distance;

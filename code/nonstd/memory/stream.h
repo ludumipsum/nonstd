@@ -59,16 +59,16 @@ public: /*< ## Class Methods */
     inline static void initializeBuffer(Buffer *const buf) {
         Metadata * metadata = (Metadata*)buf->data;
         /* If the type check is correct, no initialization is required. */
-        if (buf->type_id == Buffer::type_id::stream) { return; }
+        if (buf->type == Buffer::type_id::stream) { return; }
 
 #if defined(DEBUG)
-        N2BREAK_IF((buf->type_id != Buffer::type_id::raw &&
-                    buf->type_id != Buffer::type_id::array),
+        N2BREAK_IF((buf->type != Buffer::type_id::raw &&
+                    buf->type != Buffer::type_id::array),
                    N2Error::InvalidMemory,
                    "Array corruption detected by type_id --- 0x%X is neither 0 "
                    "nor 0x%X.\n"
                    "Underlying buffer is named %s and is located at %p.",
-                   buf->type_id, Buffer::type_id::array, buf->name, buf);
+                   buf->type, Buffer::type_id::array, buf->name, buf);
 #endif
 
         N2BREAK_IF(buf->size < sizeof(Metadata), N2Error::InsufficientMemory,
@@ -78,7 +78,7 @@ public: /*< ## Class Methods */
             buf->size, sizeof(Metadata),
             buf->name, buf);
 
-        buf->type_id = Buffer::type_id::stream;
+        buf->type = Buffer::type_id::stream;
         metadata->capacity   = (buf->size - sizeof(Metadata)) / sizeof(T);
         metadata->count      = 0;
         metadata->write_head = 0;
