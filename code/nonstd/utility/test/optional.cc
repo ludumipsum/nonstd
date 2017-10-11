@@ -79,6 +79,23 @@ inline bool operator == (NonTrivialType const & l,
 }
 
 
+/* A class that has an Optional as a member variable. */
+struct OptionalContainer {
+    Optional<size_t> maybe;
+
+    OptionalContainer()
+        : maybe ( nonstd::nullopt ) { }
+    OptionalContainer(size_t val)
+        : maybe ( val ) { }
+    OptionalContainer(Optional<size_t> opt)
+        : maybe ( opt ) { }
+
+    void assign(size_t v) {
+        maybe = v;
+    }
+};
+
+
 
 /** API DEMONSTRATION
  *  =================
@@ -516,6 +533,15 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
             REQUIRE(HAS_SAME_TYPE(maybe, lazy));
         }
 
+        SECTION("should be assignable from empty") {
+            Optional<u64> maybe = { };
+            REQUIRE_FALSE(maybe);
+
+            maybe = 42;
+            REQUIRE(maybe);
+            REQUIRE(*maybe == 42);
+        }
+
         SECTION("should be sensibly coercible to boolean") {
             REQUIRE(maybe_qword);
             REQUIRE_FALSE(maybe_not_qword);
@@ -694,6 +720,31 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
                 REQUIRE_FALSE(maybe);
                 REQUIRE(new_value == initial_value + 12);
             }
+        }
+    }
+
+    SECTION("stored as members") {
+        SECTION("should be constructible and coerce to boolean") {
+            Optional<size_t>  opt = { 42 };
+
+            OptionalContainer oc_nul {     };
+            OptionalContainer oc_val {  42 };
+            OptionalContainer oc_opt { opt };
+
+            REQUIRE_FALSE(oc_nul.maybe);
+            REQUIRE(oc_val.maybe);
+            REQUIRE(*(oc_val.maybe) == 42);
+            REQUIRE(oc_opt.maybe);
+            REQUIRE(*(oc_opt.maybe) == 42);
+        }
+
+        SECTION("should be assignable from empty") {
+            OptionalContainer oc_nul { };
+            REQUIRE_FALSE(oc_nul.maybe);
+
+            oc_nul.assign(42);
+            REQUIRE(oc_nul.maybe);
+            REQUIRE(*(oc_nul.maybe) == 42);
         }
     }
 }
