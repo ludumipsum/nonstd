@@ -59,8 +59,7 @@
 
 
 /* {{fmt}} printing library */
-#include <fmt/format.h>
-#include <fmt/ostream.h>
+#include <thirdparty/fmt.h>
 
 // Allow access to ex; `"Hello {}"_format("World")` style fmt literals
 using namespace fmt::literals;
