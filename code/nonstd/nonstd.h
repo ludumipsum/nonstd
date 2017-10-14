@@ -49,24 +49,20 @@
 #include <alloca.h> // alloca
 #endif
 
-/* Boot Preprocessor */
-// This library is 3.1Mb. Import only what we use.
-#include <boost/preprocessor/facilities/overload.hpp>
-#include <boost/preprocessor/seq.hpp>
-#include <boost/preprocessor/seq/enum.hpp>
-#include <boost/preprocessor/seq/for_each.hpp>
-#include <boost/preprocessor/variadic/to_seq.hpp>
+/* Globally-available thirdparty libraries */
+
+/* Boot Preprocessor
+ * For file inside the nonstd/ dir it will still be best to ex; include exactly
+ * <boost/preprocessor/seq.hpp>, to help manage which boost_pp headers are used
+ * where. The thirdparty/boost/preprocessor.h header will aggregate those.
+ */
+#include <thirdparty/boost/preprocessor.h>
+
+/* {fmt} Printing Library */
+#include <thirdparty/fmt.h>
 
 
-/* {{fmt}} printing library */
-#include <fmt/format.h>
-#include <fmt/ostream.h>
-
-// Allow access to ex; `"Hello {}"_format("World")` style fmt literals
-using namespace fmt::literals;
-
-
-/* Nitrogen Extensions */
+/* Nonstandard */
 #include "preprocessor/disallow_copy_and_assign.h"
 #include "preprocessor/homogenize.h"
 #include "preprocessor/symbol_stringifier.h"

@@ -17,7 +17,7 @@
 #include <stdexcept>
 #include <ostream>
 
-#include <fmt/format.h>
+#include <thirdparty/fmt.h>
 
 #include "nonstd/preprocessor/homogenize.h"
 #include "nonstd/core/primitive_types.h"
