@@ -58,12 +58,8 @@
  */
 #include <thirdparty/boost/preprocessor.h>
 
-/* {fmt} Printing Library
- * Allow access to ex; `"Hello {}"_format("World")` style fmt literals by
- * globally `using namespace`.
- */
+/* {fmt} Printing Library */
 #include <thirdparty/fmt.h>
-using namespace fmt::literals;
 
 
 /* Nonstandard */
