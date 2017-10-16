@@ -62,10 +62,10 @@ public: /*< ## Ctors, Detors, and Assignments */
 
 
 public: /*< ## Public Memeber Methods */
-    inline u64    size()     { return m_buf->size;             }
-    inline u64    count()    { return m_write_index;           }
-    inline u64    capacity() { return m_buf->size / sizeof(T); }
-    inline c_cstr name()     { return m_buf->name;             }
+    inline u64    size()     const noexcept { return m_buf->size;             }
+    inline u64    count()    const noexcept { return m_write_index;           }
+    inline u64    capacity() const noexcept { return m_buf->size / sizeof(T); }
+    inline c_cstr name()     const noexcept { return m_buf->name;             }
 
     /* Push a value on the back of the Buffer */
     inline T& push(T value) {
