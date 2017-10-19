@@ -57,6 +57,9 @@ public: /*< ## Ctors, Detors, and Assignments */
         : m_buf    ( buf    )
         , m_resize ( resize )
     { ENFORCE_POD(T); }
+    Array()
+        : m_buf    ( nullptr )
+        , m_resize ( nullptr ) { }
     Array(Array const & other)
         : m_buf    ( other.m_buf    )
         , m_resize ( other.m_resize )
