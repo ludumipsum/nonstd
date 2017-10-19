@@ -57,9 +57,6 @@ public: /*< ## Ctors, Detors, and Assignments */
         : m_buf    ( buf    )
         , m_resize ( resize )
     { ENFORCE_POD(T); }
-    Array()
-        : m_buf    ( nullptr )
-        , m_resize ( nullptr ) { }
     Array(Array const & other)
         : m_buf    ( other.m_buf    )
         , m_resize ( other.m_resize )
@@ -83,6 +80,10 @@ public: /*< ## Ctors, Detors, and Assignments */
         std::swap(m_resize, other.m_resize);
         return *this;
     }
+protected:
+    Array()
+        : m_buf    ( nullptr )
+        , m_resize ( nullptr ) { }
 
 public: /*< ## Public Memebr Methods */
     inline Buffer       * const buffer()       noexcept { return m_buf; }
