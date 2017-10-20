@@ -23,11 +23,12 @@ class Array {
 public: /*< ## Class Methods */
     static const u64 default_capacity = 64;
 
-    inline static u64 precomputeSize(u64 capacity = default_capacity) {
+    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    noexcept {
         return sizeof(T) * capacity;
     }
 
-    inline static void initializeBuffer(Buffer *const buf) {
+    static inline void initializeBuffer(Buffer *const buf) {
         /* If the type check is correct, no initialization is required. */
         if (buf->type == Buffer::type_id::array) { return; }
 
@@ -44,65 +45,32 @@ public: /*< ## Class Methods */
     }
 
 
-protected: /*< ## Protected Member Variables && Accessors */
+protected: /*< ## Protected Member Variables */
     Buffer *         m_buf;
     Buffer::ResizeFn m_resize;
 
-    inline u64       & write_index()       noexcept { return m_buf->userdata1.u_int; }
-    inline u64 const & write_index() const noexcept { return m_buf->userdata1.u_int; }
-
 public: /*< ## Ctors, Detors, and Assignments */
-    /* Ensure that only POD types are used by placing ENFORCE_POD here. */
+    /* Ensure that only POD types are used by placing ENFORCE_POD in the ctor */
     Array(Buffer * buf, Buffer::ResizeFn resize = nullptr)
         : m_buf    ( buf    )
         , m_resize ( resize )
     { ENFORCE_POD(T); }
-#if 0
-    Array(Array const & other)
-        : m_buf    ( other.m_buf    )
-        , m_resize ( other.m_resize )
-    { }
-    Array& operator=(Array const & other) {
-        if (&other == this) { return *this; }
-        m_buf    = other.m_buf;
-        m_resize = other.m_resize;
-        return *this;
-    }
-    Array(Array && other)
-        : m_buf    ( nullptr )
-        , m_resize ( nullptr )
-    {
-        std::swap(m_buf, other.m_buf);
-        std::swap(m_resize, other.m_resize);
-    }
-    Array& operator=(Array && other) {
-        if (&other == this) { return *this; }
-        std::swap(m_buf, other.m_buf);
-        std::swap(m_resize, other.m_resize);
-        return *this;
-    }
-#endif
-#if 0
-    Array(Array const & other)            = default;
-    Array(Array && other)                 = default;
-    Array& operator=(Array const & other) = default;
-    Array& operator=(Array && other)      = default;
-#endif
-#if 0
-protected:
-    Array()
-        : m_buf    ( nullptr )
-        , m_resize ( nullptr ) { }
-#endif
 
 public: /*< ## Public Memebr Methods */
-    inline Buffer       * const buffer()       noexcept { return m_buf; }
-    inline Buffer const * const buffer() const noexcept { return m_buf; }
+    /* ### Buffer Accessors */
+    inline Buffer       * const buffer()       noexcept { return m_buf;       }
+    inline Buffer const * const buffer() const noexcept { return m_buf;       }
+    inline u64                  size()   const noexcept { return m_buf->size; }
+    inline c_cstr               name()   const noexcept { return m_buf->name; }
 
-    inline u64    size()     const noexcept { return m_buf->size;             }
-    inline u64    count()    const noexcept { return write_index();           }
-    inline u64    capacity() const noexcept { return m_buf->size / sizeof(T); }
-    inline c_cstr name()     const noexcept { return m_buf->name;             }
+    /* ### Array Accessors */
+    // Give up the 80 column width for this boilerplate.
+    inline u64       & write_index()       noexcept { return m_buf->userdata1.u_int;  }
+    inline u64 const & write_index() const noexcept { return m_buf->userdata1.u_int;  }
+    inline u64 const   count()       const noexcept { return write_index();           }
+    inline u64 const   capacity()    const noexcept { return m_buf->size / sizeof(T); }
+
+    /* ### Normal Member Methods */
 
     /* Push a value on the back of the Buffer */
     inline T& push(T value) {
