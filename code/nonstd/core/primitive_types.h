@@ -35,11 +35,11 @@ typedef void *          print_ptr;
 // Guarantee Windows API types are what we think they are.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-ENFORCE_SIZE(WORD,      2); ENFORCE_SAME_TYPE(WORD,      u16);
-ENFORCE_SIZE(DWORD,     4); ENFORCE_SAME_TYPE(DWORD,     u32);
-ENFORCE_SIZE(DWORDLONG, 8); ENFORCE_SAME_TYPE(DWORDLONG, u64);
-ENFORCE_SIZE(DWORD32,   4); ENFORCE_SAME_TYPE(DWORD32,   u32);
-ENFORCE_SIZE(DWORD64,   8); ENFORCE_SAME_TYPE(DWORD64,   u64);
+ENFORCE_SIZE(WORD,      2);
+ENFORCE_SIZE(DWORD,     4);
+ENFORCE_SIZE(DWORDLONG, 8);
+ENFORCE_SIZE(DWORD32,   4);
+ENFORCE_SIZE(DWORD64,   8);
 #endif
 
 /* IDs uniquely identify game entities. We reserve the bottom few for special
