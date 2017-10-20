@@ -23,11 +23,12 @@ class Array {
 public: /*< ## Class Methods */
     static const u64 default_capacity = 64;
 
-    inline static u64 precomputeSize(u64 capacity = default_capacity) {
+    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    noexcept {
         return sizeof(T) * capacity;
     }
 
-    inline static void initializeBuffer(Buffer *const buf) {
+    static inline void initializeBuffer(Buffer *const buf) {
         /* If the type check is correct, no initialization is required. */
         if (buf->type == Buffer::type_id::array) { return; }
 
@@ -40,32 +41,36 @@ public: /*< ## Class Methods */
                    "Underlying buffer is named %s and is located at %p.",
                    buf->type, Buffer::type_id::array, buf->name, buf);
 #endif
-
         buf->type = Buffer::type_id::array;
     }
 
 
-protected: /*< ## Public Member Variables */
-    Buffer *const    m_buf;
+protected: /*< ## Protected Member Variables */
+    Buffer *         m_buf;
     Buffer::ResizeFn m_resize;
-    u64 &            m_write_index;
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Array(Buffer *const buf, Buffer::ResizeFn resize = nullptr)
-        : m_buf         ( buf                  )
-        , m_resize      ( resize               )
-        , m_write_index ( buf->userdata1.u_int )
-    {
-        /* Ensure that only POD data is used in Arrays. */
-        ENFORCE_POD(T);
-    }
+    /* Ensure that only POD types are used by placing ENFORCE_POD in the ctor */
+    Array(Buffer * buf, Buffer::ResizeFn resize = nullptr)
+        : m_buf    ( buf    )
+        , m_resize ( resize )
+    { ENFORCE_POD(T); }
 
+public: /*< ## Public Memebr Methods */
+    /* ### Buffer Accessors */
+    inline Buffer       * const buffer()       noexcept { return m_buf;       }
+    inline Buffer const * const buffer() const noexcept { return m_buf;       }
+    inline u64                  size()   const noexcept { return m_buf->size; }
+    inline c_cstr               name()   const noexcept { return m_buf->name; }
 
-public: /*< ## Public Memeber Methods */
-    inline u64    size()     const noexcept { return m_buf->size;             }
-    inline u64    count()    const noexcept { return m_write_index;           }
-    inline u64    capacity() const noexcept { return m_buf->size / sizeof(T); }
-    inline c_cstr name()     const noexcept { return m_buf->name;             }
+    /* ### Array Accessors */
+    // Give up the 80 column width for this boilerplate.
+    inline u64       & write_index()       noexcept { return m_buf->userdata1.u_int;  }
+    inline u64 const & write_index() const noexcept { return m_buf->userdata1.u_int;  }
+    inline u64 const   count()       const noexcept { return write_index();           }
+    inline u64 const   capacity()    const noexcept { return m_buf->size / sizeof(T); }
+
+    /* ### Normal Member Methods */
 
     /* Push a value on the back of the Buffer */
     inline T& push(T value) {
@@ -79,8 +84,8 @@ public: /*< ## Public Memeber Methods */
        if necessary. No initialization is done on this data. */
     inline T* consume(u64 count=1) {
         // Resize if this consume call would stretch past the end of the buffer.
-        if (m_write_index + count > capacity()) {
-            u64 requested_count = (m_write_index + count);
+        if (write_index() + count > capacity()) {
+            u64 requested_count = (write_index() + count);
             u64 padded_count    = (u64)(1.2f * requested_count);
             u64 clamped_count   = n2max(padded_count, requested_count+1);
             resize(clamped_count);
@@ -88,8 +93,8 @@ public: /*< ## Public Memeber Methods */
 
         // Find the address of the request data region, increment the write
         // index, and return.
-        T* ret = (T*)(m_buf->data) + m_write_index;
-        m_write_index += count;
+        T* ret = (T*)(m_buf->data) + write_index();
+        write_index() += count;
 
         return ret;
     }
@@ -110,10 +115,25 @@ public: /*< ## Public Memeber Methods */
 #endif
         return *((T*)(m_buf->data) + index);
     }
+    inline T const & operator[](u64 index) const {
+#if defined(DEBUG)
+        N2BREAK_IF(index >= capacity(), N2Error::OutOfBounds,
+            "Array index operation exceeds maximum capacity.\n"
+            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            index+1, count(), capacity(), m_buf->name, m_buf);
+        N2BREAK_IF(index >= count(), N2Error::OutOfBounds,
+            "Array index operation exceeds current count.\n"
+            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
+            "Underlying buffer is named %s, and it is located at %p.",
+            index+1, count(), capacity(), m_buf->name, m_buf);
+#endif
+        return *((T*)(m_buf->data) + index);
+    }
 
     /* Drop all elements of the region without reinitializing memory. */
     inline void drop() {
-        m_write_index = 0;
+        write_index() = 0;
     }
 
     /* Erase a range of objects from this Array.
@@ -139,7 +159,7 @@ public: /*< ## Public Memeber Methods */
         }
 #endif
         memmove(range_begin, range_end, (end() - range_end) * sizeof(T));
-        m_write_index -= (range_end - range_begin);
+        write_index() -= (range_end - range_begin);
     }
     inline void erase(u64 index_begin, u64 index_end = 0) {
         // Poor-man's relative default. If only index_begin is given, erase it.
@@ -163,7 +183,7 @@ public: /*< ## Public Memeber Methods */
 
     /* Iterator access to support range-based for */
     inline T* begin(void) const { return (T*)(m_buf->data);                 }
-    inline T* end(void) const   { return (T*)(m_buf->data) + m_write_index; }
+    inline T* end(void)   const { return (T*)(m_buf->data) + write_index(); }
     inline T* buffer_end(void) const {
         return (T*)(m_buf->data + m_buf->size);
     }
