@@ -31,6 +31,15 @@ typedef uint8_t *       ptr;
 typedef uint8_t const * c_ptr;
 typedef void *          print_ptr;
 
+#if defined(_MSC_VER)
+// Guarantee Windows API types are what we think they are.
+ENFORCE_SIZE(WORD,      2); ENFORCE_SAME_TYPE(WORD,      u16);
+ENFORCE_SIZE(DWORD,     4); ENFORCE_SAME_TYPE(DWORD,     u32);
+ENFORCE_SIZE(DWORDLONG, 8); ENFORCE_SAME_TYPE(DWORDLONG, u64);
+ENFORCE_SIZE(DWORD32,   4); ENFORCE_SAME_TYPE(DWORD32,   u32);
+ENFORCE_SIZE(DWORD64,   8); ENFORCE_SAME_TYPE(DWORD64,   u64);
+#endif
+
 /* IDs uniquely identify game entities. We reserve the bottom few for special
    meanings in our container types (unset, deleted, etc). */
 typedef u64 ID;
