@@ -33,7 +33,6 @@ typedef void *          print_ptr;
 
 #if defined(_MSC_VER)
 // Guarantee Windows API types are what we think they are.
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 ENFORCE_SIZE(WORD,      2);
 ENFORCE_SIZE(DWORD,     4);
