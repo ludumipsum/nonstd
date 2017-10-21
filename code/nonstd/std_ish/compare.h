@@ -17,15 +17,14 @@ namespace nonstd {
 
 /** `equal_to` Free Function
  *  ------------------------
- *  This function steals a lot of its functionality from the <functional>
- *  std::equal_to struct. Noteably, though, we define a free-function, rather
- *  than a function object, s.t. specializations can be created out of scope by
- *  defining *  non-template overloads.
+ *  Relies on the given types having correctly overloaded `operator==` members.
+ *  Correctly deduces noexcept using the `noexcept(noexcept(...))` construct.
+ *  Using std::forward to manipulate the types because... that's what libc++ do?
  */
 template <typename L, typename R>
 constexpr bool equal_to(L&& lhs, R&& rhs)
 noexcept(noexcept(std::forward<L>(lhs) == std::forward<R>(rhs))) {
-    return std::equal_to<>()(std::forward<L>(lhs), std::forward<R>(rhs));
+    return std::forward<L>(lhs) == std::forward<R>(rhs);
 }
 
 // NB. Not constexpr, because `strcmp`. It's noexcept because segfaults are
@@ -36,38 +35,39 @@ inline bool equal_to(c_cstr lhs, c_cstr rhs) {
 
 // Additional noexcept overloads may be added with ex;
 //     template<typename L, typename R>
-//     constexpr inline bool equal_to(Optional<L> left, Optional<R> right)
+//     constexpr inline bool equal_to(Optional<L> lhs, Optional<R> rhs)
 //     noexcept {
-//         return left == right;
+//         return lhs == rhs;
 //     }
 
-
-template<typename L, typename R>
-constexpr FORCEINLINE auto compare(L left, R right)
--> ENABLE_IF_DTYPE(!(IS_ARITHMETIC(L) && IS_ARITHMETIC(R)), int) {
-    if (left > right) { return  1; } else
-    if (left < right) { return -1; }
+/** `compare` Free Function
+ *  -----------------------
+ *  Relies on the given types having correctly overloaded `operator<` and
+ *  `operator>` members. Correctly deduces noexcept using the
+ * `noexcept(noexcept(...))` construct.
+ *  Using std::forward to manipulate the types because... that's what libc++ do?
+ */
+template <typename L, typename R>
+constexpr int compare(L&& lhs, R&& rhs)
+noexcept(noexcept(std::forward<L>(lhs) < std::forward<R>(rhs)) &&
+         noexcept(std::forward<L>(lhs) > std::forward<R>(rhs))   ) {
+    if (std::forward<L>(lhs) > std::forward<R>(rhs)) { return  1; } else
+    if (std::forward<L>(lhs) < std::forward<R>(rhs)) { return -1; }
     return 0;
 }
 
-template<typename L, typename R>
-constexpr FORCEINLINE auto compare(L left, R right) noexcept
--> ENABLE_IF_DTYPE( (IS_ARITHMETIC(L) && IS_ARITHMETIC(R)), int) {
-    if (left > right) { return  1; } else
-    if (left < right) { return -1; }
-    return 0;
-}
-
-FORCEINLINE int compare(c_cstr left, c_cstr right) {
-    return strcmp(left, right);
+// NB. Not constexpr, because `strcmp`. It's noexcept because segfaults are
+//     possible, and we _might_ get segv exceptions rather than terminations.
+inline int compare(c_cstr lhs, c_cstr rhs) {
+    return strcmp(lhs, rhs);
 }
 
 // Additional noexcept overloads may be added with ex;
 //    template<typename L, typename R>
-//    constexpr inline bool compare(Optional<L> left, Optional<R> right)
+//    constexpr inline bool compare(Optional<L> lhs, Optional<R> rhs)
 //    noexcept {
-//        if (left > right) { return  1; } else
-//        if (left < right) { return -1; }
+//        if (lhs > rhs) { return  1; } else
+//        if (lhs < rhs) { return -1; }
 //        return 0;
 //    }
 
