@@ -1417,6 +1417,7 @@ constexpr inline int compare(Value const & lhs, Optional<T> const & rhs) {
     return (bool)(rhs) ? nonstd::compare(lhs, *rhs) : 1;
 }
 
+
 /** Print Specializations, both `ostream & operator<<` And {fmt}
  *  ============================================================================
  *  Allows for `std::cout << opt <<"\n"` and `fmt::print("{}\n", opt);` style

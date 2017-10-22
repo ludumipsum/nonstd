@@ -6,7 +6,6 @@
 #pragma once
 
 #include <cstring>
-#include <functional>
 
 #include "nonstd/preprocessor/homogenize.h"
 #include "nonstd/core/primitive_types.h"
