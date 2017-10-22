@@ -1359,7 +1359,7 @@ constexpr bool equal_to(Optional<T> const & lhs, Optional<U> const & rhs) {
 }
 
 template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
-constexpr int compare (Optional<T> const & lhs, Optional<U> const & rhs) {
+constexpr int compare (Optional<T>&& lhs, Optional<U>&& rhs) {
     if ((bool)(lhs) != (bool)(rhs)) { return (bool)(lhs) ? 1 : -1;        }
     if ((bool)(lhs))                { return nonstd::compare(*lhs, *rhs); }
     return 0;
@@ -1383,13 +1383,13 @@ noexcept {
 }
 
 template < typename T >
-constexpr inline int compare(Optional<T> const & lhs, nonstd::nullopt_t)
+constexpr inline int compare(Optional<T>&& lhs, nonstd::nullopt_t)
 noexcept {
     return (bool)(lhs) ? 1 : 0;
 }
 
 template < typename T >
-constexpr inline int compare(nonstd::nullopt_t, Optional<T> const & rhs)
+constexpr inline int compare(nonstd::nullopt_t, Optional<T>&& rhs)
 noexcept {
     return (bool)(rhs) ? -1 : 0;
 }
@@ -1409,11 +1409,11 @@ constexpr inline bool equal_to(Value const & lhs, Optional<T> const & rhs) {
 }
 
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr inline int compare(Optional<T> const & lhs, Value const & rhs) {
+constexpr inline int compare(Optional<T>&& lhs, Value&& rhs) {
     return (bool)(lhs) ? nonstd::compare(*lhs, rhs) : -1;
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr inline int compare(Value const & lhs, Optional<T> const & rhs) {
+constexpr inline int compare(Value&& lhs, Optional<T>&& rhs) {
     return (bool)(rhs) ? nonstd::compare(lhs, *rhs) : 1;
 }
 
