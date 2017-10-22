@@ -21,12 +21,20 @@ namespace nonstd {
  *  Correctly deduces noexcept using the `noexcept(noexcept(...))` construct.
  *  Using std::forward to manipulate the types because... that's what libc++ do?
  */
+#if 1
+template <typename L, typename R>
+constexpr bool equal_to(L const & lhs, R const & rhs)
+noexcept(noexcept(lhs == rhs)) {
+    return lhs == rhs;
+}
+#endif
+#if 0
 template <typename L, typename R>
 constexpr bool equal_to(L&& lhs, R&& rhs)
 noexcept(noexcept(std::forward<L>(lhs) == std::forward<R>(rhs))) {
     return std::forward<L>(lhs) == std::forward<R>(rhs);
 }
-
+#endif
 // NB. Not constexpr, because `strcmp`. It's noexcept because segfaults are
 //     possible, and we _might_ get segv exceptions rather than terminations.
 inline bool equal_to(c_cstr lhs, c_cstr rhs) {
@@ -47,6 +55,17 @@ inline bool equal_to(c_cstr lhs, c_cstr rhs) {
  * `noexcept(noexcept(...))` construct.
  *  Using std::forward to manipulate the types because... that's what libc++ do?
  */
+#if 1
+template <typename L, typename R>
+constexpr int compare(L const & lhs, R const & rhs)
+noexcept(noexcept(lhs < rhs) &&
+         noexcept(lhs > rhs)   ) {
+    if (lhs > rhs) { return  1; } else
+    if (lhs < rhs) { return -1; }
+    return 0;
+}
+#endif
+#if 0
 template <typename L, typename R>
 constexpr int compare(L&& lhs, R&& rhs)
 noexcept(noexcept(std::forward<L>(lhs) < std::forward<R>(rhs)) &&
@@ -55,6 +74,7 @@ noexcept(noexcept(std::forward<L>(lhs) < std::forward<R>(rhs)) &&
     if (std::forward<L>(lhs) < std::forward<R>(rhs)) { return -1; }
     return 0;
 }
+#endif
 
 // NB. Not constexpr, because `strcmp`. It's noexcept because segfaults are
 //     possible, and we _might_ get segv exceptions rather than terminations.

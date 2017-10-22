@@ -19,15 +19,15 @@ using nonstd::equal_to;
 struct BadComp {
     int x;
 
-    bool operator==(BadComp const & other) noexcept(false) {
+    bool operator==(BadComp const & other) const noexcept(false) {
         if (x == 0) { throw std::runtime_error("What a bad class"); }
         return x == other.x;
     }
-    bool operator<(BadComp const & other) noexcept(false) {
+    bool operator<(BadComp const & other) const noexcept(false) {
         if (x == 0) { throw std::runtime_error("What a bad class"); }
         return x < other.x;
     }
-    bool operator>(BadComp const & other) noexcept(false) {
+    bool operator>(BadComp const & other) const noexcept(false) {
         if (x == 0) { throw std::runtime_error("What a bad class"); }
         return x > other.x;
     }
@@ -94,10 +94,10 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(0 <  nonstd::compare(maybe_int, nonstd::nullopt));
             REQUIRE(0 == nonstd::compare(maybe_int, 1));
             REQUIRE(0 >  nonstd::compare(maybe_int, 2));
-            REQUIRE(0 == strcmp("A", "A"));
-            REQUIRE(0 == nonstd::compare(nonstd::just<c_cstr>("A"), "A"));
-            REQUIRE(0 >  strcmp("A", "B"));
-            REQUIRE(0 >  nonstd::compare(nonstd::just<c_cstr>("A"), "B"));
+            REQUIRE(0 == strcmp("Foo", "Foo"));
+            REQUIRE(0 == nonstd::compare(nonstd::just<c_cstr>("Foo"), "Foo"));
+            REQUIRE(0 <  strcmp("Foo", "Bar"));
+            REQUIRE(0 <  nonstd::compare(nonstd::just<c_cstr>("Foo"), "Bar"));
             REQUIRE(0 == strcmp("Foo", "Foo"));
             REQUIRE(0 == nonstd::compare(maybe_string, "Foo"));
             REQUIRE(0 <  strcmp("Foo", "Bar"));
@@ -133,10 +133,10 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(!nonstd::equal_to(maybe_int, nonstd::nullopt));
             REQUIRE( nonstd::equal_to(maybe_int, 1));
             REQUIRE(!nonstd::equal_to(maybe_int, 2));
-            REQUIRE(0 == strcmp("A", "A"));
-            REQUIRE( nonstd::equal_to(nonstd::just<c_cstr>("A"), "A"));
-            REQUIRE(0 != strcmp("A", "B"));
-            REQUIRE(!nonstd::equal_to(nonstd::just<c_cstr>("A"), "B"));
+            REQUIRE(0 == strcmp("Foo", "Foo"));
+            REQUIRE( nonstd::equal_to(nonstd::just<c_cstr>("Foo"), "Foo"));
+            REQUIRE(0 != strcmp("Foo", "Bar"));
+            REQUIRE(!nonstd::equal_to(nonstd::just<c_cstr>("Foo"), "Bar"));
             REQUIRE(0 == strcmp("Foo", "Foo"));
             REQUIRE( nonstd::equal_to(maybe_string, "Foo"));
             REQUIRE(0 != strcmp("Foo", "Bar"));

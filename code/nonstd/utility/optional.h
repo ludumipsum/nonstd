@@ -1344,6 +1344,81 @@ constexpr inline bool operator <= (Value const & lhs, Optional<T> const & rhs) {
  *  ============================================================================
  */
 
+ #if 1
+/** Compare two Optionals
+ *  ---------------------
+ *   * If both Optionals are containing, compare their values as normal.
+ *   * A non-containing Optional is always considered to be less than a
+ *     containing Optional.
+ *   * If both Optionals are non-containing, they are considered equal.
+ */
+template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
+constexpr bool equal_to(Optional<T> const & lhs, Optional<U> const & rhs) {
+    if ((bool)(lhs) != (bool)(rhs)) { return false;                        }
+    if ((bool)(lhs))                { return nonstd::equal_to(*lhs, *rhs); }
+    return true;
+}
+
+template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
+constexpr int compare(Optional<T> const & lhs, Optional<U> const & rhs) {
+    if ((bool)(lhs) != (bool)(rhs)) { return (bool)(lhs) ? 1 : -1;        }
+    if ((bool)(lhs))                { return nonstd::compare(*lhs, *rhs); }
+    return 0;
+}
+
+
+/** Compare an Optional to a `nullopt`
+ *  ----------------------------------
+ *   * A `nullopt` is always considered to be less than a containing Optional.
+ *   * A `nullopt` and a non-containing Optional are considered equal.
+ */
+template < typename T >
+constexpr inline bool equal_to(Optional<T> const & lhs, nonstd::nullopt_t)
+noexcept {
+    return !(bool)(lhs);
+}
+template < typename T >
+constexpr inline bool equal_to(nonstd::nullopt_t, Optional<T> const & rhs)
+noexcept {
+    return !(bool)(rhs);
+}
+
+template < typename T >
+constexpr inline int compare(Optional<T> const & lhs, nonstd::nullopt_t)
+noexcept {
+    return (bool)(lhs) ? 1 : 0;
+}
+
+template < typename T >
+constexpr inline int compare(nonstd::nullopt_t, Optional<T> const & rhs)
+noexcept {
+    return (bool)(rhs) ? -1 : 0;
+}
+
+
+/** Compare an Optional and a value
+ *  -------------------------------
+ *   * An Empty Optional is always considered to be less than a Value.
+ */
+template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
+constexpr inline bool equal_to(Optional<T> const & lhs, Value const & rhs) {
+    return (bool)(lhs) && nonstd::equal_to(*lhs, rhs);
+}
+template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
+constexpr inline bool equal_to(Value const & lhs, Optional<T> const & rhs) {
+    return (bool)(rhs) && nonstd::equal_to(lhs, *rhs);
+}
+
+template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
+constexpr inline int compare(Optional<T> const & lhs, Value const & rhs) {
+    return (bool)(lhs) ? nonstd::compare(*lhs, rhs) : -1;
+}
+template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
+constexpr inline int compare(Value const & lhs, Optional<T> const & rhs) {
+    return (bool)(rhs) ? nonstd::compare(lhs, *rhs) : 1;
+}
+#endif
+#if 0
 /** Compare two Optionals
  *  ---------------------
  *   * If both Optionals are containing, compare their values as normal.
@@ -1359,7 +1434,7 @@ constexpr bool equal_to(Optional<T>&& lhs, Optional<U>&& rhs) {
 }
 
 template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
-constexpr int compare (Optional<T>&& lhs, Optional<U>&& rhs) {
+constexpr int compare(Optional<T>&& lhs, Optional<U>&& rhs) {
     if ((bool)(lhs) != (bool)(rhs)) { return (bool)(lhs) ? 1 : -1;        }
     if ((bool)(lhs))                { return nonstd::compare(*lhs, *rhs); }
     return 0;
@@ -1416,7 +1491,7 @@ template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
 constexpr inline int compare(Value&& lhs, Optional<T>&& rhs) {
     return (bool)(rhs) ? nonstd::compare(lhs, *rhs) : 1;
 }
-
+#endif
 
 /** Print Specializations, both `ostream & operator<<` And {fmt}
  *  ============================================================================
