@@ -92,8 +92,12 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(0 == nonstd::compare(maybe_int, nonstd::just<u32>(1)));
             REQUIRE(0 <  nonstd::compare(maybe_int, none_int));
             REQUIRE(0 <  nonstd::compare(maybe_int, nonstd::nullopt));
+            REQUIRE(0 == nonstd::compare(maybe_int, 1));
+            REQUIRE(0 >  nonstd::compare(maybe_int, 2));
             REQUIRE(0 == nonstd::compare(nonstd::just<c_cstr>("A"), "A"));
             REQUIRE(0 >  nonstd::compare(nonstd::just<c_cstr>("A"), "B"));
+            REQUIRE(0 == nonstd::compare(maybe_string, "Foo"));
+            REQUIRE(0 <  nonstd::compare(maybe_string, "Bar"));
             REQUIRE(0 <  nonstd::compare(maybe_string, none_string));
             REQUIRE(0 == nonstd::compare(nonstd::nullopt, none_string));
         }
@@ -123,6 +127,10 @@ TEST_CASE("Comparison utilities") {
             REQUIRE( nonstd::equal_to(maybe_int, nonstd::just<u32>(1)));
             REQUIRE(!nonstd::equal_to(maybe_int, none_int));
             REQUIRE(!nonstd::equal_to(maybe_int, nonstd::nullopt));
+            REQUIRE( nonstd::equal_to(maybe_int, 1));
+            REQUIRE(!nonstd::equal_to(maybe_int, 2));
+            REQUIRE( nonstd::equal_to(nonstd::just<c_cstr>("A"), "A"));
+            REQUIRE(!nonstd::equal_to(nonstd::just<c_cstr>("A"), "B"));
             REQUIRE( nonstd::equal_to(maybe_string, "Foo"));
             REQUIRE(!nonstd::equal_to(maybe_string, "Bar"));
             REQUIRE(!nonstd::equal_to(maybe_string, none_string));
