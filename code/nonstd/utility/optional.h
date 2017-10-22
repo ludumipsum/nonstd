@@ -1352,7 +1352,7 @@ constexpr inline bool operator <= (Value const & lhs, Optional<T> const & rhs) {
  *   * If both Optionals are non-containing, they are considered equal.
  */
 template <typename T, typename U=T, __OPT_ENABLE_IF_IS_CONVERTABLE(U,T)>
-constexpr bool equal_to(Optional<T> const & lhs, Optional<U> const & rhs) {
+constexpr bool equal_to(Optional<T>&& lhs, Optional<U>&& rhs) {
     if ((bool)(lhs) != (bool)(rhs)) { return false;                        }
     if ((bool)(lhs))                { return nonstd::equal_to(*lhs, *rhs); }
     return true;
@@ -1372,12 +1372,12 @@ constexpr int compare (Optional<T>&& lhs, Optional<U>&& rhs) {
  *   * A `nullopt` and a non-containing Optional are considered equal.
  */
 template < typename T >
-constexpr inline bool equal_to(Optional<T> const & lhs, nonstd::nullopt_t)
+constexpr inline bool equal_to(Optional<T>&& lhs, nonstd::nullopt_t)
 noexcept {
     return !(bool)(lhs);
 }
 template < typename T >
-constexpr inline bool equal_to(nonstd::nullopt_t, Optional<T> const & rhs)
+constexpr inline bool equal_to(nonstd::nullopt_t, Optional<T>&& rhs)
 noexcept {
     return !(bool)(rhs);
 }
@@ -1400,11 +1400,11 @@ noexcept {
  *   * An Empty Optional is always considered to be less than a Value.
  */
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr inline bool equal_to(Optional<T> const & lhs, Value const & rhs) {
+constexpr inline bool equal_to(Optional<T>&& lhs, Value&& rhs) {
     return (bool)(lhs) && nonstd::equal_to(*lhs, rhs);
 }
 template <typename T, typename Value=T, __OPT_ENABLE_IF_IS_CONVERTABLE(Value,T)>
-constexpr inline bool equal_to(Value const & lhs, Optional<T> const & rhs) {
+constexpr inline bool equal_to(Value&& lhs, Optional<T>&& rhs) {
     return (bool)(rhs) && nonstd::equal_to(lhs, *rhs);
 }
 
