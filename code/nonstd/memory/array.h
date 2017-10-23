@@ -21,7 +21,7 @@ namespace nonstd {
 template<typename T>
 class Array {
 public: /*< ## Class Methods */
-    static const u64 default_capacity = 64;
+    static constexpr u64 default_capacity = 64;
 
     static constexpr u64 precomputeSize(u64 capacity = default_capacity)
     noexcept {
@@ -57,20 +57,20 @@ public: /*< ## Ctors, Detors, and Assignments */
     { ENFORCE_POD(T); }
 
 public: /*< ## Public Memebr Methods */
-    /* ### Buffer Accessors */
+    /* ## Buffer Accessors */
     inline Buffer       * const buffer()       noexcept { return m_buf;       }
     inline Buffer const * const buffer() const noexcept { return m_buf;       }
     inline u64                  size()   const noexcept { return m_buf->size; }
     inline c_cstr               name()   const noexcept { return m_buf->name; }
 
-    /* ### Array Accessors */
+    /* ## Array Accessors */
     // Give up the 80 column width for this boilerplate.
     inline u64       & write_index()       noexcept { return m_buf->userdata1.u_int;  }
     inline u64 const & write_index() const noexcept { return m_buf->userdata1.u_int;  }
     inline u64 const   count()       const noexcept { return write_index();           }
     inline u64 const   capacity()    const noexcept { return m_buf->size / sizeof(T); }
 
-    /* ### Normal Member Methods */
+    /* ## Normal Member Methods */
 
     /* Push a value on the back of the Buffer */
     inline T& push(T value) {
