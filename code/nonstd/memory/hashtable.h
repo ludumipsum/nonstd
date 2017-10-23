@@ -377,7 +377,7 @@ public: /*< ## Public Member Methods */
      * --------------------- */
 
     /* Reset this HashTable to empty. */
-    inline void drop() {
+    inline void drop() noexcept {
         memset(m_metadata->map, '\0', (totalCapacity() * sizeof(Cell)));
         m_metadata->count = 0;
     }
