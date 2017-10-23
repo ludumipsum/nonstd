@@ -96,7 +96,9 @@ public: /*< ## Public Member Methods */
     inline u64 const count()         const noexcept { return capacity();              }
     inline u64 const capacity()      const noexcept { return m_buf->size / sizeof(T); }
 
-    /* ## Get / Set Methods */
+    /** Get / Set Methods
+     *  -----------------
+     */
     inline T& push(T value) noexcept {
         T* mem        = (T*)(m_buf->data) + write_index();
         *mem          = value;

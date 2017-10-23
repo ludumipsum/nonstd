@@ -51,7 +51,7 @@ protected: /*< ## Protected Member Variables */
 
 public: /*< ## Ctors, Detors, and Assignments */
     /* Ensure that only POD types are used by placing ENFORCE_POD in the ctor */
-    Array(Buffer * buf, Buffer::ResizeFn resize = nullptr)
+    Array(Buffer * buf, Buffer::ResizeFn resize = nullptr) noexcept
         : m_buf    ( buf    )
         , m_resize ( resize )
     { ENFORCE_POD(T); }
@@ -70,7 +70,9 @@ public: /*< ## Public Memebr Methods */
     inline u64 const   count()       const noexcept { return write_index();           }
     inline u64 const   capacity()    const noexcept { return m_buf->size / sizeof(T); }
 
-    /* ## Normal Member Methods */
+    /** Get / Set Methods
+     *  -----------------
+     */
 
     /* Push a value on the back of the Buffer */
     inline T& push(T value) {
