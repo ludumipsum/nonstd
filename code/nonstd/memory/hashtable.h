@@ -96,10 +96,10 @@ protected: /*< ## Inner-Types */
         T_VAL value;
         u8    distance;
 
-        inline bool isEmpty()                { return distance == 0; }
-        inline bool isInUse()                { return distance >  0; }
-        inline bool isAtNaturalPosition()    { return distance == 1; }
-        inline bool isNotAtNaturalPosition() { return distance >  1; }
+        inline bool isEmpty()                const noexcept { return distance == 0; }
+        inline bool isInUse()                const noexcept { return distance >  0; }
+        inline bool isAtNaturalPosition()    const noexcept { return distance == 1; }
+        inline bool isNotAtNaturalPosition() const noexcept { return distance >  1; }
     };
 
     struct Metadata {
@@ -114,11 +114,12 @@ protected: /*< ## Inner-Types */
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
-    inline static u8 maxMissDistanceFor(u64 capacity) {
+    static constexpr u8 maxMissDistanceFor(u64 capacity) noexcept {
         return n2max(log2(capacity), 1);
     }
 
-    inline static u64 precomputeSize(u64 capacity = default_capacity) {
+    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    noexcept {
         // Round the requested capacity up to the nearest power-of-two, and then
         // tack on additional cells enough to handle the maximum miss distance.
         u64 target_capacity   = roundUpToPowerOfTwo(capacity);
@@ -127,7 +128,7 @@ public: /*< ## Class Methods */
         return sizeof(Metadata) + (sizeof(Cell) * total_capacity);
     }
 
-    inline static void initializeBuffer(Buffer *const buf) {
+    static inline void initializeBuffer(Buffer *const buf) {
         Metadata * metadata = (Metadata *)(buf->data);
         /* If the type check is correct, no initialization is required. */
         if (buf->type == Buffer::type_id::hash_table) { return; }
@@ -193,57 +194,76 @@ protected: /*< ## Public Member Variables */
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    HashTable(Buffer *const buf, Buffer::ResizeFn resize)
+    /* Ensure that only POD types are used by placing ENFORCE_POD in the ctor */
+    HashTable(Buffer *const buf, Buffer::ResizeFn resize) noexcept
         : m_buf      ( buf                    )
         , m_metadata ( (Metadata*)(buf->data) )
         , m_resize   ( resize                 )
     {
-        /* Ensure that only POD data is used in HashTables. */
         ENFORCE_POD(Cell);
         ENFORCE_POD(T_KEY);
         ENFORCE_POD(T_VAL);
     }
 
 
+private: /*< ## Pseudo Type Traits */
+    static constexpr bool hash_key_is_noexcept =
+        noexcept(std::hash<T_KEY>{}(std::declval<T_KEY>()));
+    static constexpr bool compare_key_is_noexcept =
+        noexcept(nonstd::equal_to(std::declval<T_KEY>(), std::declval<T_KEY>()));
+    static constexpr bool natural_index_for_is_noexcept = hash_key_is_noexcept;
+    static constexpr bool find_cell_is_noexcept = natural_index_for_is_noexcept
+                                               && compare_key_is_noexcept;
+
 public: /*< ## Public Member Methods */
-    inline u64    size()            { return m_buf->size; }
-    inline u64    count()           { return m_metadata->count; }
-    inline u64    capacity()        { return m_metadata->capacity; }
-    inline c_cstr name()            { return m_buf->name; }
-    inline u8     maxMissDistance() { return m_metadata->max_miss_distance; }
-    // The very last cell can never be written to, so we don't count it in the
-    // total capacity.
-    inline u64    totalCapacity()   { return (capacity()+maxMissDistance()-1); }
-    inline f32    loadFactor()      { return (f32)count() / (f32)capacity(); }
+    /* ## Buffer Accessors */
+    inline Buffer       * const buffer()       noexcept { return m_buf; }
+    inline Buffer const * const buffer() const noexcept { return m_buf; }
+    inline u64                  size()   const noexcept { return m_buf->size; }
+    inline c_cstr               name()   const noexcept { return m_buf->name; }
+
+    /* ## HashTable Accessors */
+    inline u64 count()           const noexcept { return m_metadata->count; }
+    inline u64 capacity()        const noexcept { return m_metadata->capacity; }
+    inline u8  maxMissDistance() const noexcept { return m_metadata->max_miss_distance; }
+    // The very last cell can never be written to, so we don't count it here.
+    inline u64 totalCapacity()   const noexcept { return (capacity() + maxMissDistance() - 1); }
+    inline f32 loadFactor()      const noexcept { return (f32)count() / (f32)capacity(); }
 
 
     /* Calculate the natural index for the given key */
-    inline u64 naturalIndexFor(T_KEY key) {
+    inline u64 naturalIndexFor(T_KEY key) const
+    noexcept(natural_index_for_is_noexcept) {
         return ( std::hash<T_KEY>{}(key) & (u64)(capacity() - 1) );
     }
 
     /* Get a pointer to the first cell in the table (iterator begin). */
-    inline Cell * _beginCell() { return m_metadata->map; }
+    inline Cell * _beginCell() const noexcept
+    { return m_metadata->map; }
     /* Get a pointer to the "past-the-end" cell in the table (iterator end).
        NB. This is actually a pointer to the last cell, not the past-the-last,
            but because of the over-allocation optimizations in use, we know that
            last cell will never be written to, and therefore does not need to
            be iterated over. */
-    inline Cell * _endCell()   { return m_metadata->map + totalCapacity(); }
+    inline Cell * _endCell() const noexcept
+    { return m_metadata->map + totalCapacity(); }
 
 
     /* Lookup Operations
      * ----------------- */
 
     /* Search for the given key, returning an Optional. */
-    inline nonstd::Optional<T_VAL> get(T_KEY key) {
+    inline nonstd::Optional<T_VAL> get(T_KEY key)
+    noexcept(find_cell_is_noexcept) {
         Cell * const cell = _findCell(key);
         if (cell != nullptr) return { cell->value };
         return { };
     }
 
     /* Check for the existence of the given key. */
-    inline bool contains(T_KEY key) { return (_findCell(key) != nullptr); }
+    inline bool contains(T_KEY key)
+    noexcept(find_cell_is_noexcept)
+    { return (_findCell(key) != nullptr); }
 
 
     /* Write Operations
@@ -292,7 +312,7 @@ public: /*< ## Public Member Methods */
                     "It should also be noted that in a single-threaded "
                     "power-of-two Robin Hood Hashing scheme that sets Max Miss "
                     "Distance to `log2(capacity)`, this should be "
-                    "_completly impossible_.\n"
+                    "_completely impossible_.\n"
                     "Unless you're resizing downward? I think... this might be "
                     "possible in that case... Ruh roh, raggy...\n"
                     "Underlying buffer is named %s, and it is located at %p.",
@@ -377,7 +397,7 @@ protected: /*< ## Protected Member Methods */
 
     /* Find the pointer to the cell associated with the given key, returning
        nullptr if the key does not exist in the table. */
-    inline Cell * _findCell(T_KEY key) {
+    inline Cell * _findCell(T_KEY key) const noexcept(find_cell_is_noexcept) {
         u64    cell_index   = naturalIndexFor(key);
         Cell * current_cell = m_metadata->map + cell_index;
         u8     distance     = 1;
@@ -495,37 +515,53 @@ private:
 
 public:
     typedef struct item_t {
-        T_KEY const& key;
-        T_VAL&       value;
+        T_KEY const & key;
+        T_VAL       & value;
     } T_ITEM;
 
 
-    inline KeyIteratorPassthrough   keys()   { return { *this }; }
-    inline ValueIteratorPassthrough values() { return { *this }; }
-    inline ItemIteratorPassthrough  items()  { return { *this }; }
-    inline CellIteratorPassthrough  cells()  { return { *this }; }
+    inline KeyIteratorPassthrough   keys()   noexcept { return { *this }; }
+    inline ValueIteratorPassthrough values() noexcept { return { *this }; }
+    inline ItemIteratorPassthrough  items()  noexcept { return { *this }; }
+    inline CellIteratorPassthrough  cells()  noexcept { return { *this }; }
 
 
 private:
     struct KeyIteratorPassthrough {
         HashTable & table;
-        inline KeyIterator begin() { return { table, table._beginCell()}; }
-        inline KeyIterator end()   { return { table, table._endCell()}; }
+
+        inline KeyIterator begin() const noexcept
+        { return { table, table._beginCell()}; }
+
+        inline KeyIterator end()   const noexcept
+        { return { table, table._endCell()}; }
     };
     struct ValueIteratorPassthrough {
         HashTable & table;
-        inline ValueIterator begin() { return { table, table._beginCell()}; }
-        inline ValueIterator end()   { return { table, table._endCell()}; }
+
+        inline ValueIterator begin() const noexcept
+        { return { table, table._beginCell()}; }
+
+        inline ValueIterator end()   const noexcept
+        { return { table, table._endCell()}; }
     };
     struct ItemIteratorPassthrough {
         HashTable & table;
-        inline ItemIterator begin() { return { table, table._beginCell()}; }
-        inline ItemIterator end()   { return { table, table._endCell()}; }
+
+        inline ItemIterator begin() const noexcept
+        { return { table, table._beginCell()}; }
+
+        inline ItemIterator end()   const noexcept
+        { return { table, table._endCell()}; }
     };
     struct CellIteratorPassthrough {
         HashTable & table;
-        inline CellIterator begin() { return { table, table._beginCell()}; }
-        inline CellIterator end()   { return { table, table._endCell()}; }
+
+        inline CellIterator begin() const noexcept
+        { return { table, table._beginCell()}; }
+
+        inline CellIterator end()   const noexcept
+        { return { table, table._endCell()}; }
     };
 
     /* Use the CRTP (Curiously Recurring Template Pattern) to know the type of
@@ -540,7 +576,7 @@ private:
         Cell *      data_end; /*< The pointer past the end of the table.  */
 
         base_iterator(HashTable & _table,
-                      Cell *      _data)
+                      Cell *      _data) noexcept
             : table    ( _table )
             , data     ( _data  )
             , data_end ( (table._endCell()) )
@@ -551,10 +587,10 @@ private:
             while( data != data_end && data->isEmpty() ) { data += 1; }
         }
 
-        inline void next_valid_cell() {
+        inline void next_valid_cell() noexcept {
             do { data += 1; } while( data != data_end && data->isEmpty() );
         }
-        inline void next_valid_cell(u64 n) {
+        inline void next_valid_cell(u64 n) noexcept {
             while (data != data_end && n > 0) {
                 next_valid_cell();
                 n -= 1;
@@ -562,30 +598,30 @@ private:
         }
 
     public:
-        inline bool operator==(const ITER_T & other) const {
+        inline bool operator==(const ITER_T & other) const noexcept {
             return data == other.data;
         }
-        inline bool operator!=(const ITER_T & other) const {
+        inline bool operator!=(const ITER_T & other) const noexcept {
             return data != other.data;
         }
         /* Pre-increment -- step forward and return `this`. */
-        inline ITER_T& operator++() {
+        inline ITER_T& operator++() noexcept {
             this->next_valid_cell();
             return *((ITER_T*)this);
         }
         /* Post-increment -- return a copy created before stepping forward. */
-        inline ITER_T operator++(int) {
+        inline ITER_T operator++(int) noexcept {
             ITER_T copy = *this;
             this->next_valid_cell();
             return copy;
         }
         /* Increment and assign -- step forward by `n` and return `this`. */
-        inline ITER_T& operator+=(u64 n) {
+        inline ITER_T& operator+=(u64 n) noexcept {
             this->next_valid_cell(n);
             return *((ITER_T*)this);
         }
         /* Arithmetic increment -- return an incremented copy. */
-        inline ITER_T operator+(u64 n) {
+        inline ITER_T operator+(u64 n) noexcept {
             ITER_T copy = *this;
             copy->next_valid_cell(n);
             return copy;
@@ -595,7 +631,7 @@ private:
 
 public:
     struct KeyIterator : public base_iterator<KeyIterator> {
-        KeyIterator(HashTable & _table, Cell * _data)
+        KeyIterator(HashTable & _table, Cell * _data) noexcept
             : base_iterator<KeyIterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_KEY const& operator*() const {
@@ -604,19 +640,19 @@ public:
     };
 
     struct ValueIterator : public base_iterator<ValueIterator> {
-        ValueIterator(HashTable & _table, Cell * _data)
+        ValueIterator(HashTable & _table, Cell * _data) noexcept
             : base_iterator<ValueIterator>(_table, _data) { }
         /* Dereference -- return the current value. */
-        inline T_VAL& operator*() {
+        inline T_VAL& operator*() noexcept {
             return this->data->value;
         }
     };
 
     struct ItemIterator : public base_iterator<ItemIterator> {
-        ItemIterator(HashTable & _table, Cell * _data)
+        ItemIterator(HashTable & _table, Cell * _data) noexcept
             : base_iterator<ItemIterator>(_table, _data) { }
         /* Dereference -- return the current value. */
-        inline T_ITEM operator*() {
+        inline T_ITEM operator*() noexcept {
             return { this->data->key, this->data->value };
         }
     };
@@ -631,40 +667,40 @@ public:
 
     public:
         CellIterator(HashTable & _table,
-                      Cell *      _data)
+                      Cell *      _data) noexcept
             : table    ( _table )
             , data     ( _data  )
             , data_end ( (table._endCell()) ) { }
 
-        inline bool operator==(const CellIterator & other) const {
+        inline bool operator==(const CellIterator & other) const noexcept {
             return data == other.data;
         }
-        inline bool operator!=(const CellIterator & other) const {
+        inline bool operator!=(const CellIterator & other) const noexcept {
             return data != other.data;
         }
         /* Pre-increment -- step forward and return `this`. */
-        inline CellIterator& operator++() {
+        inline CellIterator& operator++() noexcept {
             this->data += 1;
             return *this;
         }
         /* Post-increment -- return a copy created before stepping forward. */
-        inline CellIterator operator++(int) {
+        inline CellIterator operator++(int) noexcept {
             CellIterator copy = *this;
             this->data += 1;
             return copy;
         }
         /* Increment and assign -- step forward by `n` and return `this`. */
-        inline CellIterator& operator+=(u64 n) {
+        inline CellIterator& operator+=(u64 n) noexcept {
             this->data = n2min((this->data + n), this->data_end);
         }
         /* Arithmetic increment -- return an incremented copy. */
-        inline CellIterator operator+(u64 n) {
+        inline CellIterator operator+(u64 n) noexcept {
             CellIterator copy = *this;
             copy->data = n2min((copy->data + n), copy->data_end);
             return copy;
         }
         /* Dereference -- return the current value. */
-        inline Cell& operator*() const {
+        inline Cell& operator*() const noexcept {
             return *(this->data);
         }
     };
