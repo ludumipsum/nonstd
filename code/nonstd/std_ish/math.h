@@ -73,7 +73,7 @@ constexpr bool isPowerOfTwo(T num) noexcept {
  *  -------------
  *  TODO: Consider making these template specializations based on the size of T.
  */
-inline u32 roundUpToPowerOfTwo(u32 num) noexcept {
+constexpr u32 roundUpToPowerOfTwo(u32 num) noexcept {
     num -= 1;
     num |= num >> 1;
     num |= num >> 2;
@@ -84,7 +84,7 @@ inline u32 roundUpToPowerOfTwo(u32 num) noexcept {
     return num;
 }
 
-inline u64 roundUpToPowerOfTwo(u64 num) noexcept {
+constexpr u64 roundUpToPowerOfTwo(u64 num) noexcept {
     num -= 1;
     num |= num >> 1;
     num |= num >> 2;
@@ -97,7 +97,7 @@ inline u64 roundUpToPowerOfTwo(u64 num) noexcept {
 }
 
 
-inline u32 roundDownToPowerOfTwo(u32 num) noexcept {
+constexpr u32 roundDownToPowerOfTwo(u32 num) noexcept {
     num |= (num >> 1);
     num |= (num >> 2);
     num |= (num >> 4);
@@ -106,7 +106,7 @@ inline u32 roundDownToPowerOfTwo(u32 num) noexcept {
     return num - (num >> 1);
 }
 
-inline u64 roundDownToPowerOfTwo(u64 num) noexcept {
+constexpr u64 roundDownToPowerOfTwo(u64 num) noexcept {
     num |= (num >> 1);
     num |= (num >> 2);
     num |= (num >> 4);
