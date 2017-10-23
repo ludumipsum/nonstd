@@ -1,12 +1,11 @@
 /** Typed Stream View
  *  =================
- *  Stream Views present a typed circular buffer over a subsection of a Memory
- *  Buffer. Unlike Rings, this view is aware of both its capacity and its
- *  count, and tracks usage within the metadata block. Only the used sub-section
- *  of a Stream's data will be accessible through indexing or iterating, so no
- *  `\0`-initialized data will ever be accessible. When in DEBUG mode, bounds
- *  checking is performed on index operations to insure that out-of-bounds data
- *  is never read.
+ *  Streams present a typed circular buffer over a Buffer. Unlike Rings, this
+ *  container is aware of both its capacity and its count, and tracks usage
+ *  within the metadata block. The read and write heads are also tracked using
+ *  the Buffer userdata.uint members. When indexing or iterating, only the used
+ *  sub-section of a Stream's data will be accessible, so no `\0`-initialized
+ *  data will ever be accessible.
  *
  *  Iteration and subscript operations are 0-indexed to the oldest element in
  *  the Stream. Because only the used sub-section of data is available to be
@@ -15,16 +14,13 @@
  *  called against a full Stream, the oldest data in the Stream will be replaced
  *  with incoming data.
  *
- *  Stream::Metadata tracks both the `read_head` and `write_head`. When
- *  `read_head == write_head`, the Stream is empty. On `push()` and `consume()`,
- *  the `write_head` will be advanced, the `read_head` will optionally be
- *  advanced to one past the `write_head`.
+ *  When in DEBUG mode, bounds checking is performed on index operations to
+ *  insure that out-of-bounds data is never read.
  *
  *  TODO: Figure out consume. Does it mean anything in this context? If not, are
  *        user's going to be limited to adding objects one at a time? If so, how
  *        do we deal with split memory regions? (Scratch buffer, maybe? Unless
  *        the scratch is a ring....)
- *  TODO: Tests.
  */
 
 #pragma once
@@ -39,51 +35,56 @@ namespace nonstd {
 
 template<typename T>
 class Stream {
-protected: /*< ## Innter-Types */
+
+protected: /*< ## Inner-Types */
+
     struct Metadata {
-        u64 capacity;
         u64 count;
-        u64 write_head;
-        u64 read_head;
+        u64 capacity;
         T   data[];
     };
 
 
 public: /*< ## Class Methods */
-    static const u64 default_capacity = 64;
+    static constexpr
+    u64 default_capacity = 64;
 
-    inline static u64 precomputeSize(u64 capacity = default_capacity) {
-        return sizeof(Metadata) + sizeof(T) * capacity;
-    }
+    static constexpr
+    u64 precomputeSize(u64 capacity = default_capacity) noexcept
+    { return sizeof(Metadata) + (sizeof(T) * n2max(capacity, 1)); }
 
-    inline static void initializeBuffer(Buffer *const buf) {
-        Metadata * metadata = (Metadata*)buf->data;
+    inline static
+    void initializeBuffer(Buffer *const buf) {
+        Metadata * metadata = (Metadata *)(buf->data);
         /* If the type check is correct, no initialization is required. */
         if (buf->type == Buffer::type_id::stream) { return; }
 
 #if defined(DEBUG)
         N2BREAK_IF((buf->type != Buffer::type_id::raw &&
-                    buf->type != Buffer::type_id::array),
-                   N2Error::InvalidMemory,
-                   "Array corruption detected by type_id --- 0x%X is neither 0 "
-                   "nor 0x%X.\n"
-                   "Underlying buffer is named %s and is located at %p.",
-                   buf->type, Buffer::type_id::array, buf->name, buf);
+                    buf->type != Buffer::type_id::stream),
+            N2Error::InvalidMemory,
+            "Stream corruption detected by type_id --- 0x%X is neither 0 "
+            "nor 0x%X.\n"
+            "Underlying buffer is named %s and is located at %p.",
+            buf->type, Buffer::type_id::stream, buf->name, buf);
 #endif
-
-        N2BREAK_IF(buf->size < sizeof(Metadata), N2Error::InsufficientMemory,
+        N2BREAK_IF(buf->size < (sizeof(Metadata) + sizeof(T)),
+            N2Error::InsufficientMemory,
             "Buffer Stream is being overlaid onto a Buffer that is too small ("
-            Fu64 ") to fit the Stream Metadata (" Fu64 ").\n"
+            Fu64 ") to fit the Stream Metadata (" Fu64 ") and at least one <"
+            Ftype ">(" Fu64 ").\n"
             "Underlying buffer is named %s, and it is located at %p.",
-            buf->size, sizeof(Metadata),
+            buf->size, sizeof(Metadata), TYPE_NAME(T), sizeof(T),
             buf->name, buf);
 
+        u64 data_region_size = buf->size - sizeof(Metadata);
+        u64 capacity         = (data_region_size) / sizeof(T);
+
         buf->type = Buffer::type_id::stream;
-        metadata->capacity   = (buf->size - sizeof(Metadata)) / sizeof(T);
-        metadata->count      = 0;
-        metadata->write_head = 0;
-        metadata->read_head  = 0;
-        memset(metadata->data, '\0', (buf->size - sizeof(Metadata)));
+
+        metadata->count    = 0;
+        metadata->capacity = capacity;
+        memset(metadata->data, '\0', data_region_size);
     }
 
 
@@ -91,54 +92,43 @@ protected: /*< ## Public Member Variables */
     Buffer   *const  m_buf;
     Metadata *       m_metadata;
     Buffer::ResizeFn m_resize;
-    // TODO: This is an anti-pattern (consider reseating the metadata member
-    //       after a resize). If we ever use this class again, fix this.
-    u64 &            m_capacity;
-    u64 &            m_count;
-    u64 &            m_write_head;
-    u64 &            m_read_head;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
+    /* Ensure that only POD types are used by placing ENFORCE_POD in the ctor */
     Stream(Buffer *const buf, Buffer::ResizeFn resize = nullptr)
-        : m_buf        ( buf                    )
-        , m_metadata   ( (Metadata*)(buf->data) )
-        , m_resize     ( resize                 )
-        , m_capacity   ( m_metadata->capacity   )
-        , m_count      ( m_metadata->count      )
-        , m_write_head ( m_metadata->write_head )
-        , m_read_head  ( m_metadata->read_head  )
-    {
-        /* Ensure that only POD data is used in Streams. */
-        ENFORCE_POD(T);
-    }
+    noexcept
+        : m_buf      ( buf                    )
+        , m_metadata ( (Metadata*)(buf->data) )
+        , m_resize   ( resize                 )
+    { ENFORCE_POD(T); }
 
 
-public: /*< ## Public Memeber Methods */
-    inline u64 size()     { return m_buf->size; }
-    inline u64 count()    { return m_count; }
-    inline u64 capacity() { return m_capacity; }
+public: /*< ## Public Member Methods */
+    inline Buffer       * const buffer()       noexcept { return m_buf; }
+    inline Buffer const * const buffer() const noexcept { return m_buf; }
+    inline u64                  size()   const noexcept { return m_buf->size; }
+    inline c_cstr               name()   const noexcept { return m_buf->name; }
 
-    inline void drop() {
-        m_read_head = m_write_head = m_count = 0;
-    }
+    /* ## HashTable Accessors */
+public:
+    inline u64       & count()          noexcept { return m_metadata->count;    }
+    inline u64 const & count()    const noexcept { return m_metadata->count;    }
+    inline u64       & capacity()       noexcept { return m_metadata->capacity; }
+    inline u64 const & capacity() const noexcept { return m_metadata->capacity; }
 
-    /* Push a new value into the Stream. */
-    inline T& push(T value) {
-        T& mem = m_metadata->data[m_write_head];
+    /** Get / Set Methods
+     *  -----------------
+     */
+    inline T& push(T value) noexcept {
+        T& mem = m_metadata->data[_write_index()];
         mem = value;
 
-        /* The write head needs to be incremented, and either
-         *  - The Stream is full, the oldest element in the stream has been
-         *    overwritten, and the read head needs to be similarly bumped.
-         *  - The Stream has one more element in it than it did previously, and
-         *    the current count() needs to be incremented.
-         */
-        m_write_head = increment(m_write_head);
+        _write_index() = _increment_index(_write_index());
         if (count() == capacity()) {
-            m_read_head = increment(m_read_head);
+            _read_index() = _increment_index(_read_index());
         } else {
-            m_count += 1;
+            count() += 1;
         }
 
         return mem;
@@ -148,8 +138,7 @@ public: /*< ## Public Memeber Methods */
         N2BREAK(N2Error::UnimplementedCode, "");
     }
 
-    /* Direct subscript operator. */
-    inline T& operator[](u64 index) {
+    inline T& operator[](i64 index) const noexcept {
 #if defined(DEBUG)
         N2BREAK_IF(index >= capacity(), N2Error::OutOfBounds,
             "Stream index access exceeds maximum capacity.\n"
@@ -162,19 +151,57 @@ public: /*< ## Public Memeber Methods */
             "Underlying buffer is named %s, and it is located at %p.",
             index+1, count(), capacity(), m_buf->name, m_buf);
 #endif
-        u64 target_index = increment(m_read_head, index);
+        u64 target_index = _increment_index(_read_index(), index);
         return m_metadata->data[target_index];
     }
 
+    inline void drop() noexcept {
+        count() = _write_index() = _read_index() = 0;
+    }
+
+    /** Resize Methods
+     *  --------------
+     *  Currently unimplemented. Look to ring.h for inspiration (and a warning
+     *  about how complex this shit is gonna be).
+     */
     inline u64 resize(u64 capacity) {
         N2BREAK(N2Error::UnimplementedCode, "");
     }
 
 
-    /* ## Nested Iterorator class */
+protected: /*< ## Helper Methods */
+    inline u64       & _write_index()       noexcept { return m_buf->userdata1.u_int; }
+    inline u64 const & _write_index() const noexcept { return m_buf->userdata1.u_int; }
+    inline u64       & _read_index()        noexcept { return m_buf->userdata2.u_int; }
+    inline u64 const & _read_index()  const noexcept { return m_buf->userdata2.u_int; }
+
+    inline u64 _increment_index(u64 index, i64 n = 1) const noexcept {
+        if (n >= 0) {
+            return ((index + n) % capacity());
+        } else {
+            return _decrement_index(index, -n);
+        }
+    }
+
+    inline u64 _decrement_index(u64 index, i64 n = 1) const noexcept {
+        if (n >= 0) {
+            while (index < (u64)n) {
+                index += capacity();
+            }
+            return index - n;
+        } else {
+            return _increment_index(index, -n);
+        }
+    }
+
+
+public:
+    /** Nested Iterator class
+     *  ---------------------
+     */
     class iterator;
-    inline iterator begin() { return { *this }; }
-    inline iterator end()   { return { *this, count() }; }
+    inline iterator begin() noexcept { return { *this, 0       }; }
+    inline iterator end()   noexcept { return { *this, count() }; }
 
     class iterator {
     public:
@@ -185,66 +212,46 @@ public: /*< ## Public Memeber Methods */
 
         iterator(Stream& stream,
                  u64     index = 0)
+        noexcept
             : stream ( stream )
             , index  ( index  ) { }
 
-        inline bool operator==(const iterator& other) const {
+        inline bool operator==(const iterator& other) const noexcept {
             return &stream == &other.stream && index == other.index;
         }
 
-        inline bool operator!=(const iterator& other) const {
+        inline bool operator!=(const iterator& other) const noexcept {
             return !(*this == other);
         }
 
         /* Pre-increment -- step forward and return `this`. */
-        inline iterator& operator++() {
+        inline iterator& operator++() noexcept {
             index += 1;
             return *this;
         }
         /* Post-increment -- return a copy created before stepping forward. */
-        inline iterator operator++(int) {
+        inline iterator operator++(int) noexcept {
             iterator copy = *this;
             index += 1;
             return copy;
         }
         /* Increment and assign -- step forward by `n` and return `this`. */
         // TODO: Verify we don't increment past the end of the stream.
-        inline iterator& operator+=(u64 n) {
+        inline iterator& operator+=(u64 n) noexcept {
             index = n2min((index + n), stream.capacity());
             return *this;
         }
         /* Arithmetic increment -- return an incremented copy. */
-        inline iterator operator+(u64 n) {
+        inline iterator operator+(u64 n) noexcept {
             iterator copy = *this;
             copy += n;
             return copy;
         }
 
         /* Dereference -- return the current value. */
-        inline T& operator*() const { return stream[index]; }
+        inline T& operator*() const noexcept { return stream[index]; }
     };
 
-
-protected: /*< ## Protected Member Methods */
-    inline u64 increment(u64 index, i64 n = 1) {
-        if (n >= 0) {
-            // TODO: Potential divide-by-zero error
-            return ((index + n) % capacity());
-        } else {
-            return decrement(index, -n);
-        }
-    }
-
-    inline u64 decrement(u64 index, i64 n = 1) {
-        if (n >= 0) {
-            while (index < (u64)n) {
-                index += capacity();
-            }
-            return index - n;
-        } else {
-            return increment(index, -n);
-        }
-    }
 };
 
 } /* namespace nonstd */
