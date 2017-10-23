@@ -132,7 +132,7 @@ public: /*< ## Public Memebr Methods */
     }
 
     /* Drop all elements of the region without reinitializing memory. */
-    inline void drop() {
+    inline void drop() noexcept {
         write_index() = 0;
     }
 

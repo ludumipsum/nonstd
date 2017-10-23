@@ -37,13 +37,14 @@ namespace nonstd {
 template<typename T>
 class Ring {
 public: /*< ## Class Methods */
-    static const u64 default_capacity = 64;
+    static constexpr u64 default_capacity = 64;
 
-    inline static u64 precomputeSize(u64 capacity = default_capacity) {
-        return sizeof(T) * capacity;
+    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    noexcept {
+        return sizeof(T) * n2max(capacity, 1);
     }
 
-    inline static void initializeBuffer(Buffer *const buf) {
+    static inline void initializeBuffer(Buffer *const buf) {
         /* If the type check is correct, no initialization is required. */
         if (buf->type == Buffer::type_id::ring) { return; }
 
@@ -55,6 +56,14 @@ public: /*< ## Class Methods */
                    "nor 0x%X.\n"
                    "Underlying buffer is named %s and is located at %p.",
                    buf->type, Buffer::type_id::array, buf->name, buf);
+        N2BREAK_IF(buf->size < sizeof(T),
+                   N2Error::InsufficientMemory,
+                   "Buffer Array is being overlaid onto a Buffer that is too "
+                   "small (" Fu64 ") to fit a single <" Ftype ">(" Fu64 ").\n"
+                   "Underlying buffer is named %s, and it is located at %p.",
+                   buf->size, TYPE_NAME(T), sizeof(T),
+                   buf->name, buf->data);
+
 #endif
 
         buf->type = Buffer::type_id::ring;
@@ -64,30 +73,34 @@ public: /*< ## Class Methods */
 protected: /*< ## Public Member Variables */
     Buffer *const    m_buf;
     Buffer::ResizeFn m_resize;
-    u64 &            m_write_index;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Ring(Buffer *const buf, Buffer::ResizeFn resize = nullptr)
-        : m_buf         ( buf                  )
-        , m_resize      ( resize               )
-        , m_write_index ( buf->userdata1.u_int )
-    {
-        /* Ensure that only POD data is used in Rings. */
-        ENFORCE_POD(T);
-    }
+    /* Ensure that only POD types are used by placing ENFORCE_POD in the ctor */
+    Ring(Buffer *const buf, Buffer::ResizeFn resize = nullptr) noexcept
+        : m_buf    ( buf    )
+        , m_resize ( resize )
+    { ENFORCE_POD(T); }
 
 
-public: /*< ## Public Memeber Methods */
-    inline u64    size()     { return m_buf->size;             }
-    inline u64    count()    { return capacity();              }
-    inline u64    capacity() { return m_buf->size / sizeof(T); }
-    inline c_cstr name()     { return m_buf->name;             }
+public: /*< ## Public Member Methods */
+    /* ## Buffer Accessors */
+    inline Buffer       * const buffer()       noexcept { return m_buf; }
+    inline Buffer const * const buffer() const noexcept { return m_buf; }
+    inline u64                  size()   const noexcept { return m_buf->size; }
+    inline c_cstr               name()   const noexcept { return m_buf->name; }
 
-    inline T& push(T value) {
-        T* mem       = (T*)(m_buf->data) + m_write_index;
-        *mem         = value;
-        m_write_index = increment(m_write_index, 1);
+    /* ## HashTable Accessors */
+    inline u64       & write_index()       noexcept { return m_buf->userdata1.u_int;  }
+    inline u64 const & write_index() const noexcept { return m_buf->userdata1.u_int;  }
+    inline u64 const count()         const noexcept { return capacity();              }
+    inline u64 const capacity()      const noexcept { return m_buf->size / sizeof(T); }
+
+    /* ## Get / Set Methods */
+    inline T& push(T value) noexcept {
+        T* mem        = (T*)(m_buf->data) + write_index();
+        *mem          = value;
+        write_index() = _increment(write_index(), 1);
         return *mem;
     }
 
@@ -95,14 +108,14 @@ public: /*< ## Public Memeber Methods */
         N2BREAK(N2Error::UnimplementedCode, "");
     }
 
-    inline T& operator[](i64 index) {
-        u64 target_index = increment(m_write_index, index);
+    inline T& operator[](i64 index) noexcept {
+        u64 target_index = _increment(write_index(), index);
         return *((T*)(m_buf->data) + target_index);
     }
 
-    inline void drop() {
+    inline void drop() noexcept {
         memset(m_buf->data, '\0', m_buf->size);
-        m_write_index = 0;
+        write_index() = 0;
     }
 
     /** Resize Methods
@@ -133,9 +146,9 @@ public: /*< ## Public Memeber Methods */
 
         size_t required_size = Ring<T>::precomputeSize(new_capacity);
 
-        ptr section_a = (ptr)((T*)(m_buf->data) + m_write_index);
+        ptr section_a = (ptr)((T*)(m_buf->data) + write_index());
         ptr section_b = m_buf->data;
-        size_t size_of_b = m_write_index * sizeof(T);
+        size_t size_of_b = write_index() * sizeof(T);
         size_t size_of_a = m_buf->size - size_of_b;
 
         if (new_capacity > capacity()) {
@@ -167,7 +180,7 @@ public: /*< ## Public Memeber Methods */
 
             // Perform the resize, and reset the write index.
             m_resize(m_buf, required_size);
-            m_write_index = 0;
+            write_index() = 0;
 
             // Null the newly allcoated region
             memset(m_buf->data + size_of_a + size_of_b, '\0', bytes_added);
@@ -208,7 +221,7 @@ public: /*< ## Public Memeber Methods */
 
                 // Perform the resize, and reset the write index.
                 m_resize(m_buf, required_size);
-                m_write_index = 0;
+                write_index() = 0;
             } else {
                 // There will not be data retained from section B, so all
                 // of the data saved will come from section A. Helpfully,
@@ -220,7 +233,7 @@ public: /*< ## Public Memeber Methods */
 
                 // Perform the resize, and reset the write index.
                 m_resize(m_buf, required_size);
-                m_write_index = 0;
+                write_index() = 0;
             }
         }
 
@@ -234,9 +247,9 @@ public: /*< ## Public Memeber Methods */
 
         size_t required_size = Ring<T>::precomputeSize(new_capacity);
 
-        ptr section_a = (ptr)((T*)(m_buf->data) + m_write_index);
+        ptr section_a = (ptr)((T*)(m_buf->data) + write_index());
         ptr section_b = m_buf->data;
-        size_t size_of_b = m_write_index * sizeof(T);
+        size_t size_of_b = write_index() * sizeof(T);
         size_t size_of_a = m_buf->size - size_of_b;
 
         if (new_capacity > capacity()) {
@@ -258,7 +271,7 @@ public: /*< ## Public Memeber Methods */
 
             // Recapture the locations of section_a and section_b; the n2realloc
             // call may have moved the base data pointer.
-            section_a = (ptr)((T*)(m_buf->data) + m_write_index);
+            section_a = (ptr)((T*)(m_buf->data) + write_index());
             section_b = m_buf->data;
 
             // Fetch enough scratch space to move section B aside.
@@ -280,7 +293,7 @@ public: /*< ## Public Memeber Methods */
                     size_of_b);
 
             // Reset the write index to the beginning of the Ring.
-            m_write_index = 0;
+            write_index() = 0;
 
             // Null the newly allcoated region
             memset(m_buf->data, '\0', bytes_added);
@@ -324,7 +337,7 @@ public: /*< ## Public Memeber Methods */
 
                 // Perform the resize, and reset the write index.
                 m_resize(m_buf, required_size);
-                m_write_index = 0;
+                write_index() = 0;
             } else {
                 // There will not be data retained from section A, so all
                 // of the data saved will come from section B. Helpfully,
@@ -338,7 +351,7 @@ public: /*< ## Public Memeber Methods */
 
                 // Perform the resize, and reset the write index.
                 m_resize(m_buf, required_size);
-                m_write_index = 0;
+                write_index() = 0;
             }
         }
 
@@ -360,10 +373,10 @@ public: /*< ## Public Memeber Methods */
     }
 
 
-    /* ## Nested Iterorator class */
+    /* ## Nested Iterator class */
     class iterator;
-    inline iterator begin() { return { *this, 0          }; }
-    inline iterator end()   { return { *this, capacity() }; }
+    inline iterator begin() noexcept { return { *this, 0          }; }
+    inline iterator end()   noexcept { return { *this, capacity() }; }
 
     class iterator {
     public:
@@ -373,48 +386,48 @@ public: /*< ## Public Memeber Methods */
         u64   index; /*< The index this iterator is "referencing". */
 
         iterator(Ring& ring,
-                 u64   index = 0)
+                 u64   index = 0) noexcept
             : ring  ( ring  )
             , index ( index ) { }
 
-        inline bool operator==(const iterator& other) const {
+        inline bool operator==(const iterator& other) const noexcept {
             return &ring == &other.ring && index == other.index;
         }
-        inline bool operator!=(const iterator& other) const {
+        inline bool operator!=(const iterator& other) const noexcept {
             return &ring != &other.ring || index != other.index;
         }
 
         /* Pre-increment -- step forward and return `this`. */
-        inline iterator& operator++() {
+        inline iterator& operator++() noexcept {
             index += 1;
             return *this;
         }
         /* Post-increment -- return a copy created before stepping forward. */
-        inline iterator operator++(int) {
+        inline iterator operator++(int) noexcept {
             iterator copy = *this;
             index += 1;
             return copy;
         }
         /* Increment and assign -- step forward by `n` and return `this`.
          * Be sure not to iterate past `end()`. */
-        inline iterator& operator+=(u64 n) {
+        inline iterator& operator+=(u64 n) noexcept {
             index = n2min((index + n), ring.capacity());
             return *this;
         }
         /* Arithmetic increment -- return an incremented copy. */
-        inline iterator operator+(u64 n) {
+        inline iterator operator+(u64 n) noexcept {
             iterator copy = *this;
             copy += n;
             return copy;
         }
 
         /* Dereference -- return the current value. */
-        inline T& operator*() const { return ring[index]; }
+        inline T& operator*() const noexcept { return ring[index]; }
     };
 
 
 protected: /*< ## Protected Member Methods */
-    inline u64 increment(u64 index, i64 n = 1) {
+    inline u64 _increment(u64 index, i64 n = 1) noexcept {
         if (n >= 0) {
             // TODO: Potential divide-by-zero error
             return ((index + n) % capacity());
@@ -423,14 +436,14 @@ protected: /*< ## Protected Member Methods */
         }
     }
 
-    inline u64 decrement(u64 index, i64 n = 1) {
+    inline u64 decrement(u64 index, i64 n = 1) noexcept {
         if (n >= 0) {
             while (index < (u64)n) {
                 index += capacity();
             }
             return index - n;
         } else {
-            return increment(index, -n);
+            return _increment(index, -n);
         }
     }
 };
