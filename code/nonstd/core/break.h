@@ -59,15 +59,15 @@
  *  Conditional N2BREAK helpers.
  *
  *  Note that these macros prepend a new line -- `"Condition [un]met (. . .)"`
- *  -- to the user-provided `REASON` string. The user string is re-included with
- *  eight spaces to its left; this vertically aligns it with `"Reason: "`.
+ *  -- to the user-provided `REASON` string.
  */
 #define N2BREAK_IF(COND, ERROR, REASON, ...)            \
     ( (COND) ?                                          \
       ::nonstd::detail::logAndBreak(                    \
           ERROR,                                        \
           ::fmt::format("Condition met ( " #COND " )\n" \
-                        "        " REASON,              \
+                        "- - - - -\n"                   \
+                        REASON,                         \
                         ##__VA_ARGS__),                 \
           __PRETTY_FUNCTION__, __FILE__, __LINE__) :    \
       0                                                 \
@@ -78,7 +78,8 @@
       ::nonstd::detail::logAndBreak(                      \
           ERROR,                                          \
           ::fmt::format("Condition unmet ( " #COND " )\n" \
-                        "        " REASON,                \
+                        "- - - - -\n"                     \
+                        REASON,                           \
                         ##__VA_ARGS__),                   \
           __PRETTY_FUNCTION__, __FILE__, __LINE__)        \
     )
