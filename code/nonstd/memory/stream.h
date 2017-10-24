@@ -63,18 +63,17 @@ public: /*< ## Class Methods */
         N2BREAK_IF((buf->type != Buffer::type_id::raw &&
                     buf->type != Buffer::type_id::stream),
             N2Error::InvalidMemory,
-            "Stream corruption detected by type_id --- 0x%X is neither 0 "
-            "nor 0x%X.\n"
-            "Underlying buffer is named %s and is located at %p.",
-            buf->type, Buffer::type_id::stream, buf->name, buf);
+            "Stream corruption detected by type_id --- 0x{:X} is neither 0 "
+            "nor 0x{:X}.\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            buf->type, Buffer::type_id::array, buf->name, buf);
 #endif
         N2BREAK_IF(buf->size < (sizeof(Metadata) + sizeof(T)),
             N2Error::InsufficientMemory,
-            "Buffer Stream is being overlaid onto a Buffer that is too small ("
-            Fu64 ") to fit the Stream Metadata (" Fu64 ") and at least one <"
-            Ftype ">(" Fu64 ").\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            buf->size, sizeof(Metadata), TYPE_NAME(T), sizeof(T),
+            "This Stream is being overlaid onto a Buffer that is too small "
+            "({}) to fit the Stream Metadata ({}) abd at least one <{}>({}).\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            buf->size, sizeof(Metadata), type_name<T>(), sizeof(T),
             buf->name, buf);
 
         u64 data_region_size = buf->size - sizeof(Metadata);
@@ -142,13 +141,13 @@ public:
 #if defined(DEBUG)
         N2BREAK_IF(index >= capacity(), N2Error::OutOfBounds,
             "Stream index access exceeds maximum capacity.\n"
-            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
-            "Underlying buffer is named %s, and it is located at %p.",
+            "Entry (1-indexed) {} / {} ({} maximum).\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
             index+1, count(), capacity(), m_buf->name, m_buf);
         N2BREAK_IF(index >= count(), N2Error::OutOfBounds,
             "Stream index access exceeds current count.\n"
-            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
-            "Underlying buffer is named %s, and it is located at %p.",
+            "Entry (1-indexed) {} / {} ({} maximum).\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
             index+1, count(), capacity(), m_buf->name, m_buf);
 #endif
         u64 target_index = _increment_index(_read_index(), index);

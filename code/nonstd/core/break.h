@@ -8,9 +8,11 @@
 
 #pragma once
 
+#include <string>
+#include <thirdparty/fmt.h>
+
 #include "primitive_types.h"
 #include "error_types.h"
-#include "variadic_expand.h"
 
 #include "nonstd/c_ish/n2strerr.h"
 
@@ -45,10 +47,10 @@
  *  Convenience Macro to ensure the function name, file, and line number are
  *  correctly captured on breaks.
  */
-#define N2BREAK(ERROR, REASON, ...)                              \
-    ::nonstd::detail::logAndBreak(                               \
-        ERROR,                                                   \
-        ::nonstd::variadicExpand(REASON, ##__VA_ARGS__).c_str(), \
+#define N2BREAK(ERROR, REASON, ...)           \
+    ::nonstd::detail::logAndBreak(            \
+        ERROR,                                \
+        ::fmt::format(REASON, ##__VA_ARGS__), \
         __PRETTY_FUNCTION__, __FILE__, __LINE__)
 
 
@@ -56,40 +58,30 @@
  *  ---------------------------
  *  Conditional N2BREAK helpers.
  *
- *  Note that these macros prepend a new line -- `"Condition [not ]met (. . .)"`
- *  -- to the user-provided `REASON` string. This is accomplished using
- *  `::nonstd::variadicExpand` to ensure c_cstr variables are correctly passed
- *  through the macros.
- *
- *  Also note, the user string is re-included with eight spaces to its left;
- *  this vertically aligns it with `"Reason: "`.
+ *  Note that these macros prepend a new line -- `"Condition [un]met (. . .)"`
+ *  -- to the user-provided `REASON` string.
  */
-#define N2BREAK_IF(COND, ERROR, REASON, ...)     \
-    ( (COND) ?                                   \
-      N2BREAK(                                   \
-          (ERROR),                               \
-          ::nonstd::variadicExpand(              \
-                  "%s\n"                         \
-                  "        %s",                  \
-                  "Condition met ( " #COND " )", \
-                  (REASON)                       \
-              ).c_str(),                         \
-          ##__VA_ARGS__) :                       \
-      0                                          \
+#define N2BREAK_IF(COND, ERROR, REASON, ...)            \
+    ( (COND) ?                                          \
+      ::nonstd::detail::logAndBreak(                    \
+          ERROR,                                        \
+          ::fmt::format("Condition met ( " #COND " )\n" \
+                        "- - - - -\n"                   \
+                        REASON,                         \
+                        ##__VA_ARGS__),                 \
+          __PRETTY_FUNCTION__, __FILE__, __LINE__) :    \
+      0                                                 \
     )
-
-#define N2BREAK_UNLESS(COND, REASON, ...)            \
-    ( (COND) ?                                       \
-      0 :                                            \
-      N2BREAK(                                       \
-          (ERROR),                                   \
-          ::nonstd::variadicExpand(                  \
-                  "%s\n"                             \
-                  "        %s",                      \
-                  "Condition not met ( " #COND " )", \
-                  (REASON)                           \
-              ).c_str(),                             \
-          ##__VA_ARGS__)                             \
+#define N2BREAK_UNLESS(COND, ERROR, REASON, ...)          \
+    ( (COND) ?                                            \
+      0      :                                            \
+      ::nonstd::detail::logAndBreak(                      \
+          ERROR,                                          \
+          ::fmt::format("Condition unmet ( " #COND " )\n" \
+                        "- - - - -\n"                     \
+                        REASON,                           \
+                        ##__VA_ARGS__),                   \
+          __PRETTY_FUNCTION__, __FILE__, __LINE__)        \
     )
 
 
@@ -101,18 +93,18 @@
 namespace nonstd {
 namespace detail {
 
-inline i32 logAndBreak(N2Error error, c_cstr reason,
-                       c_cstr function, c_cstr file, u64 line) {
-    printf("~~~~~~~~~~~~~~~\n"
-           "Fatal Error in:\n"
-           "    %s\n"
-           "    %s:" Fu64 "\n"
-           "Errno:  %d (%s)\n"
-           "Reason: %s\n"
-           "~~~~~~~~~~~~~~~\n",
-           function, file, line,
-           (i32)error, n2strerr(error),
-           reason);
+inline i32 logAndBreak(N2Error error, std::string && reason,
+                       c_cstr __function__, c_cstr __file__, u64 __line__) {
+    fmt::print("~~~~~~~~~~~~~~~\n"
+               "Fatal Error in:\n"
+               "    {}\n"
+               "    {}:{}\n"
+               "Errno:  {} ({})\n"
+               "Reason: {}\n"
+               "~~~~~~~~~~~~~~~\n",
+               __function__, __file__, __line__,
+               (i32)error, n2strerr(error),
+               reason);
     BREAKPOINT();
     exit((i32)(error));
 }

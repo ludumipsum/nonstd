@@ -36,9 +36,9 @@ public: /*< ## Class Methods */
         N2BREAK_IF((buf->type != Buffer::type_id::raw &&
                     buf->type != Buffer::type_id::array),
                    N2Error::InvalidMemory,
-                   "Array corruption detected by type_id --- 0x%X is neither 0 "
-                   "nor 0x%X.\n"
-                   "Underlying buffer is named %s and is located at %p.",
+                   "Array corruption detected by type_id --- 0x{:X} is neither "
+                   "0 nor 0x{:X}.\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
                    buf->type, Buffer::type_id::array, buf->name, buf);
 #endif
         buf->type = Buffer::type_id::array;
@@ -102,35 +102,25 @@ public: /*< ## Public Memebr Methods */
     }
 
     /* Direct index operator. */
-    inline T& operator[](u64 index) {
-#if defined(DEBUG)
-        N2BREAK_IF(index >= capacity(), N2Error::OutOfBounds,
-            "Array index operation exceeds maximum capacity.\n"
-            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            index+1, count(), capacity(), m_buf->name, m_buf);
-        N2BREAK_IF(index >= count(), N2Error::OutOfBounds,
-            "Array index operation exceeds current count.\n"
-            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            index+1, count(), capacity(), m_buf->name, m_buf);
-#endif
-        return *((T*)(m_buf->data) + index);
-    }
     inline T const & operator[](u64 index) const {
 #if defined(DEBUG)
         N2BREAK_IF(index >= capacity(), N2Error::OutOfBounds,
             "Array index operation exceeds maximum capacity.\n"
-            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            index+1, count(), capacity(), m_buf->name, m_buf);
+            "Entry {} / {} (capacity is {}).\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            index, (count() > 0 ? std::to_string(count()) : "-"), capacity(),
+            m_buf->name, m_buf);
         N2BREAK_IF(index >= count(), N2Error::OutOfBounds,
             "Array index operation exceeds current count.\n"
-            "Entry (1-indexed) " Fu64 " / " Fu64 " (" Fu64 " maximum).\n"
-            "Underlying buffer is named %s, and it is located at %p.",
-            index+1, count(), capacity(), m_buf->name, m_buf);
+            "Entry {} / {} (capacity is {}).\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            index, (count() > 0 ? std::to_string(count()) : "-"), capacity(),
+            m_buf->name, m_buf);
 #endif
         return *((T*)(m_buf->data) + index);
+    }
+    inline T& operator[](u64 index) {
+        return const_cast<T&>(static_cast<const Array<T> &>(*this)[index]);
     }
 
     /* Drop all elements of the region without reinitializing memory. */
@@ -152,11 +142,11 @@ public: /*< ## Public Memebr Methods */
         {
             N2BREAK(N2Error::OutOfBounds,
                 "Erasing invalid index ranges;\n"
-                "  begin       : %p\n"
-                "  range begin : %p\n"
-                "  range end   : %p\n"
-                "  end         : %p\n",
-                "Underlying buffer is named %s, and it is located at %p.",
+                "  begin       : {}\n"
+                "  range begin : {}\n"
+                "  range end   : {}\n"
+                "  end         : {}\n"
+                "Underlying buffer is named '{}', and it is located at {}.",
                 begin(), range_begin, range_end, end(), m_buf->name, m_buf);
         }
 #endif
@@ -175,7 +165,7 @@ public: /*< ## Public Memebr Methods */
         N2BREAK_IF(m_resize == nullptr, N2Error::NullPtr,
             "Attempting to resize a Array that has no associated "
             "resize function.\n"
-            "Underlying buffer is named %s, and it is located at %p.",
+            "Underlying buffer is named '{}', and it is located at {}.",
             m_buf->name, m_buf);
 #endif
         auto required_size = Array<T>::precomputeSize(new_capacity);
