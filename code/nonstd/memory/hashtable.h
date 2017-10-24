@@ -461,17 +461,19 @@ protected: /*< ## Protected Member Methods */
 
         // Allocate enough memory to re-create this HashTable in a temporary.
         ptr tmp_memory = n2malloc(m_buf->size);
-        if (tmp_memory == nullptr) BREAKPOINT(); //< TODO: Error checking
+        N2BREAK_IF(tmp_memory == nullptr, N2Error::System,
+                   "Failed to `n2malloc` memory. Godspeed.");
 
         // Wrap a local Buffer around the temporary memory.
         Buffer tmp_buffer = makeBuffer(tmp_memory, m_buf->size);
 
-        // Copy all of the current data into the temporary.
+        // Copy all of the current data into the temporary, and claim the buffer
+        // has been correctly initialized.
         memcpy(tmp_buffer.data, m_buf->data, m_buf->size);
-
+        tmp_buffer.type = Buffer::type_id::hash_table;
 
         // Wrap the temporary local Buffer in a temporary local HashTable.
-        HashTable tmp_table(&tmp_buffer, nullptr);
+        HashTable tmp_table{ &tmp_buffer, nullptr };
 
         // Resize the backing buffer.
         // `realloc` "copies as much of the old data pointed to by `ptr` as will
