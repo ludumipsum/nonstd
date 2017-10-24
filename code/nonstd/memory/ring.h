@@ -52,16 +52,16 @@ public: /*< ## Class Methods */
         N2BREAK_IF((buf->type != Buffer::type_id::raw &&
                     buf->type != Buffer::type_id::array),
                    N2Error::InvalidMemory,
-                   "Array corruption detected by type_id --- 0x%X is neither 0 "
-                   "nor 0x%X.\n"
-                   "Underlying buffer is named %s and is located at %p.",
+                   "Array corruption detected by type_id --- 0x{:X} is neither "
+                   "0 nor 0x{:X}.\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
                    buf->type, Buffer::type_id::array, buf->name, buf);
         N2BREAK_IF(buf->size < sizeof(T),
                    N2Error::InsufficientMemory,
                    "Buffer Array is being overlaid onto a Buffer that is too "
-                   "small (" Fu64 ") to fit a single <" Ftype ">(" Fu64 ").\n"
-                   "Underlying buffer is named %s, and it is located at %p.",
-                   buf->size, TYPE_NAME(T), sizeof(T),
+                   "small ({}) to fit a single <{}>({}).\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
+                   buf->size, type_name<T>(), sizeof(T),
                    buf->name, buf->data);
 
 #endif
@@ -143,7 +143,7 @@ public: /*< ## Public Member Methods */
     }
     inline u64 resizeShiftingLeft(u64 new_capacity) {
         N2BREAK_IF(m_resize == nullptr, N2Error::NullPtr,
-                   "Unable to resize ring %s (resize function not set)",
+                   "Unable to resize ring '{}'; resize function not set",
                    name());
 
         size_t required_size = Ring<T>::precomputeSize(new_capacity);
@@ -244,7 +244,7 @@ public: /*< ## Public Member Methods */
 
     inline u64 resizeShiftingRight(u64 new_capacity) {
         N2BREAK_IF(m_resize == nullptr, N2Error::NullPtr,
-                   "Unable to resize ring %s (resize function not set)",
+                   "Unable to resize ring '{}'; resize function not set",
                    name());
 
         size_t required_size = Ring<T>::precomputeSize(new_capacity);
@@ -362,7 +362,7 @@ public: /*< ## Public Member Methods */
 
     inline u64 resizeAfterDropping(u64 new_capacity) {
         N2BREAK_IF(m_resize == nullptr, N2Error::NullPtr,
-                   "Unable to resize ring %s (resize function not set)",
+                   "Unable to resize ring '{}'; resize function not set",
                    name());
 
         size_t required_size = Ring<T>::precomputeSize(new_capacity);

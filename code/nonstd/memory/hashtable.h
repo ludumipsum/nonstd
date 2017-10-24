@@ -137,21 +137,20 @@ public: /*< ## Class Methods */
         N2BREAK_IF((buf->type != Buffer::type_id::raw &&
                     buf->type != Buffer::type_id::array),
                    N2Error::InvalidMemory,
-                   "Array corruption detected by type_id --- 0x%X is neither 0 "
-                   "nor 0x%X.\n"
-                   "Underlying buffer is named %s and is located at %p.",
+                   "Array corruption detected by type_id --- 0x{:X} is neither "
+                   "0 nor 0x{:X}.\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
                    buf->type, Buffer::type_id::array, buf->name, buf);
 #endif
         N2BREAK_IF(metadata->rehash_in_progress, N2Error::PEBCAK,
                    "Buffer HashTable has been reinitialized while "
                    "`rehash_in_progress == true`. This shouldn't be possible.\n"
-                   "Underlying buffer is named %s, and it is located at %p.",
+                   "Underlying buffer is named '{}', and it is located at {}.",
                    buf->name, buf);
         N2BREAK_IF(buf->size < sizeof(Metadata), N2Error::InsufficientMemory,
                    "Buffer HashTable is being overlaid onto a Buffer that is "
-                   "too small (" Fu64 "B) to fit the HashTable Metadata "
-                   "(" Fu64 ").\n"
-                   "Underlying buffer is named %s, and it is located at %p.",
+                   "too small ({}B) to fit the HashTable Metadata ({}).\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
                    buf->size, sizeof(Metadata), buf->name, buf);
 
         u64 data_region_size     = buf->size - sizeof(Metadata);
@@ -164,10 +163,9 @@ public: /*< ## Class Methods */
                    N2Error::InsufficientMemory,
                    "Buffer HashTable has been initialized with a data region "
                    "that does not have room for overallocation. The data "
-                   "region can store up to " Fu64 " cells. The natural "
-                   "capacity is " Fu64 ", and the desired overflow is " Fu64
-                   " -- totaling " Fu64 ".\n"
-                   "Underlying buffer is named %s, and is located at %p.",
+                   "region can store up to {} cells. The natural capacity is "
+                   "{}, and the desired overflow is {} -- totaling {}.\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
                    data_region_capacity, practical_capacity, max_miss_distance,
                    required_capacity,
                    buf->name, buf);
@@ -315,7 +313,7 @@ public: /*< ## Public Member Methods */
                     "_completely impossible_.\n"
                     "Unless you're resizing downward? I think... this might be "
                     "possible in that case... Ruh roh, raggy...\n"
-                    "Underlying buffer is named %s, and it is located at %p.",
+                    "Underlying buffer is named '{}', and it is located at {}.",
                     m_buf->name, m_buf);
 
                 resize();
@@ -428,24 +426,24 @@ protected: /*< ## Protected Member Methods */
 #if defined(DEBUG)
         N2BREAK_IF(m_buf->size < sizeof(Metadata), N2Error::InsufficientMemory,
             "Buffer HashTable is being resized into a Buffer that is too small "
-            "(" Fu64 ") to fit the HashTable Metadata (" Fu64 ").\n"
-            "Underlying buffer is named %s, and it is located at %p.",
+            "({}) to fit the HashTable Metadata ({}).\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
             m_buf->size, sizeof(Metadata), m_buf->name, m_buf);
         N2BREAK_IF(new_capacity < count(), N2Error::InsufficientMemory,
-            "Resizing a HashTable such that the new capacity (" Fu64 ") is "
-            "less than the current count (" Fu64 "). This... is probably not "
-            "okay. Data should be `destroy`d or `drop`d before downsizing?\n"
-            "Underlying buffer is named %s, and it is located at %p.",
+            "Resizing a HashTable such that the new capacity ({}) is less than "
+            "the current count ({}). This... is probably not okay. Data should "
+            "be `destroy`d or `drop`d before downsizing?\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
             new_capacity, count(), m_buf->name, m_buf);
         u64 used_capacity = new_capacity + new_max_miss_distance;
         u64 used_size     = sizeof(Metadata) + (sizeof(Cell) * used_capacity);
 
         N2BREAK_IF(new_size != used_size, N2Error::InvalidMemory,
                    "HashTable resize may be leaving data unused;\n"
-                   "  requested size  : " Fu64 "\n"
-                   "  calculated size : " Fu64 "\n"
-                   "  (metadata size  : " Fsize_t "\n"
-                   "Underlying buffer is named %s and is located at %p.",
+                   "  requested size  : {}\n"
+                   "  calculated size : {}\n"
+                   "  (metadata size  : {}\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
                    new_size, used_size, sizeof(Metadata),
                    m_buf->name, m_buf);
 #endif
