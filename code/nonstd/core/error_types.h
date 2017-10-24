@@ -2,7 +2,7 @@
  *  =====================
  *  What it says on the tin.
  *
- *  TODO: Move towards uisng exceptions, rather than hand-rolled error codes.
+ *  TODO: Move towards using exceptions, rather than hand-rolled error codes.
  */
 #pragma once
 
@@ -46,7 +46,7 @@ constexpr c_cstr N2_ERROR_STRINGS[] = {
                 "appropriate and descriptive Error.)",
     /* PEBCAK */
                 "There is an unidentified problem somewhere between a chair "
-                "and the nearest keybaord.",
+                "and the nearest keyboard.",
     /* System */
                 "System error.",
     /* UnimplementedCode */
