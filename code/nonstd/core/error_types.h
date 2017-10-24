@@ -69,6 +69,8 @@ constexpr c_cstr N2_ERROR_STRINGS[] = {
                 "Expected data is unreachable or nonexistent.",
     /* InvalidArguments */
                 "Operation executed with invalid arguments.",
+    /* HashCollision */
+                "A hash collision has been detected",
     /* DoubleInitialization */
                 "Double (non-idempotent) initialized detected.",
 };
