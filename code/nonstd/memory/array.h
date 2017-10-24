@@ -29,18 +29,20 @@ public: /*< ## Class Methods */
     }
 
     static inline void initializeBuffer(Buffer *const buf) {
-        /* If the type check is correct, no initialization is required. */
-        if (buf->type == Buffer::type_id::array) { return; }
-
-#if defined(DEBUG)
-        N2BREAK_IF((buf->type != Buffer::type_id::raw &&
-                    buf->type != Buffer::type_id::array),
-                   N2Error::InvalidMemory,
-                   "Array corruption detected by type_id --- 0x{:X} is neither "
-                   "0 nor 0x{:X}.\n"
+        N2BREAK_IF(buf->type == Buffer::type_id::array,
+                   N2Error::DoubleInitialization,
+                   "Buffer corruption detected by type_id; Buffer has already "
+                   "been correctly initialized as an Array.\n"
                    "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->type, Buffer::type_id::array, buf->name, buf);
-#endif
+                   buf->name, buf);
+        N2BREAK_IF(buf->type != Buffer::type_id::raw,
+                   N2Error::InvalidMemory,
+                   "Buffer corruption detected by type_id; Attempting to "
+                   "initialize a previously initialized Buffer. type_id is "
+                   "currently 0x{:X}\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
+                   buf->type, buf->name, buf);
+
         buf->type = Buffer::type_id::array;
     }
 
@@ -50,11 +52,22 @@ protected: /*< ## Protected Member Variables */
     Buffer::ResizeFn m_resize;
 
 public: /*< ## Ctors, Detors, and Assignments */
-    /* Ensure that only POD types are used by placing ENFORCE_POD in the ctor */
     Array(Buffer * buf, Buffer::ResizeFn resize = nullptr) noexcept
         : m_buf    ( buf    )
         , m_resize ( resize )
-    { ENFORCE_POD(T); }
+    {
+        /* Ensure that only POD types are used by placing ENFORCE_POD here. */
+        ENFORCE_POD(T);
+
+        /* Verify `buf` has been correctly initialized. */
+        N2BREAK_IF(m_buf->type != Buffer::type_id::array,
+            N2Error::InvalidMemory,
+            "Array corruption detected by type_id; Buffer has not been "
+            "initialized as an Array.\n"
+            "type_id is currently 0x{:X}\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            m_buf->type, m_buf->name, m_buf);
+    }
 
 public: /*< ## Public Memebr Methods */
     /* ## Buffer Accessors */

@@ -28,6 +28,7 @@ enum class N2Error {
     MissingData,
     InvalidArguments,
     HashCollision,
+    DoubleInitialization,
 };
 
 /** N2 Error Strings
@@ -68,4 +69,6 @@ constexpr c_cstr N2_ERROR_STRINGS[] = {
                 "Expected data is unreachable or nonexistent.",
     /* InvalidArguments */
                 "Operation executed with invalid arguments.",
+    /* DoubleInitialization */
+                "Double (non-idempotent) initialized detected.",
 };

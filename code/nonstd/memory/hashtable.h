@@ -129,29 +129,21 @@ public: /*< ## Class Methods */
     }
 
     static inline void initializeBuffer(Buffer *const buf) {
-        Metadata * metadata = (Metadata *)(buf->data);
-        /* If the type check is correct, no initialization is required. */
-        if (buf->type == Buffer::type_id::hash_table) { return; }
-
-#if defined(DEBUG)
-        N2BREAK_IF((buf->type != Buffer::type_id::raw &&
-                    buf->type != Buffer::type_id::array),
-                   N2Error::InvalidMemory,
-                   "Array corruption detected by type_id --- 0x{:X} is neither "
-                   "0 nor 0x{:X}.\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->type, Buffer::type_id::array, buf->name, buf);
-#endif
-        N2BREAK_IF(metadata->rehash_in_progress, N2Error::PEBCAK,
-                   "Buffer HashTable has been reinitialized while "
-                   "`rehash_in_progress == true`. This shouldn't be possible.\n"
+        N2BREAK_IF(buf->type == Buffer::type_id::hash_table,
+                   N2Error::DoubleInitialization,
+                   "Buffer corruption detected by type_id; Buffer has already "
+                   "been correctly initialized as a HashTable.\n"
                    "Underlying buffer is named '{}', and it is located at {}.",
                    buf->name, buf);
-        N2BREAK_IF(buf->size < sizeof(Metadata), N2Error::InsufficientMemory,
-                   "Buffer HashTable is being overlaid onto a Buffer that is "
-                   "too small ({}B) to fit the HashTable Metadata ({}).\n"
+        N2BREAK_IF(buf->type != Buffer::type_id::raw,
+                   N2Error::InvalidMemory,
+                   "Buffer corruption detected by type_id; Attempting to "
+                   "initialize a previously initialized Buffer. type_id is "
+                   "currently 0x{:X}\n"
                    "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->size, sizeof(Metadata), buf->name, buf);
+                   buf->type, buf->name, buf);
+
+        Metadata * metadata = (Metadata *)(buf->data);
 
         u64 data_region_size     = buf->size - sizeof(Metadata);
         u64 data_region_capacity = data_region_size / sizeof(Cell);
@@ -159,23 +151,30 @@ public: /*< ## Class Methods */
         u8  max_miss_distance    = maxMissDistanceFor(practical_capacity);
 
         u64 required_capacity = (practical_capacity + max_miss_distance);
+
+        N2BREAK_IF(buf->size < sizeof(Metadata), N2Error::InsufficientMemory,
+                   "This HashTable is being overlaid onto a Buffer that is too "
+                   "small ({}B) to fit the HashTable Metadata ({}).\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
+                   buf->size, sizeof(Metadata), buf->name, buf);
         N2BREAK_IF(required_capacity > data_region_capacity,
                    N2Error::InsufficientMemory,
-                   "Buffer HashTable has been initialized with a data region "
+                   "This HashTable has been initialized with a data region "
                    "that does not have room for overallocation. The data "
-                   "region can store up to {} cells. The natural capacity is "
-                   "{}, and the desired overflow is {} -- totaling {}.\n"
+                   "region can store up to {} cells. The target capacity is {},"
+                   "and the desired overflow is {} -- totaling {} cells.\n"
                    "Underlying buffer is named '{}', and it is located at {}.",
                    data_region_capacity, practical_capacity, max_miss_distance,
                    required_capacity,
                    buf->name, buf);
 
-        buf->type = Buffer::type_id::hash_table;
-        metadata->capacity           = practical_capacity;
         metadata->count              = 0;
+        metadata->capacity           = practical_capacity;
         metadata->max_miss_distance  = max_miss_distance;
         metadata->rehash_in_progress = false;
         memset(metadata->map, '\0', data_region_size);
+
+        buf->type = Buffer::type_id::hash_table;
     }
 
 
@@ -192,15 +191,24 @@ protected: /*< ## Public Member Variables */
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    /* Ensure that only POD types are used by placing ENFORCE_POD in the ctor */
     HashTable(Buffer *const buf, Buffer::ResizeFn resize) noexcept
         : m_buf      ( buf                    )
         , m_metadata ( (Metadata*)(buf->data) )
         , m_resize   ( resize                 )
     {
-        ENFORCE_POD(Cell);
+        /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T_KEY);
         ENFORCE_POD(T_VAL);
+        ENFORCE_POD(Cell);
+
+        /* Verify `buf` has been correctly initialized. */
+        N2BREAK_IF(m_buf->type != Buffer::type_id::hash_table,
+            N2Error::InvalidMemory,
+            "HashTable corruption detected by type_id; Buffer has not been "
+            "initialized as a HashTable.\n"
+            "type_id is currently 0x{:X}\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            m_buf->type, m_buf->name, m_buf);
     }
 
 

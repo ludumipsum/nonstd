@@ -55,35 +55,40 @@ public: /*< ## Class Methods */
 
     inline static
     void initializeBuffer(Buffer *const buf) {
-        Metadata * metadata = (Metadata *)(buf->data);
-        /* If the type check is correct, no initialization is required. */
-        if (buf->type == Buffer::type_id::stream) { return; }
+        N2BREAK_IF(buf->type == Buffer::type_id::stream,
+                   N2Error::DoubleInitialization,
+                   "Buffer corruption detected by type_id; Buffer has already "
+                   "been correctly initialized as an Stream.\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
+                   buf->name, buf);
+        N2BREAK_IF(buf->type != Buffer::type_id::raw,
+                   N2Error::InvalidMemory,
+                   "Buffer corruption detected by type_id; Attempting to "
+                   "initialize a previously initialized Buffer. type_id is "
+                   "currently 0x{:X}\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
+                   buf->type, buf->name, buf);
 
-#if defined(DEBUG)
-        N2BREAK_IF((buf->type != Buffer::type_id::raw &&
-                    buf->type != Buffer::type_id::stream),
-            N2Error::InvalidMemory,
-            "Stream corruption detected by type_id --- 0x{:X} is neither 0 "
-            "nor 0x{:X}.\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->type, Buffer::type_id::array, buf->name, buf);
-#endif
-        N2BREAK_IF(buf->size < (sizeof(Metadata) + sizeof(T)),
-            N2Error::InsufficientMemory,
-            "This Stream is being overlaid onto a Buffer that is too small "
-            "({}) to fit the Stream Metadata ({}) abd at least one <{}>({}).\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->size, sizeof(Metadata), type_name<T>(), sizeof(T),
-            buf->name, buf);
+        Metadata * metadata = (Metadata *)(buf->data);
 
         u64 data_region_size = buf->size - sizeof(Metadata);
         u64 capacity         = (data_region_size) / sizeof(T);
 
-        buf->type = Buffer::type_id::stream;
+        N2BREAK_IF(buf->size < (sizeof(Metadata) + sizeof(T)),
+                   N2Error::InsufficientMemory,
+                   "This Stream is being overlaid onto a Buffer that is too "
+                   "small ({}B) to fit the Stream Metadata ({}B) and at least "
+                   "one <{}>({}B). Streams _must_ be able to store at least "
+                   "one element.\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
+                   buf->size, sizeof(Metadata), type_name<T>(), sizeof(T),
+                   buf->name, buf);
 
         metadata->count    = 0;
         metadata->capacity = capacity;
         memset(metadata->data, '\0', data_region_size);
+
+        buf->type = Buffer::type_id::stream;
     }
 
 
@@ -94,13 +99,24 @@ protected: /*< ## Public Member Variables */
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    /* Ensure that only POD types are used by placing ENFORCE_POD in the ctor */
     Stream(Buffer *const buf, Buffer::ResizeFn resize = nullptr)
     noexcept
         : m_buf      ( buf                    )
         , m_metadata ( (Metadata*)(buf->data) )
         , m_resize   ( resize                 )
-    { ENFORCE_POD(T); }
+    {
+        /* Ensure that only POD types are used by placing ENFORCE_POD here. */
+        ENFORCE_POD(T);
+
+        /* Verify `buf` has been correctly initialized. */
+        N2BREAK_IF(m_buf->type != Buffer::type_id::stream,
+            N2Error::InvalidMemory,
+            "Stream corruption detected by type_id; Buffer has not been "
+            "initialized as an Stream.\n"
+            "type_id is currently 0x{:X}\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            m_buf->type, m_buf->name, m_buf);
+    }
 
 
 public: /*< ## Public Member Methods */
