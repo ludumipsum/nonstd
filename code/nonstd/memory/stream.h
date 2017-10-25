@@ -181,6 +181,7 @@ public:
      */
     inline u64 resize(u64 capacity) {
         N2BREAK(N2Error::UnimplementedCode, "");
+        return 0;
     }
 
 
