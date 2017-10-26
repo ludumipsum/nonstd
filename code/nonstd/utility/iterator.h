@@ -10,6 +10,7 @@
 #include <iterator>
 
 #include "nonstd/core/primitive_types.h"
+#include "nonstd/c_ish/math.h"
 
 
 namespace nonstd {
@@ -36,15 +37,16 @@ struct Range {
     struct iterator; //< Forward decl
 
     /* named start / stop to avoid colliding with begin() / end() */
-    iterator start { 0 };
+    iterator start;
     iterator stop;
 
     constexpr Range(T begin, T end, T step = 1) noexcept
-        : start { begin, step }
-        , stop  { end, step }
+        : start { begin, end, step }
+        , stop  { end, end, step }
     { }
     constexpr Range(T end) noexcept
-        : stop  { end, 1 }
+        : start { 0, end }
+        , stop  { end, end }
     { }
 
     constexpr iterator begin() const noexcept { return start; }
@@ -61,12 +63,14 @@ struct Range {
         using reference         = T&;
         using iterator_category = std::input_iterator_tag;
 
-        T value = 0;
-        T step  = 1;
+        T       value = 0;
+        T const max   = 0;
+        T const step  = 1;
 
         constexpr iterator() = default;
-        constexpr iterator(T value, T step = 1) noexcept
+        constexpr iterator(T value, T max, T step = 1) noexcept
             : value ( value )
+            , max   ( max   )
             , step  ( step  )
         { }
 
@@ -81,12 +85,12 @@ struct Range {
         }
 
         constexpr iterator & operator++() noexcept {
-            value += step;
+            value = n2min(value + step, max);
             return *this;
         }
         constexpr iterator & operator++(int) noexcept {
             iterator tmp{ *this };
-            value += step;
+            value = n2min(value + step, max);
             return tmp;
         }
 
