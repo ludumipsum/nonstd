@@ -80,7 +80,7 @@ struct Range {
         constexpr iterator & operator=(iterator &&)      = default;
         ~iterator() noexcept                             = default;
 
-        constexpr T const & operator*() const noexcept {
+        constexpr T operator*() const noexcept {
             return value;
         }
 
