@@ -34,7 +34,7 @@ constexpr Range<T> range(T end) {
 
 template <typename T>
 struct Range {
-    template <typename T> struct iterator; //< forward decl
+    template <typename U> struct iterator; //< forward decl
 
     /* named start / stop to avoid colliding with begin() / end() */
     iterator<T> start;
@@ -55,24 +55,24 @@ struct Range {
 
     // Redefining the template parameter is useless _except_ for the part where
     // it un-breaks an inscrutable MSVC error.
-    template <typename T>
+    template <typename U>
     struct iterator {
         /* Iterator type trait boilerplate. See,
         * http://en.cppreference.com/w/cpp/iterator/iterator_traits
         * http://www.cplusplus.com/reference/iterator/
         */
         using difference_type   = ptrdiff;
-        using value_type        = T;
-        using pointer           = T*;
-        using reference         = T&;
+        using value_type        = U;
+        using pointer           = U*;
+        using reference         = U&;
         using iterator_category = std::input_iterator_tag;
 
-        T       value = 0;
-        T const max   = 0;
-        T const step  = 1;
+        U       value = 0;
+        U const max   = 0;
+        U const step  = 1;
 
         constexpr iterator() = default;
-        constexpr iterator(T value, T max, T step = 1) noexcept
+        constexpr iterator(U value, U max, U step = 1) noexcept
             : value ( value )
             , max   ( max   )
             , step  ( step  )
@@ -84,7 +84,7 @@ struct Range {
         constexpr iterator & operator=(iterator &&)      = default;
         ~iterator() noexcept                             = default;
 
-        constexpr T const & operator*() const noexcept {
+        constexpr U const & operator*() const noexcept {
             return value;
         }
 
