@@ -12,101 +12,94 @@
 #include "nonstd/core/primitive_types.h"
 
 
+namespace nonstd {
+
 /** Range
  *  =====
  *  Lazily yield Ts in the range provided. Emulates python 3's range()
  */
+template <typename T> struct Range;
+
+template<typename T>
+constexpr Range<T> range(T begin, T end, T step = 1) {
+    return Range<T>{ begin, end, step };
+}
+
+template<typename T>
+constexpr Range<T> range(T end) {
+    return Range<T>{ 0, end, 1 };
+}
+
+
 template <typename T>
-class Range {
-public:
+struct Range {
+    struct iterator; //< Forward decl
+
     /* named start / stop to avoid colliding with begin() / end() */
-    T start, stop, step;
+    iterator start { 0 };
+    iterator stop;
 
-    constexpr inline Range(T begin, T end, T step=1)
-        : start ( begin )
-        , stop  ( end   )
-        , step  ( step  ) { }
-    constexpr inline Range(T end)
-        : start ( 0   )
-        , stop  ( end )
-        , step  ( 1   ) { }
+    constexpr Range(T begin, T end, T step = 1) noexcept
+        : start { begin, step }
+        , stop  { end, step }
+    { }
+    constexpr Range(T end) noexcept
+        : stop  { end, 1 }
+    { }
 
-    class iterator {
-    public:
-        typedef std::output_iterator_tag iterator_category;
+    constexpr iterator begin() const noexcept { return start; }
+    constexpr iterator end()   const noexcept { return stop; }
 
-        Range const& r;
-        T value;
+    struct iterator {
+        /* Iterator type trait boilerplate. See,
+        * http://en.cppreference.com/w/cpp/iterator/iterator_traits
+        * http://www.cplusplus.com/reference/iterator/
+        */
+        using difference_type   = ptrdiff;
+        using value_type        = T;
+        using pointer           = T*;
+        using reference         = T&;
+        using iterator_category = std::input_iterator_tag;
 
-        constexpr inline iterator(Range const& r, T value)
-            : r     ( r     )
-            , value ( value ) { }
-        constexpr inline iterator(iterator const& i)
-            : r     ( i.r     )
-            , value ( i.value ) { }
-        constexpr inline iterator& operator=(iterator const& i) {
-            if (this != &i) {
-                this->r = i.r;
-                this->value = i.value;
-            }
+        T value = 0;
+        T step  = 1;
+
+        constexpr iterator() = default;
+        constexpr iterator(T value, T step = 1) noexcept
+            : value ( value )
+            , step  ( step  )
+        { }
+
+        constexpr iterator(iterator const &)             = default;
+        constexpr iterator & operator=(iterator const &) = default;
+        constexpr iterator(iterator &&)                  = default;
+        constexpr iterator & operator=(iterator &&)      = default;
+        ~iterator() noexcept                             = default;
+
+        constexpr T const & operator*() const noexcept {
+            return value;
         }
 
-        constexpr inline T operator*() { return value; }
-
-        constexpr inline bool operator==(iterator const& i) {
-            return value == i.value;
-        }
-        constexpr inline bool operator!=(iterator const& i) {
-            return value != i.value;
-        }
-
-        constexpr inline iterator& operator++() {
-            value += r.step;
+        constexpr iterator & operator++() noexcept {
+            value += step;
             return *this;
         }
-        constexpr inline iterator operator++(int) {
-            iterator ret(r, value);
-            value += r.step;
-            return ret;
+        constexpr iterator & operator++(int) noexcept {
+            iterator tmp{ *this };
+            value += step;
+            return tmp;
         }
 
-        constexpr inline iterator& operator--() {
-            value -= r.step;
-            return *this;
+        friend constexpr bool operator==(iterator const & lhs,
+                                         iterator const & rhs) noexcept {
+            return lhs.value == rhs.value;
         }
-        constexpr inline iterator operator--(int) {
-            iterator ret(r, value);
-            value -= r.step;
-            return ret;
-        }
-
-        constexpr inline iterator& operator+=(T steps) {
-            value += (steps * r.step);
-            return *this;
-        }
-        constexpr inline iterator& operator-=(T steps) {
-            value -= (steps * r.step);
-            return *this;
+        friend constexpr bool operator!=(iterator const & lhs,
+                                         iterator const & rhs) noexcept {
+            return lhs.value != rhs.value;
         }
     };
-
-    constexpr inline iterator begin() const {
-        return Range<T>::iterator(*this, start);
-    }
-    constexpr inline iterator end() const {
-        return Range<T>::iterator(*this, stop);
-    }
 };
-
-template<typename T>
-constexpr inline Range<T> range(T begin, T end, T step = 1) {
-    return Range<T>(begin, end, step);
-}
-
-template<typename T>
-inline constexpr Range<T> range(T end) {
-    return Range<T>(0, end, 1);
-}
 
 
 /** Slice
@@ -205,3 +198,5 @@ template<typename T> inline
 Slice<T> slice(T* data, u64 count, u64 stride = 1) {
     return Slice<T>(data, count, stride);
 }
+
+} /* namespace nonstd */
