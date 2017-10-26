@@ -83,11 +83,13 @@ TEST_CASE("Range API Demo", "[nonstd][api][range]") {
         REQUIRE(sum   == 27);
     }
 
-    SECTION("They're even constexpr") {
+#if !defined(_MSC_VER)
+    SECTION("They're even constexpr, if you're not on MSVC") {
         constexpr auto result = constexpr_sum(10, 20);
         static_assert(result == 145, "Definitely evaluated at compile time");
         REQUIRE(result == 145);
     }
+#endif
 }
 
 } /* namespace iterator */

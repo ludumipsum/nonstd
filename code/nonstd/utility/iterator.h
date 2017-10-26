@@ -34,11 +34,11 @@ constexpr Range<T> range(T end) {
 
 template <typename T>
 struct Range {
-    struct iterator; //< Forward decl
+    template <typename T> struct iterator; //< forward decl
 
     /* named start / stop to avoid colliding with begin() / end() */
-    iterator start;
-    iterator stop;
+    iterator<T> start;
+    iterator<T> stop;
 
     constexpr Range(T begin, T end, T step = 1) noexcept
         : start { begin, end, step }
@@ -49,9 +49,13 @@ struct Range {
         , stop  { end, end }
     { }
 
-    constexpr iterator begin() const noexcept { return start; }
-    constexpr iterator end()   const noexcept { return stop; }
+    constexpr iterator<T> begin() const noexcept { return start; }
+    constexpr iterator<T> end()   const noexcept { return stop; }
 
+
+    // Redefining the template parameter is useless _except_ for the part where
+    // it un-breaks an inscrutable MSVC error.
+    template <typename T>
     struct iterator {
         /* Iterator type trait boilerplate. See,
         * http://en.cppreference.com/w/cpp/iterator/iterator_traits
@@ -80,7 +84,7 @@ struct Range {
         constexpr iterator & operator=(iterator &&)      = default;
         ~iterator() noexcept                             = default;
 
-        constexpr T operator*() const noexcept {
+        constexpr T const & operator*() const noexcept {
             return value;
         }
 
