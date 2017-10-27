@@ -504,7 +504,7 @@ public:
     /* In-Place Value Ctor
      * ------------------- */
     template < typename... Args
-             , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T, Args...), int) = 0 >
+             , ENABLE_IF_TYPE(IS_CONSTRUCTIBLE(T, Args...), int) = 0 >
     constexpr explicit _Optional_ValueBase(nonstd::in_place_t /*unused*/,
                                            Args && ... args)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...))
@@ -514,9 +514,9 @@ public:
      * ------------------------------------ */
     template < typename Il
              , typename... Args
-             , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T,
-                                                std::initializer_list<Il> &,
-                                                Args && ...), int) = 0 >
+             , ENABLE_IF_TYPE(IS_CONSTRUCTIBLE(T,
+                                               std::initializer_list<Il> &,
+                                               Args && ...), int) = 0 >
     constexpr explicit _Optional_ValueBase(nonstd::in_place_t /*unused*/,
                                            std::initializer_list<Il> il,
                                            Args && ... args)
@@ -528,23 +528,23 @@ public:
     /* Converting Value Move Ctor
      * -------------------------- */
     template < typename U = T
-             , ENABLE_IF_DTYPE((   IS_DIFFERENT_TYPE(DECAY_TYPE(U),
-                                                     nonstd::in_place_t)
-                                && IS_DIFFERENT_TYPE(DECAY_TYPE(U), Optional<T>)
-                                && IS_CONSTRUCTIBLE(T, U&&)
-                                && IS_CONVERTIBLE(U&&, T))
-                              , int) = 0 >
+             , ENABLE_IF_TYPE((   IS_DIFFERENT_TYPE(DECAY_TYPE(U),
+                                                    nonstd::in_place_t)
+                               && IS_DIFFERENT_TYPE(DECAY_TYPE(U), Optional<T>)
+                               && IS_CONSTRUCTIBLE(T, U&&)
+                               && IS_CONVERTIBLE(U&&, T))
+                             , int) = 0 >
     constexpr _Optional_ValueBase(U && value)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U &&))
         : _storage ( std::forward<U>(value) ) { }
 
     template < typename U = T
-             , ENABLE_IF_DTYPE((   IS_DIFFERENT_TYPE(DECAY_TYPE(U),
-                                                     nonstd::in_place_t)
-                                && IS_DIFFERENT_TYPE(DECAY_TYPE(U), Optional<T>)
-                                && IS_CONSTRUCTIBLE(T, U&&)
-                                && IS_NOT_CONVERTIBLE(U&&, T))
-                              , int) = 1 >
+             , ENABLE_IF_TYPE((   IS_DIFFERENT_TYPE(DECAY_TYPE(U),
+                                                    nonstd::in_place_t)
+                               && IS_DIFFERENT_TYPE(DECAY_TYPE(U), Optional<T>)
+                               && IS_CONSTRUCTIBLE(T, U&&)
+                               && IS_NOT_CONVERTIBLE(U&&, T))
+                             , int) = 1 >
     constexpr explicit _Optional_ValueBase(U && value)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U &&))
         : _storage ( std::forward<U>(value) ) { }
@@ -554,11 +554,11 @@ public:
      * NB. The value being copied is going to be a complete `Optional<U>` (not a
      *    `_Optional_ValueBase<U>`), so that's the parameter we accept. */
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
-                                &&   IS_CONSTRUCTIBLE(T, U const &)
-                                &&   IS_CONVERTIBLE(U const &, T)
-                                && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
-                              , int) = 0>
+             , ENABLE_IF_TYPE((     IS_DIFFERENT_TYPE(T, U)
+                               &&   IS_CONSTRUCTIBLE(T, U const &)
+                               &&   IS_CONVERTIBLE(U const &, T)
+                               && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
+                             , int) = 0>
     constexpr _Optional_ValueBase(Optional<U> const & other)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U))
         : _Optional_ValueBase ( other.hasValue()
@@ -566,11 +566,11 @@ public:
                                 : _Optional_ValueBase{ nonstd::nullopt } ) { }
 
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
-                                &&   IS_CONSTRUCTIBLE(T, U const &)
-                                &&   IS_NOT_CONVERTIBLE(U const &, T)
-                                && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
-                              , int) = 1>
+             , ENABLE_IF_TYPE((     IS_DIFFERENT_TYPE(T, U)
+                               &&   IS_CONSTRUCTIBLE(T, U const &)
+                               &&   IS_NOT_CONVERTIBLE(U const &, T)
+                               && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
+                             , int) = 1>
     constexpr explicit _Optional_ValueBase(Optional<U> const & other)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U))
         : _Optional_ValueBase ( other.hasValue()
@@ -582,11 +582,11 @@ public:
      * NB. The value being moved is going to be a complete `Optional<U>` (not a
      *    `_Optional_ValueBase<U>`), so that's the parameter we accept. */
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
-                                &&   IS_CONSTRUCTIBLE(T, U&&)
-                                &&   IS_CONVERTIBLE(U &&, T)
-                                && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
-                              , int) = 0>
+             , ENABLE_IF_TYPE((     IS_DIFFERENT_TYPE(T, U)
+                               &&   IS_CONSTRUCTIBLE(T, U&&)
+                               &&   IS_CONVERTIBLE(U &&, T)
+                               && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
+                             , int) = 0>
     constexpr _Optional_ValueBase(Optional<U> && other)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U &&))
         : _Optional_ValueBase ( other.hasValue()
@@ -594,11 +594,11 @@ public:
                                 : _Optional_ValueBase{ nonstd::nullopt   } ) { }
 
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
-                                &&   IS_CONSTRUCTIBLE(T, U&&)
-                                &&   IS_NOT_CONVERTIBLE(U &&, T)
-                                && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
-                              , int) = 1>
+             , ENABLE_IF_TYPE((     IS_DIFFERENT_TYPE(T, U)
+                               &&   IS_CONSTRUCTIBLE(T, U&&)
+                               &&   IS_NOT_CONVERTIBLE(U &&, T)
+                               && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T))
+                             , int) = 1>
     constexpr explicit _Optional_ValueBase(Optional<U> && other)
     noexcept(IS_NOTHROW_CONSTRUCTIBLE(T, U &&))
         : _Optional_ValueBase ( other.hasValue()
@@ -694,11 +694,11 @@ public:
      *           && IS_SAME_TYPE(DECAY_TYPE(U), T))
      */
     template < typename U = T
-             , ENABLE_IF_DTYPE((   IS_DIFFERENT_TYPE(DECAY_TYPE(U),
-                                                     Optional<T>)
-                                && IS_CONSTRUCTIBLE(T, U)
-                                && IS_ASSIGNABLE(T&, U))
-                              , int) = 0 >
+             , ENABLE_IF_TYPE((   IS_DIFFERENT_TYPE(DECAY_TYPE(U),
+                                                    Optional<T>)
+                               && IS_CONSTRUCTIBLE(T, U)
+                               && IS_ASSIGNABLE(T&, U))
+                             , int) = 0 >
     _Optional_ValueBase<T>& operator= (U&& value)
     noexcept(   IS_NOTHROW_ASSIGNABLE(T, U &&)
              && IS_NOTHROW_CONSTRUCTIBLE(T, U &&)) {
@@ -716,12 +716,12 @@ public:
      * NB. The value being copied is going to be a complete `Optional<U>` (not a
      *    `_Optional_ValueBase<U>`), so that's the parameter we accept. */
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
-                                &&   IS_CONSTRUCTIBLE(T, U const &)
-                                &&   IS_ASSIGNABLE(T&, U const &)
-                                && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T)
-                                && ! IS_ASSIGNABLE_FROM_OPTIONAL(U, T))
-                              , int) = 0 >
+             , ENABLE_IF_TYPE((     IS_DIFFERENT_TYPE(T, U)
+                               &&   IS_CONSTRUCTIBLE(T, U const &)
+                               &&   IS_ASSIGNABLE(T&, U const &)
+                               && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T)
+                               && ! IS_ASSIGNABLE_FROM_OPTIONAL(U, T))
+                             , int) = 0 >
     _Optional_ValueBase<T>& operator= (Optional<U> const & other)
     noexcept(   IS_NOTHROW_ASSIGNABLE(T, U)
              && IS_NOTHROW_CONSTRUCTIBLE(T, U)
@@ -744,12 +744,12 @@ public:
      * NB. The value being moved is going to be a complete `Optional<U>` (not a
      *    `_Optional_ValueBase<U>`), so that's the parameter we accept. */
     template < typename U
-             , ENABLE_IF_DTYPE((     IS_DIFFERENT_TYPE(T, U)
-                                &&   IS_CONSTRUCTIBLE(T, U)
-                                &&   IS_ASSIGNABLE(T&, U)
-                                && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T)
-                                && ! IS_ASSIGNABLE_FROM_OPTIONAL(U, T))
-                              , int) = 0 >
+             , ENABLE_IF_TYPE((     IS_DIFFERENT_TYPE(T, U)
+                               &&   IS_CONSTRUCTIBLE(T, U)
+                               &&   IS_ASSIGNABLE(T&, U)
+                               && ! IS_CONVERTIBLE_FROM_OPTIONAL(U, T)
+                               && ! IS_ASSIGNABLE_FROM_OPTIONAL(U, T))
+                             , int) = 0 >
     _Optional_ValueBase<T>& operator= (Optional<U> && other)
     noexcept(   IS_NOTHROW_ASSIGNABLE(T, U &&)
              && IS_NOTHROW_CONSTRUCTIBLE(T, U &&)
@@ -770,7 +770,7 @@ public:
     /* Emplacement
      * ----------- */
     template < typename... Args
-             , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T, Args && ...), int) = 0 >
+             , ENABLE_IF_TYPE(IS_CONSTRUCTIBLE(T, Args && ...), int) = 0 >
     _Optional_ValueBase<T>& emplace(Args && ... args)
     noexcept(   IS_NOTHROW_DESTRUCTIBLE(T)
              && IS_NOTHROW_CONSTRUCTIBLE(T, Args && ...)) {
@@ -783,9 +783,9 @@ public:
      * --------------------------------- */
     template < typename... Args
              , typename Il
-             , ENABLE_IF_DTYPE(IS_CONSTRUCTIBLE(T,
-                                                std::initializer_list<Il> &,
-                                                Args && ...), int) = 0 >
+             , ENABLE_IF_TYPE(IS_CONSTRUCTIBLE(T,
+                                               std::initializer_list<Il> &,
+                                               Args && ...), int) = 0 >
     _Optional_ValueBase<T>& emplace(std::initializer_list<Il> il,
                                     Args && ... args)
     noexcept (   IS_NOTHROW_DESTRUCTIBLE(T)
@@ -1471,8 +1471,8 @@ namespace has_insertion_operator {
 /** OStream Insertion Operator
  *  -------------------------- */
 template <typename T>
-ENABLE_IF_DTYPE(optional::has_insertion_operator::types<T>::value,
-                std::ostream &)
+ENABLE_IF_TYPE(optional::has_insertion_operator::types<T>::value,
+               std::ostream &)
 /* std::ostream& */ operator << (std::ostream & s, Optional<T> const & opt) {
     return s << "Optional<" << type_name<T>() << ">{ "
              << ((bool)opt ? fmt::format("{}", *opt).c_str() : "")
@@ -1480,8 +1480,8 @@ ENABLE_IF_DTYPE(optional::has_insertion_operator::types<T>::value,
 }
 
 template <typename T>
-ENABLE_IF_DTYPE(!optional::has_insertion_operator::types<T>::value,
-                std::ostream &)
+ENABLE_IF_TYPE(!optional::has_insertion_operator::types<T>::value,
+               std::ostream &)
 /* std::ostream& */ operator << (std::ostream & s, Optional<T> const & opt) {
     return s << "Optional<" << type_name<T>() << ">{ "
              << ((bool)opt ? "/unprintable/" : "")
