@@ -168,7 +168,7 @@ class _Optional_LValRefBase;
  *  When storing an object that is trivially copy and move constructible, the
  *  implicitly defined copy/move ctors will be correct in all cases; the active
  *  member of the union will be determined (at compile time, if possible) and
- *  used to initialize the relevant member in the new _Storge object. Otherwise
+ *  used to initialize the relevant member in the new _Storage object. Otherwise
  *  the implicit copy/move ctors will not be defined, which forces us to
  *  explicitly define them. In these cases, we also need to wait till run-time
  *  to (optionally) construct a value based on the `other`.
