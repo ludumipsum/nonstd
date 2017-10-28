@@ -11,6 +11,7 @@
 #pragma once
 
 #include <type_traits>
+#include <thirdparty/boost/preprocessor.h>
 
 
 /** Types
@@ -32,8 +33,15 @@
  *  (`_DTYPE`) returns the dependent type (the second argument), the other
  *  (`_TYPE`) allows the default to come into play.
  */
-#define ENABLE_IF_TYPE(B)    typename ::std::enable_if<B>::type
-#define ENABLE_IF_DTYPE(B,T) typename ::std::enable_if<B,T>::type
+#if !BOOST_PP_VARIADICS_MSVC
+#  define ENABLE_IF_TYPE(...) \
+    BOOST_PP_OVERLOAD(ENABLE_IF_TYPE_IMPL, __VA_ARGS__)(__VA_ARGS__)
+#else  // MSVC doesn't comply with C99 macro parsing. Gotta work around that.
+#  define ENABLE_IF_TYPE(...) \
+    BOOST_PP_CAT(BOOST_PP_OVERLOAD(ENABLE_IF_TYPE_IMPL, __VA_ARGS__)(__VA_ARGS__), BOOST_PP_EMPTY())
+#endif
+#define ENABLE_IF_TYPE_IMPL1(B)   typename ::std::enable_if<B>::type
+#define ENABLE_IF_TYPE_IMPL2(B,T) typename ::std::enable_if<B,T>::type
 
 /** Type Modifiers
  *  -------------- */
@@ -278,4 +286,4 @@
  */
 #define TEMPLATE_ENABLE(COND, T)            \
     template<typename _DEP_T=DECAY_TYPE(T), \
-             ENABLE_IF_DTYPE(COND,_DEP_T) * = nullptr>
+             ENABLE_IF_TYPE(COND,_DEP_T) * = nullptr>

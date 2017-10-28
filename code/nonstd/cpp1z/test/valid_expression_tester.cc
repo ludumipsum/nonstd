@@ -108,11 +108,11 @@ struct E {
  *  Like it says on the tin. This is probably the way to get run-time goodness
  *  out of N2VET_TESTERS. */
 template <typename T>
-ENABLE_IF_DTYPE( has_stringify::types<T>::value, std::string)
+ENABLE_IF_TYPE( has_stringify::types<T>::value, std::string)
 /* std::string */globalStringify(T& obj) { return obj.stringify(); }
 
 template <typename T>
-ENABLE_IF_DTYPE(!has_stringify::types<T>::value, std::string)
+ENABLE_IF_TYPE(!has_stringify::types<T>::value, std::string)
 /* std::string */globalStringify(T& obj) { return to_string(obj); }
 
 
