@@ -15,7 +15,7 @@
 #define n2min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 #ifndef n2clamp
-#define n2clamp(v, a, b) (n2min((b), (((v) > (a)) ? v : a)))
+#define n2clamp(val, min, max) (n2min((max), n2max((val), (min))))
 #endif
 #ifndef n2abs
 #define n2abs(n) std::abs(n)
