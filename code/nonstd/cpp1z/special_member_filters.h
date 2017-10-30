@@ -40,70 +40,70 @@ namespace nonstd {
 
 template <bool ShouldEnableCopyCtor, typename UniqueTag>
 struct EnableCopyCtorIf {
-    constexpr EnableCopyCtorIf() noexcept                             = default;
-    constexpr EnableCopyCtorIf(const EnableCopyCtorIf&) noexcept      = default;
-    EnableCopyCtorIf& operator=(const EnableCopyCtorIf&) noexcept     = default;
-    constexpr EnableCopyCtorIf(EnableCopyCtorIf &&) noexcept          = default;
-    EnableCopyCtorIf& operator=(EnableCopyCtorIf &&) noexcept         = default;
+    constexpr EnableCopyCtorIf() noexcept                                       = default;
+    constexpr EnableCopyCtorIf(const EnableCopyCtorIf&) noexcept                = default;
+    constexpr EnableCopyCtorIf& operator=(const EnableCopyCtorIf&) noexcept     = default;
+    constexpr EnableCopyCtorIf(EnableCopyCtorIf &&) noexcept                    = default;
+    constexpr EnableCopyCtorIf& operator=(EnableCopyCtorIf &&) noexcept         = default;
 };
 template <typename UniqueTag>
 struct EnableCopyCtorIf<false, UniqueTag> {
-    constexpr EnableCopyCtorIf() noexcept                             = default;
-    constexpr EnableCopyCtorIf(const EnableCopyCtorIf&) noexcept      = delete;
-    EnableCopyCtorIf& operator=(const EnableCopyCtorIf&) noexcept     = default;
-    constexpr EnableCopyCtorIf(EnableCopyCtorIf &&) noexcept          = default;
-    EnableCopyCtorIf& operator=(EnableCopyCtorIf &&) noexcept         = default;
+    constexpr EnableCopyCtorIf() noexcept                                       = default;
+    constexpr EnableCopyCtorIf(const EnableCopyCtorIf&) noexcept                = delete;
+    constexpr EnableCopyCtorIf& operator=(const EnableCopyCtorIf&) noexcept     = default;
+    constexpr EnableCopyCtorIf(EnableCopyCtorIf &&) noexcept                    = default;
+    constexpr EnableCopyCtorIf& operator=(EnableCopyCtorIf &&) noexcept         = default;
 };
 
 template <bool ShouldEnableCopyAssign, typename UniqueTag>
 struct EnableCopyAssignIf {
-    constexpr EnableCopyAssignIf() noexcept                           = default;
-    constexpr EnableCopyAssignIf(const EnableCopyAssignIf&) noexcept  = default;
-    EnableCopyAssignIf& operator=(const EnableCopyAssignIf&) noexcept = default;
-    constexpr EnableCopyAssignIf(EnableCopyAssignIf &&) noexcept      = default;
-    EnableCopyAssignIf& operator=(EnableCopyAssignIf &&) noexcept     = default;
+    constexpr EnableCopyAssignIf() noexcept                                     = default;
+    constexpr EnableCopyAssignIf(const EnableCopyAssignIf&) noexcept            = default;
+    constexpr EnableCopyAssignIf& operator=(const EnableCopyAssignIf&) noexcept = default;
+    constexpr EnableCopyAssignIf(EnableCopyAssignIf &&) noexcept                = default;
+    constexpr EnableCopyAssignIf& operator=(EnableCopyAssignIf &&) noexcept     = default;
 };
 template <typename UniqueTag>
 struct EnableCopyAssignIf<false, UniqueTag> {
-    constexpr EnableCopyAssignIf() noexcept                           = default;
-    constexpr EnableCopyAssignIf(const EnableCopyAssignIf&) noexcept  = default;
-    EnableCopyAssignIf& operator=(const EnableCopyAssignIf&) noexcept = delete;
-    constexpr EnableCopyAssignIf(EnableCopyAssignIf &&) noexcept      = default;
-    EnableCopyAssignIf& operator=(EnableCopyAssignIf &&) noexcept     = default;
+    constexpr EnableCopyAssignIf() noexcept                                     = default;
+    constexpr EnableCopyAssignIf(const EnableCopyAssignIf&) noexcept            = default;
+    constexpr EnableCopyAssignIf& operator=(const EnableCopyAssignIf&) noexcept = delete;
+    constexpr EnableCopyAssignIf(EnableCopyAssignIf &&) noexcept                = default;
+    constexpr EnableCopyAssignIf& operator=(EnableCopyAssignIf &&) noexcept     = default;
 };
 
 template <bool ShouldEnableMoveCtor, typename UniqueTag>
 struct EnableMoveCtorIf {
-    constexpr EnableMoveCtorIf() noexcept                             = default;
-    constexpr EnableMoveCtorIf(const EnableMoveCtorIf&) noexcept      = default;
-    EnableMoveCtorIf& operator=(const EnableMoveCtorIf&) noexcept     = default;
-    constexpr EnableMoveCtorIf(EnableMoveCtorIf &&) noexcept          = default;
-    EnableMoveCtorIf& operator=(EnableMoveCtorIf &&) noexcept         = default;
+    constexpr EnableMoveCtorIf() noexcept                                       = default;
+    constexpr EnableMoveCtorIf(const EnableMoveCtorIf&) noexcept                = default;
+    constexpr EnableMoveCtorIf& operator=(const EnableMoveCtorIf&) noexcept     = default;
+    constexpr EnableMoveCtorIf(EnableMoveCtorIf &&) noexcept                    = default;
+    constexpr EnableMoveCtorIf& operator=(EnableMoveCtorIf &&) noexcept         = default;
 };
 template <typename UniqueTag>
 struct EnableMoveCtorIf<false, UniqueTag> {
-    constexpr EnableMoveCtorIf() noexcept                             = default;
-    constexpr EnableMoveCtorIf(const EnableMoveCtorIf&) noexcept      = default;
-    EnableMoveCtorIf& operator=(const EnableMoveCtorIf&) noexcept     = default;
-    constexpr EnableMoveCtorIf(EnableMoveCtorIf &&) noexcept          = delete;
-    EnableMoveCtorIf& operator=(EnableMoveCtorIf &&) noexcept         = default;
+    constexpr EnableMoveCtorIf() noexcept                                       = default;
+    constexpr EnableMoveCtorIf(const EnableMoveCtorIf&) noexcept                = default;
+    constexpr EnableMoveCtorIf& operator=(const EnableMoveCtorIf&) noexcept     = default;
+    constexpr EnableMoveCtorIf(EnableMoveCtorIf &&) noexcept                    = delete;
+    constexpr EnableMoveCtorIf& operator=(EnableMoveCtorIf &&) noexcept         = default;
 };
 
 template <bool ShouldEnableMoveAssign, typename UniqueTag>
 struct EnableMoveAssignIf {
-    constexpr EnableMoveAssignIf() noexcept                           = default;
-    constexpr EnableMoveAssignIf(const EnableMoveAssignIf&) noexcept  = default;
-    EnableMoveAssignIf& operator=(const EnableMoveAssignIf&) noexcept = default;
-    constexpr EnableMoveAssignIf(EnableMoveAssignIf &&) noexcept      = default;
-    EnableMoveAssignIf& operator=(EnableMoveAssignIf &&) noexcept     = default;
+    constexpr EnableMoveAssignIf() noexcept                                     = default;
+    constexpr EnableMoveAssignIf(const EnableMoveAssignIf&) noexcept            = default;
+    constexpr EnableMoveAssignIf& operator=(const EnableMoveAssignIf&) noexcept = default;
+    constexpr EnableMoveAssignIf(EnableMoveAssignIf &&) noexcept                = default;
+    constexpr EnableMoveAssignIf& operator=(EnableMoveAssignIf &&) noexcept     = default;
 };
 template <typename UniqueTag>
 struct EnableMoveAssignIf<false, UniqueTag> {
-    constexpr EnableMoveAssignIf() noexcept                           = default;
-    constexpr EnableMoveAssignIf(const EnableMoveAssignIf&) noexcept  = default;
-    EnableMoveAssignIf& operator=(const EnableMoveAssignIf&) noexcept = default;
-    constexpr EnableMoveAssignIf(EnableMoveAssignIf &&) noexcept      = default;
-    EnableMoveAssignIf& operator=(EnableMoveAssignIf &&) noexcept     = delete;
+    constexpr EnableMoveAssignIf() noexcept                                     = default;
+    constexpr EnableMoveAssignIf(const EnableMoveAssignIf&) noexcept            = default;
+    constexpr EnableMoveAssignIf& operator=(const EnableMoveAssignIf&) noexcept = default;
+    constexpr EnableMoveAssignIf(EnableMoveAssignIf &&) noexcept                = default;
+    constexpr EnableMoveAssignIf& operator=(EnableMoveAssignIf &&) noexcept     = delete;
 };
 
 } /* namespace nonstd */
