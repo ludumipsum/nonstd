@@ -835,6 +835,8 @@ protected:
  */
 template < typename T >
 class _Optional_LValRefBase {
+    static_assert(IS_LVAL_REFERENCE(T),
+        "_Optional_LValRefBase expects to be specialized on an lval ref type");
 private:
     /* Reference types can't be directly stored and can't be reseated once
      * initialized. To get around this, we strip the ref qualifier and store a
@@ -911,7 +913,7 @@ public:
 
     /* Value Assignment
      * ---------------- */
-    _Optional_LValRefBase<T&>& operator= (T & value) noexcept {
+    _Optional_LValRefBase<T>& operator= (T value) noexcept {
         _storage.value = const_cast<_Storage_Type>(&value);
         _storage.is_containing = true;
         return *this;
@@ -929,8 +931,8 @@ protected:
     // member of the `_storage` class' anonymous union. Most internal uses may
     // be considered noexcept, though, due to the checks that will need to be
     // performed prior to access.
-    constexpr T       & _getValue()       { return *_storage.value; }
-    constexpr T const & _getValue() const { return *_storage.value; }
+    constexpr T       _getValue()       { return *_storage.value; }
+    constexpr T const _getValue() const { return *_storage.value; }
 
     constexpr bool _hasValue() const noexcept { return _storage.is_containing; }
 
@@ -1057,24 +1059,18 @@ private:
     }
 
 public:
-    constexpr       _Base_Type *  operator-> () {
+    constexpr       _Base_Type *  operator-> ()       {
         checkValue(); return &this->_getValue();
     }
     constexpr const _Base_Type *  operator-> () const {
         checkValue(); return &this->_getValue();
     }
 
-    constexpr       T &  operator* ()       &  {
+    constexpr       T  operator* ()       {
         checkValue(); return this->_getValue();
     }
-    constexpr const T &  operator* () const &  {
+    constexpr const T  operator* () const {
         checkValue(); return this->_getValue();
-    }
-    constexpr       T && operator* ()       && {
-        checkValue(); return std::move(this->_getValue());
-    }
-    constexpr const T && operator* () const && {
-        checkValue(); return std::move(this->_getValue());
     }
 
     constexpr explicit operator bool () const noexcept {
@@ -1084,17 +1080,11 @@ public:
         return this->_hasValue();
     }
 
-    constexpr       T &  value()       &  {
+    constexpr       T value()       {
         checkValue(); return this->_getValue();
     }
-    constexpr const T &  value() const &  {
+    constexpr const T value() const {
         checkValue(); return this->_getValue();
-    }
-    constexpr       T && value()       && {
-        checkValue(); return std::move(this->_getValue());
-    }
-    constexpr const T && value() const && {
-        checkValue(); return std::move(this->_getValue());
     }
 
     template < typename U = _Base_Type >
@@ -1104,7 +1094,7 @@ public:
                 : static_cast<_Base_Type>(std::forward<U>(value));
     }
     template < typename U = _Base_Type >
-    constexpr _Base_Type valueOr(U && value) && {
+    constexpr _Base_Type valueOr(U && value)       && {
         return this->_hasValue()
                 ? std::move(this->_getValue())
                 : static_cast<_Base_Type>(std::forward<U>(value));
