@@ -12,7 +12,7 @@
 #include <testrunner/testrunner.h>
 
 #include "nonstd/utility/optional.h"
-
+#include "nonstd/std_ish/compare.h"
 
 
 namespace nonstd_test {
@@ -719,6 +719,57 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
                 maybe.reset();
                 REQUIRE_FALSE(maybe);
                 REQUIRE(new_value == initial_value + 12);
+            }
+        }
+
+        SECTION("pointing to c_cstrs") {
+            c_cstr initial_value = "42";
+            c_cstr value = initial_value;
+            c_cstr * value_addr = &value;
+
+            SECTION("should be constructible as per usual") {
+                auto * vptr = &value;
+                Optional<c_cstr *> maybe  = { vptr };
+                Optional<c_cstr *> direct = { &value };
+                auto implicit = just<decltype(vptr)>(vptr);
+                auto lazy     = just(vptr);
+                auto copy     = maybe;
+                auto explicit_copy { maybe };
+                auto move     = std::move(copy);
+                auto explicit_move { std::move(explicit_copy) };
+
+                REQUIRE(HAS_SAME_TYPE(maybe, direct));
+                REQUIRE(HAS_SAME_TYPE(maybe, implicit));
+                REQUIRE(HAS_SAME_TYPE(maybe, lazy));
+            }
+
+            auto maybe = just(&value);
+
+            SECTION("should allow access to the referenced value") {
+                REQUIRE(*maybe  == value_addr);
+                REQUIRE(nonstd::equal_to(**maybe, value));
+            }
+
+            SECTION("should allow modification by address") {
+                auto new_value = "54";
+                **maybe = new_value;
+                REQUIRE(*maybe == value_addr);
+                REQUIRE(nonstd::equal_to(**maybe, new_value));
+                REQUIRE(nonstd::equal_to(value, new_value));
+                REQUIRE(!nonstd::equal_to(value, initial_value));
+            }
+
+            SECTION("Should un-seat and re-seat correctly") {
+                auto new_value = "54";
+                auto new_vptr  = &new_value;
+
+                maybe = new_vptr;
+                REQUIRE(*maybe == new_vptr);
+                REQUIRE(nonstd::equal_to(**maybe, new_value));
+
+                maybe.reset();
+                REQUIRE_FALSE(maybe);
+                REQUIRE(nonstd::equal_to(new_value, "54"));
             }
         }
     }
