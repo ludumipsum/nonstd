@@ -55,3 +55,22 @@ namespace nonstd {
     constexpr char preferred_separator = '/';
 #endif
 }
+
+/** String Manipulation Functions
+ *  -----------------------------
+ */
+#if defined(_MSC_VER)
+#define strtok_r strtok_s
+#define strtoq strtoll
+
+inline char* stpcpy(char* dest, const char* src) {
+    char *d = dest;
+    const char* s = src;
+
+    do {
+      *d++ = *s;
+    } while (*s++ != '\0');
+
+    return d - 1;
+}
+#endif
