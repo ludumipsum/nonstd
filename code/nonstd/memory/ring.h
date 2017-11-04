@@ -27,6 +27,7 @@
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
 #include <nonstd/memory/buffer.h>
+#include <nonstd/utility/scope_guard.h>
 
 
 namespace nonstd {
@@ -155,6 +156,7 @@ public: /*< ## Public Member Methods */
         return resizeShiftingLeft(new_capacity);
     }
     inline u64 resizeShiftingLeft(u64 new_capacity) {
+        using nonstd::make_guard;
         N2BREAK_IF(m_resize == nullptr, N2Error::NullPtr,
                    "Unable to resize ring '{}'; resize function not set",
                    name());
@@ -183,6 +185,7 @@ public: /*< ## Public Member Methods */
             ptr scratch = n2malloc(size_of_b);
             N2BREAK_IF(scratch == nullptr, N2Error::System,
                        "Failed to `n2malloc` memory. Godspeed.");
+            auto guard = make_guard([scratch](){ n2free(scratch); });
 
             // Move section B aside.
             memmove(scratch, section_b, size_of_b);
@@ -222,6 +225,7 @@ public: /*< ## Public Member Methods */
                 ptr scratch = n2malloc(bytes_retained_from_b);
                 N2BREAK_IF(scratch == nullptr, N2Error::System,
                            "Failed to `n2malloc` memory. Godspeed.");
+                auto guard = make_guard([scratch](){ n2free(scratch); });
 
                 // Move section B aside.
                 memmove(scratch, section_b, bytes_retained_from_b);
@@ -256,6 +260,7 @@ public: /*< ## Public Member Methods */
     }
 
     inline u64 resizeShiftingRight(u64 new_capacity) {
+        using nonstd::make_guard;
         N2BREAK_IF(m_resize == nullptr, N2Error::NullPtr,
                    "Unable to resize ring '{}'; resize function not set",
                    name());
@@ -293,6 +298,7 @@ public: /*< ## Public Member Methods */
             ptr scratch = n2malloc(size_of_b);
             N2BREAK_IF(scratch == nullptr, N2Error::System,
                        "Failed to `n2malloc` memory. Godspeed.");
+            auto guard = make_guard([scratch](){ n2free(scratch); });
 
             // Move section B aside.
             memmove(scratch, section_b, size_of_b);
@@ -335,6 +341,7 @@ public: /*< ## Public Member Methods */
                 ptr scratch = n2malloc(size_of_b);
                 N2BREAK_IF(scratch == nullptr, N2Error::System,
                            "Failed to `n2malloc` memory. Godspeed.");
+                auto guard = make_guard([scratch](){ n2free(scratch); });
 
                 // Move section B aside.
                 memmove(scratch, section_b, size_of_b);
