@@ -9,7 +9,11 @@
 
 #pragma once
 
-#include <nonstd/nonstd.h>
+#include <functional>
+#include <iostream>
+#include <string>
+
+#include <nonstd/cpp1z/type_traits.h>
 
 
 namespace nonstd {
