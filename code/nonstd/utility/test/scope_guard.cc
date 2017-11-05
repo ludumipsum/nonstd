@@ -3,6 +3,7 @@
  */
 
 #include <testrunner/testrunner.h>
+#include <nonstd/core/primitive_types.h>
 
 #include "nonstd/utility/scope_guard.h"
 
