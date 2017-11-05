@@ -194,4 +194,26 @@ public: /*< ## Public Memebr Methods */
     }
 };
 
+
+/** Print Overloads for Array<char>
+ *  ============================================================================
+ */
+
+/** OStream Insertion Operator
+ *  -------------------------- */
+inline std::ostream& operator<< (std::ostream & s, Array<char> const & arr) {
+    return s.write(&arr[0], arr.count());
+}
+
+/** {fmt} args overload
+ *  ------------------- */
+inline void format_arg(fmt::BasicFormatter<char> & f,
+                       c_cstr                    & format_str,
+                       Array<char> const         & arr) {
+    // NB. The Array<char>'s data is not guaranteed to be null terminated, and
+    // fmt writers have no way of accepting a specific `count` of chars. One
+    // workaround is to use a std::string conversion.
+    f.writer().write("{}", std::string(&arr[0], arr.count()));
+}
+
 } /* namespace nonstd */
