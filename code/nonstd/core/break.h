@@ -15,13 +15,13 @@
 #include "error_types.h"
 
 #include "nonstd/c_ish/n2strerr.h"
-
+#include "nonstd/preprocessor/homogenize.h"
 
 /** BREAKPOINT and DEBUG_BREAKPOINT
  *  -------------------------------
  *  Raises a sigint (or similar) to allow for programmatic breakpoints
  */
-#ifdef _MSC_VER
+#if defined(NONSTD_OS_WINDOWS)
 #  ifdef _X86_
 #    define _DEBUG_BREAK_IMPL { __asm { int 3 } }
 #  else

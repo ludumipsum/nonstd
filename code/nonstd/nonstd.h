@@ -41,14 +41,6 @@
 #include <type_traits>
 #include <unordered_map>
 
-/* Platform specific includes */
-#if defined(_MSC_VER) || defined(__MINGW32__)
-#include <io.h>     // mktmp
-#include <malloc.h> // alloca
-#else
-#include <alloca.h> // alloca
-#endif
-
 /* Globally-available thirdparty libraries */
 
 /* Boot Preprocessor
@@ -105,6 +97,13 @@
 #include "utility/optional.h"
 #include "utility/scope_guard.h"
 
+/* Platform specific includes */
+#if defined(NONSTD_OS_WINDOWS) || defined(__MINGW32__)
+#include <io.h>     // mktmp
+#include <malloc.h> // alloca
+#else
+#include <alloca.h> // alloca
+#endif
 
 /* Nonstandard library initialization */
 namespace nonstd {

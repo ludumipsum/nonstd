@@ -8,7 +8,9 @@
 #pragma once
 
 // This whole thing only works on non-msvc compilers
-#if !defined(_MSC_VER)
+#include "nonstd/preprocessor/homogenize.h"
+
+#if !defined(NONSTD_OS_WINDOWS)
 
 #include <cctype>
 #include <csignal>
@@ -144,8 +146,7 @@ inline void register_signal(int signal, _trace_cb* callback) {
         ::nonstd::sighandler::register_signal(SIGINT,  sighandler::stacktrace_callback); \
         ::nonstd::sighandler::register_signal(SIGABRT, sighandler::stacktrace_callback); \
         ::nonstd::sighandler::register_signal(SIGHUP,  sighandler::stacktrace_callback)
-
-#else /* if defined(_MSC_VER) */
+#else /* if defined(NONSTD_OS_WINDOWS) */
 
 #define REGISTER_STACK_HANDLERS()
 
