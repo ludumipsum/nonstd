@@ -85,7 +85,7 @@ public:
  */
 template <typename T>
 constexpr StaticString type_name() {
-    #if !defined(_MSC_VER)
+    #if !defined(NONSTD_OS_WINDOWS)
         // Clang (Apple LLVM version 9.0.0 (clang-900.0.37) ) emits
         // __PRETTY_FUNCTION__ strings that include templated in this form:
         //

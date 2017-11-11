@@ -4,6 +4,7 @@
  */
 
 #include <testrunner/testrunner.h>
+#include <nonstd/preprocessor/homogenize.h>
 
 #include "nonstd/utility/iterator.h"
 
@@ -83,7 +84,7 @@ TEST_CASE("Range API Demo", "[nonstd][api][range]") {
         REQUIRE(sum   == 27);
     }
 
-#if !defined(_MSC_VER)
+#if !defined(NONSTD_OS_WINDOWS)
     SECTION("They're even constexpr, if you're not on MSVC") {
         constexpr auto result = constexpr_sum(10, 20);
         static_assert(result == 145, "Definitely evaluated at compile time");

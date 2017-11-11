@@ -6,8 +6,9 @@
  */
 
 #include <nonstd/cpp1z/type_trait_assertions.h>
+#include <nonstd/preprocessor/homogenize.h>
 
- #if defined(_MSC_VER)
+ #if defined(NONSTD_OS_WINDOWS)
 // Guarantee Windows API types are what we think they are.
 #define WIN32_LEAN_AND_MEAN 1
 #define NOMINMAX 1

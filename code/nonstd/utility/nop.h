@@ -7,7 +7,9 @@
 
 #pragma once
 
-#if defined(_MSC_VER)
+#include "nonstd/preprocessor/homogenize.h"
+
+#if defined(NONSTD_OS_WINDOWS)
 #include <intrin.h>
 #pragma intrinsic(__nop)
 #endif
@@ -30,7 +32,7 @@ constexpr inline void nop() noexcept {
  *  really want to make sure there's a function call at the site of your nop.
  */
 inline void asm_nop() noexcept {
-    #if defined(_MSC_VER)
+    #if defined(NONSTD_OS_WINDOWS)
         __nop();
     #else
         asm("nop");
