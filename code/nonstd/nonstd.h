@@ -57,6 +57,7 @@
 /* Nonstandard */
 #include "preprocessor/disallow_copy_and_assign.h"
 #include "preprocessor/homogenize.h"
+#include "preprocessor/require_linkage.h"
 #include "preprocessor/symbol_stringifier.h"
 #include "preprocessor/unused.h"
 
