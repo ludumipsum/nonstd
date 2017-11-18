@@ -32,8 +32,8 @@ constexpr inline void nop() noexcept {
  *  really want to make sure there's a function call at the site of your nop.
  */
 inline void asm_nop() noexcept {
-    #if defined(NONSTD_OS_WINDOWS)
-        __nop();
+    #if defined(NONSTD_COMPILER_MSVC)
+        __nop();  // This intrinsic is msft's way of getting at the asm instr.
     #else
         asm("nop");
     #endif
