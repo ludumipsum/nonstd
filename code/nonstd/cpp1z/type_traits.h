@@ -284,6 +284,6 @@
  *    hard error outside of the immediate resolution context, so will not be
  *    ignored by SFINAE.
  */
-#define TEMPLATE_ENABLE(COND, T)            \
-    template<typename _DEP_T=DECAY_TYPE(T), \
+#define TEMPLATE_ENABLE(COND, T)              \
+    template<typename _DEP_T = DECAY_TYPE(T), \
              ENABLE_IF_TYPE(COND,_DEP_T) * = nullptr>
