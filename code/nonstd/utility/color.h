@@ -26,32 +26,47 @@ struct Color {
             u8 a;
         };
     };
+
+    Color() noexcept                 = default;
+    Color(Color const &)             = default;
+    Color(Color &&)                  = default;
+    Color& operator= (Color const &) = default;
+    Color& operator= (Color &&)      = default;
+
+    /* Construct from 4 numeric parameters */
+    template <typename T, typename U, typename V, typename W,
+              typename = ENABLE_IF_TYPE(   IS_CONVERTIBLE(T, u8)
+                                        && IS_CONVERTIBLE(U, u8)
+                                        && IS_CONVERTIBLE(V, u8)
+                                        && IS_CONVERTIBLE(W, u8))>
+    constexpr Color(T r, U g, V b, W a) noexcept
+        : r(r), g(g), b(b), a(a)
+    { }
+    /* Construct from 3 numeric parameters (full alpha) */
+    template <typename T, typename U, typename V,
+              typename = ENABLE_IF_TYPE(   IS_CONVERTIBLE(T, u8)
+                                        && IS_CONVERTIBLE(U, u8)
+                                        && IS_CONVERTIBLE(V, u8))>
+    constexpr Color(T r, U g, V b) noexcept
+        : r(r), g(g), b(b), a(0xFF)
+    { }
+    /* Construct from an array of four values */
+    template <typename T,
+              typename = ENABLE_IF_TYPE(IS_CONVERTIBLE(T, u8))>
+    constexpr Color(T i[4]) noexcept
+        : r(i[0]), g(i[1]), b(i[2]), a(i[3])
+    { }
+
+
+    /* Get the red component as a decimal between 0 and 1 */
+    constexpr float r_to_float() noexcept { return r / 255.f; }
+    /* Get the blue component as a decimal between 0 and 1 */
+    constexpr float g_to_float() noexcept { return g / 255.f; }
+    /* Get the green component as a decimal between 0 and 1 */
+    constexpr float b_to_float() noexcept { return b / 255.f; }
+    /* Get the alpha value as a decimal between 0 and 1 */
+    constexpr float a_to_float() noexcept { return a / 255.f; }
+
 }; ENFORCE_POD(Color); ENFORCE_SIZE(Color, 4);
-
-
-/* Construct empty */
-constexpr inline Color color() noexcept { return Color { 0 }; }
-
-/* Construct from 4 numeric parameters */
-template <typename T, typename U, typename V, typename W>
-constexpr inline Color color(T r, U g, V b, W a) {
-    return Color { (u8)r, (u8)g, (u8)b, (u8)a };
-}
-template <typename T>
-constexpr inline Color color(T i[4]) {
-    return Color { (u8)i[0], (u8)i[1], (u8)i[2], (u8)i[3] };
-}
-
-/* Construct from 3 numeric parameters */
-template <typename T, typename U, typename V>
-constexpr inline Color color(T r, U g, V b) {
-    return color(r, g, b, 0xFF);
-}
-
-/* Construct from 1 numeric parameter */
-template <typename T>
-constexpr inline Color color(T c) {
-    return color(c, c, c);
-}
 
 } /* namespace nonstd */
