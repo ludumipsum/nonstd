@@ -34,28 +34,38 @@ struct Color {
     Color& operator= (Color &&)      = default;
 
     /* Construct from 4 numeric parameters */
-    template <typename T, typename U, typename V, typename W,
-              typename = ENABLE_IF_TYPE(   IS_CONVERTIBLE(T, u8)
-                                        && IS_CONVERTIBLE(U, u8)
-                                        && IS_CONVERTIBLE(V, u8)
-                                        && IS_CONVERTIBLE(W, u8))>
+    template <typename T, typename U, typename V, typename W>
     constexpr Color(T r, U g, V b, W a) noexcept
         : r(r), g(g), b(b), a(a)
-    { }
+    {
+        static_assert(IS_CONVERTIBLE(T, u8), "Colors must be constructed using integral types.");
+        static_assert(IS_CONVERTIBLE(U, u8), "Colors must be constructed using integral types.");
+        static_assert(IS_CONVERTIBLE(V, u8), "Colors must be constructed using integral types.");
+        static_assert(IS_CONVERTIBLE(W, u8), "Colors must be constructed using integral types.");
+    }
     /* Construct from 3 numeric parameters (full alpha) */
-    template <typename T, typename U, typename V,
-              typename = ENABLE_IF_TYPE(   IS_CONVERTIBLE(T, u8)
-                                        && IS_CONVERTIBLE(U, u8)
-                                        && IS_CONVERTIBLE(V, u8))>
+    template <typename T, typename U, typename V>
     constexpr Color(T r, U g, V b) noexcept
         : r(r), g(g), b(b), a(0xFF)
-    { }
+    {
+        static_assert(IS_CONVERTIBLE(T, u8), "Colors must be constructed using integral types.");
+        static_assert(IS_CONVERTIBLE(U, u8), "Colors must be constructed using integral types.");
+        static_assert(IS_CONVERTIBLE(V, u8), "Colors must be constructed using integral types.");
+    }
     /* Construct from an array of four values */
-    template <typename T,
-              typename = ENABLE_IF_TYPE(IS_CONVERTIBLE(T, u8))>
+    template <typename T>
     constexpr Color(T i[4]) noexcept
         : r(i[0]), g(i[1]), b(i[2]), a(i[3])
-    { }
+    {
+        static_assert(IS_CONVERTIBLE(T, u8), "Colors must be constructed using integral types.");
+    }
+    /* Construct a grayscale Color from a single value */
+    template <typename T>
+    constexpr Color(T i) noexcept
+        : r(i), g(i), b(i), a(0xFF)
+    {
+        static_assert(IS_CONVERTIBLE(T, u8), "Colors must be constructed using integral types.");
+    }
 
 
     /* Get the red component as a decimal between 0 and 1 */
