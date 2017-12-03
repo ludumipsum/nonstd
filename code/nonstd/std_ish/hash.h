@@ -217,11 +217,11 @@ inline void sha1_pad(sha1nfo *s) {
     sha1_addUncounted(s, 0); // We're only using 32 bit lengths
     sha1_addUncounted(s, 0); // But SHA-1 supports 64 bit lengths
     sha1_addUncounted(s, 0); // So zero pad the top bits
-    sha1_addUncounted(s, s->byteCount >> 29); // Shifting to multiply by 8
-    sha1_addUncounted(s, s->byteCount >> 21); // as SHA-1 supports bitstreams as well as
-    sha1_addUncounted(s, s->byteCount >> 13); // byte.
-    sha1_addUncounted(s, s->byteCount >> 5);
-    sha1_addUncounted(s, s->byteCount << 3);
+    sha1_addUncounted(s, (u8)(s->byteCount >> 29)); // Shifting to multiply by 8
+    sha1_addUncounted(s, (u8)(s->byteCount >> 21)); // as SHA-1 supports
+    sha1_addUncounted(s, (u8)(s->byteCount >> 13)); // bitstreams as well
+    sha1_addUncounted(s, (u8)(s->byteCount >> 5)); // as byte.
+    sha1_addUncounted(s, (u8)(s->byteCount << 3));
 }
 
 inline uint8_t* sha1_result(sha1nfo *s) {
