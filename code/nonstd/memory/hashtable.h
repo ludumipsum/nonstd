@@ -74,11 +74,13 @@
 #include <nonstd/cpp1z/type_trait_assertions.h>
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
-#include <nonstd/memory/buffer.h>
 #include <nonstd/c_ish/mem.h>
 #include <nonstd/std_ish/compare.h>
 #include <nonstd/std_ish/math.h>
 #include <nonstd/utility/optional.h>
+
+#include <nonstd/memory/buffer.h>
+#include <nonstd/memory/core_functions.h>
 
 
 namespace nonstd {
@@ -126,7 +128,7 @@ public: /*< ## Class Methods */
         return sizeof(Metadata) + (sizeof(Cell) * total_capacity);
     }
 
-    static inline void initializeBuffer(Buffer *const buf) {
+    static inline Buffer * initializeBuffer(Buffer *const buf) {
         using nonstd::roundDownToPowerOfTwo;
 
         N2BREAK_IF(buf->type == Buffer::type_id::hash_table,
@@ -175,6 +177,8 @@ public: /*< ## Class Methods */
         memset(metadata->map, '\0', data_region_size);
 
         buf->type = Buffer::type_id::hash_table;
+
+        return buf;
     }
 
 
@@ -187,14 +191,12 @@ public: /*< ## Contained-Type Accessors */
 protected: /*< ## Public Member Variables */
     Buffer   *const  m_buf;
     Metadata *       m_metadata;
-    Buffer::ResizeFn m_resize;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    HashTable(Buffer *const buf, Buffer::ResizeFn resize) noexcept
+    HashTable(Buffer *const buf) noexcept
         : m_buf      ( buf                    )
         , m_metadata ( (Metadata*)(buf->data) )
-        , m_resize   ( resize                 )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T_KEY);
@@ -210,7 +212,18 @@ public: /*< ## Ctors, Detors, and Assignments */
             "Underlying buffer is named '{}', and it is located at {}.",
             m_buf->type, m_buf->name, m_buf);
     }
-
+    HashTable(c_cstr name, u64 min_capacity = default_capacity)
+        : HashTable ( memory::find(name)
+                    ? *memory::find(name)
+                    : initializeBuffer(
+                            memory::allocate(name, precomputeSize(min_capacity))
+                        )
+                    )
+    {
+        if (capacity() < min_capacity) {
+            resize(min_capacity);
+        }
+    }
 
 private: /*< ## Pseudo Type Traits */
     static constexpr bool hash_key_is_noexcept =
@@ -475,7 +488,7 @@ protected: /*< ## Protected Member Methods */
         tmp_buffer.type = Buffer::type_id::hash_table;
 
         // Wrap the temporary local Buffer in a temporary local HashTable.
-        HashTable tmp_table{ &tmp_buffer, nullptr };
+        HashTable tmp_table{ &tmp_buffer };
 
         // Resize the backing buffer.
         // `realloc` "copies as much of the old data pointed to by `ptr` as will
@@ -484,7 +497,7 @@ protected: /*< ## Protected Member Methods */
         // allocation's Metadata, so we don't need to reinitialize that. No
         // guarantees are made about the state of the data region, or the
         // current location of the Buffer, though.
-        m_resize(m_buf, new_size);
+        memory::resize(m_buf, new_size);
 
         // Re-seat the Metadata member, update the Metadata members, and zero
         // the data region.
