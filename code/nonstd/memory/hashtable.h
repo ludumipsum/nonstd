@@ -83,10 +83,6 @@
 
 namespace nonstd {
 
-using nonstd::roundUpToPowerOfTwo;
-using nonstd::roundDownToPowerOfTwo;
-
-
 template<typename T_KEY, typename T_VAL>
 class HashTable {
 protected: /*< ## Inner-Types */
@@ -120,6 +116,8 @@ public: /*< ## Class Methods */
 
     static constexpr u64 precomputeSize(u64 capacity = default_capacity)
     noexcept {
+        using nonstd::roundUpToPowerOfTwo;
+
         // Round the requested capacity up to the nearest power-of-two, and then
         // tack on additional cells enough to handle the maximum miss distance.
         u64 target_capacity   = roundUpToPowerOfTwo(capacity);
@@ -129,6 +127,8 @@ public: /*< ## Class Methods */
     }
 
     static inline void initializeBuffer(Buffer *const buf) {
+        using nonstd::roundDownToPowerOfTwo;
+
         N2BREAK_IF(buf->type == Buffer::type_id::hash_table,
                    N2Error::DoubleInitialization,
                    "Buffer corruption detected by type_id; Buffer has already "
@@ -426,6 +426,8 @@ protected: /*< ## Protected Member Methods */
 
     /* Resize this HashTable s.t. the backing buffer is exactly `new_size`.  */
     inline void _resize(u64 new_size) {
+        using nonstd::roundDownToPowerOfTwo;
+
         u64 data_region_size      = new_size - sizeof(Metadata);
         u64 new_total_capacity    = data_region_size / sizeof(Cell);
         u64 new_capacity          = roundDownToPowerOfTwo(new_total_capacity);
