@@ -74,8 +74,7 @@ public: /*< ## Ctors, Detors, and Assignments */
         : Array ( memory::find(name)
                 ? *memory::find(name)
                 : initializeBuffer(
-                        memory::allocate(name,
-                        precomputeSize(min_capacity))
+                        memory::allocate(name, precomputeSize(min_capacity))
                     )
                 )
     {
