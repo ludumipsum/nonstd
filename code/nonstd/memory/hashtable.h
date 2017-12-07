@@ -190,13 +190,13 @@ public: /*< ## Contained-Type Accessors */
 
 protected: /*< ## Public Member Variables */
     Buffer   *const  m_buf;
-    Metadata *       m_metadata;
+    Metadata *&      m_metadata;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
     HashTable(Buffer *const buf) noexcept
-        : m_buf      ( buf                    )
-        , m_metadata ( (Metadata*)(buf->data) )
+        : m_buf      ( buf                       )
+        , m_metadata ( (Metadata*&)(m_buf->data) )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T_KEY);
@@ -458,17 +458,15 @@ protected: /*< ## Protected Member Methods */
             "be `destroy`d or `drop`d before downsizing?\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             new_capacity, count(), m_buf->name, m_buf);
+
         u64 used_capacity = new_capacity + new_max_miss_distance;
         u64 used_size     = sizeof(Metadata) + (sizeof(Cell) * used_capacity);
-
         N2BREAK_IF(new_size != used_size, N2Error::InvalidMemory,
-                   "HashTable resize may be leaving data unused;\n"
+                   "HashTable resize may be leaving data unaccessible;\n"
                    "  requested size  : {}\n"
                    "  calculated size : {}\n"
-                   "  (metadata size  : {}\n"
                    "Underlying buffer is named '{}', and it is located at {}.",
-                   new_size, used_size, sizeof(Metadata),
-                   m_buf->name, m_buf);
+                   new_size, used_size, m_buf->name, m_buf);
 #endif
 
         // Copy all current data aside to an intermediate `tmp_table` HashTable.
@@ -482,26 +480,20 @@ protected: /*< ## Protected Member Methods */
         // Wrap a local Buffer around the temporary memory.
         Buffer tmp_buffer = makeBuffer(tmp_memory, m_buf->size);
 
-        // Copy all of the current data into the temporary, and claim the buffer
-        // has been correctly initialized.
+        // Copy all of the current data into the temporary buffer, claim it has
+        // been correctly initialized, and wrap it in a temporaray HashTable.
         memcpy(tmp_buffer.data, m_buf->data, m_buf->size);
         tmp_buffer.type = Buffer::type_id::hash_table;
-
-        // Wrap the temporary local Buffer in a temporary local HashTable.
         HashTable tmp_table{ &tmp_buffer };
 
         // Resize the backing buffer.
-        // `realloc` "copies as much of the old data pointed to by `ptr` as will
-        // fit [in]to the new allocation". This function('s DEBUG checks)
-        // guarantee that we will have at least room enough for the previous
-        // allocation's Metadata, so we don't need to reinitialize that. No
-        // guarantees are made about the state of the data region, or the
-        // current location of the Buffer, though.
+        // Note that m_buf's data pointer may be changed as part of this call,
+        // but m_metadata will still be valid as it is a type-aliased reference
+        // to the data pointer.
         memory::resize(m_buf, new_size);
 
-        // Re-seat the Metadata member, update the Metadata members, and zero
-        // the data region.
-        m_metadata                    = (Metadata*)(m_buf->data);
+        // Reset the Metadata members and zero the data region to prime `this`
+        // to be refilled.
         m_metadata->count             = 0;
         m_metadata->capacity          = new_capacity;
         m_metadata->max_miss_distance = new_max_miss_distance;
