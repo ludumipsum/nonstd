@@ -195,8 +195,8 @@ protected: /*< ## Public Member Variables */
 
 public: /*< ## Ctors, Detors, and Assignments */
     HashTable(Buffer *const buf) noexcept
-        : m_buf      ( buf                       )
-        , m_metadata ( (Metadata*&)(m_buf->data) )
+        : m_buf      ( buf                                       )
+        , m_metadata ( reinterpret_cast<Metadata*&>(m_buf->data) )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T_KEY);
