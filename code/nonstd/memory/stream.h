@@ -46,15 +46,12 @@ protected: /*< ## Inner-Types */
 
 
 public: /*< ## Class Methods */
-    static constexpr
-    u64 default_capacity = 64;
+    static constexpr u64 default_capacity = 64;
 
-    static constexpr
-    u64 precomputeSize(u64 capacity = default_capacity) noexcept
-    { return sizeof(Metadata) + (sizeof(T) * n2max(capacity, 1)); }
+    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    noexcept { return sizeof(Metadata) + (sizeof(T) * n2max(capacity, 1)); }
 
-    inline static
-    void initializeBuffer(Buffer *const buf) {
+    static inline Buffer * initializeBuffer(Buffer *const buf) {
         N2BREAK_IF(buf->type == Buffer::type_id::stream,
                    N2Error::DoubleInitialization,
                    "Buffer corruption detected by type_id; Buffer has already "
@@ -89,21 +86,20 @@ public: /*< ## Class Methods */
         memset(metadata->data, '\0', data_region_size);
 
         buf->type = Buffer::type_id::stream;
+
+        return buf;
     }
 
 
 protected: /*< ## Public Member Variables */
     Buffer   *const  m_buf;
-    Metadata *       m_metadata;
-    Buffer::ResizeFn m_resize;
+    Metadata *&      m_metadata;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Stream(Buffer *const buf, Buffer::ResizeFn resize = nullptr)
-    noexcept
-        : m_buf      ( buf                    )
-        , m_metadata ( (Metadata*)(buf->data) )
-        , m_resize   ( resize                 )
+    Stream(Buffer *const buf) noexcept
+        : m_buf      ( buf                                     )
+        , m_metadata ( reinterpret_cast<Metadata*&>(buf->data) )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
@@ -117,6 +113,18 @@ public: /*< ## Ctors, Detors, and Assignments */
             "Underlying buffer is named '{}', and it is located at {}.",
             m_buf->type, m_buf->name, m_buf);
     }
+    Stream(c_cstr name, u64 min_capacity = default_capacity)
+        : Stream ( memory::find(name)
+                 ? *memory::find(name)
+                 : initializeBuffer(
+                         memory::allocate(name, precomputeSize(min_capacity))
+                     )
+                 )
+    {
+        if (capacity() < min_capacity) {
+            resize(min_capacity);
+        }
+    }
 
 
 public: /*< ## Public Member Methods */
@@ -125,8 +133,8 @@ public: /*< ## Public Member Methods */
     inline u64                  size()   const noexcept { return m_buf->size; }
     inline c_cstr               name()   const noexcept { return m_buf->name; }
 
-    /* ## HashTable Accessors */
-public:
+
+public: /*< ## Stream Accessors */
     inline u64       & count()          noexcept { return m_metadata->count;    }
     inline u64 const & count()    const noexcept { return m_metadata->count;    }
     inline u64       & capacity()       noexcept { return m_metadata->capacity; }
