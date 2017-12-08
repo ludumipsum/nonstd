@@ -26,8 +26,10 @@
 #include <nonstd/cpp1z/type_trait_assertions.h>
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
-#include <nonstd/memory/buffer.h>
 #include <nonstd/utility/scope_guard.h>
+
+#include "buffer.h"
+#include "core_functions.h"
 
 
 namespace nonstd {
@@ -45,7 +47,7 @@ public: /*< ## Class Methods */
         return sizeof(T) * n2max(capacity, 1);
     }
 
-    static inline void initializeBuffer(Buffer *const buf) {
+    static inline Buffer * initializeBuffer(Buffer *const buf) {
         N2BREAK_IF(buf->type == Buffer::type_id::ring,
                    N2Error::DoubleInitialization,
                    "Buffer corruption detected by type_id; Buffer has already "
@@ -70,18 +72,18 @@ public: /*< ## Class Methods */
                    buf->name, buf->data);
 
         buf->type = Buffer::type_id::ring;
+
+        return buf;
     }
 
 
 protected: /*< ## Public Member Variables */
     Buffer *const    m_buf;
-    Buffer::ResizeFn m_resize;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Ring(Buffer *const buf, Buffer::ResizeFn resize = nullptr) noexcept
-        : m_buf    ( buf    )
-        , m_resize ( resize )
+    Ring(Buffer *const buf) noexcept
+        : m_buf    ( buf )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
@@ -94,6 +96,18 @@ public: /*< ## Ctors, Detors, and Assignments */
             "type_id is currently 0x{:X}\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             m_buf->type, m_buf->name, m_buf);
+    }
+    Ring(c_cstr name, u64 min_capacity = default_capacity)
+        : Ring ( memory::find(name)
+               ? *memory::find(name)
+               : initializeBuffer(
+                       memory::allocate(name, precomputeSize(min_capacity))
+                   )
+               )
+    {
+        if (capacity() < min_capacity) {
+            resize(min_capacity);
+        }
     }
 
 
@@ -157,9 +171,6 @@ public: /*< ## Public Member Methods */
     }
     inline u64 resizeShiftingLeft(u64 new_capacity) {
         using nonstd::make_guard;
-        N2BREAK_IF(m_resize == nullptr, N2Error::NullPtr,
-                   "Unable to resize ring '{}'; resize function not set",
-                   name());
 
         size_t required_size = Ring<T>::precomputeSize(new_capacity);
 
@@ -197,7 +208,7 @@ public: /*< ## Public Member Methods */
             memmove((m_buf->data + size_of_a), scratch, size_of_b);
 
             // Perform the resize, and reset the write index.
-            m_resize(m_buf, required_size);
+            memory::resize(m_buf, required_size);
             write_index() = 0;
 
             // Null the newly allcoated region
@@ -239,7 +250,7 @@ public: /*< ## Public Member Methods */
                         bytes_retained_from_b);
 
                 // Perform the resize, and reset the write index.
-                m_resize(m_buf, required_size);
+                memory::resize(m_buf, required_size);
                 write_index() = 0;
             } else {
                 // There will not be data retained from section B, so all
@@ -251,7 +262,7 @@ public: /*< ## Public Member Methods */
                 memmove(m_buf->data, section_a, bytes_retained_from_a);
 
                 // Perform the resize, and reset the write index.
-                m_resize(m_buf, required_size);
+                memory::resize(m_buf, required_size);
                 write_index() = 0;
             }
         }
@@ -261,9 +272,6 @@ public: /*< ## Public Member Methods */
 
     inline u64 resizeShiftingRight(u64 new_capacity) {
         using nonstd::make_guard;
-        N2BREAK_IF(m_resize == nullptr, N2Error::NullPtr,
-                   "Unable to resize ring '{}'; resize function not set",
-                   name());
 
         size_t required_size = Ring<T>::precomputeSize(new_capacity);
 
@@ -287,7 +295,7 @@ public: /*< ## Public Member Methods */
             auto bytes_added = required_size - m_buf->size;
 
             // Perform the resize.
-            m_resize(m_buf, required_size);
+            memory::resize(m_buf, required_size);
 
             // Recapture the locations of section_a and section_b; the n2realloc
             // call may have moved the base data pointer.
@@ -358,7 +366,7 @@ public: /*< ## Public Member Methods */
                         size_of_b);
 
                 // Perform the resize, and reset the write index.
-                m_resize(m_buf, required_size);
+                memory::resize(m_buf, required_size);
                 write_index() = 0;
             } else {
                 // There will not be data retained from section A, so all
@@ -372,7 +380,7 @@ public: /*< ## Public Member Methods */
                         bytes_retained_from_b);
 
                 // Perform the resize, and reset the write index.
-                m_resize(m_buf, required_size);
+                memory::resize(m_buf, required_size);
                 write_index() = 0;
             }
         }
@@ -381,12 +389,8 @@ public: /*< ## Public Member Methods */
     }
 
     inline u64 resizeAfterDropping(u64 new_capacity) {
-        N2BREAK_IF(m_resize == nullptr, N2Error::NullPtr,
-                   "Unable to resize ring '{}'; resize function not set",
-                   name());
-
         size_t required_size = Ring<T>::precomputeSize(new_capacity);
-        m_resize(m_buf, required_size);
+        memory::resize(m_buf, required_size);
 
         // This will correctly null the ring's data, and reset the write index.
         drop();
@@ -454,11 +458,11 @@ protected: /*< ## Protected Member Methods */
             // TODO: Potential divide-by-zero error
             return ((index + n) % capacity());
         } else {
-            return decrement(index, -n);
+            return _decrement(index, -n);
         }
     }
 
-    inline u64 decrement(u64 index, i64 n = 1) noexcept {
+    inline u64 _decrement(u64 index, i64 n = 1) noexcept {
         if (n >= 0) {
             while (index < (u64)n) {
                 index += capacity();

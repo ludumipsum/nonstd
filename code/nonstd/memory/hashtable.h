@@ -74,18 +74,16 @@
 #include <nonstd/cpp1z/type_trait_assertions.h>
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
-#include <nonstd/memory/buffer.h>
 #include <nonstd/c_ish/mem.h>
 #include <nonstd/std_ish/compare.h>
 #include <nonstd/std_ish/math.h>
 #include <nonstd/utility/optional.h>
 
+#include "buffer.h"
+#include "core_functions.h"
+
 
 namespace nonstd {
-
-using nonstd::roundUpToPowerOfTwo;
-using nonstd::roundDownToPowerOfTwo;
-
 
 template<typename T_KEY, typename T_VAL>
 class HashTable {
@@ -120,6 +118,8 @@ public: /*< ## Class Methods */
 
     static constexpr u64 precomputeSize(u64 capacity = default_capacity)
     noexcept {
+        using nonstd::roundUpToPowerOfTwo;
+
         // Round the requested capacity up to the nearest power-of-two, and then
         // tack on additional cells enough to handle the maximum miss distance.
         u64 target_capacity   = roundUpToPowerOfTwo(capacity);
@@ -128,7 +128,9 @@ public: /*< ## Class Methods */
         return sizeof(Metadata) + (sizeof(Cell) * total_capacity);
     }
 
-    static inline void initializeBuffer(Buffer *const buf) {
+    static inline Buffer * initializeBuffer(Buffer *const buf) {
+        using nonstd::roundDownToPowerOfTwo;
+
         N2BREAK_IF(buf->type == Buffer::type_id::hash_table,
                    N2Error::DoubleInitialization,
                    "Buffer corruption detected by type_id; Buffer has already "
@@ -175,6 +177,8 @@ public: /*< ## Class Methods */
         memset(metadata->map, '\0', data_region_size);
 
         buf->type = Buffer::type_id::hash_table;
+
+        return buf;
     }
 
 
@@ -186,15 +190,13 @@ public: /*< ## Contained-Type Accessors */
 
 protected: /*< ## Public Member Variables */
     Buffer   *const  m_buf;
-    Metadata *       m_metadata;
-    Buffer::ResizeFn m_resize;
+    Metadata *&      m_metadata;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    HashTable(Buffer *const buf, Buffer::ResizeFn resize) noexcept
-        : m_buf      ( buf                    )
-        , m_metadata ( (Metadata*)(buf->data) )
-        , m_resize   ( resize                 )
+    HashTable(Buffer *const buf) noexcept
+        : m_buf      ( buf                                       )
+        , m_metadata ( reinterpret_cast<Metadata*&>(m_buf->data) )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T_KEY);
@@ -210,7 +212,18 @@ public: /*< ## Ctors, Detors, and Assignments */
             "Underlying buffer is named '{}', and it is located at {}.",
             m_buf->type, m_buf->name, m_buf);
     }
-
+    HashTable(c_cstr name, u64 min_capacity = default_capacity)
+        : HashTable ( memory::find(name)
+                    ? *memory::find(name)
+                    : initializeBuffer(
+                            memory::allocate(name, precomputeSize(min_capacity))
+                        )
+                    )
+    {
+        if (capacity() < min_capacity) {
+            resize(min_capacity);
+        }
+    }
 
 private: /*< ## Pseudo Type Traits */
     static constexpr bool hash_key_is_noexcept =
@@ -426,6 +439,8 @@ protected: /*< ## Protected Member Methods */
 
     /* Resize this HashTable s.t. the backing buffer is exactly `new_size`.  */
     inline void _resize(u64 new_size) {
+        using nonstd::roundDownToPowerOfTwo;
+
         u64 data_region_size      = new_size - sizeof(Metadata);
         u64 new_total_capacity    = data_region_size / sizeof(Cell);
         u64 new_capacity          = roundDownToPowerOfTwo(new_total_capacity);
@@ -443,17 +458,15 @@ protected: /*< ## Protected Member Methods */
             "be `destroy`d or `drop`d before downsizing?\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             new_capacity, count(), m_buf->name, m_buf);
+
         u64 used_capacity = new_capacity + new_max_miss_distance;
         u64 used_size     = sizeof(Metadata) + (sizeof(Cell) * used_capacity);
-
         N2BREAK_IF(new_size != used_size, N2Error::InvalidMemory,
-                   "HashTable resize may be leaving data unused;\n"
+                   "HashTable resize may be leaving data unaccessible;\n"
                    "  requested size  : {}\n"
                    "  calculated size : {}\n"
-                   "  (metadata size  : {}\n"
                    "Underlying buffer is named '{}', and it is located at {}.",
-                   new_size, used_size, sizeof(Metadata),
-                   m_buf->name, m_buf);
+                   new_size, used_size, m_buf->name, m_buf);
 #endif
 
         // Copy all current data aside to an intermediate `tmp_table` HashTable.
@@ -467,26 +480,20 @@ protected: /*< ## Protected Member Methods */
         // Wrap a local Buffer around the temporary memory.
         Buffer tmp_buffer = makeBuffer(tmp_memory, m_buf->size);
 
-        // Copy all of the current data into the temporary, and claim the buffer
-        // has been correctly initialized.
+        // Copy all of the current data into the temporary buffer, claim it has
+        // been correctly initialized, and wrap it in a temporaray HashTable.
         memcpy(tmp_buffer.data, m_buf->data, m_buf->size);
         tmp_buffer.type = Buffer::type_id::hash_table;
-
-        // Wrap the temporary local Buffer in a temporary local HashTable.
-        HashTable tmp_table{ &tmp_buffer, nullptr };
+        HashTable tmp_table{ &tmp_buffer };
 
         // Resize the backing buffer.
-        // `realloc` "copies as much of the old data pointed to by `ptr` as will
-        // fit [in]to the new allocation". This function('s DEBUG checks)
-        // guarantee that we will have at least room enough for the previous
-        // allocation's Metadata, so we don't need to reinitialize that. No
-        // guarantees are made about the state of the data region, or the
-        // current location of the Buffer, though.
-        m_resize(m_buf, new_size);
+        // Note that m_buf's data pointer may be changed as part of this call,
+        // but m_metadata will still be valid as it is a type-aliased reference
+        // to the data pointer.
+        memory::resize(m_buf, new_size);
 
-        // Re-seat the Metadata member, update the Metadata members, and zero
-        // the data region.
-        m_metadata                    = (Metadata*)(m_buf->data);
+        // Reset the Metadata members and zero the data region to prime `this`
+        // to be refilled.
         m_metadata->count             = 0;
         m_metadata->capacity          = new_capacity;
         m_metadata->max_miss_distance = new_max_miss_distance;
