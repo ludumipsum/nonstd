@@ -28,8 +28,8 @@
 #include <nonstd/core/primitive_types.h>
 #include <nonstd/utility/scope_guard.h>
 
-#include <nonstd/memory/buffer.h>
-#include <nonstd/memory/core_functions.h>
+#include "buffer.h"
+#include "core_functions.h"
 
 
 namespace nonstd {
