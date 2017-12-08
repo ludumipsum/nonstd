@@ -12,8 +12,10 @@
 #include <nonstd/cpp1z/type_trait_assertions.h>
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
-#include <nonstd/memory/buffer.h>
 #include <nonstd/c_ish/math.h>
+
+#include "buffer.h"
+#include "core_functions.h"
 
 
 namespace nonstd {
@@ -28,7 +30,7 @@ public: /*< ## Class Methods */
         return sizeof(T) * capacity;
     }
 
-    static inline void initializeBuffer(Buffer *const buf) {
+    static inline Buffer * initializeBuffer(Buffer *const buf) {
         N2BREAK_IF(buf->type == Buffer::type_id::array,
                    N2Error::DoubleInitialization,
                    "Buffer corruption detected by type_id; Buffer has already "
@@ -44,17 +46,17 @@ public: /*< ## Class Methods */
                    buf->type, buf->name, buf);
 
         buf->type = Buffer::type_id::array;
+
+        return buf;
     }
 
 
 protected: /*< ## Protected Member Variables */
-    Buffer *         m_buf;
-    Buffer::ResizeFn m_resize;
+    Buffer * m_buf;
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Array(Buffer * buf, Buffer::ResizeFn resize = nullptr) noexcept
-        : m_buf    ( buf    )
-        , m_resize ( resize )
+    Array(Buffer * buf) noexcept
+        : m_buf ( buf )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
@@ -67,6 +69,18 @@ public: /*< ## Ctors, Detors, and Assignments */
             "type_id is currently 0x{:X}\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             m_buf->type, m_buf->name, m_buf);
+    }
+    Array(c_cstr name, u64 min_capacity = default_capacity)
+        : Array ( memory::find(name)
+                ? *memory::find(name)
+                : initializeBuffer(
+                        memory::allocate(name, precomputeSize(min_capacity))
+                    )
+                )
+    {
+        if (capacity() < min_capacity) {
+            resize(min_capacity);
+        }
     }
 
 public: /*< ## Public Memebr Methods */
@@ -174,15 +188,8 @@ public: /*< ## Public Memebr Methods */
     }
 
     inline u64 resize(u64 new_capacity) {
-#if defined(DEBUG)
-        N2BREAK_IF(m_resize == nullptr, N2Error::NullPtr,
-            "Attempting to resize a Array that has no associated "
-            "resize function.\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            m_buf->name, m_buf);
-#endif
         auto required_size = Array<T>::precomputeSize(new_capacity);
-        m_resize(m_buf, required_size);
+        memory::resize(m_buf, required_size);
         return capacity();
     }
 

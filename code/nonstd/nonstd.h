@@ -74,7 +74,9 @@
 #include "core/variadic_expand.h"
 
 #include "memory/buffer.h"
+#include "memory/core_functions.h"
 #include "memory/array.h"
+#include "memory/buffered_value.h"
 #include "memory/hashtable.h"
 #include "memory/ring.h"
 #include "memory/stream.h"

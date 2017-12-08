@@ -44,6 +44,7 @@
 #include "nonstd/cpp1z/valid_expression_tester.h"
 #include "nonstd/core/break.h"
 #include "nonstd/c_ish/type_name.h"
+#include "nonstd/std_ish/compare.h"
 
 
 /** Utilities
