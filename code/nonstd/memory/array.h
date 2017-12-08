@@ -14,8 +14,8 @@
 #include <nonstd/core/primitive_types.h>
 #include <nonstd/c_ish/math.h>
 
-#include <nonstd/memory/buffer.h>
-#include <nonstd/memory/core_functions.h>
+#include "buffer.h"
+#include "core_functions.h"
 
 
 namespace nonstd {
