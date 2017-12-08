@@ -25,6 +25,20 @@ private:
              : memory::allocate(buffer_name, sizeof(T));
     }
 
+    inline void verify_buffer_type(Buffer * const buf) {
+        if (buf->type == Buffer::type_id::single_value) { return; }
+
+        N2BREAK_IF(buf->type != Buffer::type_id::raw,
+                   N2Error::InvalidMemory,
+                   "Buffer corruption detected by type_id; Attempting to "
+                   "initialize a previously initialized Buffer. type_id is "
+                   "currently 0x{:X}\n"
+                   "Underlying buffer is named '{}', and it is located at {}.",
+                   buf->type, buf->name, buf);
+
+        buf->type = Buffer::type_id::single_value;
+    }
+
 public:
     constexpr BufferedValue() noexcept = default;
     constexpr BufferedValue(std::nullptr_t) noexcept
@@ -33,10 +47,14 @@ public:
 
     constexpr explicit BufferedValue(Buffer * buf) noexcept
         : m_buf ( buf )
-    { }
+    {
+        verify_buffer_type(m_buf);
+    }
     explicit BufferedValue(c_cstr buffer_name)
         : m_buf ( find_or_allocate_buffer(buffer_name) )
-    { }
+    {
+        verify_buffer_type(m_buf);
+    }
 
     BufferedValue(BufferedValue const & other) = default;
     BufferedValue& operator= (BufferedValue const & other) = default;
@@ -52,10 +70,12 @@ public:
     }
     BufferedValue& backing_buffer(Buffer *const buf) & {
         m_buf = buf;
+        verify_buffer_type(m_buf);
         return *this;
     }
     BufferedValue& backing_buffer(c_cstr buffer_name) & {
         m_buf = find_or_allocate_buffer(buffer_name);
+        verify_buffer_type(m_buf);
         return *this;
     }
 
@@ -65,10 +85,12 @@ public:
     }
     BufferedValue&& backing_buffer(Buffer *const buf) && {
         m_buf = buf;
+        verify_buffer_type(m_buf);
         return std::move(*this);
     }
     BufferedValue&& backing_buffer(c_cstr buffer_name) && {
         m_buf = find_or_allocate_buffer(buffer_name);
+        verify_buffer_type(m_buf);
         return std::move(*this);
     }
 
