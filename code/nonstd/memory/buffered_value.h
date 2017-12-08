@@ -15,8 +15,8 @@ template <typename T>
 struct BufferedValue {
     static_assert(!IS_REFERENCE(T), "BufferedValues cannot wrap reference types.");
 
+private:
     Buffer * m_buf;
-
 
     inline Buffer * find_or_allocate_buffer(c_cstr buffer_name) {
         auto maybe_buffer = memory::find(buffer_name);
@@ -25,6 +25,7 @@ struct BufferedValue {
              : memory::allocate(buffer_name, sizeof(T));
     }
 
+public:
     constexpr BufferedValue() noexcept = default;
     constexpr BufferedValue(std::nullptr_t) noexcept
         : m_buf ( nullptr )
