@@ -45,11 +45,12 @@ struct Buffer {
      */
     struct type_id {
         enum _t : u32 {
-            raw        = 0,
-            array      = 0xACED,
-            hash_table = 0xCAFE,
-            ring       = 0xBEEF,
-            stream     = 0x57AB,
+            raw          = 0,
+            array        = 0xACED,
+            single_value = 0xBABE,
+            hash_table   = 0xCAFE,
+            ring         = 0xBEEF,
+            stream       = 0x57AB,
         };
     };
 
