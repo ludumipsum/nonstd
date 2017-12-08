@@ -28,7 +28,9 @@
 #include <nonstd/cpp1z/type_trait_assertions.h>
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
-#include <nonstd/memory/buffer.h>
+
+#include "buffer.h"
+#include "core_functions.h"
 
 
 namespace nonstd {
