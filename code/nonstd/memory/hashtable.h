@@ -79,8 +79,8 @@
 #include <nonstd/std_ish/math.h>
 #include <nonstd/utility/optional.h>
 
-#include <nonstd/memory/buffer.h>
-#include <nonstd/memory/core_functions.h>
+#include "buffer.h"
+#include "core_functions.h"
 
 
 namespace nonstd {
