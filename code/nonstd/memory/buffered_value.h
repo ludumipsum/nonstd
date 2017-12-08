@@ -18,11 +18,11 @@ struct BufferedValue {
     Buffer * m_buf;
 
 
-    inline Buffer * findOrAllocateBuffer(c_cstr name) {
-        auto maybe_buffer = memory::find(name);
+    inline Buffer * find_or_allocate_buffer(c_cstr buffer_name) {
+        auto maybe_buffer = memory::find(buffer_name);
         return maybe_buffer
              ? *maybe_buffer
-             : memory::allocate(name, sizeof(T));
+             : memory::allocate(buffer_name, sizeof(T));
     }
 
     constexpr BufferedValue() noexcept = default;
@@ -33,26 +33,43 @@ struct BufferedValue {
     constexpr explicit BufferedValue(Buffer * buf) noexcept
         : m_buf ( buf )
     { }
-
-    explicit BufferedValue(c_cstr name)
-        : m_buf ( findOrAllocateBuffer(name) )
+    explicit BufferedValue(c_cstr buffer_name)
+        : m_buf ( find_or_allocate_buffer(buffer_name) )
     { }
-    BufferedValue(c_cstr name, T const & val)
-        : m_buf ( findOrAllocateBuffer(name) )
-    {
-        set(val);
-    }
-    BufferedValue(c_cstr name, T && val)
-        : m_buf ( findOrAllocateBuffer(name) )
-    {
-        set(std::move(val));
-    }
 
     BufferedValue(BufferedValue const & other) = default;
     BufferedValue& operator= (BufferedValue const & other) = default;
+    BufferedValue(BufferedValue &&) = default;
+    BufferedValue& operator= (BufferedValue &&) = default;
 
-    BufferedValue(BufferedValue &&) = delete;
-    BufferedValue& operator= (BufferedValue &&) = delete;
+
+    Buffer * const backing_buffer() { return m_buf; }
+
+    BufferedValue& backing_buffer(std::nullptr_t) & {
+        m_buf = nullptr;
+        return *this;
+    }
+    BufferedValue& backing_buffer(Buffer *const buf) & {
+        m_buf = buf;
+        return *this;
+    }
+    BufferedValue& backing_buffer(c_cstr buffer_name) & {
+        m_buf = find_or_allocate_buffer(buffer_name);
+        return *this;
+    }
+
+    BufferedValue&& backing_buffer(std::nullptr_t) && {
+        m_buf = nullptr;
+        return std::move(*this);
+    }
+    BufferedValue&& backing_buffer(Buffer *const buf) && {
+        m_buf = buf;
+        return std::move(*this);
+    }
+    BufferedValue&& backing_buffer(c_cstr buffer_name) && {
+        m_buf = find_or_allocate_buffer(buffer_name);
+        return std::move(*this);
+    }
 
 
     inline BufferedValue&  set(T const & val) &  {
@@ -76,14 +93,14 @@ struct BufferedValue {
     inline T& value() & {
         return *reinterpret_cast<T*>(m_buf->data);
     }
-    inline T&       operator*   () & { return value(); }
-    inline explicit operator T& () & { return value(); }
+    inline T& operator*   () & { return value(); }
+    inline    operator T& () & { return value(); }
 
     inline T const& value() const& {
         return *reinterpret_cast<T*>(m_buf->data);
     }
     inline T const& operator*         () const& { return value(); }
-    inline explicit operator T const& () const& { return value(); }
+    inline          operator T const& () const& { return value(); }
 
     /** What Should be the Spaceship Operator
      *  -------------------------------------
