@@ -106,8 +106,6 @@ public:
     // Return the stored pointer
     inline T       * get()       & { return reinterpret_cast<T*>(m_buf->data); }
     inline T const * get() const & { return reinterpret_cast<T*>(m_buf->data); }
-    inline T       * ptr()       & { return get(); }
-    inline T const * ptr() const & { return get(); }
     inline explicit operator T       * ()       & { return get(); }
     inline explicit operator T const * () const & { return get(); }
 
@@ -120,8 +118,6 @@ public:
     inline T const & value() const & { return *get(); }
     inline T       & operator* ()       & { return value(); }
     inline T const & operator* () const & { return value(); }
-    inline explicit operator T       & ()       & { return value(); }
-    inline explicit operator T const & () const & { return value(); }
 };
 
 template<typename T, typename U>
