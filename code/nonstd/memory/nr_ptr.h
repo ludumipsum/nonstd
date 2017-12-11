@@ -40,7 +40,9 @@ private:
     }
 
 public:
-    constexpr nr_ptr() noexcept = default;
+    constexpr nr_ptr() noexcept
+        : m_buf ( nullptr )
+    { }
     constexpr nr_ptr(std::nullptr_t) noexcept
         : m_buf ( nullptr )
     { }
@@ -120,8 +122,7 @@ public:
     inline T const & operator* () const & { return value(); }
     inline explicit operator T       & ()       & { return value(); }
     inline explicit operator T const & () const & { return value(); }
-
-}; ENFORCE_POD(nr_ptr<int>);
+};
 
 template<typename T, typename U>
 inline bool operator== (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
