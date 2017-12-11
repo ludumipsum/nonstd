@@ -121,91 +121,81 @@ public:
     inline explicit operator T       & ()       & { return value(); }
     inline explicit operator T const & () const & { return value(); }
 
-
-    /** What Should be the Spaceship Operator
-     *  -------------------------------------
-     */
-    template<typename L, typename R>
-    friend bool operator== (nr_ptr<L> const & lhs,
-                            nr_ptr<R> const & rhs) noexcept {
-        return lhs.backing_buffer() == rhs.backing_buffer();
-    }
-    template<typename L, typename R>
-    friend bool operator!= (nr_ptr<L> const & lhs,
-                            nr_ptr<R> const & rhs) noexcept {
-        return !(lhs == rhs);
-    }
-    template<typename L, typename R>
-    friend bool operator<  (nr_ptr<L> const & lhs,
-                            nr_ptr<R> const & rhs) noexcept {
-        return std::less<Buffer * const>{}(lhs.backing_buffer(),
-                                           rhs.backing_buffer());
-    }
-    template<typename L, typename R>
-    friend bool operator>  (nr_ptr<L> const & lhs,
-                            nr_ptr<R> const & rhs) noexcept {
-        return (rhs < lhs);
-    }
-    template<typename L, typename R>
-    friend bool operator<= (nr_ptr<L> const & lhs,
-                            nr_ptr<R> const & rhs) noexcept {
-        return !(rhs < lhs);
-    }
-    template<typename L, typename R>
-    friend bool operator>= (nr_ptr<L> const & lhs,
-                            nr_ptr<R> const & rhs) noexcept {
-        return !(lhs < rhs);
-    }
-
-    template<typename L>
-    friend bool operator== (nr_ptr<L> const & lhs, std::nullptr_t) noexcept {
-        return !lhs;
-    }
-    template<typename R>
-    friend bool operator== (std::nullptr_t, nr_ptr<R> const & rhs) noexcept {
-        return !rhs;
-    }
-    template<typename L>
-    friend bool operator!= (nr_ptr<L> const & lhs, std::nullptr_t) noexcept {
-        return static_cast<bool>(lhs);
-    }
-    template<typename R>
-    friend bool operator!= (std::nullptr_t, nr_ptr<R> const & rhs) noexcept {
-        return static_cast<bool>(rhs);
-    }
-    template<typename L>
-    friend bool operator<  (nr_ptr<L> const & lhs, std::nullptr_t) noexcept {
-        return std::less<Buffer * const>{}(lhs.backing_buffer(), nullptr);
-    }
-    template<typename R>
-    friend bool operator<  (std::nullptr_t, nr_ptr<R> const & rhs) noexcept {
-        return std::less<Buffer * const>{}(nullptr, rhs.backing_buffer());
-    }
-    template<typename L>
-    friend bool operator>  (nr_ptr<L> const & lhs, std::nullptr_t) noexcept {
-        return (nullptr < lhs);
-    }
-    template<typename R>
-    friend bool operator>  (std::nullptr_t, nr_ptr<R> const & rhs) noexcept {
-        return (rhs < nullptr);
-    }
-    template<typename L>
-    friend bool operator<= (nr_ptr<L> const & lhs, std::nullptr_t) noexcept {
-        return !(nullptr < lhs);
-    }
-    template<typename R>
-    friend bool operator<= (std::nullptr_t, nr_ptr<R> const & rhs) noexcept {
-        return !(rhs < nullptr);
-    }
-    template<typename L>
-    friend bool operator>= (nr_ptr<L> const & lhs, std::nullptr_t) noexcept {
-        return !(lhs < nullptr);
-    }
-    template<typename R>
-    friend bool operator>= (std::nullptr_t, nr_ptr<R> const & rhs) noexcept {
-        return !(nullptr < rhs);
-    }
-
 }; ENFORCE_POD(nr_ptr<int>);
+
+template<typename T, typename U>
+inline bool operator== (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
+    return lhs.backing_buffer() == rhs.backing_buffer();
+}
+template<typename T, typename U>
+inline bool operator!= (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
+    return !(lhs == rhs);
+}
+template<typename T, typename U>
+inline bool operator<  (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
+    return std::less<Buffer * const>{}(lhs.backing_buffer(),
+                                        rhs.backing_buffer());
+}
+template<typename T, typename U>
+inline bool operator>  (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
+    return (rhs < lhs);
+}
+template<typename T, typename U>
+inline bool operator<= (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
+    return !(rhs < lhs);
+}
+template<typename T, typename U>
+inline bool operator>= (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
+    return !(lhs < rhs);
+}
+
+template<typename T>
+inline bool operator== (nr_ptr<T> const & lhs, std::nullptr_t) noexcept {
+    return !lhs;
+}
+template<typename T>
+inline bool operator== (std::nullptr_t, nr_ptr<T> const & rhs) noexcept {
+    return !rhs;
+}
+template<typename T>
+inline bool operator!= (nr_ptr<T> const & lhs, std::nullptr_t) noexcept {
+    return static_cast<bool>(lhs);
+}
+template<typename T>
+inline bool operator!= (std::nullptr_t, nr_ptr<T> const & rhs) noexcept {
+    return static_cast<bool>(rhs);
+}
+template<typename T>
+inline bool operator<  (nr_ptr<T> const & lhs, std::nullptr_t) noexcept {
+    return std::less<Buffer * const>{}(lhs.backing_buffer(), nullptr);
+}
+template<typename T>
+inline bool operator<  (std::nullptr_t, nr_ptr<T> const & rhs) noexcept {
+    return std::less<Buffer * const>{}(nullptr, rhs.backing_buffer());
+}
+template<typename T>
+inline bool operator>  (nr_ptr<T> const & lhs, std::nullptr_t) noexcept {
+    return (nullptr < lhs);
+}
+template<typename T>
+inline bool operator>  (std::nullptr_t, nr_ptr<T> const & rhs) noexcept {
+    return (rhs < nullptr);
+}
+template<typename T>
+inline bool operator<= (nr_ptr<T> const & lhs, std::nullptr_t) noexcept {
+    return !(nullptr < lhs);
+}
+template<typename T>
+inline bool operator<= (std::nullptr_t, nr_ptr<T> const & rhs) noexcept {
+    return !(rhs < nullptr);
+}
+template<typename T>
+inline bool operator>= (nr_ptr<T> const & lhs, std::nullptr_t) noexcept {
+    return !(lhs < nullptr);
+}
+template<typename T>
+inline bool operator>= (std::nullptr_t, nr_ptr<T> const & rhs) noexcept {
+    return !(nullptr < rhs);
+}
 
 } /* namespace nonstd */
