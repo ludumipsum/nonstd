@@ -134,7 +134,7 @@ inline bool operator!= (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
 template<typename T, typename U>
 inline bool operator<  (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
     return std::less<Buffer * const>{}(lhs.backing_buffer(),
-                                        rhs.backing_buffer());
+                                       rhs.backing_buffer());
 }
 template<typename T, typename U>
 inline bool operator>  (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
