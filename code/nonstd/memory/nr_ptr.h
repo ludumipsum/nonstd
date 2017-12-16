@@ -113,11 +113,11 @@ public:
     }
 
     // Check if *this is valid.
-    inline explicit operator bool () const {
+    inline explicit operator bool () const noexcept {
         return (bool)m_name;
     }
     // Check if pointer has already been lazy-laoded
-    inline bool is_loaded() const {
+    inline bool is_loaded() const noexcept {
         return (bool)m_name && backing_buffer() != nullptr;
     }
 
@@ -146,7 +146,7 @@ public:
 
 // Direct equality comparisons
 template<typename T, typename U>
-inline bool operator== (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) {
+inline bool operator== (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
     // If both pointers are valid and already lazily initialized, we can do
     // the equality comparison on the pointer values instead of the names
     if (lhs.is_loaded() && rhs.is_loaded()) {
@@ -157,7 +157,7 @@ inline bool operator== (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) {
     return lh_comp == rh_comp;
 }
 template<typename T, typename U>
-inline bool operator!= (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) {
+inline bool operator!= (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
     return !(lhs == rhs);
 }
 
