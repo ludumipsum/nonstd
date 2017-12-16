@@ -118,7 +118,7 @@ public:
     }
     // Check if pointer has already been lazy-laoded
     inline bool is_loaded() const {
-        return m_name && backing_buffer() != nullptr;
+        return (bool)m_name && backing_buffer() != nullptr;
     }
 
     // Return the stored pointer
@@ -149,10 +149,8 @@ template<typename T, typename U>
 inline bool operator== (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) {
     // If both pointers are valid and already lazily initialized, we can do
     // the equality comparison on the pointer values instead of the names
-    if (lhs && rhs) {
-        if (lhs.backing_buffer() && rhs.backing_buffer()) {
-            return lhs.backing_buffer() == rhs.backing_buffer();
-        }
+    if (lhs.is_loaded() && rhs.is_loaded()) {
+        return lhs.backing_buffer() == rhs.backing_buffer();
     }
     auto const & lh_comp = lhs ? lhs.name() : "";
     auto const & rh_comp = rhs ? rhs.name() : "";
