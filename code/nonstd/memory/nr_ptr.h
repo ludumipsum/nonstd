@@ -118,7 +118,7 @@ public:
     }
     // Check if pointer has already been lazy-laoded
     inline bool is_loaded() const {
-        return m_name && backing_buffer != nullptr;
+        return m_name && backing_buffer() != nullptr;
     }
 
     // Return the stored pointer
