@@ -44,16 +44,16 @@ private:
     }
 
 public:
-    constexpr nr_ptr() noexcept
+    constexpr nr_ptr()
         : m_buf  ( nullptr )
         , m_name ( )
     { }
-    constexpr nr_ptr(std::nullptr_t) noexcept
+    constexpr nr_ptr(std::nullptr_t)
         : m_buf  ( nullptr )
         , m_name ( )
     { }
 
-    constexpr explicit nr_ptr(Buffer * buf) noexcept
+    constexpr explicit nr_ptr(Buffer * buf)
         : m_buf  ( buf       )
         , m_name ( buf->name )
     {
@@ -61,7 +61,7 @@ public:
     }
     explicit nr_ptr(c_cstr buffer_name)
         : m_buf  ( nullptr )
-        , m_name ( {buffer_name} )
+        , m_name ( buffer_name )
     { }
 
     nr_ptr(nr_ptr const & other) = default;
