@@ -55,7 +55,7 @@ public:
 
     constexpr explicit nr_ptr(Buffer * buf) noexcept
         : m_buf  ( buf       )
-        , m_name ( {buf->name} )
+        , m_name ( buf->name )
     {
         verify_buffer_type(m_buf);
     }
