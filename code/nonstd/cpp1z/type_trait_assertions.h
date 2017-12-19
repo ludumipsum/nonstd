@@ -24,8 +24,29 @@
 #define ENFORCE_POD(T) \
     static_assert(IS_TRIVIALLY_COPYABLE(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                           \
     static_assert(IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(IS_STANDARD_LAYOUT(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                                 \
-    static_assert(IS_POD(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is... not. We're not sure why. (Please expand the ENFORCE_POD macro.) Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
+    static_assert(IS_STANDARD_LAYOUT(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
+
+/** ENFORCE_PODish
+ *  ---------------
+ *  Verifies T is almost-POD. POD-enough for government work. POD-lite.
+ *  POD types are
+ *    1. Standard Layout
+ *    2. Trivially Copyable
+ *    3. Trivially Default Constructible
+ *    4. (Implicitly) Trivially Destructible
+ *
+ *  For PODish types, we drop the trivially default constructible requirement,
+ *  because that isn't the only way to guarantee that
+ *  `auto foo = reinterpret_cast<Type*>(malloc(sizeof(Type)));`
+ *  yields a well constructed, correct object. PODish types can still be
+ *  used in tightly packed blocks (Standard Layout), and can be cleanly and
+ *  correctly set with assignment (Trivially Copyable). Creating large of arrays
+ *  of PODish types is still very expensive, but that is far from an
+ *  insurmountable concern.
+ */
+#define ENFORCE_PODish(T) \
+    static_assert(IS_TRIVIALLY_COPYABLE(T), "Type '" STRING(T) "' was marked as MOSTLY Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
+    static_assert(IS_STANDARD_LAYOUT(T), "Type '" STRING(T) "' was marked as MOSTLY Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
 
 /** ENFORCE_SIZE (and friends)
  *  --------------------------
