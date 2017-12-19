@@ -1,12 +1,9 @@
 #pragma once
 
+#include <nonstd/cpp1z/type_trait_assertions.h>
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
-#include <nonstd/cpp1z/type_trait_assertions.h>
 #include <nonstd/std_ish/compare.h>
-#include <nonstd/utility/optional.h>
-
-#include <string>
 
 #include "buffer.h"
 #include "core_functions.h"
@@ -20,7 +17,6 @@ struct nr_ptr {
 
 private:
     Buffer * m_buf;
-    nonstd::Optional<std::string> m_name;
 
     inline Buffer * find_or_allocate_buffer(c_cstr buffer_name) {
         auto maybe_buffer = memory::find(buffer_name);
@@ -44,25 +40,23 @@ private:
     }
 
 public:
-    constexpr nr_ptr()
-        : m_buf  ( nullptr )
-        , m_name ( )
+    constexpr nr_ptr() noexcept
+        : m_buf ( nullptr )
     { }
-    constexpr nr_ptr(std::nullptr_t)
-        : m_buf  ( nullptr )
-        , m_name ( )
+    constexpr nr_ptr(std::nullptr_t) noexcept
+        : m_buf ( nullptr )
     { }
 
-    constexpr explicit nr_ptr(Buffer * buf)
-        : m_buf  ( buf       )
-        , m_name ( buf->name )
+    constexpr explicit nr_ptr(Buffer * buf) noexcept
+        : m_buf ( buf )
     {
         verify_buffer_type(m_buf);
     }
     explicit nr_ptr(c_cstr buffer_name)
-        : m_buf  ( nullptr )
-        , m_name ( buffer_name )
-    { }
+        : m_buf ( find_or_allocate_buffer(buffer_name) )
+    {
+        verify_buffer_type(m_buf);
+    }
 
     nr_ptr(nr_ptr const & other) = default;
     nr_ptr& operator= (nr_ptr const & other) = default;
@@ -77,100 +71,67 @@ public:
     // Unset the backing Buffer*.
     nr_ptr& backing_buffer(std::nullptr_t) & {
         m_buf = nullptr;
-        m_name = {};
         return *this;
     }
     nr_ptr&& backing_buffer(std::nullptr_t) && {
         m_buf = nullptr;
-        m_name = {};
         return std::move(*this);
     }
     // Set the backing Buffer* directly.
     nr_ptr& backing_buffer(Buffer *const buf) & {
         m_buf = buf;
-        m_name = buf->name;
         verify_buffer_type(m_buf);
         return *this;
     }
     nr_ptr&& backing_buffer(Buffer *const buf) && {
         m_buf = buf;
-        m_name = buf->name;
         verify_buffer_type(m_buf);
         return std::move(*this);
     }
     // Set the backing Buffer* by name.
     nr_ptr& backing_buffer(c_cstr buffer_name) & {
         m_buf = find_or_allocate_buffer(buffer_name);
-        m_name = buffer_name;
         verify_buffer_type(m_buf);
         return *this;
     }
     nr_ptr&& backing_buffer(c_cstr buffer_name) && {
         m_buf = find_or_allocate_buffer(buffer_name);
-        m_name = buffer_name;
         verify_buffer_type(m_buf);
         return std::move(*this);
     }
 
-    // Check if *this is valid.
-    inline explicit operator bool () const noexcept {
-        return (bool)m_name;
-    }
-    // Check if pointer has already been lazy-laoded
-    inline bool is_loaded() const noexcept {
-        return (bool)m_name && backing_buffer() != nullptr;
-    }
+    // Check if *this is storing a nullptr.
+    inline explicit operator bool () const { return m_buf != nullptr; }
 
     // Return the stored pointer
-    inline T * get() & {
-        // Handle lazy static init-by-name: if we have a valid name set, but no
-        // member pointer, this indicates a lazy-load that hasn't yet been
-        // run, so we should run it now.
-        if ((bool)m_name && m_buf == nullptr) {
-            m_buf = find_or_allocate_buffer(m_name->c_str());
-        }
-        return reinterpret_cast<T*>(m_buf->data);
-    }
-    inline explicit operator T * () { return get(); }
+    inline T       * get()       & { return reinterpret_cast<T*>(m_buf->data); }
+    inline T const * get() const & { return reinterpret_cast<T*>(m_buf->data); }
+    inline explicit operator T       * ()       & { return get(); }
+    inline explicit operator T const * () const & { return get(); }
 
     // Dereference the stored pointer via member-of-pointer
-    inline T * operator -> () { return get(); }
+    inline T       * operator -> ()       & { return get(); }
+    inline T const * operator -> () const & { return get(); }
 
     // Dereference the stored pointer
-    inline T & value() { return *get(); }
-    inline T & operator* () { return value(); }
-
-    // Get the stored name
-    inline std::string const& name() const { return *m_name; }
+    inline T       & value()       & { return *get(); }
+    inline T const & value() const & { return *get(); }
+    inline T       & operator* ()       & { return value(); }
+    inline T const & operator* () const & { return value(); }
 };
 
-// Direct equality comparisons
 template<typename T, typename U>
 inline bool operator== (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
-    // If both pointers are valid and already lazily initialized, we can do
-    // the equality comparison on the pointer values instead of the names
-    if (lhs.is_loaded() && rhs.is_loaded()) {
-        return lhs.backing_buffer() == rhs.backing_buffer();
-    }
-    auto const & lh_comp = lhs ? lhs.name() : "";
-    auto const & rh_comp = rhs ? rhs.name() : "";
-    return lh_comp == rh_comp;
+    return lhs.backing_buffer() == rhs.backing_buffer();
 }
 template<typename T, typename U>
 inline bool operator!= (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
     return !(lhs == rhs);
 }
-
-// Direct sorting comparators
 template<typename T, typename U>
 inline bool operator<  (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
-    // Since we lazy-load the pointer value, we can't stably use it as the
-    // comparison operand. Instead we have to use the name -- any time the
-    // nr_ptr is valid, it will have a valid name, and when it doesn't, we
-    // take the shitty shortcut of using the empty string.
-    auto const & lh_comp = lhs ? lhs.name() : "";
-    auto const & rh_comp = rhs ? rhs.name() : "";
-    return std::less<std::string const&>{}(lh_comp, rh_comp);
+    return std::less<Buffer * const>{}(lhs.backing_buffer(),
+                                       rhs.backing_buffer());
 }
 template<typename T, typename U>
 inline bool operator>  (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
@@ -185,7 +146,6 @@ inline bool operator>= (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
     return !(lhs < rhs);
 }
 
-// Nullptr equality comparisons
 template<typename T>
 inline bool operator== (nr_ptr<T> const & lhs, std::nullptr_t) noexcept {
     return !lhs;
@@ -202,8 +162,6 @@ template<typename T>
 inline bool operator!= (std::nullptr_t, nr_ptr<T> const & rhs) noexcept {
     return static_cast<bool>(rhs);
 }
-
-// Nullptr sorting comparators
 template<typename T>
 inline bool operator<  (nr_ptr<T> const & lhs, std::nullptr_t) noexcept {
     return std::less<Buffer * const>{}(lhs.backing_buffer(), nullptr);
