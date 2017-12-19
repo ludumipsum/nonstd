@@ -1,6 +1,7 @@
 /** COLOR
  *  =====
- *  Simple 4-vector of u8s used to represent RGB colors.
+ *  Simple 4-vector of u8s or f32s used to represent RGB colors.
+ *  More complext construction functions to convert from HSV to RBG colors.
  */
 #pragma once
 
@@ -10,128 +11,130 @@
 
 namespace nonstd {
 
-struct Color;
-using  Color_u = Color;
-struct Color_f;
+struct color;
+struct colorf;
 
 
-struct Color {
+struct color {
     union {
-        u8 rgba[4];
-        u8 hsva[4];
         struct {
-            // The compiler isn't smart enough to figure out that both rgba and
-            // hsva accessors put the 'a' in the same spot in memory, so if you
-            // try to put them all together in one struct in the top level union
-            // you'll get a redefinition error. We've done this instead -- a bit
-            // harder to read here, but the accessors are the same for users.
-            union {u8 r; u8 h;};
-            union {u8 g; u8 s;};
-            union {u8 b; u8 v;};
+            u8 r;
+            u8 g;
+            u8 b;
             u8 a;
         };
+        u8 rgba[4];
+        u8 rgb[3];
     };
 
-    // NB. This class _must_ be an Aggregate type, not just a POD type. This
-    // means no user-defiend constructors, and no protected/private members.
-}; ENFORCE_POD(Color); ENFORCE_SIZE(Color, 4);
+    /* Implicit conversion from color to colorf, to make argument passing
+     * much simpler. */
+    constexpr operator colorf const ();
+
+}; ENFORCE_POD(color); ENFORCE_SIZE(color, 4);
 
 
-struct Color_f {
+struct colorf {
     union {
-        f32 rgba[4];
-        f32 hsva[4];
         struct {
-            // The compiler isn't smart enough to figure out that both rgba and
-            // hsva accessors put the 'a' in the same spot in memory, so if you
-            // try to put them all together in one struct in the top level union
-            // you'll get a redefinition error. We've done this instead -- a bit
-            // harder to read here, but the accessors are the same for users.
-            union {f32 r; f32 h;};
-            union {f32 g; f32 s;};
-            union {f32 b; f32 v;};
+            f32 r;
+            f32 g;
+            f32 b;
             f32 a;
         };
+        f32 rgba[4];
+        f32 rgb[3];
     };
 
-    // NB. This class _must_ be an Aggregate type, not just a POD type. This
-    // means no user-defiend constructors, and no protected/private members.
-}; ENFORCE_POD(Color_f); ENFORCE_SIZE(Color_f, 16);
+    /* Explicit conversion from colorf to color, to make you consider why you're
+     * moving away from the more standard floating-point representation. */
+    constexpr explicit operator color const ();
 
+}; ENFORCE_POD(colorf); ENFORCE_SIZE(colorf, 16);
 
-/* Color (Color_u) creation functions */
+/* Implicit conversion from color to colorf, to make argument passing
+ * much simpler. */
+constexpr color::operator colorf const () {
+    return { this->r/255.f,
+             this->g/255.f,
+             this->b/255.f,
+             this->a/255.f };
+}
 
-/* Construct a Color from 4 numeric parameters */
-template <typename T, typename U, typename V, typename W>
-constexpr Color make_color(T r, U g, V b, W a) noexcept {
-    static_assert(IS_CONVERTIBLE(T, u8), "'Color_u's must be constructed using integral types.");
-    static_assert(IS_CONVERTIBLE(U, u8), "'Color_u's must be constructed using integral types.");
-    static_assert(IS_CONVERTIBLE(V, u8), "'Color_u's must be constructed using integral types.");
-    static_assert(IS_CONVERTIBLE(W, u8), "'Color_u's must be constructed using integral types.");
-    return { (u8)(r), (u8)(g), (u8)(b), (u8)(a)};
-}
-/* Construct a Color from 3 numeric parameters (full alpha) */
-template <typename T, typename U, typename V>
-constexpr Color make_color(T r, U g, V b) noexcept {
-    static_assert(IS_CONVERTIBLE(T, u8), "'Color_u's must be constructed using integral types.");
-    static_assert(IS_CONVERTIBLE(U, u8), "'Color_u's must be constructed using integral types.");
-    static_assert(IS_CONVERTIBLE(V, u8), "'Color_u's must be constructed using integral types.");
-    return { (u8)(r), (u8)(g), (u8)(b), 0xFF };
-}
-/* Construct a Color from an array of four values */
-template <typename T>
-constexpr Color make_color(T i[4]) noexcept {
-    static_assert(IS_CONVERTIBLE(T, u8), "'Color_u's must be constructed using integral types.");
-    return { (u8)(i[0]), (u8)(i[1]), (u8)(i[2]), (u8)(i[3]) };
-}
-/* Construct a grayscale Color from a single value */
-template <typename T>
-constexpr Color make_color(T i) noexcept {
-    static_assert(IS_CONVERTIBLE(T, u8), "'Color_u's must be constructed using integral types.");
-    return { (u8)(i), (u8)(i), (u8)(i), 0xFF };
-}
-/* Construct a Color_u from a Color_f */
-constexpr Color make_color(Color_f c) noexcept {
-    return { (u8)(c.r * 255), (u8)(c.g * 255), (u8)(c.b * 255),
-             (u8)(c.a * 255) };
+/* Explicit conversion from colorf to color, to make you consider why you're
+ * moving away from the more standard floating-point representation. */
+constexpr colorf::operator color const () {
+    return { static_cast<u8>(this->r*255),
+             static_cast<u8>(this->g*255),
+             static_cast<u8>(this->b*255),
+             static_cast<u8>(this->a*255) };
 }
 
 
-/* Color_f creation functions */
+/* Build a color w/ red, green, blue, and alpha components. */
+constexpr inline color rgb_color(u8 r, u8 g, u8 b, u8 a) noexcept {
+    return { r, g, b, a };
+}
+/* Build a gray color at full alpha. */
+constexpr inline color rgb_color(u8 color) noexcept {
+    return rgb_color(color, color, color, 255);
+}
+/* Build a basic red, green, blue color at full alpha. */
+constexpr inline color rgb_color(u8 r, u8 g, u8 b) noexcept {
+    return rgb_color(r, g, b, 255);
+}
 
-/* Construct a Color_f from 4 numeric parameters */
-template <typename T, typename U, typename V, typename W>
-constexpr Color_f make_color_f(T r, U g, V b, W a) noexcept {
-    static_assert(IS_CONVERTIBLE(T, f32), "'Color_f's must be constructed using floating point types.");
-    static_assert(IS_CONVERTIBLE(U, f32), "'Color_f's must be constructed using floating point types.");
-    static_assert(IS_CONVERTIBLE(V, f32), "'Color_f's must be constructed using floating point types.");
-    static_assert(IS_CONVERTIBLE(W, f32), "'Color_f's must be constructed using floating point types.");
-    return { (f32)(r), (f32)(g), (f32)(b), (f32)(a)};
+
+/* Build a color w/ red, green, blue, and alpha components. */
+constexpr inline colorf rgb_colorf(f32 r, f32 g, f32 b, f32 a) noexcept {
+    return { r, g, b, a };
 }
-/* Construct a Color_f from 3 numeric parameters (full alpha) */
-template <typename T, typename U, typename V>
-constexpr Color_f make_color_f(T r, U g, V b) noexcept {
-    static_assert(IS_CONVERTIBLE(T, f32), "'Color_f's must be constructed using floating point types.");
-    static_assert(IS_CONVERTIBLE(U, f32), "'Color_f's must be constructed using floating point types.");
-    static_assert(IS_CONVERTIBLE(V, f32), "'Color_f's must be constructed using floating point types.");
-    return { (f32)(r), (f32)(g), (f32)(b), 1.f };
+/* Build a gray color at full alpha. */
+constexpr inline colorf rgb_colorf(f32 color) noexcept {
+    return rgb_colorf(color, color, color, 1.f);
 }
-/* Construct a Color_f from an array of four values */
-template <typename T>
-constexpr Color_f make_color_f(T i[4]) noexcept {
-    static_assert(IS_CONVERTIBLE(T, f32), "'Color_f's must be constructed using floating point types.");
-    return { (f32)(i[0]), (f32)(i[1]), (f32)(i[2]), (f32)(i[3]) };
+/* Build a basic red, green, blue color at full alpha. */
+constexpr inline colorf rgb_colorf(f32 r, f32 g, f32 b) noexcept {
+    return rgb_colorf(r, g, b, 1.f);
 }
-/* Construct a grayscale Color_f from a single value */
-template <typename T>
-constexpr Color_f make_color_f(T i) noexcept {
-    static_assert(IS_CONVERTIBLE(T, f32), "'Color_f's must be constructed using floating point types.");
-    return { (f32)(i), (f32)(i), (f32)(i), (f32)(0xFF) };
+
+/* Build a color w/ hue [0,360], saturation [0.f,1.f], value [0.f,1.f], and
+ * alpha components. */
+constexpr inline colorf hsv_color(u16 h, f32 s, f32 v, f32 a) noexcept {
+    // Thanks to stackoverflow.com/questions/3018313#answer-36209005
+    // and wikipedia for this implementation
+    if (s == 0) { return { v, v, v, a }; }
+
+    f32 h_ = h == 360.f
+           ? 0.f
+           : h / 60.f;
+    f32 fract = h_ - std::floor(h_);
+
+    f32 p = v*(1. - s);
+    f32 q = v*(1. - s * fract);
+    f32 t = v*(1. - s * (1. - fract));
+
+    if      (0. <= h_ && h_ < 1.) return { v, t, p, a };
+    else if (1. <= h_ && h_ < 2.) return { q, v, p, a };
+    else if (2. <= h_ && h_ < 3.) return { p, v, t, a };
+    else if (3. <= h_ && h_ < 4.) return { p, q, v, a };
+    else if (4. <= h_ && h_ < 5.) return { t, p, v, a };
+    else if (5. <= h_ && h_ < 6.) return { v, p, q, a };
+    else                          return { 0.f, 0.f, 0.f, a };
 }
-/* Construct a Color_f from a Color_u */
-constexpr Color_f make_color(Color_u c) noexcept {
-    return { (f32)(c.r / 255.f), (f32)(c.g / 255.f), (f32)(c.b / 255.f),
-             (f32)(c.a / 255.f) };
+/* Build a color with a hue [0,360] at full saturation, value, and alpha. */
+constexpr inline colorf hsv_color(u16 h) noexcept {
+    return hsv_color(h, 1.f, 1.f, 1.f);
+}
+/* Build a color with a hue [0,360] and saturation [0.f, 1.f] at full value
+ * and alpha. */
+constexpr inline colorf hsv_color(u16 h, f32 s) noexcept {
+    return hsv_color(h, s, 1.f, 1.f);
+}
+/* Build a color with a hue [0,360], saturation [0.f,1.f], and value [0.f,1.f]
+ * component at full alpha. */
+constexpr inline colorf hsv_color(u16 h, f32 s, f32 v) noexcept {
+    return hsv_color(h, s, v, 1.f);
 }
 
 } /* namespace nonstd */
