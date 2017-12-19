@@ -29,7 +29,7 @@ struct color {
 
     /* Implicit conversion from color to colorf, to make argument passing
      * much simpler. */
-    constexpr operator colorf const ();
+    constexpr operator colorf const () noexcept;
 
 }; ENFORCE_POD(color); ENFORCE_SIZE(color, 4);
 
@@ -48,13 +48,13 @@ struct colorf {
 
     /* Explicit conversion from colorf to color, to make you consider why you're
      * moving away from the more standard floating-point representation. */
-    constexpr explicit operator color const ();
+    constexpr explicit operator color const () noexcept;
 
 }; ENFORCE_POD(colorf); ENFORCE_SIZE(colorf, 16);
 
 /* Implicit conversion from color to colorf, to make argument passing
  * much simpler. */
-constexpr color::operator colorf const () {
+constexpr color::operator colorf const () noexcept {
     return { this->r/255.f,
              this->g/255.f,
              this->b/255.f,
@@ -63,7 +63,7 @@ constexpr color::operator colorf const () {
 
 /* Explicit conversion from colorf to color, to make you consider why you're
  * moving away from the more standard floating-point representation. */
-constexpr colorf::operator color const () {
+constexpr colorf::operator color const () noexcept {
     return { static_cast<u8>(this->r*255),
              static_cast<u8>(this->g*255),
              static_cast<u8>(this->b*255),
