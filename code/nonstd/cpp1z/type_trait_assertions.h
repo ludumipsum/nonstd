@@ -8,6 +8,14 @@
 #include "type_traits.h"
 
 
+/** ENFORCE
+ *  -------
+ *  General purpose enforcement macro to simplify one-off static_asserts.
+ */
+#define ENFORCE(condition) \
+    static_assert(condition, "Failed to enforce '" #condition "'.")
+
+
 /** ENFOCE_POD
  *  ----------
  *  Verifies the given type is a POD datatype. The last assertion should be
