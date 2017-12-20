@@ -16,6 +16,9 @@ struct color_f;
 struct color_hsva;
 
 
+/*  RGBA Color -- u8[4]
+ *  -------------------
+ */
 struct color {
     union {
         struct {
@@ -28,12 +31,14 @@ struct color {
         u8 rgb[3];
     };
 
-    constexpr explicit operator color_f const () noexcept;
-    constexpr explicit operator color_hsva const () noexcept;
+    constexpr inline explicit operator color_f const () noexcept;
+    constexpr inline explicit operator color_hsva const () noexcept;
 
 }; ENFORCE_POD(color); ENFORCE_SIZE(color, 4);
 
-
+/** RGBA Color -- f32[4]
+ *  --------------------
+ */
 struct color_f {
     union {
         struct {
@@ -46,11 +51,14 @@ struct color_f {
         f32 rgb[3];
     };
 
-    constexpr explicit operator color const () noexcept;
-    constexpr explicit operator color_hsva const () noexcept;
+    constexpr inline explicit operator color const () noexcept;
+    constexpr inline explicit operator color_hsva const () noexcept;
 
 }; ENFORCE_POD(color_f); ENFORCE_SIZE(color_f, 16);
 
+/** HSVA Color -- f32[4]
+ *  --------------------
+ */
 struct color_hsva {
     union {
         struct {
@@ -63,17 +71,23 @@ struct color_hsva {
         f32 hsv[3];
     };
 
-    constexpr explicit operator color const () noexcept;
-    constexpr explicit operator color_f const () noexcept;
-};
+    constexpr inline explicit operator color const () noexcept;
+    constexpr inline explicit operator color_f const () noexcept;
+}; ENFORCE_POD(color_hsva); ENFORCE_SIZE(color_hsva, 16);
 
-constexpr color::operator color_f const () noexcept {
+
+/** Conversion Operations -- From `color`
+ *  -------------------------------------
+ */
+constexpr inline color::operator color_f const () noexcept {
     return { r/255.f,
              g/255.f,
              b/255.f,
              a/255.f };
 }
-constexpr color::operator color_hsva const () noexcept {
+constexpr inline color::operator color_hsva const () noexcept {
+    // Thanks to stackoverflow.com/questions/3018313#answer-6930407 and
+    // wikipedia for this implementation
     f32 r_ = r / 255.f;
     f32 g_ = g / 255.f;
     f32 b_ = b / 255.f;
@@ -106,14 +120,18 @@ constexpr color::operator color_hsva const () noexcept {
     return { h, s, v, a_ };
 }
 
-
-constexpr color_f::operator color const () noexcept {
+/** Conversion Operations -- From `color_f`
+ *  ---------------------------------------
+ */
+constexpr inline color_f::operator color const () noexcept {
     return { (u8)(r*255),
              (u8)(g*255),
              (u8)(b*255),
              (u8)(a*255) };
 }
-constexpr color_f::operator color_hsva const () noexcept {
+constexpr inline color_f::operator color_hsva const () noexcept {
+    // Thanks to stackoverflow.com/questions/3018313#answer-6930407 and
+    // wikipedia for this implementation
     f32 min_rg  = r      < g ? r      : g;
     f32 min_rgb = min_rg < b ? min_rg : b;
     f32 max_rg  = r      > g ? r      : g;
@@ -141,9 +159,12 @@ constexpr color_f::operator color_hsva const () noexcept {
     return { h, s, v, a };
 }
 
-constexpr color_hsva::operator color const () noexcept {
-    // Thanks to stackoverflow.com/questions/3018313#answer-36209005
-    // and wikipedia for this implementation
+/** Conversion Operations -- From `color_hsva`
+ *  ------------------------------------------
+ */
+constexpr inline color_hsva::operator color const () noexcept {
+    // Thanks to stackoverflow.com/questions/3018313#answer-36209005 and
+    // wikipedia for this implementation
     if (s == 0) { return { (u8)(v*255), (u8)(v*255), (u8)(v*255), (u8)(a*255) }; }
 
     f32 h_ = h == 1.f
@@ -163,9 +184,9 @@ constexpr color_hsva::operator color const () noexcept {
     else if (5. <= h_ && h_ < 6.) return { (u8)(v*255), (u8)(p*255), (u8)(q*255), (u8)(a*255) };
     else                          return { 0          , 0          , 0          , (u8)(a*255) };
 }
-constexpr color_hsva::operator color_f const () noexcept {
-    // Thanks to stackoverflow.com/questions/3018313#answer-36209005
-    // and wikipedia for this implementation
+constexpr inline color_hsva::operator color_f const () noexcept {
+    // Thanks to stackoverflow.com/questions/3018313#answer-36209005 and
+    // wikipedia for this implementation
     if (s == 0) { return { v, v, v, a }; }
 
     f32 h_ = h == 1.f
@@ -187,72 +208,114 @@ constexpr color_hsva::operator color_f const () noexcept {
 }
 
 
+/** Free Builder Functions -- for `color`
+ *  -------------------------------------
+ */
+
 /* Build a color w/ red, green, blue, and alpha components. */
-constexpr inline color rgba_color(u8 r, u8 g, u8 b, u8 a) noexcept {
+constexpr inline color rgba_color(u8 r, u8 g, u8 b, u8 a=255) noexcept {
     return { r, g, b, a };
 }
 /* Build a gray color at full alpha. */
-constexpr inline color rgba_color(u8 gray) noexcept {
-    return rgba_color(gray, gray, gray, 255);
-}
-/* Build a basic red, green, blue color at full alpha. */
-constexpr inline color rgba_color(u8 r, u8 g, u8 b) noexcept {
-    return rgba_color(r, g, b, 255);
+constexpr inline color rgba_color(u8 value, u8 a=255) noexcept {
+    return { value, value, value, a };
 }
 
+/** Free Builder Functions -- for `color_f`
+ *  ---------------------------------------
+ */
 
 /* Build a color w/ red, green, blue, and alpha components. */
-constexpr inline color_f rgba_colorf(f32 r, f32 g, f32 b, f32 a) noexcept {
+constexpr inline color_f rgba_colorf(f32 r, f32 g, f32 b, f32 a=1.f) noexcept {
     return { r, g, b, a };
 }
 /* Build a gray color at full alpha. */
-constexpr inline color_f rgba_colorf(f32 color) noexcept {
-    return rgba_colorf(color, color, color, 1.f);
-}
-/* Build a basic red, green, blue color at full alpha. */
-constexpr inline color_f rgba_colorf(f32 r, f32 g, f32 b) noexcept {
-    return rgba_colorf(r, g, b, 1.f);
+constexpr inline color_f rgba_colorf(f32 value, f32 a=1.f) noexcept {
+    return { value, value, value, a };
 }
 
+/** Free Builder Functions -- for `color_hsva`
+ *  ------------------------------------------
+ */
 
-/* Build a color w/ hue [0,360], saturation [0.f,1.f], value [0.f,1.f], and
+/* Build a color w/ hue [0.0,1.0], saturation [0.0,1.0], value [0.0,1.0], and
  * alpha components. */
-constexpr inline color_hsva hsva_color(u16 h, f32 s, f32 v, f32 a) noexcept {
-    return { h/360.f, s, v, a };
+template <typename H, typename S=f32, typename V=f32, typename A=f32,
+    typename std::enable_if_t<   std::is_floating_point_v<H>
+                              && std::is_floating_point_v<S>
+                              && std::is_floating_point_v<V>
+                              && std::is_floating_point_v<A>, int> = 0 >
+constexpr inline color_hsva hsva_color(H h, S s = 1.f, V v = 1.f, A a = 1.f) {
+    return {
+        static_cast<f32>(h),
+        static_cast<f32>(s),
+        static_cast<f32>(v),
+        static_cast<f32>(a)
+    };
 }
-/* Build a color with a hue [0,360] at full saturation, value, and alpha. */
-constexpr inline color_hsva hsva_color(u16 h) noexcept {
-    return hsva_color(h, 1.f, 1.f, 1.f);
-}
-/* Build a color with a hue [0,360] and saturation [0.f, 1.f] at full value
- * and alpha. */
-constexpr inline color_hsva hsva_color(u16 h, f32 s) noexcept {
-    return hsva_color(h, s, 1.f, 1.f);
-}
-/* Build a color with a hue [0,360], saturation [0.f,1.f], and value [0.f,1.f]
- * component at full alpha. */
-constexpr inline color_hsva hsva_color(u16 h, f32 s, f32 v) noexcept {
-    return hsva_color(h, s, v, 1.f);
+/* Build a color w/ hue [0,360], saturation [0.0,1.0], value [0.0,1.0], and
+ * alpha components. */
+template <typename H, typename S=f32, typename V=f32, typename A=f32,
+    typename std::enable_if_t<   std::is_integral_v<H>
+                              && std::is_floating_point_v<S>
+                              && std::is_floating_point_v<V>
+                              && std::is_floating_point_v<A>, int> = 1 >
+constexpr inline color_hsva hsva_color(H h, S s = 1.f, V v = 1.f, A a = 1.f) {
+    return {
+        static_cast<f32>(h/360.f),
+        static_cast<f32>(s),
+        static_cast<f32>(v),
+        static_cast<f32>(a)
+    };
 }
 
-/* Build a color w/ hue [0.f,1.f], saturation [0.f,1.f], value [0.f,1.f], and
- * alpha components. */
-constexpr inline color_hsva hsva_color(f32 h, f32 s, f32 v, f32 a) noexcept {
-    return { h, s, v, a };
+
+/** Print Overloads -- for `color`
+ *  ------------------------------
+ */
+inline std::ostream& operator << (std::ostream & s, color const & c) {
+    return s <<
+        "color{{ #{:02x}{:02x}{:02x} a:{:03} }}"_format(c.r, c.g, c.b, c.a);
 }
-/* Build a color with a hue [0.f,1.f] at full saturation, value, and alpha. */
-constexpr inline color_hsva hsva_color(f32 h) noexcept {
-    return hsva_color(h, 1.f, 1.f, 1.f);
+
+inline void format_arg(fmt::BasicFormatter<char> & f,
+                       char const * & format_str,
+                       color const & c) {
+    f.writer().write(
+        "color{{ #{:02x}{:02x}{:02x} a:{:03} }}"_format(c.r, c.g, c.b, c.a)
+    );
 }
-/* Build a color with a hue [0.f,1.f] and saturation [0.f, 1.f] at full value
- * and alpha. */
-constexpr inline color_hsva hsva_color(f32 h, f32 s) noexcept {
-    return hsva_color(h, s, 1.f, 1.f);
+
+/** Print Overloads -- for `color_f`
+ *  --------------------------------
+ */
+inline std::ostream& operator << (std::ostream & s, color_f const & c) {
+    return s <<
+        "color{{ r:{:0.2f} g:{:0.2f} b:{:0.2f} a:{:0.2f} }}"_format(c.r, c.g, c.b, c.a);
 }
-/* Build a color with a hue [0.f,1.f], saturation [0.f,1.f], and value [0.f,1.f]
- * component at full alpha. */
-constexpr inline color_hsva hsva_color(f32 h, f32 s, f32 v) noexcept {
-    return hsva_color(h, s, v, 1.f);
+
+inline void format_arg(fmt::BasicFormatter<char> & f,
+                       char const * & format_str,
+                       color_f const & c) {
+    f.writer().write(
+        "color{{ r:{:0.2f} g:{:0.2f} b:{:0.2f} a:{:0.2f} }}"_format(c.r, c.g, c.b, c.a)
+    );
+}
+
+/** Print Overloads -- for `color_hsva`
+ *  -----------------------------------
+ */
+inline std::ostream& operator << (std::ostream & s, color_hsva const & c) {
+    return s <<
+        "color{{ h:{:03} s:{:0.2f} v:{:0.2f} a:{:0.2f} }}"_format((u16)(c.h*360), c.s, c.v, c.a);
+}
+
+inline void format_arg(fmt::BasicFormatter<char> & f,
+                       char const * & format_str,
+                       color_hsva const & c) {
+    f.writer().write(
+        "color{{ h:{:03} s:{:0.2f} v:{:0.2f} a:{:0.2f} }}"_format((u16)(c.h*360), c.s, c.v, c.a)
+    );
 }
 
 } /* namespace nonstd */
