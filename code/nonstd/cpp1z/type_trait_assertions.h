@@ -8,6 +8,14 @@
 #include "type_traits.h"
 
 
+/** ENFORCE
+ *  -------
+ *  General purpose enforcement macro to simplify one-off static_asserts.
+ */
+#define ENFORCE(condition) \
+    static_assert(condition, "Failed to enforce '" #condition "'.")
+
+
 /** ENFOCE_POD
  *  ----------
  *  Verifies the given type is a POD datatype. The last assertion should be
@@ -16,8 +24,7 @@
 #define ENFORCE_POD(T) \
     static_assert(IS_TRIVIALLY_COPYABLE(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially copyable. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                           \
     static_assert(IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not trivially default constructible. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]"); \
-    static_assert(IS_STANDARD_LAYOUT(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]");                                 \
-    static_assert(IS_POD(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is... not. We're not sure why. (Please expand the ENFORCE_POD macro.) Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
+    static_assert(IS_STANDARD_LAYOUT(T), "Type '" STRING(T) "' was marked as Plain Old Data, but is not standard layout. Defined near [" STRING(__FILE__) ":" STRING(__LINE__) "]")
 
 /** ENFORCE_SIZE (and friends)
  *  --------------------------
