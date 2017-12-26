@@ -608,6 +608,98 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         f64 a18 = 0.999999999999999999;  REQUIRE(std::floor(a18) == nonstd::cx::floor(a18));
         f64 a19 = 0.9999999999999999999; REQUIRE(std::floor(a19) == nonstd::cx::floor(a19));
     }
+
+    SECTION("trunc") {
+        constexpr auto calls_to_trunc_are_constexpr = nonstd::cx::trunc(f32__positive);
+
+        using std::isnan;
+        // trunc and trunc don't much benefit from extents testing, and the
+        // results from those functions tend to be estimations. It's more
+        // important to verify exceptional (INFINITY, NaN) cases are consistent.
+        REQUIRE(( ( std::trunc(f32__positive)        == nonstd::cx::trunc(f32__positive) )        || ( isnan(std::trunc(f32__positive))        && isnan(nonstd::cx::trunc(f32__positive)) )        ));
+        REQUIRE(( ( std::trunc(f32__negative)        == nonstd::cx::trunc(f32__negative) )        || ( isnan(std::trunc(f32__negative))        && isnan(nonstd::cx::trunc(f32__negative)) )        ));
+        // REQUIRE(( ( std::trunc(f32__f32_min)         == nonstd::cx::trunc(f32__f32_min) )         || ( isnan(std::trunc(f32__f32_min))         && isnan(nonstd::cx::trunc(f32__f32_min)) )         ));
+        // REQUIRE(( ( std::trunc(f32__f32_max)         == nonstd::cx::trunc(f32__f32_max) )         || ( isnan(std::trunc(f32__f32_max))         && isnan(nonstd::cx::trunc(f32__f32_max)) )         ));
+        // REQUIRE(( ( std::trunc(f32__f64_min)         == nonstd::cx::trunc(f32__f64_min) )         || ( isnan(std::trunc(f32__f64_min))         && isnan(nonstd::cx::trunc(f32__f64_min)) )         ));
+    //  // REQUIRE(( ( std::trunc(f32__f64_max)         == nonstd::cx::trunc(f32__f64_max) )         || ( isnan(std::trunc(f32__f64_max))         && isnan(nonstd::cx::trunc(f32__f64_max)) )         ));
+        // REQUIRE(( ( std::trunc(f32__f_long_min)      == nonstd::cx::trunc(f32__f_long_min) )      || ( isnan(std::trunc(f32__f_long_min))      && isnan(nonstd::cx::trunc(f32__f_long_min)) )      ));
+    //  // REQUIRE(( ( std::trunc(f32__f_long_max)      == nonstd::cx::trunc(f32__f_long_max) )      || ( isnan(std::trunc(f32__f_long_max))      && isnan(nonstd::cx::trunc(f32__f_long_max)) )      ));
+        REQUIRE(( ( std::trunc(f32__f32_nan)         == nonstd::cx::trunc(f32__f32_nan) )         || ( isnan(std::trunc(f32__f32_nan))         && isnan(nonstd::cx::trunc(f32__f32_nan)) )         ));
+        REQUIRE(( ( std::trunc(f32__f64_nan)         == nonstd::cx::trunc(f32__f64_nan) )         || ( isnan(std::trunc(f32__f64_nan))         && isnan(nonstd::cx::trunc(f32__f64_nan)) )         ));
+        REQUIRE(( ( std::trunc(f32__f_long_nan)      == nonstd::cx::trunc(f32__f_long_nan) )      || ( isnan(std::trunc(f32__f_long_nan))      && isnan(nonstd::cx::trunc(f32__f_long_nan)) )      ));
+        REQUIRE(( ( std::trunc(f32__f32_inf)         == nonstd::cx::trunc(f32__f32_inf) )         || ( isnan(std::trunc(f32__f32_inf))         && isnan(nonstd::cx::trunc(f32__f32_inf)) )         ));
+        REQUIRE(( ( std::trunc(f32__f64_inf)         == nonstd::cx::trunc(f32__f64_inf) )         || ( isnan(std::trunc(f32__f64_inf))         && isnan(nonstd::cx::trunc(f32__f64_inf)) )         ));
+        REQUIRE(( ( std::trunc(f32__f_long_inf)      == nonstd::cx::trunc(f32__f_long_inf) )      || ( isnan(std::trunc(f32__f_long_inf))      && isnan(nonstd::cx::trunc(f32__f_long_inf)) )      ));
+        // REQUIRE(( ( std::trunc(f32__f32_less_min)    == nonstd::cx::trunc(f32__f32_less_min) )    || ( isnan(std::trunc(f32__f32_less_min))    && isnan(nonstd::cx::trunc(f32__f32_less_min)) )    ));
+        // REQUIRE(( ( std::trunc(f32__f32_more_max)    == nonstd::cx::trunc(f32__f32_more_max) )    || ( isnan(std::trunc(f32__f32_more_max))    && isnan(nonstd::cx::trunc(f32__f32_more_max)) )    ));
+        // REQUIRE(( ( std::trunc(f32__f64_less_min)    == nonstd::cx::trunc(f32__f64_less_min) )    || ( isnan(std::trunc(f32__f64_less_min))    && isnan(nonstd::cx::trunc(f32__f64_less_min)) )    ));
+        // REQUIRE(( ( std::trunc(f32__f64_more_max)    == nonstd::cx::trunc(f32__f64_more_max) )    || ( isnan(std::trunc(f32__f64_more_max))    && isnan(nonstd::cx::trunc(f32__f64_more_max)) )    ));
+        // REQUIRE(( ( std::trunc(f32__f_long_less_min) == nonstd::cx::trunc(f32__f_long_less_min) ) || ( isnan(std::trunc(f32__f_long_less_min)) && isnan(nonstd::cx::trunc(f32__f_long_less_min)) ) ));
+        // REQUIRE(( ( std::trunc(f32__f_long_more_max) == nonstd::cx::trunc(f32__f_long_more_max) ) || ( isnan(std::trunc(f32__f_long_more_max)) && isnan(nonstd::cx::trunc(f32__f_long_more_max)) ) ));
+
+        REQUIRE(( ( std::trunc(f64__positive)        == nonstd::cx::trunc(f64__positive) )        || ( isnan(std::trunc(f64__positive))        && isnan(nonstd::cx::trunc(f64__positive)) )        ));
+        REQUIRE(( ( std::trunc(f64__negative)        == nonstd::cx::trunc(f64__negative) )        || ( isnan(std::trunc(f64__negative))        && isnan(nonstd::cx::trunc(f64__negative)) )        ));
+        //  REQUIRE(( ( std::trunc(f64__f32_min)         == nonstd::cx::trunc(f64__f32_min) )         || ( isnan(std::trunc(f64__f32_min))         && isnan(nonstd::cx::trunc(f64__f32_min)) )         ));
+        //  REQUIRE(( ( std::trunc(f64__f32_max)         == nonstd::cx::trunc(f64__f32_max) )         || ( isnan(std::trunc(f64__f32_max))         && isnan(nonstd::cx::trunc(f64__f32_max)) )         ));
+        //  REQUIRE(( ( std::trunc(f64__f64_min)         == nonstd::cx::trunc(f64__f64_min) )         || ( isnan(std::trunc(f64__f64_min))         && isnan(nonstd::cx::trunc(f64__f64_min)) )         ));
+        //  REQUIRE(( ( std::trunc(f64__f64_max)         == nonstd::cx::trunc(f64__f64_max) )         || ( isnan(std::trunc(f64__f64_max))         && isnan(nonstd::cx::trunc(f64__f64_max)) )         ));
+        //  REQUIRE(( ( std::trunc(f64__f_long_min)      == nonstd::cx::trunc(f64__f_long_min) )      || ( isnan(std::trunc(f64__f_long_min))      && isnan(nonstd::cx::trunc(f64__f_long_min)) )      ));
+    //  //  REQUIRE(( ( std::trunc(f64__f_long_max)      == nonstd::cx::trunc(f64__f_long_max) )      || ( isnan(std::trunc(f64__f_long_max))      && isnan(nonstd::cx::trunc(f64__f_long_max)) )      ));
+        REQUIRE(( ( std::trunc(f64__f32_nan)         == nonstd::cx::trunc(f64__f32_nan) )         || ( isnan(std::trunc(f64__f32_nan))         && isnan(nonstd::cx::trunc(f64__f32_nan)) )         ));
+        REQUIRE(( ( std::trunc(f64__f64_nan)         == nonstd::cx::trunc(f64__f64_nan) )         || ( isnan(std::trunc(f64__f64_nan))         && isnan(nonstd::cx::trunc(f64__f64_nan)) )         ));
+        REQUIRE(( ( std::trunc(f64__f_long_nan)      == nonstd::cx::trunc(f64__f_long_nan) )      || ( isnan(std::trunc(f64__f_long_nan))      && isnan(nonstd::cx::trunc(f64__f_long_nan)) )      ));
+        REQUIRE(( ( std::trunc(f64__f32_inf)         == nonstd::cx::trunc(f64__f32_inf) )         || ( isnan(std::trunc(f64__f32_inf))         && isnan(nonstd::cx::trunc(f64__f32_inf)) )         ));
+        REQUIRE(( ( std::trunc(f64__f64_inf)         == nonstd::cx::trunc(f64__f64_inf) )         || ( isnan(std::trunc(f64__f64_inf))         && isnan(nonstd::cx::trunc(f64__f64_inf)) )         ));
+        REQUIRE(( ( std::trunc(f64__f_long_inf)      == nonstd::cx::trunc(f64__f_long_inf) )      || ( isnan(std::trunc(f64__f_long_inf))      && isnan(nonstd::cx::trunc(f64__f_long_inf)) )      ));
+        // REQUIRE(( ( std::trunc(f64__f32_less_min)    == nonstd::cx::trunc(f64__f32_less_min) )    || ( isnan(std::trunc(f64__f32_less_min))    && isnan(nonstd::cx::trunc(f64__f32_less_min)) )    ));
+        // REQUIRE(( ( std::trunc(f64__f32_more_max)    == nonstd::cx::trunc(f64__f32_more_max) )    || ( isnan(std::trunc(f64__f32_more_max))    && isnan(nonstd::cx::trunc(f64__f32_more_max)) )    ));
+        // REQUIRE(( ( std::trunc(f64__f64_less_min)    == nonstd::cx::trunc(f64__f64_less_min) )    || ( isnan(std::trunc(f64__f64_less_min))    && isnan(nonstd::cx::trunc(f64__f64_less_min)) )    ));
+        // REQUIRE(( ( std::trunc(f64__f64_more_max)    == nonstd::cx::trunc(f64__f64_more_max) )    || ( isnan(std::trunc(f64__f64_more_max))    && isnan(nonstd::cx::trunc(f64__f64_more_max)) )    ));
+        // REQUIRE(( ( std::trunc(f64__f_long_less_min) == nonstd::cx::trunc(f64__f_long_less_min) ) || ( isnan(std::trunc(f64__f_long_less_min)) && isnan(nonstd::cx::trunc(f64__f_long_less_min)) ) ));
+        // REQUIRE(( ( std::trunc(f64__f_long_more_max) == nonstd::cx::trunc(f64__f_long_more_max) ) || ( isnan(std::trunc(f64__f_long_more_max)) && isnan(nonstd::cx::trunc(f64__f_long_more_max)) ) ));
+
+        REQUIRE(( ( std::trunc(f_long__positive)        == nonstd::cx::trunc(f_long__positive) )        || ( isnan(std::trunc(f_long__positive))        && isnan(nonstd::cx::trunc(f_long__positive)) )        ));
+        REQUIRE(( ( std::trunc(f_long__negative)        == nonstd::cx::trunc(f_long__negative) )        || ( isnan(std::trunc(f_long__negative))        && isnan(nonstd::cx::trunc(f_long__negative)) )        ));
+        // REQUIRE(( ( std::trunc(f_long__f32_min)         == nonstd::cx::trunc(f_long__f32_min) )         || ( isnan(std::trunc(f_long__f32_min))         && isnan(nonstd::cx::trunc(f_long__f32_min)) )         ));
+        // REQUIRE(( ( std::trunc(f_long__f32_max)         == nonstd::cx::trunc(f_long__f32_max) )         || ( isnan(std::trunc(f_long__f32_max))         && isnan(nonstd::cx::trunc(f_long__f32_max)) )         ));
+        // REQUIRE(( ( std::trunc(f_long__f64_min)         == nonstd::cx::trunc(f_long__f64_min) )         || ( isnan(std::trunc(f_long__f64_min))         && isnan(nonstd::cx::trunc(f_long__f64_min)) )         ));
+        // REQUIRE(( ( std::trunc(f_long__f64_max)         == nonstd::cx::trunc(f_long__f64_max) )         || ( isnan(std::trunc(f_long__f64_max))         && isnan(nonstd::cx::trunc(f_long__f64_max)) )         ));
+        // REQUIRE(( ( std::trunc(f_long__f_long_min)      == nonstd::cx::trunc(f_long__f_long_min) )      || ( isnan(std::trunc(f_long__f_long_min))      && isnan(nonstd::cx::trunc(f_long__f_long_min)) )      ));
+        // REQUIRE(( ( std::trunc(f_long__f_long_max)      == nonstd::cx::trunc(f_long__f_long_max) )      || ( isnan(std::trunc(f_long__f_long_max))      && isnan(nonstd::cx::trunc(f_long__f_long_max)) )      ));
+        REQUIRE(( ( std::trunc(f_long__f32_nan)         == nonstd::cx::trunc(f_long__f32_nan) )         || ( isnan(std::trunc(f_long__f32_nan))         && isnan(nonstd::cx::trunc(f_long__f32_nan)) )         ));
+        REQUIRE(( ( std::trunc(f_long__f64_nan)         == nonstd::cx::trunc(f_long__f64_nan) )         || ( isnan(std::trunc(f_long__f64_nan))         && isnan(nonstd::cx::trunc(f_long__f64_nan)) )         ));
+        REQUIRE(( ( std::trunc(f_long__f_long_nan)      == nonstd::cx::trunc(f_long__f_long_nan) )      || ( isnan(std::trunc(f_long__f_long_nan))      && isnan(nonstd::cx::trunc(f_long__f_long_nan)) )      ));
+        REQUIRE(( ( std::trunc(f_long__f32_inf)         == nonstd::cx::trunc(f_long__f32_inf) )         || ( isnan(std::trunc(f_long__f32_inf))         && isnan(nonstd::cx::trunc(f_long__f32_inf)) )         ));
+        REQUIRE(( ( std::trunc(f_long__f64_inf)         == nonstd::cx::trunc(f_long__f64_inf) )         || ( isnan(std::trunc(f_long__f64_inf))         && isnan(nonstd::cx::trunc(f_long__f64_inf)) )         ));
+        REQUIRE(( ( std::trunc(f_long__f_long_inf)      == nonstd::cx::trunc(f_long__f_long_inf) )      || ( isnan(std::trunc(f_long__f_long_inf))      && isnan(nonstd::cx::trunc(f_long__f_long_inf)) )      ));
+        // REQUIRE(( ( std::trunc(f_long__f32_less_min)    == nonstd::cx::trunc(f_long__f32_less_min) )    || ( isnan(std::trunc(f_long__f32_less_min))    && isnan(nonstd::cx::trunc(f_long__f32_less_min)) )    ));
+        // REQUIRE(( ( std::trunc(f_long__f32_more_max)    == nonstd::cx::trunc(f_long__f32_more_max) )    || ( isnan(std::trunc(f_long__f32_more_max))    && isnan(nonstd::cx::trunc(f_long__f32_more_max)) )    ));
+        // REQUIRE(( ( std::trunc(f_long__f64_less_min)    == nonstd::cx::trunc(f_long__f64_less_min) )    || ( isnan(std::trunc(f_long__f64_less_min))    && isnan(nonstd::cx::trunc(f_long__f64_less_min)) )    ));
+        // REQUIRE(( ( std::trunc(f_long__f64_more_max)    == nonstd::cx::trunc(f_long__f64_more_max) )    || ( isnan(std::trunc(f_long__f64_more_max))    && isnan(nonstd::cx::trunc(f_long__f64_more_max)) )    ));
+        // REQUIRE(( ( std::trunc(f_long__f_long_less_min) == nonstd::cx::trunc(f_long__f_long_less_min) ) || ( isnan(std::trunc(f_long__f_long_less_min)) && isnan(nonstd::cx::trunc(f_long__f_long_less_min)) ) ));
+        // REQUIRE(( ( std::trunc(f_long__f_long_more_max) == nonstd::cx::trunc(f_long__f_long_more_max) ) || ( isnan(std::trunc(f_long__f_long_more_max)) && isnan(nonstd::cx::trunc(f_long__f_long_more_max)) ) ));
+
+        // REQUIRE(( ( std::trunc(u64__positive) == nonstd::cx::trunc(u64__positive) ) || ( isnan(std::trunc(u64__positive)) && isnan(nonstd::cx::trunc(u64__positive)) ) ));
+        // REQUIRE(( ( std::trunc(u64__zero)     == nonstd::cx::trunc(u64__zero) )     || ( isnan(std::trunc(u64__zero))     && isnan(nonstd::cx::trunc(u64__zero)) )     ));
+        // REQUIRE(( ( std::trunc(u64__max)      == nonstd::cx::trunc(u64__max) )      || ( isnan(std::trunc(u64__max))      && isnan(nonstd::cx::trunc(u64__max)) )      ));
+        // REQUIRE(( ( std::trunc(i64__positive) == nonstd::cx::trunc(i64__positive) ) || ( isnan(std::trunc(i64__positive)) && isnan(nonstd::cx::trunc(i64__positive)) ) ));
+        // REQUIRE(( ( std::trunc(i64__zero)     == nonstd::cx::trunc(i64__zero) )     || ( isnan(std::trunc(i64__zero))     && isnan(nonstd::cx::trunc(i64__zero)) )     ));
+        // REQUIRE(( ( std::trunc(i64__negative) == nonstd::cx::trunc(i64__negative) ) || ( isnan(std::trunc(i64__negative)) && isnan(nonstd::cx::trunc(i64__negative)) ) ));
+        // REQUIRE(( ( std::trunc(i64__min)      == nonstd::cx::trunc(i64__min) )      || ( isnan(std::trunc(i64__min))      && isnan(nonstd::cx::trunc(i64__min)) )      ));
+        // REQUIRE(( ( std::trunc(i64__max)      == nonstd::cx::trunc(i64__max) )      || ( isnan(std::trunc(i64__max))      && isnan(nonstd::cx::trunc(i64__max)) )      ));
+
+        // Make sure cx::trunc is as precise as std::trunc. (Some of these should
+        // resolve in the direction you wouldn't think is correct.)
+        f64 a11 = 0.99999999999;         REQUIRE(std::trunc(a11) == nonstd::cx::trunc(a11));
+        f64 a12 = 0.999999999999;        REQUIRE(std::trunc(a12) == nonstd::cx::trunc(a12));
+        f64 a13 = 0.9999999999999;       REQUIRE(std::trunc(a13) == nonstd::cx::trunc(a13));
+        f64 a14 = 0.99999999999999;      REQUIRE(std::trunc(a14) == nonstd::cx::trunc(a14));
+        f64 a15 = 0.999999999999999;     REQUIRE(std::trunc(a15) == nonstd::cx::trunc(a15));
+        f64 a16 = 0.9999999999999999;    REQUIRE(std::trunc(a16) == nonstd::cx::trunc(a16));
+        f64 a17 = 0.99999999999999999;   REQUIRE(std::trunc(a17) == nonstd::cx::trunc(a17));
+        f64 a18 = 0.999999999999999999;  REQUIRE(std::trunc(a18) == nonstd::cx::trunc(a18));
+        f64 a19 = 0.9999999999999999999; REQUIRE(std::trunc(a19) == nonstd::cx::trunc(a19));
+    }
 }
 
 } /* namespace math */

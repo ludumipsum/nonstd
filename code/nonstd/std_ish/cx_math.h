@@ -62,6 +62,11 @@ namespace nonstd {
  *    long double floor(long double arg);
  *    double      floor(Integral arg);
  *
+ *    float       trunc(float arg);
+ *    double      trunc(double arg);
+ *    long double trunc(long double arg);
+ *    double      trunc(Integral arg);
+ *
  *  There will also be a set of non-standard functions that aid in the
  *  implementation of core functions, but may be useful to other packages.
  *
@@ -279,6 +284,20 @@ static constexpr long double floor(long double x) {
 template <typename Integral,
           enable_int_if_integral_t<Integral> = 0>
 static constexpr double floor(Integral x) {
+    return x;
+}
+
+// trunc -- Truncate to the nearest integer.
+template <typename FloatingPoint,
+          enable_int_if_floating_point_t<FloatingPoint> = 0>
+static constexpr FloatingPoint trunc(FloatingPoint x) {
+    return (x >= 0)
+         ?  floor(x)
+         : -floor(-x);
+}
+template <typename Integral,
+          enable_int_if_integral_t<Integral> = 0>
+static constexpr double trunc(Integral x) {
     return x;
 }
 
