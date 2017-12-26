@@ -174,6 +174,9 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(std::isinf(f_long__f_long_less_min) == nonstd::cx::isinf(f_long__f_long_less_min));
         REQUIRE(std::isinf(f_long__f_long_more_max) == nonstd::cx::isinf(f_long__f_long_more_max));
 
+#if !defined(NONSTD_COMPILER_MSVC)
+        // MSVC fails on these std::isinf calls with an 'ambiguous overload'
+        // error. This is out of spec, so keep testing these elsewhere.
         REQUIRE(std::isinf(u64__positive) == nonstd::cx::isinf(u64__positive));
         REQUIRE(std::isinf(u64__zero)     == nonstd::cx::isinf(u64__zero));
         REQUIRE(std::isinf(u64__max)      == nonstd::cx::isinf(u64__max));
@@ -182,6 +185,7 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(std::isinf(i64__negative) == nonstd::cx::isinf(i64__negative));
         REQUIRE(std::isinf(i64__min)      == nonstd::cx::isinf(i64__min));
         REQUIRE(std::isinf(i64__max)      == nonstd::cx::isinf(i64__max));
+#endif
     }
 
     SECTION("isnan") {
@@ -250,6 +254,9 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(std::isnan(f_long__f_long_less_min) == nonstd::cx::isnan(f_long__f_long_less_min));
         REQUIRE(std::isnan(f_long__f_long_more_max) == nonstd::cx::isnan(f_long__f_long_more_max));
 
+#if !defined(NONSTD_COMPILER_MSVC)
+        // MSVC fails on these std::isnan calls with an 'ambiguous overload'
+        // error. This is out of spec, so keep testing these elsewhere.
         REQUIRE(std::isnan(u64__positive) == nonstd::cx::isnan(u64__positive));
         REQUIRE(std::isnan(u64__zero)     == nonstd::cx::isnan(u64__zero));
         REQUIRE(std::isnan(u64__max)      == nonstd::cx::isnan(u64__max));
@@ -258,6 +265,7 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(std::isnan(i64__negative) == nonstd::cx::isnan(i64__negative));
         REQUIRE(std::isnan(i64__min)      == nonstd::cx::isnan(i64__min));
         REQUIRE(std::isnan(i64__max)      == nonstd::cx::isnan(i64__max));
+#endif
     }
 
     SECTION("abs") {
