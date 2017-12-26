@@ -48,7 +48,7 @@ namespace detail {
 // constexpr math functions
 
 // -----------------------------------------------------------------------------
-// is NaN / is INF functions
+// is INFINITE / is NaN functions
 
 // float isinf(float x)
 // double isinf(double x)
@@ -275,6 +275,7 @@ namespace detail {
 
 
 //----------------------------------------------------------------------------
+// Test if a value is INFINITE.
 template <typename FloatingPoint,
           enable_int_if_floating_point_t<FloatingPoint> = 0>
 constexpr bool isinf(FloatingPoint x) {
@@ -287,6 +288,7 @@ constexpr bool isinf(Integral x) {
 }
 
 //----------------------------------------------------------------------------
+// Test if a value is NaN.
 template <typename FloatingPoint,
           enable_int_if_floating_point_t<FloatingPoint> = 0>
 constexpr bool isnan(FloatingPoint x) {
@@ -300,6 +302,7 @@ constexpr bool isnan(Integral x) {
 }
 
 //----------------------------------------------------------------------------
+// Take the absolute value.
 template <typename FloatingPoint,
           enable_int_if_floating_point_t<FloatingPoint> = 0>
 constexpr FloatingPoint abs(FloatingPoint x) {
@@ -309,6 +312,7 @@ constexpr FloatingPoint abs(FloatingPoint x) {
 }
 
 //----------------------------------------------------------------------------
+// Take the absolute value.
 template <typename FloatingPoint,
           enable_int_if_floating_point_t<FloatingPoint> = 0>
 constexpr FloatingPoint fabs(FloatingPoint x) {
