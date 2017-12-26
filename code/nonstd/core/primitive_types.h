@@ -24,6 +24,7 @@ typedef int32_t         i32;       ENFORCE_SIZE(i32,  4);
 typedef int64_t         i64;       ENFORCE_SIZE(i64,  8);
 typedef float           f32;       ENFORCE_SIZE(f32,  4);
 typedef double          f64;       ENFORCE_SIZE(f64,  8);
+typedef long double     f_long; // Size is implementation specific.
 typedef char *          cstr;
 typedef char const *    c_cstr;
 typedef ptrdiff_t       ptrdiff;

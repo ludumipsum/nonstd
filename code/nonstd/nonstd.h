@@ -89,6 +89,7 @@
 #include "c_ish/value_category.h"
 
 #include "std_ish/compare.h"
+#include "std_ish/cx_math.h"
 #include "std_ish/hash.h"
 #include "std_ish/math.h"
 #include "std_ish/to_cstr.h"
