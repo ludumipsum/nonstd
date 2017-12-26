@@ -32,7 +32,7 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
     // them in, because it makes codemod easier.
     constexpr f32 f32__positive        =  1.0;                                      UNUSED(f32__positive);
     constexpr f32 f32__zero            =  0.0;                                      UNUSED(f32__zero);
-    constexpr f32 f32__negative        = -1.0;                                      UNUSED(f32__positive);
+    constexpr f32 f32__negative        = -1.0;                                      UNUSED(f32__negative);
     constexpr f32 f32__f32_min         = std::numeric_limits<f32>::min();           UNUSED(f32__f32_min);
     constexpr f32 f32__f32_max         = std::numeric_limits<f32>::max();           UNUSED(f32__f32_max);
     constexpr f32 f32__f64_min         = std::numeric_limits<f64>::min();           UNUSED(f32__f64_min);
@@ -98,14 +98,14 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
 
     // You thought we were done? There are Integral overloads for the functions
     // we want to test, too.
-    constexpr u64 u64__positive =  1;
-    constexpr u64 u64__zero     =  0;
-    constexpr u64 u64__max      =  std::numeric_limits<u64>::max();
-    constexpr i64 i64__positive =  1;
-    constexpr i64 i64__zero     =  0;
-    constexpr i64 i64__negative = -1;
-    constexpr i64 i64__min      =  std::numeric_limits<i64>::min();
-    constexpr i64 i64__max      =  std::numeric_limits<i64>::max();
+    constexpr u64 u64__positive =  1;                               UNUSED(u64__positive);
+    constexpr u64 u64__zero     =  0;                               UNUSED(u64__zero);
+    constexpr u64 u64__max      =  std::numeric_limits<u64>::max(); UNUSED(u64__max);
+    constexpr i64 i64__positive =  1;                               UNUSED(i64__positive);
+    constexpr i64 i64__zero     =  0;                               UNUSED(i64__zero);
+    constexpr i64 i64__negative = -1;                               UNUSED(i64__negative);
+    constexpr i64 i64__min      =  std::numeric_limits<i64>::min(); UNUSED(i64__min);
+    constexpr i64 i64__max      =  std::numeric_limits<i64>::max(); UNUSED(i64__max);
 
 
     SECTION("isinf") {
