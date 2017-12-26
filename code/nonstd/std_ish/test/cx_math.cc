@@ -424,6 +424,190 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::fabs(i64__min)      == nonstd::cx::fabs(i64__min) )      || ( isnan(std::fabs(i64__min))      && isnan(nonstd::cx::fabs(i64__min)) )      ));
         REQUIRE(( ( std::fabs(i64__max)      == nonstd::cx::fabs(i64__max) )      || ( isnan(std::fabs(i64__max))      && isnan(nonstd::cx::fabs(i64__max)) )      ));
     }
+
+    SECTION("ceil") {
+        constexpr auto calls_to_ceil_are_constexpr = nonstd::cx::ceil(f32__positive);
+
+        using std::isnan;
+        // ceil and floor don't much benefit from extents testing, and the
+        // results from those functions tend to be estimations. It's more
+        // important to verify exceptional (INFINITY, NaN) cases are consistent.
+        REQUIRE(( ( std::ceil(f32__positive)        == nonstd::cx::ceil(f32__positive) )        || ( isnan(std::ceil(f32__positive))        && isnan(nonstd::cx::ceil(f32__positive)) )        ));
+        REQUIRE(( ( std::ceil(f32__negative)        == nonstd::cx::ceil(f32__negative) )        || ( isnan(std::ceil(f32__negative))        && isnan(nonstd::cx::ceil(f32__negative)) )        ));
+        // REQUIRE(( ( std::ceil(f32__f32_min)         == nonstd::cx::ceil(f32__f32_min) )         || ( isnan(std::ceil(f32__f32_min))         && isnan(nonstd::cx::ceil(f32__f32_min)) )         ));
+        // REQUIRE(( ( std::ceil(f32__f32_max)         == nonstd::cx::ceil(f32__f32_max) )         || ( isnan(std::ceil(f32__f32_max))         && isnan(nonstd::cx::ceil(f32__f32_max)) )         ));
+        // REQUIRE(( ( std::ceil(f32__f64_min)         == nonstd::cx::ceil(f32__f64_min) )         || ( isnan(std::ceil(f32__f64_min))         && isnan(nonstd::cx::ceil(f32__f64_min)) )         ));
+    //  // REQUIRE(( ( std::ceil(f32__f64_max)         == nonstd::cx::ceil(f32__f64_max) )         || ( isnan(std::ceil(f32__f64_max))         && isnan(nonstd::cx::ceil(f32__f64_max)) )         ));
+        // REQUIRE(( ( std::ceil(f32__f_long_min)      == nonstd::cx::ceil(f32__f_long_min) )      || ( isnan(std::ceil(f32__f_long_min))      && isnan(nonstd::cx::ceil(f32__f_long_min)) )      ));
+    //  // REQUIRE(( ( std::ceil(f32__f_long_max)      == nonstd::cx::ceil(f32__f_long_max) )      || ( isnan(std::ceil(f32__f_long_max))      && isnan(nonstd::cx::ceil(f32__f_long_max)) )      ));
+        REQUIRE(( ( std::ceil(f32__f32_nan)         == nonstd::cx::ceil(f32__f32_nan) )         || ( isnan(std::ceil(f32__f32_nan))         && isnan(nonstd::cx::ceil(f32__f32_nan)) )         ));
+        REQUIRE(( ( std::ceil(f32__f64_nan)         == nonstd::cx::ceil(f32__f64_nan) )         || ( isnan(std::ceil(f32__f64_nan))         && isnan(nonstd::cx::ceil(f32__f64_nan)) )         ));
+        REQUIRE(( ( std::ceil(f32__f_long_nan)      == nonstd::cx::ceil(f32__f_long_nan) )      || ( isnan(std::ceil(f32__f_long_nan))      && isnan(nonstd::cx::ceil(f32__f_long_nan)) )      ));
+        REQUIRE(( ( std::ceil(f32__f32_inf)         == nonstd::cx::ceil(f32__f32_inf) )         || ( isnan(std::ceil(f32__f32_inf))         && isnan(nonstd::cx::ceil(f32__f32_inf)) )         ));
+        REQUIRE(( ( std::ceil(f32__f64_inf)         == nonstd::cx::ceil(f32__f64_inf) )         || ( isnan(std::ceil(f32__f64_inf))         && isnan(nonstd::cx::ceil(f32__f64_inf)) )         ));
+        REQUIRE(( ( std::ceil(f32__f_long_inf)      == nonstd::cx::ceil(f32__f_long_inf) )      || ( isnan(std::ceil(f32__f_long_inf))      && isnan(nonstd::cx::ceil(f32__f_long_inf)) )      ));
+        // REQUIRE(( ( std::ceil(f32__f32_less_min)    == nonstd::cx::ceil(f32__f32_less_min) )    || ( isnan(std::ceil(f32__f32_less_min))    && isnan(nonstd::cx::ceil(f32__f32_less_min)) )    ));
+        // REQUIRE(( ( std::ceil(f32__f32_more_max)    == nonstd::cx::ceil(f32__f32_more_max) )    || ( isnan(std::ceil(f32__f32_more_max))    && isnan(nonstd::cx::ceil(f32__f32_more_max)) )    ));
+        // REQUIRE(( ( std::ceil(f32__f64_less_min)    == nonstd::cx::ceil(f32__f64_less_min) )    || ( isnan(std::ceil(f32__f64_less_min))    && isnan(nonstd::cx::ceil(f32__f64_less_min)) )    ));
+        // REQUIRE(( ( std::ceil(f32__f64_more_max)    == nonstd::cx::ceil(f32__f64_more_max) )    || ( isnan(std::ceil(f32__f64_more_max))    && isnan(nonstd::cx::ceil(f32__f64_more_max)) )    ));
+        // REQUIRE(( ( std::ceil(f32__f_long_less_min) == nonstd::cx::ceil(f32__f_long_less_min) ) || ( isnan(std::ceil(f32__f_long_less_min)) && isnan(nonstd::cx::ceil(f32__f_long_less_min)) ) ));
+        // REQUIRE(( ( std::ceil(f32__f_long_more_max) == nonstd::cx::ceil(f32__f_long_more_max) ) || ( isnan(std::ceil(f32__f_long_more_max)) && isnan(nonstd::cx::ceil(f32__f_long_more_max)) ) ));
+
+        REQUIRE(( ( std::ceil(f64__positive)        == nonstd::cx::ceil(f64__positive) )        || ( isnan(std::ceil(f64__positive))        && isnan(nonstd::cx::ceil(f64__positive)) )        ));
+        REQUIRE(( ( std::ceil(f64__negative)        == nonstd::cx::ceil(f64__negative) )        || ( isnan(std::ceil(f64__negative))        && isnan(nonstd::cx::ceil(f64__negative)) )        ));
+        //  REQUIRE(( ( std::ceil(f64__f32_min)         == nonstd::cx::ceil(f64__f32_min) )         || ( isnan(std::ceil(f64__f32_min))         && isnan(nonstd::cx::ceil(f64__f32_min)) )         ));
+        //  REQUIRE(( ( std::ceil(f64__f32_max)         == nonstd::cx::ceil(f64__f32_max) )         || ( isnan(std::ceil(f64__f32_max))         && isnan(nonstd::cx::ceil(f64__f32_max)) )         ));
+        //  REQUIRE(( ( std::ceil(f64__f64_min)         == nonstd::cx::ceil(f64__f64_min) )         || ( isnan(std::ceil(f64__f64_min))         && isnan(nonstd::cx::ceil(f64__f64_min)) )         ));
+        //  REQUIRE(( ( std::ceil(f64__f64_max)         == nonstd::cx::ceil(f64__f64_max) )         || ( isnan(std::ceil(f64__f64_max))         && isnan(nonstd::cx::ceil(f64__f64_max)) )         ));
+        //  REQUIRE(( ( std::ceil(f64__f_long_min)      == nonstd::cx::ceil(f64__f_long_min) )      || ( isnan(std::ceil(f64__f_long_min))      && isnan(nonstd::cx::ceil(f64__f_long_min)) )      ));
+    //  //  REQUIRE(( ( std::ceil(f64__f_long_max)      == nonstd::cx::ceil(f64__f_long_max) )      || ( isnan(std::ceil(f64__f_long_max))      && isnan(nonstd::cx::ceil(f64__f_long_max)) )      ));
+        REQUIRE(( ( std::ceil(f64__f32_nan)         == nonstd::cx::ceil(f64__f32_nan) )         || ( isnan(std::ceil(f64__f32_nan))         && isnan(nonstd::cx::ceil(f64__f32_nan)) )         ));
+        REQUIRE(( ( std::ceil(f64__f64_nan)         == nonstd::cx::ceil(f64__f64_nan) )         || ( isnan(std::ceil(f64__f64_nan))         && isnan(nonstd::cx::ceil(f64__f64_nan)) )         ));
+        REQUIRE(( ( std::ceil(f64__f_long_nan)      == nonstd::cx::ceil(f64__f_long_nan) )      || ( isnan(std::ceil(f64__f_long_nan))      && isnan(nonstd::cx::ceil(f64__f_long_nan)) )      ));
+        REQUIRE(( ( std::ceil(f64__f32_inf)         == nonstd::cx::ceil(f64__f32_inf) )         || ( isnan(std::ceil(f64__f32_inf))         && isnan(nonstd::cx::ceil(f64__f32_inf)) )         ));
+        REQUIRE(( ( std::ceil(f64__f64_inf)         == nonstd::cx::ceil(f64__f64_inf) )         || ( isnan(std::ceil(f64__f64_inf))         && isnan(nonstd::cx::ceil(f64__f64_inf)) )         ));
+        REQUIRE(( ( std::ceil(f64__f_long_inf)      == nonstd::cx::ceil(f64__f_long_inf) )      || ( isnan(std::ceil(f64__f_long_inf))      && isnan(nonstd::cx::ceil(f64__f_long_inf)) )      ));
+        // REQUIRE(( ( std::ceil(f64__f32_less_min)    == nonstd::cx::ceil(f64__f32_less_min) )    || ( isnan(std::ceil(f64__f32_less_min))    && isnan(nonstd::cx::ceil(f64__f32_less_min)) )    ));
+        // REQUIRE(( ( std::ceil(f64__f32_more_max)    == nonstd::cx::ceil(f64__f32_more_max) )    || ( isnan(std::ceil(f64__f32_more_max))    && isnan(nonstd::cx::ceil(f64__f32_more_max)) )    ));
+        // REQUIRE(( ( std::ceil(f64__f64_less_min)    == nonstd::cx::ceil(f64__f64_less_min) )    || ( isnan(std::ceil(f64__f64_less_min))    && isnan(nonstd::cx::ceil(f64__f64_less_min)) )    ));
+        // REQUIRE(( ( std::ceil(f64__f64_more_max)    == nonstd::cx::ceil(f64__f64_more_max) )    || ( isnan(std::ceil(f64__f64_more_max))    && isnan(nonstd::cx::ceil(f64__f64_more_max)) )    ));
+        // REQUIRE(( ( std::ceil(f64__f_long_less_min) == nonstd::cx::ceil(f64__f_long_less_min) ) || ( isnan(std::ceil(f64__f_long_less_min)) && isnan(nonstd::cx::ceil(f64__f_long_less_min)) ) ));
+        // REQUIRE(( ( std::ceil(f64__f_long_more_max) == nonstd::cx::ceil(f64__f_long_more_max) ) || ( isnan(std::ceil(f64__f_long_more_max)) && isnan(nonstd::cx::ceil(f64__f_long_more_max)) ) ));
+
+        REQUIRE(( ( std::ceil(f_long__positive)        == nonstd::cx::ceil(f_long__positive) )        || ( isnan(std::ceil(f_long__positive))        && isnan(nonstd::cx::ceil(f_long__positive)) )        ));
+        REQUIRE(( ( std::ceil(f_long__negative)        == nonstd::cx::ceil(f_long__negative) )        || ( isnan(std::ceil(f_long__negative))        && isnan(nonstd::cx::ceil(f_long__negative)) )        ));
+        // REQUIRE(( ( std::ceil(f_long__f32_min)         == nonstd::cx::ceil(f_long__f32_min) )         || ( isnan(std::ceil(f_long__f32_min))         && isnan(nonstd::cx::ceil(f_long__f32_min)) )         ));
+        // REQUIRE(( ( std::ceil(f_long__f32_max)         == nonstd::cx::ceil(f_long__f32_max) )         || ( isnan(std::ceil(f_long__f32_max))         && isnan(nonstd::cx::ceil(f_long__f32_max)) )         ));
+        // REQUIRE(( ( std::ceil(f_long__f64_min)         == nonstd::cx::ceil(f_long__f64_min) )         || ( isnan(std::ceil(f_long__f64_min))         && isnan(nonstd::cx::ceil(f_long__f64_min)) )         ));
+        // REQUIRE(( ( std::ceil(f_long__f64_max)         == nonstd::cx::ceil(f_long__f64_max) )         || ( isnan(std::ceil(f_long__f64_max))         && isnan(nonstd::cx::ceil(f_long__f64_max)) )         ));
+        // REQUIRE(( ( std::ceil(f_long__f_long_min)      == nonstd::cx::ceil(f_long__f_long_min) )      || ( isnan(std::ceil(f_long__f_long_min))      && isnan(nonstd::cx::ceil(f_long__f_long_min)) )      ));
+        // REQUIRE(( ( std::ceil(f_long__f_long_max)      == nonstd::cx::ceil(f_long__f_long_max) )      || ( isnan(std::ceil(f_long__f_long_max))      && isnan(nonstd::cx::ceil(f_long__f_long_max)) )      ));
+        REQUIRE(( ( std::ceil(f_long__f32_nan)         == nonstd::cx::ceil(f_long__f32_nan) )         || ( isnan(std::ceil(f_long__f32_nan))         && isnan(nonstd::cx::ceil(f_long__f32_nan)) )         ));
+        REQUIRE(( ( std::ceil(f_long__f64_nan)         == nonstd::cx::ceil(f_long__f64_nan) )         || ( isnan(std::ceil(f_long__f64_nan))         && isnan(nonstd::cx::ceil(f_long__f64_nan)) )         ));
+        REQUIRE(( ( std::ceil(f_long__f_long_nan)      == nonstd::cx::ceil(f_long__f_long_nan) )      || ( isnan(std::ceil(f_long__f_long_nan))      && isnan(nonstd::cx::ceil(f_long__f_long_nan)) )      ));
+        REQUIRE(( ( std::ceil(f_long__f32_inf)         == nonstd::cx::ceil(f_long__f32_inf) )         || ( isnan(std::ceil(f_long__f32_inf))         && isnan(nonstd::cx::ceil(f_long__f32_inf)) )         ));
+        REQUIRE(( ( std::ceil(f_long__f64_inf)         == nonstd::cx::ceil(f_long__f64_inf) )         || ( isnan(std::ceil(f_long__f64_inf))         && isnan(nonstd::cx::ceil(f_long__f64_inf)) )         ));
+        REQUIRE(( ( std::ceil(f_long__f_long_inf)      == nonstd::cx::ceil(f_long__f_long_inf) )      || ( isnan(std::ceil(f_long__f_long_inf))      && isnan(nonstd::cx::ceil(f_long__f_long_inf)) )      ));
+        // REQUIRE(( ( std::ceil(f_long__f32_less_min)    == nonstd::cx::ceil(f_long__f32_less_min) )    || ( isnan(std::ceil(f_long__f32_less_min))    && isnan(nonstd::cx::ceil(f_long__f32_less_min)) )    ));
+        // REQUIRE(( ( std::ceil(f_long__f32_more_max)    == nonstd::cx::ceil(f_long__f32_more_max) )    || ( isnan(std::ceil(f_long__f32_more_max))    && isnan(nonstd::cx::ceil(f_long__f32_more_max)) )    ));
+        // REQUIRE(( ( std::ceil(f_long__f64_less_min)    == nonstd::cx::ceil(f_long__f64_less_min) )    || ( isnan(std::ceil(f_long__f64_less_min))    && isnan(nonstd::cx::ceil(f_long__f64_less_min)) )    ));
+        // REQUIRE(( ( std::ceil(f_long__f64_more_max)    == nonstd::cx::ceil(f_long__f64_more_max) )    || ( isnan(std::ceil(f_long__f64_more_max))    && isnan(nonstd::cx::ceil(f_long__f64_more_max)) )    ));
+        // REQUIRE(( ( std::ceil(f_long__f_long_less_min) == nonstd::cx::ceil(f_long__f_long_less_min) ) || ( isnan(std::ceil(f_long__f_long_less_min)) && isnan(nonstd::cx::ceil(f_long__f_long_less_min)) ) ));
+        // REQUIRE(( ( std::ceil(f_long__f_long_more_max) == nonstd::cx::ceil(f_long__f_long_more_max) ) || ( isnan(std::ceil(f_long__f_long_more_max)) && isnan(nonstd::cx::ceil(f_long__f_long_more_max)) ) ));
+
+        // REQUIRE(( ( std::ceil(u64__positive) == nonstd::cx::ceil(u64__positive) ) || ( isnan(std::ceil(u64__positive)) && isnan(nonstd::cx::ceil(u64__positive)) ) ));
+        // REQUIRE(( ( std::ceil(u64__zero)     == nonstd::cx::ceil(u64__zero) )     || ( isnan(std::ceil(u64__zero))     && isnan(nonstd::cx::ceil(u64__zero)) )     ));
+        // REQUIRE(( ( std::ceil(u64__max)      == nonstd::cx::ceil(u64__max) )      || ( isnan(std::ceil(u64__max))      && isnan(nonstd::cx::ceil(u64__max)) )      ));
+        // REQUIRE(( ( std::ceil(i64__positive) == nonstd::cx::ceil(i64__positive) ) || ( isnan(std::ceil(i64__positive)) && isnan(nonstd::cx::ceil(i64__positive)) ) ));
+        // REQUIRE(( ( std::ceil(i64__zero)     == nonstd::cx::ceil(i64__zero) )     || ( isnan(std::ceil(i64__zero))     && isnan(nonstd::cx::ceil(i64__zero)) )     ));
+        // REQUIRE(( ( std::ceil(i64__negative) == nonstd::cx::ceil(i64__negative) ) || ( isnan(std::ceil(i64__negative)) && isnan(nonstd::cx::ceil(i64__negative)) ) ));
+        // REQUIRE(( ( std::ceil(i64__min)      == nonstd::cx::ceil(i64__min) )      || ( isnan(std::ceil(i64__min))      && isnan(nonstd::cx::ceil(i64__min)) )      ));
+        // REQUIRE(( ( std::ceil(i64__max)      == nonstd::cx::ceil(i64__max) )      || ( isnan(std::ceil(i64__max))      && isnan(nonstd::cx::ceil(i64__max)) )      ));
+
+        // Make sure cx::ceil is as precise as std::ceil. (Some of these should
+        // resolve to 1, rather than 2.)
+        f64 a11 = 1.00000000001;         REQUIRE(std::ceil(a11) == nonstd::cx::ceil(a11));
+        f64 a12 = 1.000000000001;        REQUIRE(std::ceil(a12) == nonstd::cx::ceil(a12));
+        f64 a13 = 1.0000000000001;       REQUIRE(std::ceil(a13) == nonstd::cx::ceil(a13));
+        f64 a14 = 1.00000000000001;      REQUIRE(std::ceil(a14) == nonstd::cx::ceil(a14));
+        f64 a15 = 1.000000000000001;     REQUIRE(std::ceil(a15) == nonstd::cx::ceil(a15));
+        f64 a16 = 1.0000000000000001;    REQUIRE(std::ceil(a16) == nonstd::cx::ceil(a16));
+        f64 a17 = 1.00000000000000001;   REQUIRE(std::ceil(a17) == nonstd::cx::ceil(a17));
+        f64 a18 = 1.000000000000000001;  REQUIRE(std::ceil(a18) == nonstd::cx::ceil(a18));
+        f64 a19 = 1.0000000000000000001; REQUIRE(std::ceil(a19) == nonstd::cx::ceil(a19));
+    }
+
+    SECTION("floor") {
+        constexpr auto calls_to_floor_are_constexpr = nonstd::cx::floor(f32__positive);
+
+        using std::isnan;
+        // floor and floor don't much benefit from extents testing, and the
+        // results from those functions tend to be estimations. It's more
+        // important to verify exceptional (INFINITY, NaN) cases are consistent.
+        REQUIRE(( ( std::floor(f32__positive)        == nonstd::cx::floor(f32__positive) )        || ( isnan(std::floor(f32__positive))        && isnan(nonstd::cx::floor(f32__positive)) )        ));
+        REQUIRE(( ( std::floor(f32__negative)        == nonstd::cx::floor(f32__negative) )        || ( isnan(std::floor(f32__negative))        && isnan(nonstd::cx::floor(f32__negative)) )        ));
+        // REQUIRE(( ( std::floor(f32__f32_min)         == nonstd::cx::floor(f32__f32_min) )         || ( isnan(std::floor(f32__f32_min))         && isnan(nonstd::cx::floor(f32__f32_min)) )         ));
+        // REQUIRE(( ( std::floor(f32__f32_max)         == nonstd::cx::floor(f32__f32_max) )         || ( isnan(std::floor(f32__f32_max))         && isnan(nonstd::cx::floor(f32__f32_max)) )         ));
+        // REQUIRE(( ( std::floor(f32__f64_min)         == nonstd::cx::floor(f32__f64_min) )         || ( isnan(std::floor(f32__f64_min))         && isnan(nonstd::cx::floor(f32__f64_min)) )         ));
+    //  // REQUIRE(( ( std::floor(f32__f64_max)         == nonstd::cx::floor(f32__f64_max) )         || ( isnan(std::floor(f32__f64_max))         && isnan(nonstd::cx::floor(f32__f64_max)) )         ));
+        // REQUIRE(( ( std::floor(f32__f_long_min)      == nonstd::cx::floor(f32__f_long_min) )      || ( isnan(std::floor(f32__f_long_min))      && isnan(nonstd::cx::floor(f32__f_long_min)) )      ));
+    //  // REQUIRE(( ( std::floor(f32__f_long_max)      == nonstd::cx::floor(f32__f_long_max) )      || ( isnan(std::floor(f32__f_long_max))      && isnan(nonstd::cx::floor(f32__f_long_max)) )      ));
+        REQUIRE(( ( std::floor(f32__f32_nan)         == nonstd::cx::floor(f32__f32_nan) )         || ( isnan(std::floor(f32__f32_nan))         && isnan(nonstd::cx::floor(f32__f32_nan)) )         ));
+        REQUIRE(( ( std::floor(f32__f64_nan)         == nonstd::cx::floor(f32__f64_nan) )         || ( isnan(std::floor(f32__f64_nan))         && isnan(nonstd::cx::floor(f32__f64_nan)) )         ));
+        REQUIRE(( ( std::floor(f32__f_long_nan)      == nonstd::cx::floor(f32__f_long_nan) )      || ( isnan(std::floor(f32__f_long_nan))      && isnan(nonstd::cx::floor(f32__f_long_nan)) )      ));
+        REQUIRE(( ( std::floor(f32__f32_inf)         == nonstd::cx::floor(f32__f32_inf) )         || ( isnan(std::floor(f32__f32_inf))         && isnan(nonstd::cx::floor(f32__f32_inf)) )         ));
+        REQUIRE(( ( std::floor(f32__f64_inf)         == nonstd::cx::floor(f32__f64_inf) )         || ( isnan(std::floor(f32__f64_inf))         && isnan(nonstd::cx::floor(f32__f64_inf)) )         ));
+        REQUIRE(( ( std::floor(f32__f_long_inf)      == nonstd::cx::floor(f32__f_long_inf) )      || ( isnan(std::floor(f32__f_long_inf))      && isnan(nonstd::cx::floor(f32__f_long_inf)) )      ));
+        // REQUIRE(( ( std::floor(f32__f32_less_min)    == nonstd::cx::floor(f32__f32_less_min) )    || ( isnan(std::floor(f32__f32_less_min))    && isnan(nonstd::cx::floor(f32__f32_less_min)) )    ));
+        // REQUIRE(( ( std::floor(f32__f32_more_max)    == nonstd::cx::floor(f32__f32_more_max) )    || ( isnan(std::floor(f32__f32_more_max))    && isnan(nonstd::cx::floor(f32__f32_more_max)) )    ));
+        // REQUIRE(( ( std::floor(f32__f64_less_min)    == nonstd::cx::floor(f32__f64_less_min) )    || ( isnan(std::floor(f32__f64_less_min))    && isnan(nonstd::cx::floor(f32__f64_less_min)) )    ));
+        // REQUIRE(( ( std::floor(f32__f64_more_max)    == nonstd::cx::floor(f32__f64_more_max) )    || ( isnan(std::floor(f32__f64_more_max))    && isnan(nonstd::cx::floor(f32__f64_more_max)) )    ));
+        // REQUIRE(( ( std::floor(f32__f_long_less_min) == nonstd::cx::floor(f32__f_long_less_min) ) || ( isnan(std::floor(f32__f_long_less_min)) && isnan(nonstd::cx::floor(f32__f_long_less_min)) ) ));
+        // REQUIRE(( ( std::floor(f32__f_long_more_max) == nonstd::cx::floor(f32__f_long_more_max) ) || ( isnan(std::floor(f32__f_long_more_max)) && isnan(nonstd::cx::floor(f32__f_long_more_max)) ) ));
+
+        REQUIRE(( ( std::floor(f64__positive)        == nonstd::cx::floor(f64__positive) )        || ( isnan(std::floor(f64__positive))        && isnan(nonstd::cx::floor(f64__positive)) )        ));
+        REQUIRE(( ( std::floor(f64__negative)        == nonstd::cx::floor(f64__negative) )        || ( isnan(std::floor(f64__negative))        && isnan(nonstd::cx::floor(f64__negative)) )        ));
+        //  REQUIRE(( ( std::floor(f64__f32_min)         == nonstd::cx::floor(f64__f32_min) )         || ( isnan(std::floor(f64__f32_min))         && isnan(nonstd::cx::floor(f64__f32_min)) )         ));
+        //  REQUIRE(( ( std::floor(f64__f32_max)         == nonstd::cx::floor(f64__f32_max) )         || ( isnan(std::floor(f64__f32_max))         && isnan(nonstd::cx::floor(f64__f32_max)) )         ));
+        //  REQUIRE(( ( std::floor(f64__f64_min)         == nonstd::cx::floor(f64__f64_min) )         || ( isnan(std::floor(f64__f64_min))         && isnan(nonstd::cx::floor(f64__f64_min)) )         ));
+        //  REQUIRE(( ( std::floor(f64__f64_max)         == nonstd::cx::floor(f64__f64_max) )         || ( isnan(std::floor(f64__f64_max))         && isnan(nonstd::cx::floor(f64__f64_max)) )         ));
+        //  REQUIRE(( ( std::floor(f64__f_long_min)      == nonstd::cx::floor(f64__f_long_min) )      || ( isnan(std::floor(f64__f_long_min))      && isnan(nonstd::cx::floor(f64__f_long_min)) )      ));
+    //  //  REQUIRE(( ( std::floor(f64__f_long_max)      == nonstd::cx::floor(f64__f_long_max) )      || ( isnan(std::floor(f64__f_long_max))      && isnan(nonstd::cx::floor(f64__f_long_max)) )      ));
+        REQUIRE(( ( std::floor(f64__f32_nan)         == nonstd::cx::floor(f64__f32_nan) )         || ( isnan(std::floor(f64__f32_nan))         && isnan(nonstd::cx::floor(f64__f32_nan)) )         ));
+        REQUIRE(( ( std::floor(f64__f64_nan)         == nonstd::cx::floor(f64__f64_nan) )         || ( isnan(std::floor(f64__f64_nan))         && isnan(nonstd::cx::floor(f64__f64_nan)) )         ));
+        REQUIRE(( ( std::floor(f64__f_long_nan)      == nonstd::cx::floor(f64__f_long_nan) )      || ( isnan(std::floor(f64__f_long_nan))      && isnan(nonstd::cx::floor(f64__f_long_nan)) )      ));
+        REQUIRE(( ( std::floor(f64__f32_inf)         == nonstd::cx::floor(f64__f32_inf) )         || ( isnan(std::floor(f64__f32_inf))         && isnan(nonstd::cx::floor(f64__f32_inf)) )         ));
+        REQUIRE(( ( std::floor(f64__f64_inf)         == nonstd::cx::floor(f64__f64_inf) )         || ( isnan(std::floor(f64__f64_inf))         && isnan(nonstd::cx::floor(f64__f64_inf)) )         ));
+        REQUIRE(( ( std::floor(f64__f_long_inf)      == nonstd::cx::floor(f64__f_long_inf) )      || ( isnan(std::floor(f64__f_long_inf))      && isnan(nonstd::cx::floor(f64__f_long_inf)) )      ));
+        // REQUIRE(( ( std::floor(f64__f32_less_min)    == nonstd::cx::floor(f64__f32_less_min) )    || ( isnan(std::floor(f64__f32_less_min))    && isnan(nonstd::cx::floor(f64__f32_less_min)) )    ));
+        // REQUIRE(( ( std::floor(f64__f32_more_max)    == nonstd::cx::floor(f64__f32_more_max) )    || ( isnan(std::floor(f64__f32_more_max))    && isnan(nonstd::cx::floor(f64__f32_more_max)) )    ));
+        // REQUIRE(( ( std::floor(f64__f64_less_min)    == nonstd::cx::floor(f64__f64_less_min) )    || ( isnan(std::floor(f64__f64_less_min))    && isnan(nonstd::cx::floor(f64__f64_less_min)) )    ));
+        // REQUIRE(( ( std::floor(f64__f64_more_max)    == nonstd::cx::floor(f64__f64_more_max) )    || ( isnan(std::floor(f64__f64_more_max))    && isnan(nonstd::cx::floor(f64__f64_more_max)) )    ));
+        // REQUIRE(( ( std::floor(f64__f_long_less_min) == nonstd::cx::floor(f64__f_long_less_min) ) || ( isnan(std::floor(f64__f_long_less_min)) && isnan(nonstd::cx::floor(f64__f_long_less_min)) ) ));
+        // REQUIRE(( ( std::floor(f64__f_long_more_max) == nonstd::cx::floor(f64__f_long_more_max) ) || ( isnan(std::floor(f64__f_long_more_max)) && isnan(nonstd::cx::floor(f64__f_long_more_max)) ) ));
+
+        REQUIRE(( ( std::floor(f_long__positive)        == nonstd::cx::floor(f_long__positive) )        || ( isnan(std::floor(f_long__positive))        && isnan(nonstd::cx::floor(f_long__positive)) )        ));
+        REQUIRE(( ( std::floor(f_long__negative)        == nonstd::cx::floor(f_long__negative) )        || ( isnan(std::floor(f_long__negative))        && isnan(nonstd::cx::floor(f_long__negative)) )        ));
+        // REQUIRE(( ( std::floor(f_long__f32_min)         == nonstd::cx::floor(f_long__f32_min) )         || ( isnan(std::floor(f_long__f32_min))         && isnan(nonstd::cx::floor(f_long__f32_min)) )         ));
+        // REQUIRE(( ( std::floor(f_long__f32_max)         == nonstd::cx::floor(f_long__f32_max) )         || ( isnan(std::floor(f_long__f32_max))         && isnan(nonstd::cx::floor(f_long__f32_max)) )         ));
+        // REQUIRE(( ( std::floor(f_long__f64_min)         == nonstd::cx::floor(f_long__f64_min) )         || ( isnan(std::floor(f_long__f64_min))         && isnan(nonstd::cx::floor(f_long__f64_min)) )         ));
+        // REQUIRE(( ( std::floor(f_long__f64_max)         == nonstd::cx::floor(f_long__f64_max) )         || ( isnan(std::floor(f_long__f64_max))         && isnan(nonstd::cx::floor(f_long__f64_max)) )         ));
+        // REQUIRE(( ( std::floor(f_long__f_long_min)      == nonstd::cx::floor(f_long__f_long_min) )      || ( isnan(std::floor(f_long__f_long_min))      && isnan(nonstd::cx::floor(f_long__f_long_min)) )      ));
+        // REQUIRE(( ( std::floor(f_long__f_long_max)      == nonstd::cx::floor(f_long__f_long_max) )      || ( isnan(std::floor(f_long__f_long_max))      && isnan(nonstd::cx::floor(f_long__f_long_max)) )      ));
+        REQUIRE(( ( std::floor(f_long__f32_nan)         == nonstd::cx::floor(f_long__f32_nan) )         || ( isnan(std::floor(f_long__f32_nan))         && isnan(nonstd::cx::floor(f_long__f32_nan)) )         ));
+        REQUIRE(( ( std::floor(f_long__f64_nan)         == nonstd::cx::floor(f_long__f64_nan) )         || ( isnan(std::floor(f_long__f64_nan))         && isnan(nonstd::cx::floor(f_long__f64_nan)) )         ));
+        REQUIRE(( ( std::floor(f_long__f_long_nan)      == nonstd::cx::floor(f_long__f_long_nan) )      || ( isnan(std::floor(f_long__f_long_nan))      && isnan(nonstd::cx::floor(f_long__f_long_nan)) )      ));
+        REQUIRE(( ( std::floor(f_long__f32_inf)         == nonstd::cx::floor(f_long__f32_inf) )         || ( isnan(std::floor(f_long__f32_inf))         && isnan(nonstd::cx::floor(f_long__f32_inf)) )         ));
+        REQUIRE(( ( std::floor(f_long__f64_inf)         == nonstd::cx::floor(f_long__f64_inf) )         || ( isnan(std::floor(f_long__f64_inf))         && isnan(nonstd::cx::floor(f_long__f64_inf)) )         ));
+        REQUIRE(( ( std::floor(f_long__f_long_inf)      == nonstd::cx::floor(f_long__f_long_inf) )      || ( isnan(std::floor(f_long__f_long_inf))      && isnan(nonstd::cx::floor(f_long__f_long_inf)) )      ));
+        // REQUIRE(( ( std::floor(f_long__f32_less_min)    == nonstd::cx::floor(f_long__f32_less_min) )    || ( isnan(std::floor(f_long__f32_less_min))    && isnan(nonstd::cx::floor(f_long__f32_less_min)) )    ));
+        // REQUIRE(( ( std::floor(f_long__f32_more_max)    == nonstd::cx::floor(f_long__f32_more_max) )    || ( isnan(std::floor(f_long__f32_more_max))    && isnan(nonstd::cx::floor(f_long__f32_more_max)) )    ));
+        // REQUIRE(( ( std::floor(f_long__f64_less_min)    == nonstd::cx::floor(f_long__f64_less_min) )    || ( isnan(std::floor(f_long__f64_less_min))    && isnan(nonstd::cx::floor(f_long__f64_less_min)) )    ));
+        // REQUIRE(( ( std::floor(f_long__f64_more_max)    == nonstd::cx::floor(f_long__f64_more_max) )    || ( isnan(std::floor(f_long__f64_more_max))    && isnan(nonstd::cx::floor(f_long__f64_more_max)) )    ));
+        // REQUIRE(( ( std::floor(f_long__f_long_less_min) == nonstd::cx::floor(f_long__f_long_less_min) ) || ( isnan(std::floor(f_long__f_long_less_min)) && isnan(nonstd::cx::floor(f_long__f_long_less_min)) ) ));
+        // REQUIRE(( ( std::floor(f_long__f_long_more_max) == nonstd::cx::floor(f_long__f_long_more_max) ) || ( isnan(std::floor(f_long__f_long_more_max)) && isnan(nonstd::cx::floor(f_long__f_long_more_max)) ) ));
+
+        // REQUIRE(( ( std::floor(u64__positive) == nonstd::cx::floor(u64__positive) ) || ( isnan(std::floor(u64__positive)) && isnan(nonstd::cx::floor(u64__positive)) ) ));
+        // REQUIRE(( ( std::floor(u64__zero)     == nonstd::cx::floor(u64__zero) )     || ( isnan(std::floor(u64__zero))     && isnan(nonstd::cx::floor(u64__zero)) )     ));
+        // REQUIRE(( ( std::floor(u64__max)      == nonstd::cx::floor(u64__max) )      || ( isnan(std::floor(u64__max))      && isnan(nonstd::cx::floor(u64__max)) )      ));
+        // REQUIRE(( ( std::floor(i64__positive) == nonstd::cx::floor(i64__positive) ) || ( isnan(std::floor(i64__positive)) && isnan(nonstd::cx::floor(i64__positive)) ) ));
+        // REQUIRE(( ( std::floor(i64__zero)     == nonstd::cx::floor(i64__zero) )     || ( isnan(std::floor(i64__zero))     && isnan(nonstd::cx::floor(i64__zero)) )     ));
+        // REQUIRE(( ( std::floor(i64__negative) == nonstd::cx::floor(i64__negative) ) || ( isnan(std::floor(i64__negative)) && isnan(nonstd::cx::floor(i64__negative)) ) ));
+        // REQUIRE(( ( std::floor(i64__min)      == nonstd::cx::floor(i64__min) )      || ( isnan(std::floor(i64__min))      && isnan(nonstd::cx::floor(i64__min)) )      ));
+        // REQUIRE(( ( std::floor(i64__max)      == nonstd::cx::floor(i64__max) )      || ( isnan(std::floor(i64__max))      && isnan(nonstd::cx::floor(i64__max)) )      ));
+
+        // Make sure cx::floor is as precise as std::floor. (Some of these should
+        // resolve to 1, rather than 0.)
+        f64 a11 = 0.99999999999;         REQUIRE(std::floor(a11) == nonstd::cx::floor(a11));
+        f64 a12 = 0.999999999999;        REQUIRE(std::floor(a12) == nonstd::cx::floor(a12));
+        f64 a13 = 0.9999999999999;       REQUIRE(std::floor(a13) == nonstd::cx::floor(a13));
+        f64 a14 = 0.99999999999999;      REQUIRE(std::floor(a14) == nonstd::cx::floor(a14));
+        f64 a15 = 0.999999999999999;     REQUIRE(std::floor(a15) == nonstd::cx::floor(a15));
+        f64 a16 = 0.9999999999999999;    REQUIRE(std::floor(a16) == nonstd::cx::floor(a16));
+        f64 a17 = 0.99999999999999999;   REQUIRE(std::floor(a17) == nonstd::cx::floor(a17));
+        f64 a18 = 0.999999999999999999;  REQUIRE(std::floor(a18) == nonstd::cx::floor(a18));
+        f64 a19 = 0.9999999999999999999; REQUIRE(std::floor(a19) == nonstd::cx::floor(a19));
+    }
 }
 
 } /* namespace math */

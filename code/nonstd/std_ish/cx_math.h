@@ -23,76 +23,180 @@
 
 
 namespace nonstd {
-namespace cx {
+
+/** Constexpr Math Utilities
+ *  ------------------------
+ *  This struct is acting as a well-contained namespace; it only contains static
+ *  members, and all its functions will be inline and/or templates. We use it,
+ *  rather than a "real" namespace, to avoid issues with the order of function
+ *  declaration.
+ *
+ *  The provide functions are as follows;
+ *
+ *    bool isinf(float arg);
+ *    bool isinf(double arg);
+ *    bool isinf(long double arg);
+ *    bool isinf(Integral arg);
+ *
+ *    bool isnan(float arg);
+ *    bool isnan(double arg);
+ *    bool isnan(long double arg);
+ *    bool isnan(Integral arg);
+ *
+ *    float       abs(float arg);
+ *    double      abs(double arg);
+ *    long double abs(long double arg);
+ *
+ *    float       abs(float arg);
+ *    double      abs(double arg);
+ *    long double abs(long double arg);
+ *    double      abs(Integral arg);
+ *
+ *    float       ceil(float arg);
+ *    double      ceil(double arg);
+ *    long double ceil(long double arg);
+ *    double      ceil(Integral arg);
+ *
+ *    float       floor(float arg);
+ *    double      floor(double arg);
+ *    long double floor(long double arg);
+ *    double      floor(Integral arg);
+ *
+ *  There will also be a set of non-standard functions that aid in the
+ *  implementation of core functions, but may be useful to other packages.
+ *
+ *    // Check if two numbers are with (an approximation) of the machine's
+ *    // adjusted epsilon.
+ *    constexpr bool nearly_equal(float x, float y);
+ *    constexpr bool nearly_equal(double x, double y);
+ *    constexpr bool nearly_equal(long double x, long double y);
+ *    constexpr bool nearly_equal(Integral x, Integral; y);
+ *
+ *    // Raise an arbitrary floating point to an arbitrary integral power.
+ *    constexpr float       fpow(float x, int pow);
+ *    constexpr double      fpow(double x, int pow);
+ *    constexpr long double fpow(long double x, int pow);
+ */
+struct cx {
 
 template <typename T>
 using enable_int_if_floating_point_t = typename std::enable_if_t<std::is_floating_point_v<T>, int>;
 template <typename T>
 using enable_int_if_integral_t = typename std::enable_if_t<std::is_integral_v<T>, int>;
 
+struct detail {
+    // nearly_equal -- Check if two numbers are with (an approximation) of the
+    // machine's adjusted epsilon.
+    template <typename T>
+    static constexpr bool nearly_equal(T x, T y) {
+        return nonstd::cx::abs(x - y) <= std::numeric_limits<T>::epsilon();
+    }
 
-/** Forward Declarations
- *  --------------------
- *  Many of these functions both rely on and are used by nonstd::cx functions,
- *  so we declare them before the nonstd::cx:: set, but define them after.
- */
-namespace detail {
+    // fpow -- Raise an arbitrary floating point to an arbitrary integral power.
+    template <typename FloatingPoint,
+              enable_int_if_floating_point_t<FloatingPoint> = 0>
+    static constexpr FloatingPoint fpow(FloatingPoint x, int n) {
+        return (n == 0) ? FloatingPoint {1}
+             : (n == 1) ? x
+             : (n >  1) ? ( (n & 1)
+                          ? x * fpow(x, n-1)
+                          : fpow(x, n/2) * fpow(x, n/2) )
+             : FloatingPoint {1} / fpow(x, -n);
+    }
 
-    // Test whether values are within machine epsilon.
-    template <typename T> constexpr bool feq(T x, T y);
+    // Implementation Helpers
 
-} /* namespace detail */
+    template <typename T>
+    static constexpr T floor(T x, T guess, T inc) {
+        return inc < T{8}                   ? floor2(x, guess, inc)
+             : guess + inc <= x             ? floor(x, guess + inc, inc)
+             : guess + (inc/T{8})*T{7} <= x ? floor(x, guess + (inc/T{8})*T{7}, inc/T{8})
+             : guess + (inc/T{8})*T{6} <= x ? floor(x, guess + (inc/T{8})*T{6}, inc/T{8})
+             : guess + (inc/T{8})*T{5} <= x ? floor(x, guess + (inc/T{8})*T{5}, inc/T{8})
+             : guess + (inc/T{8})*T{4} <= x ? floor(x, guess + (inc/T{8})*T{4}, inc/T{8})
+             : guess + (inc/T{8})*T{3} <= x ? floor(x, guess + (inc/T{8})*T{3}, inc/T{8})
+             : guess + (inc/T{8})*T{2} <= x ? floor(x, guess + (inc/T{8})*T{2}, inc/T{8})
+             : guess + inc/T{8} <= x        ? floor(x, guess + inc/T{8}, inc/T{8})
+             : floor(x, guess, inc/T{8});
+    }
+    template <typename T>
+    static constexpr T floor2(T x, T guess, T inc) {
+        return guess + inc <= x ? floor2(x, guess + inc, inc)
+             : inc <= T{1}      ? guess
+             : floor2(x, guess, inc/T{2});
+    }
 
+    template <typename T>
+    static constexpr T ceil(T x, T guess, T dec) {
+        return dec < T{8}                   ? ceil2(x, guess, dec)
+             : guess - dec >= x             ? ceil(x, guess - dec, dec)
+             : guess - (dec/T{8})*T{7} >= x ? ceil(x, guess - (dec/T{8})*T{7}, dec/T{8})
+             : guess - (dec/T{8})*T{6} >= x ? ceil(x, guess - (dec/T{8})*T{6}, dec/T{8})
+             : guess - (dec/T{8})*T{5} >= x ? ceil(x, guess - (dec/T{8})*T{5}, dec/T{8})
+             : guess - (dec/T{8})*T{4} >= x ? ceil(x, guess - (dec/T{8})*T{4}, dec/T{8})
+             : guess - (dec/T{8})*T{3} >= x ? ceil(x, guess - (dec/T{8})*T{3}, dec/T{8})
+             : guess - (dec/T{8})*T{2} >= x ? ceil(x, guess - (dec/T{8})*T{2}, dec/T{8})
+             : guess - dec/T{8} >= x        ? ceil(x, guess - dec/T{8}, dec/T{8})
+             : ceil(x, guess, dec/T{8});
+    }
+    template <typename T>
+    static constexpr T ceil2(T x, T guess, T dec) {
+        return guess - dec >= x ? ceil2(x, guess - dec, dec)
+             : dec <= T{1}      ? guess
+             : ceil2(x, guess, dec/T{2});
+    }
+
+}; /* struct detail */
 
 /** Constexpr Math Utilities
- *  ------------------------
+ *  ----------------------------------------------------------------------------
  */
 
-// Test if a value is INFINITE.
+// isinf -- Check if the given value is INFINITE.
 template <typename FloatingPoint,
           enable_int_if_floating_point_t<FloatingPoint> = 0>
-constexpr bool isinf(FloatingPoint x) {
+static constexpr bool isinf(FloatingPoint x) {
     return std::numeric_limits<FloatingPoint>::max() < x;
 }
 template <typename Integral,
           enable_int_if_integral_t<Integral> = 0>
-constexpr bool isinf(Integral x) {
+static constexpr bool isinf(Integral x) {
     return isinf(static_cast<double>(x));
 }
 
-// Test if a value is NaN.
+// isnan -- Check if the given value is NaN.
 template <typename FloatingPoint,
           enable_int_if_floating_point_t<FloatingPoint> = 0>
-constexpr bool isnan(FloatingPoint x) {
+static constexpr bool isnan(FloatingPoint x) {
     return (0.0 >= x) == false
         && (0.0 <= x) == false;
 }
 template <typename Integral,
           enable_int_if_integral_t<Integral> = 0>
-constexpr bool isnan(Integral x) {
+static constexpr bool isnan(Integral x) {
     return isnan(static_cast<double>(x));
 }
 
-// Take the absolute value.
+// abs -- take the absolute value of the given floating point number.
 template <typename FloatingPoint,
           enable_int_if_floating_point_t<FloatingPoint> = 0>
-constexpr FloatingPoint abs(FloatingPoint x) {
+static constexpr FloatingPoint abs(FloatingPoint x) {
     return x >= 0 ?  x
          : x <  0 ? -x
          : x;
 }
 
-// Take the absolute value.
+// fabs -- take the absolute value of the given number.
 template <typename FloatingPoint,
           enable_int_if_floating_point_t<FloatingPoint> = 0>
-constexpr FloatingPoint fabs(FloatingPoint x) {
+static constexpr FloatingPoint fabs(FloatingPoint x) {
     return x >= 0 ?  x
          : x <  0 ? -x
          : x;
 }
 template <typename Integral,
           enable_int_if_integral_t<Integral> = 0>
-constexpr double fabs(Integral x) {
+static constexpr double fabs(Integral x) {
     // Today in Two's Compliment Arithmetic is Weird, multiplying INT_MIN
     // by `-1` results in INT_MIN. Remember that INT_MIN is `-2^32/2` and
     // INT_MAX is `2^32/2 - 1`. Trying to assign `+2^32/2` into an int can't
@@ -104,19 +208,79 @@ constexpr double fabs(Integral x) {
          : x;
 }
 
-
-
-/** Definitions
- *  -----------
- */
-namespace detail {
-    // Test whether values are within machine epsilon.
-    // Used for algorithm termination.
-    template <typename T>
-    constexpr bool feq(T x, T y) {
-        return nonstd::cx::abs(x - y) <= std::numeric_limits<T>::epsilon();
+// ceil -- Round up to the nearest integer.
+static constexpr float ceil(float x) {
+    constexpr int max_exponent = std::numeric_limits<float>::max_exponent - 1;
+    return isinf(x) ? x
+         : x <  0 ? -floor(-x)
+         : x >= 0 ? detail::ceil(x, detail::fpow(2.0f, max_exponent),
+                                    detail::fpow(2.0f, max_exponent))
+         : NAN;
+}
+static constexpr double ceil(double x) {
+    constexpr int max_exponent = std::numeric_limits<double>::max_exponent - 1;
+    return isinf(x) ? x
+         : x <  0 ? -floor(-x)
+         : x >= 0 ? detail::ceil(x, detail::fpow(2.0, max_exponent),
+                                    detail::fpow(2.0, max_exponent))
+         : NAN;
+}
+static constexpr long double ceil(long double x) {
+    if (x < 0.0l) { return -floor(-x); }
+    if (isinf(x) || isnan(x)) { return x; }
+    constexpr int max_exponent = std::numeric_limits<long double>::max_exponent - 1;
+    long double dec = detail::fpow(2.0l, max_exponent);
+    long double guess = dec;
+    for (;;) {
+        while (guess - dec < x) {
+            dec /= 2.0l;
+            if (dec < 1.0l) { return guess; }
+        }
+        guess -= dec;
     }
-} /* namespace detail */
+    return NAN;
+}
+template <typename Integral,
+          enable_int_if_integral_t<Integral> = 0>
+static constexpr double ceil(Integral x) {
+    return x;
+}
 
-} /* namespace cx */
+// floor -- Round down to the nearest integer.
+static constexpr float floor(float x) {
+    constexpr int max_exponent = std::numeric_limits<float>::max_exponent - 1;
+    return isinf(x) ? x
+         : x <  0 ? -ceil(-x)
+         : x >= 0 ? detail::floor(x, 0.0f, detail::fpow(2.0f, max_exponent))
+         : NAN;
+}
+static constexpr double floor(double x) {
+    constexpr int max_exponent = std::numeric_limits<double>::max_exponent - 1;
+    return isinf(x) ? x
+         : x <  0 ? -ceil(-x)
+         : x >= 0 ? detail::floor(x, 0.0, detail::fpow(2.0, max_exponent))
+         : NAN;
+}
+static constexpr long double floor(long double x) {
+    if (x < 0.0l) { return -ceil(-x); }
+    if (isinf(x) || isnan(x)) { return x; }
+    constexpr int max_exponent = std::numeric_limits<long double>::max_exponent - 1;
+    long double inc   = detail::fpow(2.0l, max_exponent);
+    long double guess = 0.0l;
+    for (;;) {
+        while (guess + inc > x) {
+            inc /= 2.0l;
+            if (inc < 1.0l) { return guess; }
+        }
+        guess += inc;
+    }
+    return NAN;
+}
+template <typename Integral,
+          enable_int_if_integral_t<Integral> = 0>
+static constexpr double floor(Integral x) {
+    return x;
+}
+
+}; /* struct cx */
 } /* namespace nonstd */
