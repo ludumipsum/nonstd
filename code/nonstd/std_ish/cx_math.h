@@ -112,29 +112,42 @@ struct detail {
              : FloatingPoint {1} / fpow(x, -n);
     }
 
-    // Implementation Helpers
 
-    /** cpp14_promoted_t Type Deduction
-     *  -------------------------------
-     *  `cpp14_promoted_t<A,B>` will be `double` for any combination of signed
-     *  integers, unsigned integers, float, and double. If either type is
-     *  `long double`, `cpp14_promoted_t<A,B>` will be `long double`.
+    /** arithmetic_promoted_t Type Deduction
+     *  ------------------------------------
+     *  `arithmetic_promoted_t<A,B>` will be `double` for any combination of
+     *  signed integers, unsigned integers, float, and double. If either type is
+     *  `long double`, `arithmetic_promoted_t<A,B>` will be `long double`.
      */
     template <typename A, typename B>
-    struct cpp14_promoted {
+    using arithmetic_promoted__neither_are_long =
+        typename std::enable_if_t<   !std::is_same_v<A, long double>
+                                  && !std::is_same_v<B, long double>>;
+    template <typename A, typename B>
+    using arithmetic_promoted__either_is_long =
+        typename std::enable_if_t<   std::is_same_v<A, long double>
+                                  || std::is_same_v<B, long double>>;
+
+
+    template <typename A, typename B, typename enabled=void>
+    struct arithmetic_promoted;
+
+    template <typename A, typename B>
+    struct arithmetic_promoted<A,B, arithmetic_promoted__neither_are_long<A,B>>
+    {
         using type = double;
     };
-    template <typename A>
-    struct cpp14_promoted<long double, A> {
-        using type = long double;
-    };
-    template <typename A>
-    struct cpp14_promoted<A, long double> {
-        using type = long double;
-    };
     template <typename A, typename B>
-    using cpp14_promoted_t = typename cpp14_promoted<A, B>::type;
+    struct arithmetic_promoted<A,B, arithmetic_promoted__either_is_long<A,B>>
+    {
+        using type = long double;
+    };
 
+    template <typename A, typename B>
+    using arithmetic_promoted_t = typename arithmetic_promoted<A,B>::type;
+
+
+    // Implementation Helpers
 
     template <typename T>
     static constexpr T floor(T x, T guess, T inc) {
@@ -369,8 +382,8 @@ template <typename Arithmetic1, typename Arithmetic2,
           enable_int_if_arithmetic_t<Arithmetic1> = 0,
           enable_int_if_arithmetic_t<Arithmetic2> = 1>
 static constexpr auto fmod(Arithmetic1 x, Arithmetic2 y)
--> detail::cpp14_promoted_t<Arithmetic1, Arithmetic2> {
-    using PromotedType = detail::cpp14_promoted_t<Arithmetic1, Arithmetic2>;
+-> detail::arithmetic_promoted_t<Arithmetic1, Arithmetic2> {
+    using PromotedType = detail::arithmetic_promoted_t<Arithmetic1, Arithmetic2>;
     return fmod(static_cast<PromotedType>(x), static_cast<PromotedType>(y));
 }
 
