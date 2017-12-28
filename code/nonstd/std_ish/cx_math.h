@@ -142,6 +142,7 @@ struct detail {
              : guess - (dec/T{8})*T{3} >= x ? ceil(x, guess - (dec/T{8})*T{3}, dec/T{8})
              : guess - (dec/T{8})*T{2} >= x ? ceil(x, guess - (dec/T{8})*T{2}, dec/T{8})
              : guess - dec/T{8} >= x        ? ceil(x, guess - dec/T{8}, dec/T{8})
+             : guess < dec                  ? ceil(x, guess, guess)
              : ceil(x, guess, dec/T{8});
     }
     template <typename T>
@@ -215,31 +216,45 @@ static constexpr double fabs(Integral x) {
 
 // ceil -- Round up to the nearest integer.
 static constexpr float ceil(float x) {
-    constexpr int max_exponent = std::numeric_limits<float>::max_exponent - 1;
-    return isinf(x) ? x
-         : x <  0 ? -floor(-x)
-         : x >= 0 ? detail::ceil(x, detail::fpow(2.0f, max_exponent),
-                                    detail::fpow(2.0f, max_exponent))
+    constexpr float max = std::numeric_limits<float>::max();
+    constexpr float epsilon = std::numeric_limits<float>::epsilon();
+    constexpr int   max_exponent = std::numeric_limits<float>::max_exponent - 1;
+    constexpr float largest_power_of_two = detail::fpow(2.0f, max_exponent);
+    return isinf(x)              ? x
+         : x == 0.0f             ? x
+         : (x * epsilon) >= 1.0f ? x
+         : x <  0 ? -floor(fabs(x))
+         : x >= 0 ? detail::ceil(x, max, largest_power_of_two)
          : NAN;
 }
 static constexpr double ceil(double x) {
-    constexpr int max_exponent = std::numeric_limits<double>::max_exponent - 1;
-    return isinf(x) ? x
-         : x <  0 ? -floor(-x)
-         : x >= 0 ? detail::ceil(x, detail::fpow(2.0, max_exponent),
-                                    detail::fpow(2.0, max_exponent))
+    constexpr double max = std::numeric_limits<double>::max();
+    constexpr double epsilon = std::numeric_limits<double>::epsilon();
+    constexpr int    max_exponent = std::numeric_limits<double>::max_exponent - 1;
+    constexpr double largest_power_of_two = detail::fpow(2.0, max_exponent);
+    return isinf(x)              ? x
+         : x == 0.0              ? x
+         : (x * epsilon) >= 1.0  ? x
+         : x <  0 ? -floor(fabs(x))
+         : x >= 0 ? detail::ceil(x, max, largest_power_of_two)
          : NAN;
 }
 static constexpr long double ceil(long double x) {
-    if (x < 0.0l) { return -floor(-x); }
-    if (isinf(x) || isnan(x)) { return x; }
-    constexpr int max_exponent = std::numeric_limits<long double>::max_exponent - 1;
-    long double dec = detail::fpow(2.0l, max_exponent);
-    long double guess = dec;
+    constexpr long double max = std::numeric_limits<long double>::max();
+    constexpr long double epsilon = std::numeric_limits<long double>::epsilon();
+    constexpr int         max_exponent = std::numeric_limits<long double>::max_exponent - 1;
+    constexpr long double largest_power_of_two = detail::fpow(2.0l, max_exponent);
+    if (isinf(x))              { return x; }
+    if (x == 0.0l)             { return x; }
+    if (isnan(x))              { return x; }
+    if ((x * epsilon) >= 1.0l) { return x; }
+    if (x < 0.0l)              { return -floor(fabs(x)); }
+    long double guess = max;
+    long double dec   = largest_power_of_two;
     for (;;) {
         while (guess - dec < x) {
             dec /= 2.0l;
-            if (dec < 1.0l) { return guess; }
+            if (dec < 1.0l)    { return guess; }
         }
         guess -= dec;
     }
@@ -253,29 +268,42 @@ static constexpr double ceil(Integral x) {
 
 // floor -- Round down to the nearest integer.
 static constexpr float floor(float x) {
-    constexpr int max_exponent = std::numeric_limits<float>::max_exponent - 1;
-    return isinf(x) ? x
-         : x <  0 ? -ceil(-x)
-         : x >= 0 ? detail::floor(x, 0.0f, detail::fpow(2.0f, max_exponent))
+    constexpr float epsilon = std::numeric_limits<float>::epsilon();
+    constexpr int   max_exponent = std::numeric_limits<float>::max_exponent - 1;
+    constexpr float largest_power_of_two = detail::fpow(2.0f, max_exponent);
+    return isinf(x)              ? x
+         : x == 0.0f             ? x
+         : (x * epsilon) >= 1.0f ? x
+         : x <  0 ? -ceil(abs(x))
+         : x >= 0 ? detail::floor(x, 0.0f, largest_power_of_two)
          : NAN;
 }
 static constexpr double floor(double x) {
-    constexpr int max_exponent = std::numeric_limits<double>::max_exponent - 1;
-    return isinf(x) ? x
-         : x <  0 ? -ceil(-x)
-         : x >= 0 ? detail::floor(x, 0.0, detail::fpow(2.0, max_exponent))
+    constexpr double epsilon = std::numeric_limits<double>::epsilon();
+    constexpr int    max_exponent = std::numeric_limits<double>::max_exponent - 1;
+    constexpr double largest_power_of_two = detail::fpow(2.0, max_exponent);
+    return isinf(x)              ? x
+         : x == 0.0              ? x
+         : (x * epsilon) >= 1.0  ? x
+         : x <  0 ? -ceil(abs(x))
+         : x >= 0 ? detail::floor(x, 0.0, largest_power_of_two)
          : NAN;
 }
 static constexpr long double floor(long double x) {
-    if (x < 0.0l) { return -ceil(-x); }
-    if (isinf(x) || isnan(x)) { return x; }
-    constexpr int max_exponent = std::numeric_limits<long double>::max_exponent - 1;
-    long double inc   = detail::fpow(2.0l, max_exponent);
+    constexpr long double epsilon = std::numeric_limits<long double>::epsilon();
+    constexpr int         max_exponent = std::numeric_limits<long double>::max_exponent - 1;
+    constexpr long double largest_power_of_two = detail::fpow(2.0l, max_exponent);
+    if (isinf(x))              { return x; }
+    if (x == 0.0l)             { return x; }
+    if (isnan(x))              { return x; }
+    if ((x * epsilon) >= 1.0l) { return x; }
+    if (x < 0.0l)              { return -ceil(fabs(x)); }
+    long double inc   = largest_power_of_two;
     long double guess = 0.0l;
     for (;;) {
         while (guess + inc > x) {
             inc /= 2.0l;
-            if (inc < 1.0l) { return guess; }
+            if (inc < 1.0l)    { return guess; }
         }
         guess += inc;
     }
