@@ -158,7 +158,7 @@ struct detail {
 template <typename FloatingPoint,
           enable_int_if_floating_point_t<FloatingPoint> = 0>
 static constexpr bool isinf(FloatingPoint x) {
-    return std::numeric_limits<FloatingPoint>::max() < x;
+    return std::numeric_limits<FloatingPoint>::max() < abs(x);
 }
 template <typename Integral,
           enable_int_if_integral_t<Integral> = 0>
