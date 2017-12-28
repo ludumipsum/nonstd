@@ -33,9 +33,9 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
     // destination isn't wide enough to contain. The three obviously impossible
     // assignments in this set are the three that are commented out. We leave
     // them in, because it makes codemod easier.
-    constexpr f32 f32__positive        =  1.0;                                      UNUSED(f32__positive);
+    constexpr f32 f32__positive        =  1.5;                                      UNUSED(f32__positive);
     constexpr f32 f32__zero            =  0.0;                                      UNUSED(f32__zero);
-    constexpr f32 f32__negative        = -1.0;                                      UNUSED(f32__negative);
+    constexpr f32 f32__negative        = -1.5;                                      UNUSED(f32__negative);
     constexpr f32 f32__f32_min         = std::numeric_limits<f32>::min();           UNUSED(f32__f32_min);
     constexpr f32 f32__f32_max         = std::numeric_limits<f32>::max();           UNUSED(f32__f32_max);
     constexpr f32 f32__f64_min         = std::numeric_limits<f64>::min();           UNUSED(f32__f64_min);
@@ -55,9 +55,9 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
               f32 f32__f_long_less_min = std::numeric_limits<f_long>::min() / 2.0f; UNUSED(f32__f_long_less_min);
               f32 f32__f_long_more_max = std::numeric_limits<f_long>::max() * 2.0f; UNUSED(f32__f_long_more_max);
 
-    constexpr f64 f64__positive        =  1.0;                                      UNUSED(f64__positive);
+    constexpr f64 f64__positive        =  1.5;                                      UNUSED(f64__positive);
     constexpr f64 f64__zero            =  0.0;                                      UNUSED(f64__zero);
-    constexpr f64 f64__negative        = -1.0;                                      UNUSED(f64__negative);
+    constexpr f64 f64__negative        = -1.5;                                      UNUSED(f64__negative);
     constexpr f64 f64__f32_min         = std::numeric_limits<f32>::min();           UNUSED(f64__f32_min);
     constexpr f64 f64__f32_max         = std::numeric_limits<f32>::max();           UNUSED(f64__f32_max);
     constexpr f64 f64__f64_min         = std::numeric_limits<f64>::min();           UNUSED(f64__f64_min);
@@ -77,9 +77,9 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
               f64 f64__f_long_less_min = std::numeric_limits<f_long>::min() / 2.0;  UNUSED(f64__f_long_less_min);
               f64 f64__f_long_more_max = std::numeric_limits<f_long>::max() * 2.0;  UNUSED(f64__f_long_more_max);
 
-    constexpr f_long f_long__positive        =  1.0;                                      UNUSED(f_long__positive);
+    constexpr f_long f_long__positive        =  1.5;                                      UNUSED(f_long__positive);
     constexpr f_long f_long__zero            =  0.0;                                      UNUSED(f_long__zero);
-    constexpr f_long f_long__negative        = -1.0;                                      UNUSED(f_long__negative);
+    constexpr f_long f_long__negative        = -1.5;                                      UNUSED(f_long__negative);
     constexpr f_long f_long__f32_min         = std::numeric_limits<f32>::min();           UNUSED(f_long__f32_min);
     constexpr f_long f_long__f32_max         = std::numeric_limits<f32>::max();           UNUSED(f_long__f32_max);
     constexpr f_long f_long__f64_min         = std::numeric_limits<f64>::min();           UNUSED(f_long__f64_min);
