@@ -670,9 +670,6 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         constexpr auto calls_to_trunc_are_constexpr = nonstd::cx::trunc(f32__positive);
 
         using std::isnan;
-        // trunc and trunc don't much benefit from extents testing, and the
-        // results from those functions tend to be estimations. It's more
-        // important to verify exceptional (INFINITY, NaN) cases are consistent.
         REQUIRE(( ( std::trunc(f32__positive)        == nonstd::cx::trunc(f32__positive) )        || ( isnan(std::trunc(f32__positive))        && isnan(nonstd::cx::trunc(f32__positive)) )        ));
         REQUIRE(( ( std::trunc(f32__negative)        == nonstd::cx::trunc(f32__negative) )        || ( isnan(std::trunc(f32__negative))        && isnan(nonstd::cx::trunc(f32__negative)) )        ));
         REQUIRE(( ( std::trunc(f32__f32_min)         == nonstd::cx::trunc(f32__f32_min) )         || ( isnan(std::trunc(f32__f32_min))         && isnan(nonstd::cx::trunc(f32__f32_min)) )         ));
