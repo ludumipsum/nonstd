@@ -801,9 +801,9 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         f64 a18 = 1.000000000000000001;  REQUIRE(std::ceil(a18) == nonstd::cx::ceil(a18));
         f64 a19 = 1.0000000000000000001; REQUIRE(std::ceil(a19) == nonstd::cx::ceil(a19));
 
-        // For `ceil`, `floor`, and `trunc` it's worth doing some additional
-        // testing in ranges we might see in the real world. Or just random
-        // ranges. Pulled from a random number generator. Either one.
+        // For this function, it's worth doing some additional testing in ranges
+        // we might see in the real world. Or just random ranges. Pulled from a
+        // random number generator. Either one.
         std::random_device rd;
         std::mt19937 re(rd());
 
@@ -968,9 +968,9 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         f64 a18 = 0.999999999999999999;  REQUIRE(std::floor(a18) == nonstd::cx::floor(a18));
         f64 a19 = 0.9999999999999999999; REQUIRE(std::floor(a19) == nonstd::cx::floor(a19));
 
-        // For `ceil`, `floor`, and `trunc` it's worth doing some additional
-        // testing in ranges we might see in the real world. Or just random
-        // ranges. Pulled from a random number generator. Either one.
+        // For this function, it's worth doing some additional testing in ranges
+        // we might see in the real world. Or just random ranges. Pulled from a
+        // random number generator. Either one.
         std::random_device rd;
         std::mt19937 re(rd());
 
@@ -1135,9 +1135,9 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         f64 a18 = 0.999999999999999999;  REQUIRE(std::trunc(a18) == nonstd::cx::trunc(a18));
         f64 a19 = 0.9999999999999999999; REQUIRE(std::trunc(a19) == nonstd::cx::trunc(a19));
 
-        // For `ceil`, `floor`, and `trunc` it's worth doing some additional
-        // testing in ranges we might see in the real world. Or just random
-        // ranges. Pulled from a random number generator. Either one.
+        // For this function, it's worth doing some additional testing in ranges
+        // we might see in the real world. Or just random ranges. Pulled from a
+        // random number generator. Either one.
         std::random_device rd;
         std::mt19937 re(rd());
 
@@ -1163,6 +1163,196 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         for (int i = 0; i < iterations; i++) {
             long double x = rnd_long_double_range(re);
             REQUIRE(( ( std::trunc(x)  == nonstd::cx::trunc(x) ) || ( isnan(std::trunc(x)) && isnan(nonstd::cx::trunc(x)) ) ));
+        }
+    }
+
+    SECTION("fmod") {
+        constexpr auto calls_to_fmod_are_constexpr = nonstd::cx::fmod(f32__positive, 1.0f);
+
+        using std::isnan;
+
+        // Test basic sign combinations
+        REQUIRE(( ( std::fmod(f32__positive,  1.0f) == nonstd::cx::fmod(f32__positive,  1.0f) ) || ( isnan(std::fmod(f32__positive,  1.0f)) && isnan(nonstd::cx::fmod(f32__positive,  1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__positive, -1.0f) == nonstd::cx::fmod(f32__positive, -1.0f) ) || ( isnan(std::fmod(f32__positive, -1.0f)) && isnan(nonstd::cx::fmod(f32__positive, -1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__zero,      1.0f) == nonstd::cx::fmod(f32__zero,      1.0f) ) || ( isnan(std::fmod(f32__zero,      1.0f)) && isnan(nonstd::cx::fmod(f32__zero,      1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__zero,     -1.0f) == nonstd::cx::fmod(f32__zero,     -1.0f) ) || ( isnan(std::fmod(f32__zero,     -1.0f)) && isnan(nonstd::cx::fmod(f32__zero,     -1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__negative,  1.0f) == nonstd::cx::fmod(f32__negative,  1.0f) ) || ( isnan(std::fmod(f32__negative,  1.0f)) && isnan(nonstd::cx::fmod(f32__negative,  1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__negative, -1.0f) == nonstd::cx::fmod(f32__negative, -1.0f) ) || ( isnan(std::fmod(f32__negative, -1.0f)) && isnan(nonstd::cx::fmod(f32__negative, -1.0f)) ) ));
+
+
+        REQUIRE(( ( std::fmod(f64__positive,  1.0) == nonstd::cx::fmod(f64__positive,  1.0) ) || ( isnan(std::fmod(f64__positive,  1.0)) && isnan(nonstd::cx::fmod(f64__positive,  1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__positive, -1.0) == nonstd::cx::fmod(f64__positive, -1.0) ) || ( isnan(std::fmod(f64__positive, -1.0)) && isnan(nonstd::cx::fmod(f64__positive, -1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__zero,      1.0) == nonstd::cx::fmod(f64__zero,      1.0) ) || ( isnan(std::fmod(f64__zero,      1.0)) && isnan(nonstd::cx::fmod(f64__zero,      1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__zero,     -1.0) == nonstd::cx::fmod(f64__zero,     -1.0) ) || ( isnan(std::fmod(f64__zero,     -1.0)) && isnan(nonstd::cx::fmod(f64__zero,     -1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__negative,  1.0) == nonstd::cx::fmod(f64__negative,  1.0) ) || ( isnan(std::fmod(f64__negative,  1.0)) && isnan(nonstd::cx::fmod(f64__negative,  1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__negative, -1.0) == nonstd::cx::fmod(f64__negative, -1.0) ) || ( isnan(std::fmod(f64__negative, -1.0)) && isnan(nonstd::cx::fmod(f64__negative, -1.0)) ) ));
+
+
+        REQUIRE(( ( std::fmod(f_long__positive,  1.0l) == nonstd::cx::fmod(f_long__positive,  1.0l) ) || ( isnan(std::fmod(f_long__positive,  1.0l)) && isnan(nonstd::cx::fmod(f_long__positive,  1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__positive, -1.0l) == nonstd::cx::fmod(f_long__positive, -1.0l) ) || ( isnan(std::fmod(f_long__positive, -1.0l)) && isnan(nonstd::cx::fmod(f_long__positive, -1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__zero,      1.0l) == nonstd::cx::fmod(f_long__zero,      1.0l) ) || ( isnan(std::fmod(f_long__zero,      1.0l)) && isnan(nonstd::cx::fmod(f_long__zero,      1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__zero,     -1.0l) == nonstd::cx::fmod(f_long__zero,     -1.0l) ) || ( isnan(std::fmod(f_long__zero,     -1.0l)) && isnan(nonstd::cx::fmod(f_long__zero,     -1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__negative,  1.0l) == nonstd::cx::fmod(f_long__negative,  1.0l) ) || ( isnan(std::fmod(f_long__negative,  1.0l)) && isnan(nonstd::cx::fmod(f_long__negative,  1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__negative, -1.0l) == nonstd::cx::fmod(f_long__negative, -1.0l) ) || ( isnan(std::fmod(f_long__negative, -1.0l)) && isnan(nonstd::cx::fmod(f_long__negative, -1.0l)) ) ));
+
+
+        // Test numeric extents
+        REQUIRE(( ( std::fmod(f32__f32_p_smallest,  1.0f) == nonstd::cx::fmod(f32__f32_p_smallest,  1.0f) ) || ( isnan(std::fmod(f32__f32_p_smallest,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_p_smallest,  1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_smallest, -1.0f) == nonstd::cx::fmod(f32__f32_p_smallest, -1.0f) ) || ( isnan(std::fmod(f32__f32_p_smallest, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_p_smallest, -1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_smallest,  1.0f) == nonstd::cx::fmod(f32__f32_n_smallest,  1.0f) ) || ( isnan(std::fmod(f32__f32_n_smallest,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_n_smallest,  1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_smallest, -1.0f) == nonstd::cx::fmod(f32__f32_n_smallest, -1.0f) ) || ( isnan(std::fmod(f32__f32_n_smallest, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_n_smallest, -1.0f)) ) ));
+        REQUIRE(( ( std::fmod( 1.0f, f32__f32_p_smallest) == nonstd::cx::fmod( 1.0f, f32__f32_p_smallest) ) || ( isnan(std::fmod( 1.0f, f32__f32_p_smallest)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0f, f32__f32_p_smallest) == nonstd::cx::fmod(-1.0f, f32__f32_p_smallest) ) || ( isnan(std::fmod(-1.0f, f32__f32_p_smallest)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod( 1.0f, f32__f32_n_smallest) == nonstd::cx::fmod( 1.0f, f32__f32_n_smallest) ) || ( isnan(std::fmod( 1.0f, f32__f32_n_smallest)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_n_smallest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0f, f32__f32_n_smallest) == nonstd::cx::fmod(-1.0f, f32__f32_n_smallest) ) || ( isnan(std::fmod(-1.0f, f32__f32_n_smallest)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_n_smallest)) ) ));
+
+        REQUIRE(( ( std::fmod(f32__f32_p_largest,  1.0f) == nonstd::cx::fmod(f32__f32_p_largest,  1.0f) ) || ( isnan(std::fmod(f32__f32_p_largest,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_p_largest,  1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_largest, -1.0f) == nonstd::cx::fmod(f32__f32_p_largest, -1.0f) ) || ( isnan(std::fmod(f32__f32_p_largest, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_p_largest, -1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_largest,  1.0f) == nonstd::cx::fmod(f32__f32_n_largest,  1.0f) ) || ( isnan(std::fmod(f32__f32_n_largest,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_n_largest,  1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_largest, -1.0f) == nonstd::cx::fmod(f32__f32_n_largest, -1.0f) ) || ( isnan(std::fmod(f32__f32_n_largest, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_n_largest, -1.0f)) ) ));
+        REQUIRE(( ( std::fmod( 1.0f, f32__f32_p_largest) == nonstd::cx::fmod( 1.0f, f32__f32_p_largest) ) || ( isnan(std::fmod( 1.0f, f32__f32_p_largest)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_p_largest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0f, f32__f32_p_largest) == nonstd::cx::fmod(-1.0f, f32__f32_p_largest) ) || ( isnan(std::fmod(-1.0f, f32__f32_p_largest)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_p_largest)) ) ));
+        REQUIRE(( ( std::fmod( 1.0f, f32__f32_n_largest) == nonstd::cx::fmod( 1.0f, f32__f32_n_largest) ) || ( isnan(std::fmod( 1.0f, f32__f32_n_largest)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_n_largest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0f, f32__f32_n_largest) == nonstd::cx::fmod(-1.0f, f32__f32_n_largest) ) || ( isnan(std::fmod(-1.0f, f32__f32_n_largest)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_n_largest)) ) ));
+
+
+        REQUIRE(( ( std::fmod(f64__f64_p_smallest,  1.0) == nonstd::cx::fmod(f64__f64_p_smallest,  1.0) ) || ( isnan(std::fmod(f64__f64_p_smallest,  1.0)) && isnan(nonstd::cx::fmod(f64__f64_p_smallest,  1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_p_smallest, -1.0) == nonstd::cx::fmod(f64__f64_p_smallest, -1.0) ) || ( isnan(std::fmod(f64__f64_p_smallest, -1.0)) && isnan(nonstd::cx::fmod(f64__f64_p_smallest, -1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_smallest,  1.0) == nonstd::cx::fmod(f64__f64_n_smallest,  1.0) ) || ( isnan(std::fmod(f64__f64_n_smallest,  1.0)) && isnan(nonstd::cx::fmod(f64__f64_n_smallest,  1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_smallest, -1.0) == nonstd::cx::fmod(f64__f64_n_smallest, -1.0) ) || ( isnan(std::fmod(f64__f64_n_smallest, -1.0)) && isnan(nonstd::cx::fmod(f64__f64_n_smallest, -1.0)) ) ));
+        REQUIRE(( ( std::fmod( 1.0, f64__f64_p_smallest) == nonstd::cx::fmod( 1.0, f64__f64_p_smallest) ) || ( isnan(std::fmod( 1.0, f64__f64_p_smallest)) && isnan(nonstd::cx::fmod( 1.0, f64__f64_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0, f64__f64_p_smallest) == nonstd::cx::fmod(-1.0, f64__f64_p_smallest) ) || ( isnan(std::fmod(-1.0, f64__f64_p_smallest)) && isnan(nonstd::cx::fmod(-1.0, f64__f64_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod( 1.0, f64__f64_n_smallest) == nonstd::cx::fmod( 1.0, f64__f64_n_smallest) ) || ( isnan(std::fmod( 1.0, f64__f64_n_smallest)) && isnan(nonstd::cx::fmod( 1.0, f64__f64_n_smallest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0, f64__f64_n_smallest) == nonstd::cx::fmod(-1.0, f64__f64_n_smallest) ) || ( isnan(std::fmod(-1.0, f64__f64_n_smallest)) && isnan(nonstd::cx::fmod(-1.0, f64__f64_n_smallest)) ) ));
+
+        REQUIRE(( ( std::fmod(f64__f64_p_largest,  1.0) == nonstd::cx::fmod(f64__f64_p_largest,  1.0) ) || ( isnan(std::fmod(f64__f64_p_largest,  1.0)) && isnan(nonstd::cx::fmod(f64__f64_p_largest,  1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_p_largest, -1.0) == nonstd::cx::fmod(f64__f64_p_largest, -1.0) ) || ( isnan(std::fmod(f64__f64_p_largest, -1.0)) && isnan(nonstd::cx::fmod(f64__f64_p_largest, -1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_largest,  1.0) == nonstd::cx::fmod(f64__f64_n_largest,  1.0) ) || ( isnan(std::fmod(f64__f64_n_largest,  1.0)) && isnan(nonstd::cx::fmod(f64__f64_n_largest,  1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_largest, -1.0) == nonstd::cx::fmod(f64__f64_n_largest, -1.0) ) || ( isnan(std::fmod(f64__f64_n_largest, -1.0)) && isnan(nonstd::cx::fmod(f64__f64_n_largest, -1.0)) ) ));
+        REQUIRE(( ( std::fmod( 1.0, f64__f64_p_largest) == nonstd::cx::fmod( 1.0, f64__f64_p_largest) ) || ( isnan(std::fmod( 1.0, f64__f64_p_largest)) && isnan(nonstd::cx::fmod( 1.0, f64__f64_p_largest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0, f64__f64_p_largest) == nonstd::cx::fmod(-1.0, f64__f64_p_largest) ) || ( isnan(std::fmod(-1.0, f64__f64_p_largest)) && isnan(nonstd::cx::fmod(-1.0, f64__f64_p_largest)) ) ));
+        REQUIRE(( ( std::fmod( 1.0, f64__f64_n_largest) == nonstd::cx::fmod( 1.0, f64__f64_n_largest) ) || ( isnan(std::fmod( 1.0, f64__f64_n_largest)) && isnan(nonstd::cx::fmod( 1.0, f64__f64_n_largest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0, f64__f64_n_largest) == nonstd::cx::fmod(-1.0, f64__f64_n_largest) ) || ( isnan(std::fmod(-1.0, f64__f64_n_largest)) && isnan(nonstd::cx::fmod(-1.0, f64__f64_n_largest)) ) ));
+
+
+        REQUIRE(( ( std::fmod(f_long__f_long_p_smallest,  1.0l) == nonstd::cx::fmod(f_long__f_long_p_smallest,  1.0l) ) || ( isnan(std::fmod(f_long__f_long_p_smallest,  1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_p_smallest,  1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_smallest, -1.0l) == nonstd::cx::fmod(f_long__f_long_p_smallest, -1.0l) ) || ( isnan(std::fmod(f_long__f_long_p_smallest, -1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_p_smallest, -1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_smallest,  1.0l) == nonstd::cx::fmod(f_long__f_long_n_smallest,  1.0l) ) || ( isnan(std::fmod(f_long__f_long_n_smallest,  1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_n_smallest,  1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_smallest, -1.0l) == nonstd::cx::fmod(f_long__f_long_n_smallest, -1.0l) ) || ( isnan(std::fmod(f_long__f_long_n_smallest, -1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_n_smallest, -1.0l)) ) ));
+        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_p_smallest) == nonstd::cx::fmod( 1.0l, f_long__f_long_p_smallest) ) || ( isnan(std::fmod( 1.0l, f_long__f_long_p_smallest)) && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_p_smallest) == nonstd::cx::fmod(-1.0l, f_long__f_long_p_smallest) ) || ( isnan(std::fmod(-1.0l, f_long__f_long_p_smallest)) && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_n_smallest) == nonstd::cx::fmod( 1.0l, f_long__f_long_n_smallest) ) || ( isnan(std::fmod( 1.0l, f_long__f_long_n_smallest)) && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_n_smallest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_n_smallest) == nonstd::cx::fmod(-1.0l, f_long__f_long_n_smallest) ) || ( isnan(std::fmod(-1.0l, f_long__f_long_n_smallest)) && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_n_smallest)) ) ));
+
+        REQUIRE(( ( std::fmod(f_long__f_long_p_largest,  1.0l) == nonstd::cx::fmod(f_long__f_long_p_largest,  1.0l) ) || ( isnan(std::fmod(f_long__f_long_p_largest,  1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_p_largest,  1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_largest, -1.0l) == nonstd::cx::fmod(f_long__f_long_p_largest, -1.0l) ) || ( isnan(std::fmod(f_long__f_long_p_largest, -1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_p_largest, -1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_largest,  1.0l) == nonstd::cx::fmod(f_long__f_long_n_largest,  1.0l) ) || ( isnan(std::fmod(f_long__f_long_n_largest,  1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_n_largest,  1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_largest, -1.0l) == nonstd::cx::fmod(f_long__f_long_n_largest, -1.0l) ) || ( isnan(std::fmod(f_long__f_long_n_largest, -1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_n_largest, -1.0l)) ) ));
+        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_p_largest) == nonstd::cx::fmod( 1.0l, f_long__f_long_p_largest) ) || ( isnan(std::fmod( 1.0l, f_long__f_long_p_largest)) && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_p_largest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_p_largest) == nonstd::cx::fmod(-1.0l, f_long__f_long_p_largest) ) || ( isnan(std::fmod(-1.0l, f_long__f_long_p_largest)) && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_p_largest)) ) ));
+        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_n_largest) == nonstd::cx::fmod( 1.0l, f_long__f_long_n_largest) ) || ( isnan(std::fmod( 1.0l, f_long__f_long_n_largest)) && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_n_largest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_n_largest) == nonstd::cx::fmod(-1.0l, f_long__f_long_n_largest) ) || ( isnan(std::fmod(-1.0l, f_long__f_long_n_largest)) && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_n_largest)) ) ));
+
+        // Test INF
+        REQUIRE(( ( std::fmod(f32__f32_p_smallest, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_p_smallest, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_p_smallest, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_p_smallest, f32__f32_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_smallest, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_p_smallest, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_p_smallest, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_p_smallest, f32__f32_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_smallest, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_n_smallest, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_n_smallest, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_n_smallest, f32__f32_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_smallest, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_n_smallest, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_n_smallest, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_n_smallest, f32__f32_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_p_smallest) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_p_smallest) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_p_smallest)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_p_smallest) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_p_smallest) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_p_smallest)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_n_smallest) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_n_smallest) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_n_smallest)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_n_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_n_smallest) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_n_smallest) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_n_smallest)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_n_smallest)) ) ));
+
+        REQUIRE(( ( std::fmod(f32__f32_p_largest, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_p_largest, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_p_largest, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_p_largest, f32__f32_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_largest, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_p_largest, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_p_largest, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_p_largest, f32__f32_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_largest, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_n_largest, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_n_largest, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_n_largest, f32__f32_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_largest, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_n_largest, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_n_largest, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_n_largest, f32__f32_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_p_largest) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_p_largest) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_p_largest)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_p_largest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_p_largest) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_p_largest) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_p_largest)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_p_largest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_n_largest) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_n_largest) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_n_largest)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_n_largest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_n_largest) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_n_largest) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_n_largest)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_n_largest)) ) ));
+
+
+        REQUIRE(( ( std::fmod(f64__f64_p_smallest, f64__f64_p_inf) == nonstd::cx::fmod(f64__f64_p_smallest, f64__f64_p_inf) ) || ( isnan(std::fmod(f64__f64_p_smallest, f64__f64_p_inf)) && isnan(nonstd::cx::fmod(f64__f64_p_smallest, f64__f64_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_p_smallest, f64__f64_n_inf) == nonstd::cx::fmod(f64__f64_p_smallest, f64__f64_n_inf) ) || ( isnan(std::fmod(f64__f64_p_smallest, f64__f64_n_inf)) && isnan(nonstd::cx::fmod(f64__f64_p_smallest, f64__f64_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_smallest, f64__f64_p_inf) == nonstd::cx::fmod(f64__f64_n_smallest, f64__f64_p_inf) ) || ( isnan(std::fmod(f64__f64_n_smallest, f64__f64_p_inf)) && isnan(nonstd::cx::fmod(f64__f64_n_smallest, f64__f64_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_smallest, f64__f64_n_inf) == nonstd::cx::fmod(f64__f64_n_smallest, f64__f64_n_inf) ) || ( isnan(std::fmod(f64__f64_n_smallest, f64__f64_n_inf)) && isnan(nonstd::cx::fmod(f64__f64_n_smallest, f64__f64_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_p_smallest) == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_p_smallest) ) || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_p_smallest)) && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_p_smallest) == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_p_smallest) ) || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_p_smallest)) && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_n_smallest) == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_n_smallest) ) || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_n_smallest)) && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_n_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_n_smallest) == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_n_smallest) ) || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_n_smallest)) && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_n_smallest)) ) ));
+
+        REQUIRE(( ( std::fmod(f64__f64_p_largest, f64__f64_p_inf) == nonstd::cx::fmod(f64__f64_p_largest, f64__f64_p_inf) ) || ( isnan(std::fmod(f64__f64_p_largest, f64__f64_p_inf)) && isnan(nonstd::cx::fmod(f64__f64_p_largest, f64__f64_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_p_largest, f64__f64_n_inf) == nonstd::cx::fmod(f64__f64_p_largest, f64__f64_n_inf) ) || ( isnan(std::fmod(f64__f64_p_largest, f64__f64_n_inf)) && isnan(nonstd::cx::fmod(f64__f64_p_largest, f64__f64_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_largest, f64__f64_p_inf) == nonstd::cx::fmod(f64__f64_n_largest, f64__f64_p_inf) ) || ( isnan(std::fmod(f64__f64_n_largest, f64__f64_p_inf)) && isnan(nonstd::cx::fmod(f64__f64_n_largest, f64__f64_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_largest, f64__f64_n_inf) == nonstd::cx::fmod(f64__f64_n_largest, f64__f64_n_inf) ) || ( isnan(std::fmod(f64__f64_n_largest, f64__f64_n_inf)) && isnan(nonstd::cx::fmod(f64__f64_n_largest, f64__f64_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_p_largest) == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_p_largest) ) || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_p_largest)) && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_p_largest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_p_largest) == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_p_largest) ) || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_p_largest)) && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_p_largest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_n_largest) == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_n_largest) ) || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_n_largest)) && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_n_largest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_n_largest) == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_n_largest) ) || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_n_largest)) && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_n_largest)) ) ));
+
+
+        REQUIRE(( ( std::fmod(f_long__f_long_p_smallest, f_long__f_long_p_inf) == nonstd::cx::fmod(f_long__f_long_p_smallest, f_long__f_long_p_inf) ) || ( isnan(std::fmod(f_long__f_long_p_smallest, f_long__f_long_p_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_p_smallest, f_long__f_long_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_smallest, f_long__f_long_n_inf) == nonstd::cx::fmod(f_long__f_long_p_smallest, f_long__f_long_n_inf) ) || ( isnan(std::fmod(f_long__f_long_p_smallest, f_long__f_long_n_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_p_smallest, f_long__f_long_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_smallest, f_long__f_long_p_inf) == nonstd::cx::fmod(f_long__f_long_n_smallest, f_long__f_long_p_inf) ) || ( isnan(std::fmod(f_long__f_long_n_smallest, f_long__f_long_p_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_n_smallest, f_long__f_long_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_smallest, f_long__f_long_n_inf) == nonstd::cx::fmod(f_long__f_long_n_smallest, f_long__f_long_n_inf) ) || ( isnan(std::fmod(f_long__f_long_n_smallest, f_long__f_long_n_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_n_smallest, f_long__f_long_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_p_smallest) == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_p_smallest) ) || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_p_smallest)) && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_p_smallest) == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_p_smallest) ) || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_p_smallest)) && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_p_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_n_smallest) == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_n_smallest) ) || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_n_smallest)) && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_n_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_n_smallest) == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_n_smallest) ) || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_n_smallest)) && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_n_smallest)) ) ));
+
+        REQUIRE(( ( std::fmod(f_long__f_long_p_largest, f_long__f_long_p_inf) == nonstd::cx::fmod(f_long__f_long_p_largest, f_long__f_long_p_inf) ) || ( isnan(std::fmod(f_long__f_long_p_largest, f_long__f_long_p_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_p_largest, f_long__f_long_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_largest, f_long__f_long_n_inf) == nonstd::cx::fmod(f_long__f_long_p_largest, f_long__f_long_n_inf) ) || ( isnan(std::fmod(f_long__f_long_p_largest, f_long__f_long_n_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_p_largest, f_long__f_long_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_largest, f_long__f_long_p_inf) == nonstd::cx::fmod(f_long__f_long_n_largest, f_long__f_long_p_inf) ) || ( isnan(std::fmod(f_long__f_long_n_largest, f_long__f_long_p_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_n_largest, f_long__f_long_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_largest, f_long__f_long_n_inf) == nonstd::cx::fmod(f_long__f_long_n_largest, f_long__f_long_n_inf) ) || ( isnan(std::fmod(f_long__f_long_n_largest, f_long__f_long_n_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_n_largest, f_long__f_long_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_p_largest) == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_p_largest) ) || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_p_largest)) && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_p_largest)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_p_largest) == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_p_largest) ) || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_p_largest)) && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_p_largest)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_n_largest) == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_n_largest) ) || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_n_largest)) && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_n_largest)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_n_largest) == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_n_largest) ) || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_n_largest)) && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_n_largest)) ) ));
+
+
+        // Test NaN propagation
+        REQUIRE(( ( std::fmod(f32__f32_nan,  1.0f) == nonstd::cx::fmod(f32__f32_nan,  1.0f) ) || ( isnan(std::fmod(f32__f32_nan,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_nan,  1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_nan, -1.0f) == nonstd::cx::fmod(f32__f32_nan, -1.0f) ) || ( isnan(std::fmod(f32__f32_nan, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_nan, -1.0f)) ) ));
+        REQUIRE(( ( std::fmod( 1.0f, f32__f32_nan) == nonstd::cx::fmod( 1.0f, f32__f32_nan) ) || ( isnan(std::fmod( 1.0f, f32__f32_nan)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_nan)) ) ));
+        REQUIRE(( ( std::fmod(-1.0f, f32__f32_nan) == nonstd::cx::fmod(-1.0f, f32__f32_nan) ) || ( isnan(std::fmod(-1.0f, f32__f32_nan)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_nan)) ) ));
+
+        REQUIRE(( ( std::fmod(f32__f32_nan, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_nan, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_nan, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_nan, f32__f32_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_nan, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_nan, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_nan, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_nan, f32__f32_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_nan) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_nan) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_nan)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_nan)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_nan) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_nan) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_nan)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_nan)) ) ));
+
+        // For this function, it's worth doing some additional testing in ranges
+        // we might see in the real world. Or just random ranges. Pulled from a
+        // random number generator. Either one.
+        std::random_device rd;
+        std::mt19937 re(rd());
+
+        std::uniform_real_distribution<float> rnd_float_range(
+            -std::numeric_limits<float>::max(),
+             std::numeric_limits<float>::max());
+        std::uniform_real_distribution<double> rnd_double_range(
+            -std::numeric_limits<double>::max(),
+             std::numeric_limits<double>::max());
+        std::uniform_real_distribution<long double> rnd_long_double_range(
+            -std::numeric_limits<long double>::max(),
+             std::numeric_limits<long double>::max());
+
+        constexpr int iterations = 10000;
+        for (int i = 0; i < iterations; i++) {
+            float x = rnd_float_range(re);
+            float y = rnd_float_range(re);
+            REQUIRE(( ( std::fmod(x, y)  == nonstd::cx::fmod(x, y) ) || ( isnan(std::fmod(x, y)) && isnan(nonstd::cx::fmod(x, y)) ) ));
+        }
+        for (int i = 0; i < iterations; i++) {
+            double x = rnd_double_range(re);
+            double y = rnd_double_range(re);
+            REQUIRE(( ( std::fmod(x, y)  == nonstd::cx::fmod(x, y) ) || ( isnan(std::fmod(x, y)) && isnan(nonstd::cx::fmod(x, y)) ) ));
+        }
+        for (int i = 0; i < iterations; i++) {
+            long double x = rnd_long_double_range(re);
+            long double y = rnd_long_double_range(re);
+            REQUIRE(( ( std::fmod(x, y)  == nonstd::cx::fmod(x, y) ) || ( isnan(std::fmod(x, y)) && isnan(nonstd::cx::fmod(x, y)) ) ));
         }
     }
 }

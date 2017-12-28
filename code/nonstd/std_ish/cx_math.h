@@ -63,6 +63,11 @@ namespace nonstd {
  *    long double trunc(long double arg);
  *    double      trunc(Integral arg);
  *
+ *    float       fmod(float arg);
+ *    double      fmod(double arg);
+ *    long double fmod(long double arg);
+ *    double      fmod(Integral arg);
+ *
  *  There will also be a set of non-standard functions that aid in the
  *  implementation of core functions, but may be useful to other packages.
  *
@@ -84,6 +89,8 @@ template <typename T>
 using enable_int_if_floating_point_t = typename std::enable_if_t<std::is_floating_point_v<T>, int>;
 template <typename T>
 using enable_int_if_integral_t = typename std::enable_if_t<std::is_integral_v<T>, int>;
+template <typename T>
+using enable_int_if_arithmetic_t = typename std::enable_if_t<std::is_arithmetic_v<T>, int>;
 
 struct detail {
     // nearly_equal -- Check if two numbers are with (an approximation) of the
@@ -106,6 +113,28 @@ struct detail {
     }
 
     // Implementation Helpers
+
+    /** cpp14_promoted_t Type Deduction
+     *  -------------------------------
+     *  `cpp14_promoted_t<A,B>` will be `double` for any combination of signed
+     *  integers, unsigned integers, float, and double. If either type is
+     *  `long double`, `cpp14_promoted_t<A,B>` will be `long double`.
+     */
+    template <typename A, typename B>
+    struct cpp14_promoted {
+        using type = double;
+    };
+    template <typename A>
+    struct cpp14_promoted<long double, A> {
+        using type = long double;
+    };
+    template <typename A>
+    struct cpp14_promoted<A, long double> {
+        using type = long double;
+    };
+    template <typename A, typename B>
+    using cpp14_promoted_t = typename cpp14_promoted<A, B>::type;
+
 
     template <typename T>
     static constexpr T floor(T x, T guess, T inc) {
@@ -323,6 +352,26 @@ template <typename Integral,
           enable_int_if_integral_t<Integral> = 0>
 static constexpr double trunc(Integral x) {
     return x;
+}
+
+// fmod -- Calculate the remainder of a floating point division.
+template <typename FloatingPoint,
+          enable_int_if_floating_point_t<FloatingPoint> = 0>
+static constexpr FloatingPoint fmod(FloatingPoint x, FloatingPoint y) {
+    return isnan(x) ? NAN
+         : isnan(y) ? NAN
+         : isinf(x) ? NAN
+         : isinf(y) ? x
+         : y == 0   ? NAN
+         : x - trunc(x/y)*y;
+}
+template <typename Arithmetic1, typename Arithmetic2,
+          enable_int_if_arithmetic_t<Arithmetic1> = 0,
+          enable_int_if_arithmetic_t<Arithmetic2> = 1>
+static constexpr auto fmod(Arithmetic1 x, Arithmetic2 y)
+-> detail::cpp14_promoted_t<Arithmetic1, Arithmetic2> {
+    using PromotedType = detail::cpp14_promoted_t<Arithmetic1, Arithmetic2>;
+    return fmod(static_cast<PromotedType>(x), static_cast<PromotedType>(y));
 }
 
 }; /* struct cx */
