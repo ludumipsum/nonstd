@@ -14,12 +14,8 @@
  */
 #pragma once
 
-#include <cmath>
-#include <cfloat>
 #include <limits>
 #include <type_traits>
-
-#include <nonstd/core/primitive_types.h>
 
 
 namespace nonstd {
