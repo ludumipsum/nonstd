@@ -93,12 +93,6 @@ template <typename T>
 using enable_int_if_arithmetic_t = typename std::enable_if_t<std::is_arithmetic_v<T>, int>;
 
 struct detail {
-    // nearly_equal -- Check if two numbers are with (an approximation) of the
-    // machine's adjusted epsilon.
-    template <typename T>
-    static constexpr bool nearly_equal(T x, T y) {
-        return nonstd::cx::abs(x - y) <= std::numeric_limits<T>::epsilon();
-    }
 
     // fpow -- Raise an arbitrary floating point to an arbitrary integral power.
     template <typename FloatingPoint,
@@ -127,7 +121,6 @@ struct detail {
     using arithmetic_promoted__either_is_long =
         typename std::enable_if_t<   std::is_same_v<A, long double>
                                   || std::is_same_v<B, long double>>;
-
 
     template <typename A, typename B, typename enabled=void>
     struct arithmetic_promoted;
@@ -195,6 +188,25 @@ struct detail {
 /** Constexpr Math Utilities
  *  ----------------------------------------------------------------------------
  */
+
+// roughly_equal (r_eq) -- Check if two floating point numbers are roughly
+// equal. "Roughly" being determined by the magnitude of the compared numbers,
+// and the desired precision in ULPs (units in the last place).
+template <typename Arithmetic1, typename Arithmetic2,
+          enable_int_if_arithmetic_t<Arithmetic1> = 0,
+          enable_int_if_arithmetic_t<Arithmetic2> = 1>
+static constexpr bool roughly_equal(Arithmetic1 x, Arithmetic2 y, int ulp = 1) {
+    using T = detail::arithmetic_promoted_t<Arithmetic1, Arithmetic2>;
+    constexpr T epsilon = std::numeric_limits<T>::epsilon();
+    constexpr T min     = std::numeric_limits<T>::min();
+    return isinf(x) || isinf(y) ? x == y
+         : abs(x-y) < min       ? true
+         : abs(x-y) <= epsilon * abs(x+y) * ulp;
+}
+template <typename Arithmetic1, typename Arithmetic2>
+static constexpr bool r_eq(Arithmetic1 x, Arithmetic2 y, int ulp = 1) {
+    return roughly_equal(x, y, ulp);
+}
 
 // isinf -- Check if the given value is INFINITE.
 template <typename FloatingPoint,
