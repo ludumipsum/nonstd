@@ -296,9 +296,20 @@ public:
     }
 }; ENFORCE_POD(angle);
 
-inline angle const angle::pi = angle::in_radians(angle::pi_radians);
-inline angle const angle::tau = angle::in_radians(angle::tau_radians);
 
+/** Storage and initialization for static class members. */
+template <typename T>
+struct angle_static_storage {
+    static angle pi;
+    static angle tau;
+};
+template<typename T>
+angle angle_static_storage<T>::pi  = angle::in_radians(angle::pi_radians);
+template<typename T>
+angle angle_static_storage<T>::tau = angle::in_radians(angle::tau_radians);
+
+inline angle const angle::pi  = angle_static_storage<int>::pi;
+inline angle const angle::tau = angle_static_storage<int>::tau;
 
 } /* namespace quantity */
 
