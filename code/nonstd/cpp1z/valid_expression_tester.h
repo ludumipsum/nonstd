@@ -20,14 +20,16 @@
  *          );
  *      }
  *
- *  The above will create two identifiers in the `can_do_stuff::` namespace:
+ *  The above will create two identifiers in the `can_do_stuff::` namespace;
  *  `params`, and `types` (defined by the `N2VET_NAMED(...)` parameters).The
  *  `params` identifier will accept concrete variables as arguments (two of
  *  them, `t`, and `u`) and return an object with a `.value` member that will
  *  indicate whether the given expression (`t.doStuff(u)`) is valid for the
  *  given parameters. The `types` identifier behaves similarly to `params`, but
- *  is specialized over types rather than called, and exposes a static
- *  `::value` member rather than an instance member. tl;dr,
+ *  is specialized over types -- rather than called with concrete parameters --
+ *  and exposes a static `::value` member rather than an instance member.
+ *
+ *  tl;dr,
  *
  *      struct Stuffer { void doStuff(u32) { return; } };
  *
@@ -43,18 +45,27 @@
  *          bool will_be_false = can_do_stuff::params(s, f).value;
  *      }
  *
+ *  Ideally, you shouldn't care what the above N2_PARAMS_TESTER and
+ *  N2_TYPES_TESTER macros generate. But. This is the real world. This is about
+ *  what the `can_do_stuff` namespace will look like after preprocessing.
+ *
+ *      namespace can_do_stuff {
+ *          auto params = ::nonstd::valid_expression_tester(
+ *              []( auto && t, auto && u ) -> decltype( t.doStuff(u) ) { }
+ *          );
+ *
+ *          template <typename T, typename U>
+ *          using types = decltype( params( ::std::declval<T>(),
+ *                                          ::std::declval<U>() ) );
+ *      }
+ *
  *
  *  NOTES:
- *  * In the example above, `params` is defined as the object
- *    `auto params = ::nonstd::valid_expression_tester(. . . )`.
- *  * In the example above, `types` is defined as the alias template
- *    `template <typename T, typename U> using types = . . .`
  *  * Because of the complexity of the macros that are used to build instances
  *    of these constructions (specifically that both the argument and expression
  *    sets in N2VET_PARAMS_TESTER must be variadic sets) the Boot Preprocessor
  *    library was brought in.
  *    #SorryNotEntirelyUnapologetic.
- *    I am... a little bit sorry, though. Seems like a really solid lib, though.
  *  * MSVC is, for some reason, unable to correctly apply SFINAE on these
  *    constructs when they are used in template arguments, as such:
  *
@@ -85,6 +96,8 @@
 #include <boost/preprocessor/seq/enum.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/preprocessor/variadic/to_seq.hpp>
+
+#include <utility>
 
 #include "type_traits.h"
 
@@ -218,17 +231,17 @@ namespace detail {
         constexpr auto test(int /*unused*/)
         -> decltype(std::declval<Lambda_T>()(std::declval<Params>()...),
                     std::true_type()) {
-            return std::true_type();
+            return std::true_type{};
         }
 
         template <typename ... Params>
         constexpr std::false_type test(...) {
-            return std::false_type();
+            return std::false_type{};
         }
 
         template <typename ... Params>
         constexpr auto operator () (Params const & ... /*unused*/) {
-            return test<Params...>(int());
+            return test<Params...>(int{});
         }
     };
 
@@ -236,8 +249,8 @@ namespace detail {
 
 
 template <typename Lambda_T>
-constexpr auto valid_expression_tester(const Lambda_T& t) {
-    return detail::ValidExpressionTester<Lambda_T>();
+constexpr auto valid_expression_tester(Lambda_T const & t) {
+    return detail::ValidExpressionTester<Lambda_T>{};
 }
 
 } /* namespace nonstd */
