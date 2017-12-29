@@ -92,9 +92,9 @@ TEST_CASE("Quantity Angle API Demo", "[nonstd][api][scop guards]") {
         // `.degs()` is shorthand for `.degrees()`. I'm only demoing the
         // shorthand here for brevity's sake, and because calling the shorthand
         // will give us coverage of the longform.
-        f32 rads_half  = half.rads();  REQUIRE(rads_half  == angle::pi.rads());
+        f32 rads_half  = half.rads();  REQUIRE(rads_half  == angle::pi().rads());
         f32 degs_half  = half.degs();  REQUIRE(degs_half  == 180.f);
-        f32 rads_whole = whole.rads(); REQUIRE(rads_whole == angle::tau.rads());
+        f32 rads_whole = whole.rads(); REQUIRE(rads_whole == angle::tau().rads());
         f32 degs_whole = whole.degs(); REQUIRE(degs_whole == 360.f);
 
         // If you have an `angle` less than 0.0 or greater than `angle::tau`
@@ -103,32 +103,32 @@ TEST_CASE("Quantity Angle API Demo", "[nonstd][api][scop guards]") {
         // point precision woes.
         auto less_than_zero = angle::in_rads(-angle::pi_radians);
         auto more_than_tau  = angle::in_rads(3 * angle::pi_radians);
-        REQUIRE(less_than_zero.normalized_radians() < angle::pi.rads() + 0.01);
-        REQUIRE(less_than_zero.normalized_radians() > angle::pi.rads() - 0.01);
-        REQUIRE(more_than_tau.normalized_radians()  < angle::pi.rads() + 0.01);
-        REQUIRE(more_than_tau.normalized_radians()  > angle::pi.rads() - 0.01);
-        REQUIRE(less_than_zero.normalized_degrees() < angle::pi.degs() + 0.01);
-        REQUIRE(less_than_zero.normalized_degrees() > angle::pi.degs() - 0.01);
-        REQUIRE(more_than_tau.normalized_degrees()  < angle::pi.degs() + 0.01);
-        REQUIRE(more_than_tau.normalized_degrees()  > angle::pi.degs() - 0.01);
+        REQUIRE(less_than_zero.normalized_radians() < angle::pi().rads() + 0.01);
+        REQUIRE(less_than_zero.normalized_radians() > angle::pi().rads() - 0.01);
+        REQUIRE(more_than_tau.normalized_radians()  < angle::pi().rads() + 0.01);
+        REQUIRE(more_than_tau.normalized_radians()  > angle::pi().rads() - 0.01);
+        REQUIRE(less_than_zero.normalized_degrees() < angle::pi().degs() + 0.01);
+        REQUIRE(less_than_zero.normalized_degrees() > angle::pi().degs() - 0.01);
+        REQUIRE(more_than_tau.normalized_degrees()  < angle::pi().degs() + 0.01);
+        REQUIRE(more_than_tau.normalized_degrees()  > angle::pi().degs() - 0.01);
 
         // There are also shorthand for normalized values.
-        REQUIRE(less_than_zero.rads_norm() < angle::pi.rads() + 0.01);
-        REQUIRE(less_than_zero.rads_norm() > angle::pi.rads() - 0.01);
-        REQUIRE(more_than_tau.rads_norm()  < angle::pi.rads() + 0.01);
-        REQUIRE(more_than_tau.rads_norm()  > angle::pi.rads() - 0.01);
-        REQUIRE(less_than_zero.degs_norm() < angle::pi.degs() + 0.01);
-        REQUIRE(less_than_zero.degs_norm() > angle::pi.degs() - 0.01);
-        REQUIRE(more_than_tau.degs_norm()  < angle::pi.degs() + 0.01);
-        REQUIRE(more_than_tau.degs_norm()  > angle::pi.degs() - 0.01);
+        REQUIRE(less_than_zero.rads_norm() < angle::pi().rads() + 0.01);
+        REQUIRE(less_than_zero.rads_norm() > angle::pi().rads() - 0.01);
+        REQUIRE(more_than_tau.rads_norm()  < angle::pi().rads() + 0.01);
+        REQUIRE(more_than_tau.rads_norm()  > angle::pi().rads() - 0.01);
+        REQUIRE(less_than_zero.degs_norm() < angle::pi().degs() + 0.01);
+        REQUIRE(less_than_zero.degs_norm() > angle::pi().degs() - 0.01);
+        REQUIRE(more_than_tau.degs_norm()  < angle::pi().degs() + 0.01);
+        REQUIRE(more_than_tau.degs_norm()  > angle::pi().degs() - 0.01);
 
         // You can also create a new angle from the noramalized value.
         auto less_than_zero_normalized = less_than_zero.normalized();
         auto more_than_tau_normalized  = more_than_tau.normalized();
-        REQUIRE(less_than_zero_normalized.rads_norm() < angle::pi.rads() + 0.01);
-        REQUIRE(less_than_zero_normalized.rads_norm() > angle::pi.rads() - 0.01);
-        REQUIRE(more_than_tau_normalized.rads_norm()  < angle::pi.rads() + 0.01);
-        REQUIRE(more_than_tau_normalized.rads_norm()  > angle::pi.rads() - 0.01);
+        REQUIRE(less_than_zero_normalized.rads_norm() < angle::pi().rads() + 0.01);
+        REQUIRE(less_than_zero_normalized.rads_norm() > angle::pi().rads() - 0.01);
+        REQUIRE(more_than_tau_normalized.rads_norm()  < angle::pi().rads() + 0.01);
+        REQUIRE(more_than_tau_normalized.rads_norm()  > angle::pi().rads() - 0.01);
 
         // Now that we know we can compare angles, let's make sure unary
         // operators operate as advertised.

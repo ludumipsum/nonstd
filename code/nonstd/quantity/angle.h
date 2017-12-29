@@ -16,10 +16,16 @@ public:
      *  --------------- */
     // Mathematical π (pi). Half the diameter of the unit circle.
     static constexpr f64 pi_radians  = 3.14159265358979323846264338327950288;
-    static const angle pi;
+    static inline angle const pi() {
+        static angle pi = angle { pi_radians };
+        return pi;
+    }
     // Mathematical τ (tau). Whole diameter of the unit circle.
     static constexpr f64 tau_radians = 6.28318530717958647692528676655900576;
-    static const angle tau;
+    static inline angle const tau() {
+        static angle tau = angle { tau_radians };
+        return tau;
+    }
 
     // Ratio to convert radians to degrees.
     static constexpr f64 radians_to_degrees = 180.0/pi_radians;
@@ -295,21 +301,6 @@ public:
         return ((other - epsilon) < *this) && (*this < (other + epsilon));
     }
 }; ENFORCE_POD(angle);
-
-
-/** Storage and initialization for static class members. */
-template <typename T>
-struct angle_static_storage {
-    static angle pi;
-    static angle tau;
-};
-template<typename T>
-angle angle_static_storage<T>::pi  = angle::in_radians(angle::pi_radians);
-template<typename T>
-angle angle_static_storage<T>::tau = angle::in_radians(angle::tau_radians);
-
-inline angle const angle::pi  = angle_static_storage<int>::pi;
-inline angle const angle::tau = angle_static_storage<int>::tau;
 
 } /* namespace quantity */
 
