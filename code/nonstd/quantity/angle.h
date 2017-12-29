@@ -11,7 +11,7 @@ namespace nonstd {
 namespace quantity {
 
 struct angle {
-
+public:
     /** Class Constants
      *  --------------- */
     // Mathematical π (pi). Half the diameter of the unit circle.
@@ -308,23 +308,29 @@ namespace angle_literals {
 
 /** User Defined Literals
  *  --------------------- */
-constexpr inline quantity::angle operator "" _radians (f_long radians) noexcept {
+constexpr inline
+quantity::angle operator "" _radians (udl_float_t radians) noexcept {
     return quantity::angle::in_radians(static_cast<f32>(radians));
 }
-constexpr inline quantity::angle operator "" _rads    (f_long radians) noexcept {
+constexpr inline
+quantity::angle operator "" _rads    (udl_float_t radians) noexcept {
     return quantity::angle::in_radians(static_cast<f32>(radians));
 }
 
-constexpr inline quantity::angle operator "" _degrees (f_long degrees) noexcept {
+constexpr inline
+quantity::angle operator "" _degrees (udl_float_t degrees) noexcept {
     return quantity::angle::in_degrees(static_cast<f32>(degrees));
 }
-constexpr inline quantity::angle operator "" _degs    (f_long degrees) noexcept {
+constexpr inline
+quantity::angle operator "" _degs    (udl_float_t degrees) noexcept {
     return quantity::angle::in_degrees(static_cast<f32>(degrees));
 }
-constexpr inline quantity::angle operator "" _degrees (unsigned long long int degrees) noexcept {
+constexpr inline
+quantity::angle operator "" _degrees (udl_int_t degrees) noexcept {
     return quantity::angle::in_degrees(degrees);
 }
-constexpr inline quantity::angle operator "" _degs    (unsigned long long int degrees) noexcept {
+constexpr inline
+quantity::angle operator "" _degs    (udl_int_t degrees) noexcept {
     return quantity::angle::in_degrees(degrees);
 }
 

@@ -30,7 +30,12 @@ typedef char const *    c_cstr;
 typedef ptrdiff_t       ptrdiff;
 typedef uint8_t *       ptr;
 typedef uint8_t const * c_ptr;
-typedef void *          print_ptr;
+typedef void *          v_ptr;
+
+// User Defined Literals have a reduced set of possible overloads.
+using udl_raw_t   = char const *;
+using udl_int_t   = unsigned long long int;
+using udl_float_t = long double;
 
 /* IDs uniquely identify game entities. We reserve the bottom few for special
    meanings in our container types (unset, deleted, etc). */
