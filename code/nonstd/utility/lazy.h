@@ -38,6 +38,14 @@ public:
         : m_storage ( )
         , m_args    ( std::forward<Args>(args)... )
     { }
+    lazy_initializer(lazy_initializer & other)
+        : m_storage ( other.m_storage )
+        , m_args    ( other.m_args    )
+    { }
+    lazy_initializer(lazy_initializer && other)
+        : m_storage ( std::move(other.m_storage) )
+        , m_args    ( std::move(other.m_args)    )
+    { }
 
     bool initialized() { return m_storage.is_containing; }
 
@@ -55,7 +63,7 @@ public:
  *  explicitly typed `lazy_initializer`.
  */
 template <typename T, typename ... Args>
-lazy_initializer<T, Args&&...> lazy_init(Args&&... args) {
+lazy_initializer<T, Args&&...> make_lazy(Args&&... args) {
     return { std::forward<Args>(args)... };
 }
 
