@@ -308,23 +308,23 @@ namespace angle_literals {
 
 /** User Defined Literals
  *  --------------------- */
-constexpr inline quantity::angle operator "" _radians (f_long radians) noexcept {
+constexpr inline quantity::angle operator "" _radians (f_long radians) {
     return quantity::angle::in_radians(static_cast<f32>(radians));
 }
-constexpr inline quantity::angle operator "" _rads    (f_long radians) noexcept {
+constexpr inline quantity::angle operator "" _rads    (f_long radians) {
     return quantity::angle::in_radians(static_cast<f32>(radians));
 }
 
-constexpr inline quantity::angle operator "" _degrees (f_long degrees) noexcept {
+constexpr inline quantity::angle operator "" _degrees (f_long degrees) {
     return quantity::angle::in_degrees(static_cast<f32>(degrees));
 }
-constexpr inline quantity::angle operator "" _degs    (f_long degrees) noexcept {
+constexpr inline quantity::angle operator "" _degs    (f_long degrees) {
     return quantity::angle::in_degrees(static_cast<f32>(degrees));
 }
-constexpr inline quantity::angle operator "" _degrees (u64 degrees) noexcept {
+constexpr inline quantity::angle operator "" _degrees (u64 degrees) {
     return quantity::angle::in_degrees(degrees);
 }
-constexpr inline quantity::angle operator "" _degs    (u64 degrees) noexcept {
+constexpr inline quantity::angle operator "" _degs    (u64 degrees) {
     return quantity::angle::in_degrees(degrees);
 }
 
