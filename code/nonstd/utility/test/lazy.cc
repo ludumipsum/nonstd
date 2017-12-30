@@ -21,9 +21,6 @@ using nonstd::test::construction_counter;
 
 constexpr i32 test_value = 42;
 auto global_instance = make_lazy<i32>(test_value);
-// auto nested_instance =
-//     make_lazy<nonstd::lazy_initializer<i32>>(
-//         make_lazy<i32>(test_value));
 TEST_CASE("Global Lazy Wrappers", "[nonstd][lazy]") {
     SECTION("Should be not initialized until accessed") {
         REQUIRE(global_instance.initialized() == false);
@@ -32,14 +29,24 @@ TEST_CASE("Global Lazy Wrappers", "[nonstd][lazy]") {
         REQUIRE(*global_instance == test_value);
         REQUIRE(global_instance.initialized() == true);
     }
-    // SECTION("Should be nestable") {
-    //     REQUIRE(nested_instance.initialized() == false);
-    //     REQUIRE((*nested_instance).initialized() == false);
-    //     REQUIRE(nested_instance.initialized() == true);
-    //     REQUIRE(**nested_instance == test_value);
-    //     REQUIRE((*nested_instance).initialized() == true);
-    // }
 }
+
+// There's some kind of template expansion problem in these right now -- we
+// wind up trying to call the constructor via placement new with a tuple
+// unpack structure instead of the actual unpacked arguments.
+#if 0
+auto nested_instance =
+    make_lazy<nonstd::lazy_initializer<i32>>(
+        make_lazy<i32>(test_value));
+
+SECTION("Nested lazy wrappers should work") {
+    REQUIRE(nested_instance.initialized() == false);
+    REQUIRE((*nested_instance).initialized() == false);
+    REQUIRE(nested_instance.initialized() == true);
+    REQUIRE(**nested_instance == test_value);
+    REQUIRE((*nested_instance).initialized() == true);
+}
+#endif
 
 TEST_CASE("Lazy Wrappers", "[nonstd][lazy]") {
     SECTION("should neither copy nor move the contained") {
@@ -74,8 +81,7 @@ TEST_CASE("Lazy Wrappers", "[nonstd][lazy]") {
             auto& counter = (*lazy_container).counter;
             REQUIRE(lazy_container.initialized() == true);
 
-            // Check that the whole lazy initialization process hasn't resulted
-            // in any copies, and no more than two moves
+            // Confirm the correct number of moves and copies were done
             CHECK(counter.copies == 0);
             CHECK(counter.moves_in == 2);
             CHECK(counter.moves_out == 0);
@@ -90,8 +96,7 @@ TEST_CASE("Lazy Wrappers", "[nonstd][lazy]") {
             auto& counter = (*lazy_container).counter;
             REQUIRE(lazy_container.initialized() == true);
 
-            // Check that the whole lazy initialization process hasn't resulted
-            // in any copies, and no more than two moves
+            // Confirm the correct number of moves and copies were done
             CHECK(counter.copies == 1);
             CHECK(counter.moves_in == 1);
             CHECK(counter.moves_out == 0);

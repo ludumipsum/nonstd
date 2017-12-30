@@ -21,6 +21,7 @@ namespace nonstd {
  */
 template <typename T, typename ... Args>
 class lazy_initializer {
+private:
     using storage_type = std::remove_const_t<T>;
 
     _Optional_Storage<storage_type>   m_storage;
@@ -38,7 +39,7 @@ public:
         : m_storage ( )
         , m_args    ( std::forward<Args>(args)... )
     { }
-    lazy_initializer(lazy_initializer & other)
+    lazy_initializer(lazy_initializer const & other)
         : m_storage ( other.m_storage )
         , m_args    ( other.m_args    )
     { }
@@ -47,7 +48,7 @@ public:
         , m_args    ( std::move(other.m_args)    )
     { }
 
-    bool initialized() { return m_storage.is_containing; }
+    constexpr bool initialized() { return m_storage.is_containing; }
 
     T& operator* () {
         if (!initialized()) { initialize(std::index_sequence_for<Args...>{}); }
