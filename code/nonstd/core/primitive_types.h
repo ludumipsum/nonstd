@@ -30,7 +30,7 @@ typedef char const *    c_cstr;
 typedef ptrdiff_t       ptrdiff;
 typedef uint8_t *       ptr;
 typedef uint8_t const * c_ptr;
-typedef void *          v_ptr;
+typedef void *          void_ptr;
 
 // User Defined Literals have a reduced set of possible overloads.
 using udl_raw_t   = char const *;
