@@ -17,15 +17,20 @@ public:
      */
     // Mathematical π (pi). Half the diameter of the unit circle.
     static constexpr f64 pi_radians  = 3.14159265358979323846264338327950288;
-    static inline angle const pi() {
+    static inline angle const & pi() noexcept {
         static angle pi = angle { pi_radians };
         return pi;
     }
     // Mathematical τ (tau). Whole diameter of the unit circle.
     static constexpr f64 tau_radians = 6.28318530717958647692528676655900576;
-    static inline angle const tau() {
+    static inline angle const & tau() noexcept {
         static angle tau = angle { tau_radians };
         return tau;
+    }
+    // Mathematical 0 (0). None of the diameter of the unit circle.
+    static inline angle const & zero() noexcept {
+        static angle zero = angle { 0 };
+        return zero;
     }
 
     // Ratio to convert radians to degrees.
@@ -162,11 +167,17 @@ public:
     inline angle normalized() const noexcept {
         return angle { normalized_radians() };
     }
+    inline angle norm() const noexcept {
+        return normalized();
+    }
     // Return a new angle equal to this angle normalized to the range [0,tau].
     // CONSTEXPR VARIANT; Only call this in a constexpr context. You can assume
     // the non-cx version of this function will run at least 10x more quickly.
     inline angle normalized_cx() const noexcept {
         return angle { normalized_radians_cx() };
+    }
+    inline angle norm_cx() const noexcept {
+        return normalized_cx();
     }
 
     /** Simple Modifiers
