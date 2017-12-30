@@ -24,7 +24,7 @@ struct CallableObject {
 };
 
 
-TEST_CASE("Scope Guard API Demo", "[nonstd][api][scop guards]") {
+TEST_CASE("Scope Guard API Demo", "[nonstd][api][scope guards]") {
 
     CallableObject obj;
     i32 (CallableObject::*member_fn)() = &CallableObject::memberFn;

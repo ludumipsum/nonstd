@@ -13,7 +13,8 @@ namespace quantity {
 struct angle {
 public:
     /** Class Constants
-     *  --------------- */
+     *  ---------------
+     */
     // Mathematical π (pi). Half the diameter of the unit circle.
     static constexpr f64 pi_radians  = 3.14159265358979323846264338327950288;
     static inline angle const pi() {
@@ -49,7 +50,8 @@ private:
 
 public:
     /** Implicit Constructor Set
-     *  ------------------------ */
+     *  ------------------------
+     */
     angle()                          noexcept = default;
     angle(angle const &)             noexcept = default;
     angle(angle &&)                  noexcept = default;
@@ -57,11 +59,13 @@ public:
     angle& operator= (angle &&)      noexcept = default;
 
     /** Implicit Destructor
-     *  ------------------- */
+     *  -------------------
+     */
     ~angle() noexcept = default;
 
     /** Named "Constructors"
-     *  -------------------- */
+     *  --------------------
+     */
     // Construct a new angle from a radian value.
     static constexpr inline angle in_radians(f32 radians) noexcept {
         return angle { radians };
@@ -78,7 +82,8 @@ public:
     }
 
     /** Observers
-     *  --------- */
+     *  ---------
+     */
     // Return this angle in radians.
     constexpr inline f32 radians() const noexcept {
         return this->m_rads;
@@ -165,7 +170,8 @@ public:
     }
 
     /** Simple Modifiers
-     *  ---------------- */
+     *  ----------------
+     */
     // Set this angle to the given radian value (may be <0 and >Tau).
     constexpr inline void set_radians(f32 radians) noexcept {
         this->m_rads = radians;
@@ -203,7 +209,8 @@ public:
     }
 
     /** Arithmetic Operators
-     *  -------------------- */
+     *  --------------------
+     */
     // Return a new angle equal to the sum of two angles.
     constexpr inline angle  operator+  (angle const & rhs) const noexcept {
         return angle { this->m_rads + rhs.m_rads };
@@ -229,7 +236,8 @@ public:
     }
 
     /** Unary + and - Operators
-     *  ----------------------- */
+     *  -----------------------
+     */
     /* Construct a new angle equal to this angle * 1. */
     constexpr inline angle operator+ () const noexcept {
         return angle { this->m_rads };
@@ -240,7 +248,8 @@ public:
     }
 
     /** Compound Arithmetic Operators
-     *  ----------------------------- */
+     *  -----------------------------
+     */
     // Increment this angle by the value of another.
     constexpr inline angle& operator+= (angle const & rhs) noexcept {
         this->m_rads += rhs.m_rads;
@@ -309,7 +318,8 @@ namespace literals {
 namespace angle_literals {
 
 /** User Defined Literals
- *  --------------------- */
+ *  ---------------------
+ */
 constexpr inline
 quantity::angle operator "" _radians (udl_float_t radians) noexcept {
     return quantity::angle::in_radians(static_cast<f32>(radians));

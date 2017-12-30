@@ -11,7 +11,7 @@
 namespace nonstd_test {
 namespace quantity {
 
-TEST_CASE("Quantity Angle API Demo", "[nonstd][api][scop guards]") {
+TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
 
     /** Creating Angles
      *  ---------------
