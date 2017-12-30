@@ -27,7 +27,19 @@ namespace nonstd {
  *  rather than a "real" namespace, to avoid issues with the order of function
  *  declaration.
  *
- *  The provide functions are as follows;
+ *  The provided functions are as follows;
+ *
+ *    bool nearly_equal_ulp(float x, float y[, int units_in_the_last_place])
+ *    bool nearly_equal_ulp(double x, double y[, int units_in_the_last_place])
+ *    bool nearly_equal_ulp(long double x, long double y[, int units_in_the_last_place])
+ *    bool nearly_equal_ulp(Arithmetic x, Arithmetic y[, int units_in_the_last_place])
+ *    // The above will be aliased with `f_eq_ulp`.
+ *
+ *    bool nearly_equal_epsilon(float x, float y[, float epsilon])
+ *    bool nearly_equal_epsilon(double x, double y[, double epsilon])
+ *    bool nearly_equal_epsilon(long double x, long double y[, long double epsilon])
+ *    bool nearly_equal_epsilon(Arithmetic x, Arithmetic y[, double epsilon])
+ *    // The above will be aliased with `f_eq_eps`.
  *
  *    bool isinf(float arg);
  *    bool isinf(double arg);
@@ -66,7 +78,7 @@ namespace nonstd {
  *    float       fmod(float arg);
  *    double      fmod(double arg);
  *    long double fmod(long double arg);
- *    double      fmod(Integral arg);
+ *    double      fmod(Arithmetic arg);
  *
  *  There will also be a set of non-standard functions that aid in the
  *  implementation of core functions, but may be useful to other packages.
@@ -93,12 +105,6 @@ template <typename T>
 using enable_int_if_arithmetic_t = typename std::enable_if_t<std::is_arithmetic_v<T>, int>;
 
 struct detail {
-    // nearly_equal -- Check if two numbers are with (an approximation) of the
-    // machine's adjusted epsilon.
-    template <typename T>
-    static constexpr bool nearly_equal(T x, T y) {
-        return nonstd::cx::abs(x - y) <= std::numeric_limits<T>::epsilon();
-    }
 
     // fpow -- Raise an arbitrary floating point to an arbitrary integral power.
     template <typename FloatingPoint,
@@ -127,7 +133,6 @@ struct detail {
     using arithmetic_promoted__either_is_long =
         typename std::enable_if_t<   std::is_same_v<A, long double>
                                   || std::is_same_v<B, long double>>;
-
 
     template <typename A, typename B, typename enabled=void>
     struct arithmetic_promoted;
@@ -195,6 +200,68 @@ struct detail {
 /** Constexpr Math Utilities
  *  ----------------------------------------------------------------------------
  */
+
+// nearly_equal_ulp (f_eq_ulp) -- Check if two floating point numbers are
+// approximately equal. "Approximately" being determined by an acceptable number
+// of units away from true-zero the difference of the two numbers is allowed to
+// be. Note that a "unit" here is the approximate precision of floating point
+// numbers at the magnitude of values involved; as the magnitude (x + y)
+// increases, the perceived rounding error between neighboring floating point
+// values (the size of a unit) should similarly increase.
+template <typename Arithmetic1, typename Arithmetic2,
+          enable_int_if_arithmetic_t<Arithmetic1> = 0,
+          enable_int_if_arithmetic_t<Arithmetic2> = 1>
+static constexpr bool nearly_equal_ulp(Arithmetic1 x, Arithmetic2 y,
+                                       int units_in_the_last_place = 1) {
+    using T = detail::arithmetic_promoted_t<Arithmetic1, Arithmetic2>;
+    constexpr T epsilon = std::numeric_limits<T>::epsilon();
+    constexpr T min     = std::numeric_limits<T>::min();
+    return x == y         ? true // handle inf
+         : abs(x-y) < min ? true
+         : abs(x-y) <= epsilon * abs(x+y) * units_in_the_last_place;
+}
+template <typename Arithmetic1, typename Arithmetic2>
+static constexpr bool f_eq_ulp(Arithmetic1 x, Arithmetic2 y, int ulp = 1) {
+    return nearly_equal_ulp(x, y, ulp);
+}
+
+// nearly_equal_epsilon (f_eq_eps) -- Check if two floating point numbers are
+// approximately equal. "Approximately" being determined by providing an
+// absolute epsilon the difference of the two numbers is allowed to fall within.
+// The default was chosen because it seems reasonable for values with [-10, 10].
+template <typename Arithmetic1, typename Arithmetic2,
+          enable_int_if_arithmetic_t<Arithmetic1> = 0,
+          enable_int_if_arithmetic_t<Arithmetic2> = 1>
+static constexpr bool nearly_equal_epsilon(Arithmetic1 x, Arithmetic2 y,
+                                           double epsilon = 0.0001) {
+    using T = detail::arithmetic_promoted_t<Arithmetic1, Arithmetic2>;
+    return x == y ? true // handle inf
+         : abs(x-y) <= epsilon;
+}
+template <typename Arithmetic1, typename Arithmetic2>
+static constexpr bool f_eq_eps(Arithmetic1 x, Arithmetic2 y,
+                               double epsilon = 0.0001) {
+    return nearly_equal_epsilon(x, y, epsilon);
+}
+
+
+// equal. "Roughly" being determined by the magnitude of the compared numbers,
+// and the desired precision in ULPs (units in the last place).
+template <typename Arithmetic1, typename Arithmetic2,
+          enable_int_if_arithmetic_t<Arithmetic1> = 0,
+          enable_int_if_arithmetic_t<Arithmetic2> = 1>
+static constexpr bool roughly_equal(Arithmetic1 x, Arithmetic2 y, int ulp = 1) {
+    using T = detail::arithmetic_promoted_t<Arithmetic1, Arithmetic2>;
+    constexpr T epsilon = std::numeric_limits<T>::epsilon();
+    constexpr T min     = std::numeric_limits<T>::min();
+    return isinf(x) || isinf(y) ? x == y
+         : abs(x-y) < min       ? true
+         : abs(x-y) <= epsilon * abs(x+y) * ulp;
+}
+template <typename Arithmetic1, typename Arithmetic2>
+static constexpr bool r_eq(Arithmetic1 x, Arithmetic2 y, int ulp = 1) {
+    return roughly_equal(x, y, ulp);
+}
 
 // isinf -- Check if the given value is INFINITE.
 template <typename FloatingPoint,

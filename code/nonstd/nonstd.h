@@ -94,6 +94,8 @@
 #include "std_ish/math.h"
 #include "std_ish/to_cstr.h"
 
+#include "quantity/angle.h"
+
 #include "utility/color.h"
 #include "utility/four_char_code.h"
 #include "utility/iterator.h"
