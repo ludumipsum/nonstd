@@ -155,13 +155,13 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
     constexpr i64 i64__min      =  std::numeric_limits<i64>::min(); UNUSED(i64__min); // Note: This is negative.
     constexpr i64 i64__max      =  std::numeric_limits<i64>::max(); UNUSED(i64__max);
 
-    SECTION("r_eq") {
-        constexpr auto calls_to_r_eq_are_constexpr = nonstd::cx::r_eq(f32__positive, f32__positive);
+    SECTION("f_eq_ulp") {
+        constexpr auto calls_to_f_eq_ulp_are_constexpr = nonstd::cx::f_eq_ulp(f32__positive, f32__positive);
 
         f64 a = 0.2;
         f64 b = 1 / std::sqrt(5) / std::sqrt(5);
         REQUIRE_FALSE(a == b);
-        REQUIRE(nonstd::cx::r_eq(a, b));
+        REQUIRE(nonstd::cx::f_eq_ulp(a, b));
 
 
         // Let's make sure we're correct about direct float comparisons
@@ -182,20 +182,63 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
 
 
         // Now let's make sure we match.
-        REQUIRE(nonstd::cx::r_eq(f32__f32_nan, f32__f32_nan)       == false);
-        REQUIRE(nonstd::cx::r_eq(f32__f32_nan, f64__f64_nan)       == false);
-        REQUIRE(nonstd::cx::r_eq(f32__f32_nan, f_long__f_long_nan) == false);
+        REQUIRE(nonstd::cx::f_eq_ulp(f32__f32_nan, f32__f32_nan)       == false);
+        REQUIRE(nonstd::cx::f_eq_ulp(f32__f32_nan, f64__f64_nan)       == false);
+        REQUIRE(nonstd::cx::f_eq_ulp(f32__f32_nan, f_long__f_long_nan) == false);
 
-        REQUIRE(nonstd::cx::r_eq(f32__f32_p_inf, f32__f32_p_inf)       == true);
-        REQUIRE(nonstd::cx::r_eq(f32__f32_p_inf, f64__f64_p_inf)       == true);
-        REQUIRE(nonstd::cx::r_eq(f32__f32_p_inf, f_long__f_long_p_inf) == true);
+        REQUIRE(nonstd::cx::f_eq_ulp(f32__f32_p_inf, f32__f32_p_inf)       == true);
+        REQUIRE(nonstd::cx::f_eq_ulp(f32__f32_p_inf, f64__f64_p_inf)       == true);
+        REQUIRE(nonstd::cx::f_eq_ulp(f32__f32_p_inf, f_long__f_long_p_inf) == true);
 
-        REQUIRE(nonstd::cx::r_eq(f32__f32_n_inf,       f32__f32_p_inf)       == false);
-        REQUIRE(nonstd::cx::r_eq(f64__f64_n_inf,       f64__f64_p_inf)       == false);
-        REQUIRE(nonstd::cx::r_eq(f_long__f_long_n_inf, f_long__f_long_p_inf) == false);
+        REQUIRE(nonstd::cx::f_eq_ulp(f32__f32_n_inf,       f32__f32_p_inf)       == false);
+        REQUIRE(nonstd::cx::f_eq_ulp(f64__f64_n_inf,       f64__f64_p_inf)       == false);
+        REQUIRE(nonstd::cx::f_eq_ulp(f_long__f_long_n_inf, f_long__f_long_p_inf) == false);
 
-        REQUIRE(nonstd::cx::r_eq(f32__f32_p_smallest, f64__f64_p_smallest)       == false);
-        REQUIRE(nonstd::cx::r_eq(f64__f64_p_smallest, f_long__f_long_p_smallest) == false);
+        REQUIRE(nonstd::cx::f_eq_ulp(f32__f32_p_smallest, f64__f64_p_smallest)       == false);
+        REQUIRE(nonstd::cx::f_eq_ulp(f64__f64_p_smallest, f_long__f_long_p_smallest) == false);
+    }
+
+    SECTION("f_eq_eps") {
+        constexpr auto calls_to_f_eq_eps_are_constexpr = nonstd::cx::f_eq_eps(f32__positive, f32__positive);
+
+        f64 a = 0.2;
+        f64 b = 1 / std::sqrt(5) / std::sqrt(5);
+        REQUIRE_FALSE(a == b);
+        REQUIRE(nonstd::cx::f_eq_eps(a, b));
+
+
+        // Let's make sure we're correct about direct float comparisons
+        REQUIRE((f32__f32_nan == f32__f32_nan)       == false);
+        REQUIRE((f32__f32_nan == f64__f64_nan)       == false);
+        REQUIRE((f32__f32_nan == f_long__f_long_nan) == false);
+
+        REQUIRE((f32__f32_p_inf == f32__f32_p_inf)       == true);
+        REQUIRE((f32__f32_p_inf == f64__f64_p_inf)       == true);
+        REQUIRE((f32__f32_p_inf == f_long__f_long_p_inf) == true);
+
+        REQUIRE((f32__f32_n_inf       == f32__f32_p_inf)       == false);
+        REQUIRE((f64__f64_n_inf       == f64__f64_p_inf)       == false);
+        REQUIRE((f_long__f_long_n_inf == f_long__f_long_p_inf) == false);
+
+        REQUIRE((f32__f32_p_smallest == f64__f64_p_smallest)       == false);
+        REQUIRE((f64__f64_p_smallest == f_long__f_long_p_smallest) == false);
+
+
+        // Now let's make sure we match (mostly).
+        REQUIRE(nonstd::cx::f_eq_eps(f32__f32_nan, f32__f32_nan)       == false);
+        REQUIRE(nonstd::cx::f_eq_eps(f32__f32_nan, f64__f64_nan)       == false);
+        REQUIRE(nonstd::cx::f_eq_eps(f32__f32_nan, f_long__f_long_nan) == false);
+
+        REQUIRE(nonstd::cx::f_eq_eps(f32__f32_p_inf, f32__f32_p_inf)       == true);
+        REQUIRE(nonstd::cx::f_eq_eps(f32__f32_p_inf, f64__f64_p_inf)       == true);
+        REQUIRE(nonstd::cx::f_eq_eps(f32__f32_p_inf, f_long__f_long_p_inf) == true);
+
+        REQUIRE(nonstd::cx::f_eq_eps(f32__f32_n_inf,       f32__f32_p_inf)       == false);
+        REQUIRE(nonstd::cx::f_eq_eps(f64__f64_n_inf,       f64__f64_p_inf)       == false);
+        REQUIRE(nonstd::cx::f_eq_eps(f_long__f_long_n_inf, f_long__f_long_p_inf) == false);
+
+        REQUIRE(nonstd::cx::f_eq_eps(f32__f32_p_smallest, f64__f64_p_smallest)       == true);
+        REQUIRE(nonstd::cx::f_eq_eps(f64__f64_p_smallest, f_long__f_long_p_smallest) == true);
     }
 
     SECTION("isinf") {

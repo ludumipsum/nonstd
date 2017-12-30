@@ -84,6 +84,7 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
     SECTION("Observing Angles") {
         using nonstd::quantity::angle;
         using namespace nonstd::literals::angle_literals;
+        using nonstd::cx;
 
         auto half  = angle::in_degs(180);
         auto whole = angle::in_degs(360);
@@ -103,32 +104,22 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
         // point precision woes.
         auto less_than_zero = angle::in_rads(-angle::pi_radians);
         auto more_than_tau  = angle::in_rads(3 * angle::pi_radians);
-        REQUIRE(less_than_zero.normalized_radians() < angle::pi().rads() + 0.01);
-        REQUIRE(less_than_zero.normalized_radians() > angle::pi().rads() - 0.01);
-        REQUIRE(more_than_tau.normalized_radians()  < angle::pi().rads() + 0.01);
-        REQUIRE(more_than_tau.normalized_radians()  > angle::pi().rads() - 0.01);
-        REQUIRE(less_than_zero.normalized_degrees() < angle::pi().degs() + 0.01);
-        REQUIRE(less_than_zero.normalized_degrees() > angle::pi().degs() - 0.01);
-        REQUIRE(more_than_tau.normalized_degrees()  < angle::pi().degs() + 0.01);
-        REQUIRE(more_than_tau.normalized_degrees()  > angle::pi().degs() - 0.01);
+        REQUIRE(cx::f_eq_eps(less_than_zero.normalized_radians(), angle::pi().rads()));
+        REQUIRE(cx::f_eq_eps(more_than_tau.normalized_radians(),  angle::pi().rads()));
+        REQUIRE(cx::f_eq_eps(less_than_zero.normalized_degrees(), angle::pi().degs()));
+        REQUIRE(cx::f_eq_eps(more_than_tau.normalized_degrees(),  angle::pi().degs()));
 
         // There are also shorthand for normalized values.
-        REQUIRE(less_than_zero.rads_norm() < angle::pi().rads() + 0.01);
-        REQUIRE(less_than_zero.rads_norm() > angle::pi().rads() - 0.01);
-        REQUIRE(more_than_tau.rads_norm()  < angle::pi().rads() + 0.01);
-        REQUIRE(more_than_tau.rads_norm()  > angle::pi().rads() - 0.01);
-        REQUIRE(less_than_zero.degs_norm() < angle::pi().degs() + 0.01);
-        REQUIRE(less_than_zero.degs_norm() > angle::pi().degs() - 0.01);
-        REQUIRE(more_than_tau.degs_norm()  < angle::pi().degs() + 0.01);
-        REQUIRE(more_than_tau.degs_norm()  > angle::pi().degs() - 0.01);
+        REQUIRE(cx::f_eq_eps(less_than_zero.rads_norm(), angle::pi().rads()));
+        REQUIRE(cx::f_eq_eps(more_than_tau.rads_norm(),  angle::pi().rads()));
+        REQUIRE(cx::f_eq_eps(less_than_zero.degs_norm(), angle::pi().degs()));
+        REQUIRE(cx::f_eq_eps(more_than_tau.degs_norm(),  angle::pi().degs()));
 
         // You can also create a new angle from the noramalized value.
         auto less_than_zero_normalized = less_than_zero.normalized();
         auto more_than_tau_normalized  = more_than_tau.normalized();
-        REQUIRE(less_than_zero_normalized.rads_norm() < angle::pi().rads() + 0.01);
-        REQUIRE(less_than_zero_normalized.rads_norm() > angle::pi().rads() - 0.01);
-        REQUIRE(more_than_tau_normalized.rads_norm()  < angle::pi().rads() + 0.01);
-        REQUIRE(more_than_tau_normalized.rads_norm()  > angle::pi().rads() - 0.01);
+        REQUIRE(cx::f_eq_eps(less_than_zero_normalized.rads_norm(), angle::pi().rads()));
+        REQUIRE(cx::f_eq_eps(more_than_tau_normalized.rads_norm(),  angle::pi().rads()));
 
         // Now that we know we can compare angles, let's make sure unary
         // operators operate as advertised.
