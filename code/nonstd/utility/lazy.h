@@ -54,6 +54,11 @@ public:
         if (!initialized()) { initialize(std::index_sequence_for<Args...>{}); }
         return m_storage.value;
     }
+
+    T* operator-> () {
+        if (!initialized()) { initialize(std::index_sequence_for<Args...>{}); }
+        return &m_storage.value;
+    }
 };
 
 
