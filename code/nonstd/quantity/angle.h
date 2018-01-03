@@ -11,32 +11,44 @@ namespace nonstd {
 namespace quantity {
 
 struct angle {
+private:
+    // These functions will be defined out-of-line so that we are able to define
+    // inline function local static storage as the addresses to take.
+    static inline angle const & _get_pi();
+    static inline angle const & _get_tau();
+    static inline angle const & _get_zero();
+
 public:
     /** Class Constants
      *  ---------------
      */
     // Mathematical π (pi). Half the diameter of the unit circle.
-    static constexpr f64 pi_radians  = 3.14159265358979323846264338327950288;
-    static inline angle const & pi() noexcept {
-        static angle pi = angle { pi_radians };
-        return pi;
-    }
+    static constexpr f64 pi_radians = 3.14159265358979323846264338327950288;
+    static inline angle const & pi  = _get_pi();
+
     // Mathematical τ (tau). Whole diameter of the unit circle.
     static constexpr f64 tau_radians = 6.28318530717958647692528676655900576;
-    static inline angle const & tau() noexcept {
-        static angle tau = angle { tau_radians };
-        return tau;
-    }
-    // Mathematical 0 (0). None of the diameter of the unit circle.
-    static inline angle const & zero() noexcept {
-        static angle zero = angle { 0 };
-        return zero;
-    }
+    static inline angle const & tau  = _get_tau();
+
+    // Mathematical 0 (0.0). None of the diameter of the unit circle.
+    static inline angle const & zero = _get_zero();
 
     // Ratio to convert radians to degrees.
     static constexpr f64 radians_to_degrees = 180.0/pi_radians;
     // Ratio to convert degrees to radians.
     static constexpr f64 degrees_to_radians = pi_radians/180.0;
+
+
+    /** Inner type `angle::cx`
+     *  ----------------------
+     *  This type will define static constexpr members;
+     *    * angle::cx::pi
+     *    * angle::cx::tau
+     *    * angle::cx::zero
+     *  Unfortunately, they all need to be declared out-of-line -- after `angle`
+     *  has been made a complete type -- in order to be correctly constexpr.
+     */
+    struct cx;
 
 private:
     // The current value of this angle, stored in radians.
@@ -320,7 +332,37 @@ public:
     const noexcept {
         return ((other - epsilon) < *this) && (*this < (other + epsilon));
     }
+
 }; ENFORCE_POD(angle);
+
+
+/** Out-Of-Line Class Definitions
+ *  -----------------------------
+ *  For great storage. For great constexpr.
+ */
+inline angle const & angle::_get_pi() {
+    static constexpr angle pi = angle::in_radians(angle::pi_radians);
+    return pi;
+}
+inline angle const & angle::_get_tau() {
+    static constexpr angle tau = angle::in_radians(angle::tau_radians);
+    return tau;
+}
+inline angle const & angle::_get_zero() {
+    static constexpr angle zero = angle::in_radians(0.0);
+    return zero;
+}
+
+struct angle::cx {
+    // Mathematical π (pi). Half the diameter of the unit circle.
+    static constexpr angle pi = angle::in_radians(angle::pi_radians);
+
+    // Mathematical τ (tau). Whole diameter of the unit circle.
+    static constexpr angle tau = angle::in_radians(angle::tau_radians);
+
+    // Mathematical 0 (0.0). None of the diameter of the unit circle.
+    static constexpr angle zero = angle::in_radians(0.0);
+};
 
 } /* namespace quantity */
 

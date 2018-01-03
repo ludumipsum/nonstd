@@ -45,7 +45,7 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
         auto deg_septi = 51.4_degs;
 
         // If you need to be specific (of if you don't want to use literals) you
-        // can used angle's "name constructor" static functions.
+        // can used the "name constructor" static functions.
         auto named_radian_semicircle  = angle::in_radians(3.14);
         auto named_degree_semicircle  = angle::in_degrees(180);
         auto named_degree_septicircle = angle::in_degrees(51.4);
@@ -79,49 +79,49 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
 
     /** Observing Angles
      *  ----------------
-     *  Getting data out of an angle is... Pretty easy. There's not much to say.
+     *  Getting data out of an `angle` is... Pretty easy.
      */
     SECTION("Observing Angles") {
         using nonstd::quantity::angle;
         using namespace nonstd::literals::angle_literals;
         using nonstd::cx;
 
-        auto half  = angle::in_degs(180);
-        auto whole = angle::in_degs(360);
+        f32 pi_rads  = 3.14159265358979323846264338327950288;
+        f32 tau_rads = 6.28318530717958647692528676655900576;
+        auto half    = angle::in_radians(pi_rads);
+        auto whole   = angle::in_radians(tau_rads);
 
         // Note: `.rads()` is shorthand for (calls into) `.radians()`, and
         // `.degs()` is shorthand for `.degrees()`. I'm only demoing the
         // shorthand here for brevity's sake, and because calling the shorthand
         // will give us coverage of the longform.
-        f32 rads_half  = half.rads();  REQUIRE(rads_half  == angle::pi().rads());
+        f32 rads_half  = half.rads();  REQUIRE(rads_half  == pi_rads);
         f32 degs_half  = half.degs();  REQUIRE(degs_half  == 180.f);
-        f32 rads_whole = whole.rads(); REQUIRE(rads_whole == angle::tau().rads());
+        f32 rads_whole = whole.rads(); REQUIRE(rads_whole == tau_rads);
         f32 degs_whole = whole.degs(); REQUIRE(degs_whole == 360.f);
 
         // If you have an `angle` less than 0.0 or greater than `angle::tau`
         // you can access an `angle`'s value normalized to [0.0,tau].
-        // Note: We use a simulacra of "roughly equals" because of floating
-        // point precision woes.
-        auto less_than_zero = angle::in_rads(-angle::pi_radians);
-        auto more_than_tau  = angle::in_rads(3 * angle::pi_radians);
-        REQUIRE(cx::f_eq_eps(less_than_zero.normalized_radians(), angle::pi().rads()));
-        REQUIRE(cx::f_eq_eps(more_than_tau.normalized_radians(),  angle::pi().rads()));
-        REQUIRE(cx::f_eq_eps(less_than_zero.normalized_degrees(), angle::pi().degs()));
-        REQUIRE(cx::f_eq_eps(more_than_tau.normalized_degrees(),  angle::pi().degs()));
+        auto less_than_zero = angle::in_rads(-pi_rads);
+        auto more_than_tau  = angle::in_rads(3 * pi_rads);
+        REQUIRE(cx::f_eq_eps(less_than_zero.normalized_radians(), pi_rads));
+        REQUIRE(cx::f_eq_eps(more_than_tau.normalized_radians(),  pi_rads));
+        REQUIRE(cx::f_eq_eps(less_than_zero.normalized_degrees(), 180.f));
+        REQUIRE(cx::f_eq_eps(more_than_tau.normalized_degrees(),  180.f));
 
         // There are also shorthand for normalized values.
-        REQUIRE(cx::f_eq_eps(less_than_zero.rads_norm(), angle::pi().rads()));
-        REQUIRE(cx::f_eq_eps(more_than_tau.rads_norm(),  angle::pi().rads()));
-        REQUIRE(cx::f_eq_eps(less_than_zero.degs_norm(), angle::pi().degs()));
-        REQUIRE(cx::f_eq_eps(more_than_tau.degs_norm(),  angle::pi().degs()));
+        REQUIRE(cx::f_eq_eps(less_than_zero.rads_norm(), pi_rads));
+        REQUIRE(cx::f_eq_eps(more_than_tau.rads_norm(),  pi_rads));
+        REQUIRE(cx::f_eq_eps(less_than_zero.degs_norm(), 180.f));
+        REQUIRE(cx::f_eq_eps(more_than_tau.degs_norm(),  180.f));
 
-        // You can also create a new angle from the noramalized value.
+        // You can also create a new `angle` from the noramalized value.
         auto less_than_zero_normalized = less_than_zero.normalized();
         auto more_than_tau_normalized  = more_than_tau.normalized();
-        REQUIRE(cx::f_eq_eps(less_than_zero_normalized.rads_norm(), angle::pi().rads()));
-        REQUIRE(cx::f_eq_eps(more_than_tau_normalized.rads_norm(),  angle::pi().rads()));
+        REQUIRE(cx::f_eq_eps(less_than_zero_normalized.rads_norm(), pi_rads));
+        REQUIRE(cx::f_eq_eps(more_than_tau_normalized.rads_norm(),  pi_rads));
 
-        // Now that we know we can compare angles, let's make sure unary
+        // Now that we know we can compare `angle`s, let's make sure unary
         // operators operate as advertised.
         auto unary_1 = +180_degs;  // ==  180 degrees
         auto unary_2 = -180_degs;  // == -180 degrees
@@ -139,7 +139,6 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
      *  ----------------
      *  You can directly compare an `angle` with another `angle`. Think of it
      *  like comparing two floating point values.
-     *  But really. Do exactly that.
      *  Because that's exactly what's happening.
      */
     SECTION("Comparing Angles") {
@@ -166,41 +165,41 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
         REQUIRE(smaller <= 1.0_rads);
         REQUIRE(smaller >= 1.0_rads);
 
-        // Because angles are floating point, they inherit some of the strange
+        // Because `angle`s are floating point, they inherit some of the strange
         // behavior of direct comparisons via `==`...
         f32 a_f = -3.14;
         REQUIRE_FALSE(a_f+6.28 == 3.14);
         angle a_a = -3.14_rads;
         REQUIRE_FALSE(a_a.normalized() == 3.14_rads);
         // ... to get around this, we offer a `.nearly_equal` helper that
-        // compares angles to within a given epsilon.
+        // compares `angle`s to within a given epsilon.
         REQUIRE(a_a.normalized().nearly_equal(3.14_rads));
-        // The epsilon is configurable as a angle.
+        // The epsilon is configurable as a `angle`.
         REQUIRE((3.14_rads).nearly_equal(3.13_rads, 0.02_rads));
     }
 
     /** Modifying Angles
      *  ----------------
-     *  Modifying angles is pretty straight forward. Either you compose angles,
-     *  or you compose angles and a scalar.
+     *  Modifying `angle`s is pretty straight forward. Either you compose two
+     *  `angle`s, or you compose an `angle` and a scalar.
      */
     SECTION("Modifying Angles") {
         using nonstd::quantity::angle;
         using namespace nonstd::literals::angle_literals;
 
-        // You can compose angels with addition and subtraction.
+        // You can compose `angel`s with addition and subtraction.
         auto one_rad = 0.5_rads + 0.5_rads;
         REQUIRE(one_rad.nearly_equal(1.0_rads));
         auto two_rads = 3.0_rads - 1.0_rads;
         REQUIRE(two_rads.nearly_equal(2.0_rads));
 
-        // You can compose an angle with a scalar.
+        // You can compose an `angle` with a scalar.
         auto three_rads = 2 * 1.5_rads;
         REQUIRE(three_rads.nearly_equal(3.0_rads));
         auto four_rads = 8.0_rads / 2;
         REQUIRE(four_rads.nearly_equal(4.0_rads));
 
-        // You can modify an angles in place, in the same fashion.
+        // You can modify an `angle`s in place, in the same fashion.
         auto a = 1.0_rads;
         a += 1.0_rads;
         REQUIRE(a.nearly_equal(2.0_rads));
@@ -210,6 +209,26 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
         REQUIRE(a.nearly_equal(1.0_rads));
         a /= 4;
         REQUIRE(a.nearly_equal(.25_rads));
+    }
+
+    /** Static Angles & `constexpr`
+     *  ---------------------------
+     *  The `angle` struct declares a few static member variables equal to
+     *  commonly used `angle`s; `angle::pi`, `angle::tau`, and `angle::zero`.
+     *  Unfortunately, it's impossible in c++ to make those members constexpr,
+     *  so an inner-type was used to provide constexpr versions of those
+     *  members; `angle::cx::pi`, `angle::cx::tau`, and `angle::cx::zero`.
+     */
+    SECTION("Static & `constexpr`") {
+        using nonstd::quantity::angle;
+        using namespace nonstd::literals::angle_literals;
+
+        auto half  = angle::pi;  REQUIRE(half == 180_degs);
+             half += angle::tau; REQUIRE(half == 540_degs);
+
+        auto zero = angle::zero; REQUIRE(zero >  -angle::pi);
+
+        static_assert(angle::cx::pi == 180_degs);
     }
 }
 
