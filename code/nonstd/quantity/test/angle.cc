@@ -45,7 +45,7 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
         auto deg_septi = 51.4_degs;
 
         // If you need to be specific (of if you don't want to use literals) you
-        // can used the "name constructor" static functions.
+        // can use the "name constructor" static functions.
         auto named_radian_semicircle  = angle::in_radians(3.14);
         auto named_degree_semicircle  = angle::in_degrees(180);
         auto named_degree_septicircle = angle::in_degrees(51.4);
@@ -165,12 +165,14 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
         REQUIRE(smaller <= 1.0_rads);
         REQUIRE(smaller >= 1.0_rads);
 
-        // Because `angle`s are floating point, they inherit some of the strange
-        // behavior of direct comparisons via `==`...
+        // Because `angle`s use a floating point representation for their
+        // internal storage (Implementation detail! Please ignore! Except don't
+        // actually!) they inherit some of the strange behavior of direct
+        // comparisons via `==`...
         f32 a_f = -3.14;
-        REQUIRE_FALSE(a_f+6.28 == 3.14);
+        REQUIRE(a_f+6.28 != 3.14);
         angle a_a = -3.14_rads;
-        REQUIRE_FALSE(a_a.normalized() == 3.14_rads);
+        REQUIRE(a_a.normalized() != 3.14_rads);
         // ... to get around this, we offer a `.nearly_equal` helper that
         // compares `angle`s to within a given epsilon.
         REQUIRE(a_a.normalized().nearly_equal(3.14_rads));
