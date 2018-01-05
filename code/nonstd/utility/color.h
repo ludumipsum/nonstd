@@ -5,8 +5,9 @@
  */
 #pragma once
 
-#include "nonstd/cpp1z/type_trait_assertions.h"
-#include "nonstd/core/primitive_types.h"
+#include <nonstd/cpp1z/type_trait_assertions.h>
+#include <nonstd/core/primitive_types.h>
+#include <nonstd/quantity/angle.h>
 
 
 namespace nonstd {
@@ -60,16 +61,10 @@ struct color_f {
  *  --------------------
  */
 struct color_hsva {
-    union {
-        struct {
-            f32 h;
-            f32 s;
-            f32 v;
-            f32 a;
-        };
-        f32 hsva[4];
-        f32 hsv[3];
-    };
+    quantity::angle h;
+    f32             s;
+    f32             v;
+    f32             a;
 
     constexpr inline explicit operator color const () noexcept;
     constexpr inline explicit operator color_f const () noexcept;
@@ -86,6 +81,7 @@ constexpr inline color::operator color_f const () noexcept {
              a/255.f };
 }
 constexpr inline color::operator color_hsva const () noexcept {
+    using nonstd::quantity::angle;
     // Thanks to stackoverflow.com/questions/3018313#answer-6930407 and
     // wikipedia for this implementation
     f32 r_ = r / 255.f;
@@ -100,7 +96,7 @@ constexpr inline color::operator color_hsva const () noexcept {
     f32 delta   = max_rgb - min_rgb;
 
     if (delta < 0.00001 || max_rgb < 0.00001) {
-        return { 0.f, 0.f, max_rgb, 1.f };
+        return { angle::zero, 0.f, max_rgb, 1.f };
     }
 
     f32 v = max_rgb;
@@ -115,9 +111,9 @@ constexpr inline color::operator color_hsva const () noexcept {
     f32 h1 = h2 < 0.f
            ? h2 + 6.f
            : h2;
-    f32 h  = h1 / 6.f;
+    f32 h  = h1 / 6.f; // [0.f,1.f]
 
-    return { h, s, v, a_ };
+    return { h * angle::cx::tau, s, v, a_ };
 }
 
 /** Conversion Operations -- From `color_f`
@@ -130,6 +126,7 @@ constexpr inline color_f::operator color const () noexcept {
              (u8)(a*255) };
 }
 constexpr inline color_f::operator color_hsva const () noexcept {
+    using nonstd::quantity::angle;
     // Thanks to stackoverflow.com/questions/3018313#answer-6930407 and
     // wikipedia for this implementation
     f32 min_rg  = r      < g ? r      : g;
@@ -139,7 +136,7 @@ constexpr inline color_f::operator color_hsva const () noexcept {
     f32 delta   = max_rgb - min_rgb;
 
     if (delta < 0.00001 || max_rgb <= 0.0) {
-        return { 0.f, 0.f, max_rgb, 1.f };
+        return { angle::zero, 0.f, max_rgb, 1.f };
     }
 
     f32 v = max_rgb;
@@ -154,22 +151,22 @@ constexpr inline color_f::operator color_hsva const () noexcept {
     f32 h1 = h2 < 0.f
            ? h2 + 6.f
            : h2;
-    f32 h  = h1 / 6.f;
+    f32 h  = h1 / 6.f; // [0.f,1.f)
 
-    return { h, s, v, a };
+    return { h * angle::cx::tau, s, v, a };
 }
 
 /** Conversion Operations -- From `color_hsva`
  *  ------------------------------------------
  */
 constexpr inline color_hsva::operator color const () noexcept {
+    using nonstd::quantity::angle;
     // Thanks to stackoverflow.com/questions/3018313#answer-36209005 and
     // wikipedia for this implementation
     if (s == 0) { return { (u8)(v*255), (u8)(v*255), (u8)(v*255), (u8)(a*255) }; }
 
-    f32 h_ = h == 1.f
-           ? 0.f
-           : h * 6.f;
+    f32 h_ = h == angle::cx::tau ? 0.f
+           : h.rads() / angle::cx::tau.rads() * 6.f; // [0.f, 6.f)
     f32 fract = h_ - std::floor(h_);
 
     f32 p = v*(1. - s);
@@ -185,13 +182,13 @@ constexpr inline color_hsva::operator color const () noexcept {
     else                          return { 0          , 0          , 0          , (u8)(a*255) };
 }
 constexpr inline color_hsva::operator color_f const () noexcept {
+    using nonstd::quantity::angle;
     // Thanks to stackoverflow.com/questions/3018313#answer-36209005 and
     // wikipedia for this implementation
     if (s == 0) { return { v, v, v, a }; }
 
-    f32 h_ = h == 1.f
-           ? 0.f
-           : h * 6.f;
+    f32 h_ = h == angle::cx::tau ? 0.f
+           : h.rads() / angle::cx::tau.rads() * 6.f; // [0.f, 6.f)
     f32 fract = h_ - std::floor(h_);
 
     f32 p = v*(1. - s);
@@ -238,37 +235,18 @@ constexpr inline color_f rgba_colorf(f32 value, f32 a=1.f) noexcept {
  *  ------------------------------------------
  */
 
-/* Build a color w/ hue [0.0,1.0], saturation [0.0,1.0], value [0.0,1.0], and
+/* Build a color w/ hue [angular], saturation [0.0,1.0], value [0.0,1.0], and
  * alpha components. */
-template <typename H, typename S=f32, typename V=f32, typename A=f32,
-    typename std::enable_if_t<   std::is_floating_point_v<H>
-                              && std::is_floating_point_v<S>
+template <typename S=f32, typename V=f32, typename A=f32,
+    typename std::enable_if_t<   std::is_floating_point_v<S>
                               && std::is_floating_point_v<V>
                               && std::is_floating_point_v<A>, int> = 0 >
-constexpr inline color_hsva hsva_color(H h, S s = 1.f, V v = 1.f, A a = 1.f) {
-    return {
-        static_cast<f32>(h),
-        static_cast<f32>(s),
-        static_cast<f32>(v),
-        static_cast<f32>(a)
-    };
+constexpr inline color_hsva hsva_color(quantity::angle h,
+                                       S               s = 1.f,
+                                       V               v = 1.f,
+                                       A               a = 1.f) {
+    return { h, static_cast<f32>(s), static_cast<f32>(v), static_cast<f32>(a) };
 }
-/* Build a color w/ hue [0,360], saturation [0.0,1.0], value [0.0,1.0], and
- * alpha components. */
-template <typename H, typename S=f32, typename V=f32, typename A=f32,
-    typename std::enable_if_t<   std::is_integral_v<H>
-                              && std::is_floating_point_v<S>
-                              && std::is_floating_point_v<V>
-                              && std::is_floating_point_v<A>, int> = 1 >
-constexpr inline color_hsva hsva_color(H h, S s = 1.f, V v = 1.f, A a = 1.f) {
-    return {
-        static_cast<f32>(h/360.f),
-        static_cast<f32>(s),
-        static_cast<f32>(v),
-        static_cast<f32>(a)
-    };
-}
-
 
 /** Print Overloads -- for `color`
  *  ------------------------------
@@ -307,14 +285,14 @@ inline void format_arg(fmt::BasicFormatter<char> & f,
  */
 inline std::ostream& operator << (std::ostream & s, color_hsva const & c) {
     return s <<
-        "color{{ h:{:03} s:{:0.2f} v:{:0.2f} a:{:0.2f} }}"_format((u16)(c.h*360), c.s, c.v, c.a);
+        "color{{ h:{:03} s:{:0.2f} v:{:0.2f} a:{:0.2f} }}"_format(c.h.degs(), c.s, c.v, c.a);
 }
 
 inline void format_arg(fmt::BasicFormatter<char> & f,
                        char const * & format_str,
                        color_hsva const & c) {
     f.writer().write(
-        "color{{ h:{:03} s:{:0.2f} v:{:0.2f} a:{:0.2f} }}"_format((u16)(c.h*360), c.s, c.v, c.a)
+        "color{{ h:{:03} s:{:0.2f} v:{:0.2f} a:{:0.2f} }}"_format(c.h.degs(), c.s, c.v, c.a)
     );
 }
 
