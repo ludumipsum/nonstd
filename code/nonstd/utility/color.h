@@ -113,7 +113,7 @@ constexpr inline color::operator color_hsva const () noexcept {
            : h2;
     f32 h  = h1 / 6.f; // [0.f,1.f]
 
-    return { h * angle::tau, s, v, a_ };
+    return { h * angle::cx::tau, s, v, a_ };
 }
 
 /** Conversion Operations -- From `color_f`
@@ -153,7 +153,7 @@ constexpr inline color_f::operator color_hsva const () noexcept {
            : h2;
     f32 h  = h1 / 6.f; // [0.f,1.f)
 
-    return { h * angle::tau, s, v, a };
+    return { h * angle::cx::tau, s, v, a };
 }
 
 /** Conversion Operations -- From `color_hsva`
@@ -165,8 +165,8 @@ constexpr inline color_hsva::operator color const () noexcept {
     // wikipedia for this implementation
     if (s == 0) { return { (u8)(v*255), (u8)(v*255), (u8)(v*255), (u8)(a*255) }; }
 
-    f32 h_ = h == angle::tau ? 0.f
-           : h.rads() / angle::tau.rads() * 6.f; // [0.f, 6.f)
+    f32 h_ = h == angle::cx::tau ? 0.f
+           : h.rads() / angle::cx::tau.rads() * 6.f; // [0.f, 6.f)
     f32 fract = h_ - std::floor(h_);
 
     f32 p = v*(1. - s);
@@ -187,8 +187,8 @@ constexpr inline color_hsva::operator color_f const () noexcept {
     // wikipedia for this implementation
     if (s == 0) { return { v, v, v, a }; }
 
-    f32 h_ = h == angle::tau ? 0.f
-           : h.rads() / angle::tau.rads() * 6.f; // [0.f, 6.f)
+    f32 h_ = h == angle::cx::tau ? 0.f
+           : h.rads() / angle::cx::tau.rads() * 6.f; // [0.f, 6.f)
     f32 fract = h_ - std::floor(h_);
 
     f32 p = v*(1. - s);
