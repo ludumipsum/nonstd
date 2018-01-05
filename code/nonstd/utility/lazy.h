@@ -1,5 +1,5 @@
-/** Lazy Initialization Wrapper Type
- *  ================================
+/** Lazy Object Initialization Wrapper Type
+ *  =======================================
  *  Utility class for deffering initialization of tempermental classes.
  */
 #pragma once
@@ -13,14 +13,14 @@
 
 namespace nonstd {
 
-/** Lazy Initializer
- *  ----------------
+/** Lazy Object Initializer
+ *  -----------------------
  *  Created with the `lazy_init<T>` free function. Stores the arguments passed
  *  to it until dereferenced. Uses a direct placement-new to construct the
  *  given `T` upon first dereference.
  */
 template <typename T, typename ... Args>
-class lazy_initializer {
+class lazy {
 private:
     using storage_type = std::remove_const_t<T>;
 
@@ -35,27 +35,27 @@ private:
     }
 
 public:
-    lazy_initializer(Args&&... args)
+    lazy(Args&&... args)
         : m_storage ( )
         , m_args    ( std::forward<Args>(args)... )
     { }
-    lazy_initializer(lazy_initializer const & other)
+    lazy(lazy const& other)
         : m_storage ( other.m_storage )
         , m_args    ( other.m_args    )
     { }
-    lazy_initializer(lazy_initializer && other)
+    lazy(lazy && other)
         : m_storage ( std::move(other.m_storage) )
         , m_args    ( std::move(other.m_args)    )
     { }
 
     constexpr bool initialized() { return m_storage.is_containing; }
 
-    T& operator* () {
+    T& operator * () {
         if (!initialized()) { initialize(std::index_sequence_for<Args...>{}); }
         return m_storage.value;
     }
 
-    T* operator-> () {
+    T* operator -> () {
         if (!initialized()) { initialize(std::index_sequence_for<Args...>{}); }
         return &m_storage.value;
     }
@@ -66,10 +66,10 @@ public:
  *  -------------------------------
  *  Takes and explicit type as a template parametr to construct, and an
  *  arbitrary set of objects as arguments to use in the construction. Returns an
- *  explicitly typed `lazy_initializer`.
+ *  explicitly typed `lazy`.
  */
 template <typename T, typename ... Args>
-lazy_initializer<T, Args&&...> make_lazy(Args&&... args) {
+lazy<T, Args&&...> make_lazy(Args&&... args) {
     return { std::forward<Args>(args)... };
 }
 
