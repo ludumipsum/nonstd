@@ -217,7 +217,7 @@ public:
         this->m_rads = std::fmod(this->m_rads, tau_radians);
         if (this->m_rads < 0.0) { this->m_rads += tau_radians; }
 
-        assert(0.0 < this->m_rads); assert(this->m_rads < tau_radians);
+        assert(0.0 <= this->m_rads); assert(this->m_rads < tau_radians);
         return *this;
     }
     // Clamp the value of this angle to between [0,Tau) (or [0º,360º) ).
@@ -227,7 +227,7 @@ public:
         this->m_rads = nonstd::cx::fmod(this->m_rads, tau_radians);
         if (this->m_rads < 0.0) { this->m_rads += tau_radians; }
 
-        assert(0.0 < this->m_rads); assert(this->m_rads < tau_radians);
+        assert(0.0 <= this->m_rads); assert(this->m_rads < tau_radians);
         return *this;
     }
 
