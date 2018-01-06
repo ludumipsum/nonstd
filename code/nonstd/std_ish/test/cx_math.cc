@@ -158,11 +158,15 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
     SECTION("f_eq_ulp") {
         constexpr auto calls_to_f_eq_ulp_are_constexpr = nonstd::cx::f_eq_ulp(f32__positive, f32__positive);
 
+        // On platforms where f64 and f_long are identical, the smallest numbers
+        // representable will be identical.
+        bool f64_and_f_long_are_identical = (sizeof(f64__f64_p_smallest) ==
+                                             sizeof(f_long__f_long_p_smallest));
+
         f64 a = 0.2;
         f64 b = 1 / std::sqrt(5) / std::sqrt(5);
         REQUIRE_FALSE(a == b);
         REQUIRE(nonstd::cx::f_eq_ulp(a, b));
-
 
         // Let's make sure we're correct about direct float comparisons
         REQUIRE((f32__f32_nan == f32__f32_nan)       == false);
@@ -178,7 +182,7 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE((f_long__f_long_n_inf == f_long__f_long_p_inf) == false);
 
         REQUIRE((f32__f32_p_smallest == f64__f64_p_smallest)       == false);
-        REQUIRE((f64__f64_p_smallest == f_long__f_long_p_smallest) == false);
+        REQUIRE((f64__f64_p_smallest == f_long__f_long_p_smallest) == f64_and_f_long_are_identical);
 
 
         // Now let's make sure we match.
@@ -195,11 +199,16 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(nonstd::cx::f_eq_ulp(f_long__f_long_n_inf, f_long__f_long_p_inf) == false);
 
         REQUIRE(nonstd::cx::f_eq_ulp(f32__f32_p_smallest, f64__f64_p_smallest)       == false);
-        REQUIRE(nonstd::cx::f_eq_ulp(f64__f64_p_smallest, f_long__f_long_p_smallest) == false);
+        REQUIRE(nonstd::cx::f_eq_ulp(f64__f64_p_smallest, f_long__f_long_p_smallest) == f64_and_f_long_are_identical);
     }
 
     SECTION("f_eq_eps") {
         constexpr auto calls_to_f_eq_eps_are_constexpr = nonstd::cx::f_eq_eps(f32__positive, f32__positive);
+
+        // On platforms where f64 and f_long are identical, the smallest numbers
+        // representable will be identical.
+        bool f64_and_f_long_are_identical = (sizeof(f64__f64_p_smallest) ==
+                                             sizeof(f_long__f_long_p_smallest));
 
         f64 a = 0.2;
         f64 b = 1 / std::sqrt(5) / std::sqrt(5);
@@ -221,7 +230,7 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE((f_long__f_long_n_inf == f_long__f_long_p_inf) == false);
 
         REQUIRE((f32__f32_p_smallest == f64__f64_p_smallest)       == false);
-        REQUIRE((f64__f64_p_smallest == f_long__f_long_p_smallest) == false);
+        REQUIRE((f64__f64_p_smallest == f_long__f_long_p_smallest) == f64_and_f_long_are_identical);
 
 
         // Now let's make sure we match (mostly).
@@ -237,6 +246,8 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(nonstd::cx::f_eq_eps(f64__f64_n_inf,       f64__f64_p_inf)       == false);
         REQUIRE(nonstd::cx::f_eq_eps(f_long__f_long_n_inf, f_long__f_long_p_inf) == false);
 
+        // Note: This will always paper over the differences between the
+        //       smallest representable numbers.
         REQUIRE(nonstd::cx::f_eq_eps(f32__f32_p_smallest, f64__f64_p_smallest)       == true);
         REQUIRE(nonstd::cx::f_eq_eps(f64__f64_p_smallest, f_long__f_long_p_smallest) == true);
     }
