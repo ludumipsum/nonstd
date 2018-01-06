@@ -20,7 +20,7 @@ using nonstd::nr_ptr;
 using nonstd::test::construction_counter;
 
 constexpr i32 test_value = 42;
-auto global_instance = lazy<i32> { test_value };
+lazy<i32> global_instance { test_value };
 TEST_CASE("Global Lazy Wrappers", "[nonstd][lazy]") {
     SECTION("Should be not initialized until accessed") {
         REQUIRE(global_instance.initialized() == false);
