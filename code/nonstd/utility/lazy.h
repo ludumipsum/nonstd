@@ -19,61 +19,53 @@ namespace nonstd {
  *  to it until dereferenced. Uses a direct placement-new to construct the
  *  given `T` upon first dereference.
  */
-template <typename T, typename ... Args>
+template <typename T>
 class lazy {
 private:
     using storage_type = std::remove_const_t<T>;
 
     _Optional_Storage<storage_type>   m_storage;
-    std::tuple<std::decay_t<Args>...> m_args;
+    std::function<void()>             m_init;
 
-    template<std::size_t ... Is>
-    void initialize(std::index_sequence<Is...>) {
+    template <typename TuplePtr_T, std::size_t ... Is>
+    void initialize(TuplePtr_T arg_tuple_ptr, std::index_sequence<Is...>) {
         void * val_ptr = &m_storage.value;
-        new (val_ptr) storage_type(std::get<Is>(std::move(m_args))...);
+        new (val_ptr) storage_type(std::get<Is>(std::move(*arg_tuple_ptr))...);
         m_storage.is_containing = true;
+        delete arg_tuple_ptr;
     }
 
 public:
+    template <typename ... Args>
     lazy(Args&&... args)
         : m_storage ( )
-        , m_args    ( std::forward<Args>(args)... )
+        , m_init (
+            [ this,
+              args_tuple_ptr = new std::tuple<std::decay_t<Args>...> {
+                std::forward<Args>(args)...
+              }
+            ] () {
+                this->initialize(args_tuple_ptr,
+                                 std::index_sequence_for<Args...>{});
+            }
+        )
     { }
-    lazy(lazy const& other)
-        : m_storage ( other.m_storage )
-        , m_args    ( other.m_args    )
-    { }
-    lazy(lazy && other)
-        : m_storage ( std::move(other.m_storage) )
-        , m_args    ( std::move(other.m_args)    )
-    { }
+    lazy(lazy const& other)       = delete;
+    lazy(lazy && other)           = delete;
+    lazy& operator= (lazy const&) = delete;
+    lazy& operator= (lazy &&)     = delete;
 
     constexpr bool initialized() { return m_storage.is_containing; }
 
     T& operator * () {
-        if (!initialized()) { initialize(std::index_sequence_for<Args...>{}); }
+        if (!initialized()) { m_init(); }
         return m_storage.value;
     }
 
     T* operator -> () {
-        if (!initialized()) { initialize(std::index_sequence_for<Args...>{}); }
+        if (!initialized()) { m_init(); }
         return &m_storage.value;
     }
 };
 
-
-/** Lazily Initialize Free Function
- *  -------------------------------
- *  Takes and explicit type as a template parametr to construct, and an
- *  arbitrary set of objects as arguments to use in the construction. Returns an
- *  explicitly typed `lazy`.
- */
-template <typename T, typename ... Args>
-lazy<T, Args&&...> make_lazy(Args&&... args) {
-    return { std::forward<Args>(args)... };
-}
-
 } /* namespace nonstd */
-
-
-
