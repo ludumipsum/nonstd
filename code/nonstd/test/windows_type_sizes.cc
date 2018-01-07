@@ -5,7 +5,7 @@
  *  sizes we assume them to be in our code.
  */
 
-#include <nonstd/cpp1z/type_trait_assertions.h>
+#include <nonstd/cpp1z/type_traits_ext.h>
 #include <nonstd/preprocessor/homogenize.h>
 
  #if defined(NONSTD_OS_WINDOWS)

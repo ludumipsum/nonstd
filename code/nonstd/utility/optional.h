@@ -38,7 +38,7 @@
 
 #include "nonstd/preprocessor/homogenize.h"
 #include "nonstd/cpp1z/in_place_t.h"
-#include "nonstd/cpp1z/type_trait_assertions.h"
+#include "nonstd/cpp1z/type_traits_ext.h"
 #include "nonstd/cpp1z/type_traits.h"
 #include "nonstd/cpp1z/special_member_filters.h"
 #include "nonstd/cpp1z/valid_expression_tester.h"

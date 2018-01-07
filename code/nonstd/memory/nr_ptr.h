@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nonstd/cpp1z/type_trait_assertions.h>
+#include <nonstd/cpp1z/type_traits_ext.h>
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
 #include <nonstd/std_ish/compare.h>
