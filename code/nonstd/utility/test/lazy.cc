@@ -15,12 +15,12 @@
 
 namespace nonstd_test::lazy {
 using namespace Catch::Matchers;
-using nonstd::make_lazy;
+using nonstd::lazy;
 using nonstd::nr_ptr;
 using nonstd::test::construction_counter;
 
 constexpr i32 test_value = 42;
-auto global_instance = make_lazy<i32>(test_value);
+lazy<i32> global_instance { test_value };
 TEST_CASE("Global Lazy Wrappers", "[nonstd][lazy]") {
     SECTION("Should be not initialized until accessed") {
         REQUIRE(global_instance.initialized() == false);
@@ -31,28 +31,11 @@ TEST_CASE("Global Lazy Wrappers", "[nonstd][lazy]") {
     }
 }
 
-// There's some kind of template expansion problem in these right now -- we
-// wind up trying to call the constructor via placement new with a tuple
-// unpack structure instead of the actual unpacked arguments.
-#if 0
-auto nested_instance =
-    make_lazy<nonstd::lazy_initializer<i32>>(
-        make_lazy<i32>(test_value));
-
-SECTION("Nested lazy wrappers should work") {
-    REQUIRE(nested_instance.initialized() == false);
-    REQUIRE((*nested_instance).initialized() == false);
-    REQUIRE(nested_instance.initialized() == true);
-    REQUIRE(**nested_instance == test_value);
-    REQUIRE((*nested_instance).initialized() == true);
-}
-#endif
-
 TEST_CASE("Lazy Wrappers", "[nonstd][lazy]") {
     SECTION("should neither copy nor move the contained") {
         // Create a lazy wrapper around a counter, initialize it, and get a
         // reference to the contained, so we can use them in subsequent tests
-        auto lazy_counter = make_lazy<construction_counter>();
+        lazy<construction_counter> lazy_counter { };
         REQUIRE(lazy_counter.initialized() == false);
         auto& counter = *lazy_counter;
         REQUIRE(lazy_counter.initialized() == true);
@@ -76,7 +59,7 @@ TEST_CASE("Lazy Wrappers", "[nonstd][lazy]") {
         SECTION("with inline argument construction") {
             // Create a lazy wrapper around a counter, initialize it, and get a
             // reference to the contained, so we can use them in subsequent tests
-            auto lazy_container = make_lazy<inline_test_t>(construction_counter{});
+            lazy<inline_test_t> lazy_container { construction_counter{} };
             REQUIRE(lazy_container.initialized() == false);
             auto& counter = (*lazy_container).counter;
             REQUIRE(lazy_container.initialized() == true);
@@ -91,7 +74,7 @@ TEST_CASE("Lazy Wrappers", "[nonstd][lazy]") {
             // Create a lazy wrapper around a counter, initialize it, and get a
             // reference to the contained, so we can use them in subsequent tests
             construction_counter initial_counter;
-            auto lazy_container = make_lazy<inline_test_t>(initial_counter);
+            lazy<inline_test_t> lazy_container { initial_counter };
             REQUIRE(lazy_container.initialized() == false);
             auto& counter = (*lazy_container).counter;
             REQUIRE(lazy_container.initialized() == true);
@@ -102,9 +85,19 @@ TEST_CASE("Lazy Wrappers", "[nonstd][lazy]") {
             CHECK(counter.moves_out == 0);
         }
     }
+
+    SECTION("should be able to correctly nest") {
+        lazy<lazy<i32>> nested_instance  { test_value };
+
+        REQUIRE(nested_instance.initialized() == false);
+        REQUIRE((*nested_instance).initialized() == false);
+        REQUIRE(nested_instance.initialized() == true);
+        REQUIRE(**nested_instance == test_value);
+        REQUIRE((*nested_instance).initialized() == true);
+    }
 }
 
-auto lazy_nr = make_lazy<nr_ptr<i32>>("test/lazy_nr");
+lazy<nr_ptr<i32>> lazy_nr { "test/lazy_nr" };
 TEST_CASE("Lazy Wrappers Around nr_ptr", "[nonstd][lazy]") {
     SECTION("should not initialize until accessed") {
         REQUIRE(lazy_nr.initialized() == false);
