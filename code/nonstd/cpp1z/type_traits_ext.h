@@ -16,17 +16,30 @@
 namespace nonstd {
 
 /** has_same_type
- *  Check if, essentially, ::std::is_same_v<decltype(L), decltype(R)> */
+ *  Check if, essentially, ::std::is_same_v<decltype(L), decltype(R)>
+ */
 template <typename L, typename R>
 constexpr bool have_same_type(L const & l, R const & r) noexcept {
     return ::std::is_same_v<L, R>;
 }
 
+/** remove_cvref
+ *  If the type `T` is a reference type, provides the member typedef `type`
+ *  which is the type referred to by `T` with its topmost cv-qualifiers removed.
+ *  Otherwise `type` is `T` with its topmost cv-qualifiers removed.
+ */
+template <typename T>
+struct remove_cvref {
+    typedef std::remove_cv_t<std::remove_reference_t<T>> type;
+};
+template <typename T>
+using remove_cvref_t = typename remove_cvref<T>::type;
+
 }
 
 
-/** Type Trait Assertions
- *  ---------------------
+/** Assertions
+ *  ----------
  *  Macros that cause compile-time errors when we build non-compliant datatypes.
  */
 
