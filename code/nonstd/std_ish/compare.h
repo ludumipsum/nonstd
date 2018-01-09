@@ -9,7 +9,6 @@
 
 #include "nonstd/preprocessor/homogenize.h"
 #include "nonstd/core/primitive_types.h"
-#include "nonstd/cpp1z/type_traits.h"
 
 
 namespace nonstd {
