@@ -9,8 +9,8 @@
 #include <cstddef>
 #include <cinttypes>
 
-// TODO: Condisider moving this include -- and the ENFORCE_ calls it allows --
-//       out of this function, and into a test file.
+// TODO: Condisider moving this include -- and the ENFORCE_SIZE calls it allows
+//       -- out of this file, and into a test file.
 #include "nonstd/cpp1z/type_traits_ext.h"
 
 
