@@ -22,10 +22,10 @@
  * - test reference to constant pointer type.
  */
 
-#include <testrunner/testrunner.h>
+#include <nonstd/utility/optional.h>
+#include <nonstd/std_ish/compare.h>
 
-#include "nonstd/utility/optional.h"
-#include "nonstd/std_ish/compare.h"
+#include <testrunner/testrunner.h>
 
 
 namespace nonstd_test {
