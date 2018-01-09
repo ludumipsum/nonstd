@@ -507,32 +507,18 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
             REQUIRE_FALSE(noneforwarder());
         }
 
-#if N2_CHECKED_OPTIONALS
-        SECTION("should correctly except on accessors") {
+        SECTION("should correctly except on checking accessors") {
             Optional<u64>        simple_none  = { };
             Optional<PODType>    pod_none     = { };
             Optional<NonPODType> non_pod_none = { };
 
-            REQUIRE_THROWS_AS([=](){ auto _ = *simple_none; }(),
-                              nonstd::exception::bad_optional_access);
             REQUIRE_THROWS_AS([=](){ auto _ = simple_none.value(); }(),
                               nonstd::exception::bad_optional_access);
-
-            REQUIRE_THROWS_AS([=](){ auto _ = *pod_none; }(),
-                              nonstd::exception::bad_optional_access);
-            REQUIRE_THROWS_AS([=](){ auto _ = pod_none->a; }(),
-                              nonstd::exception::bad_optional_access);
             REQUIRE_THROWS_AS([=](){ auto _ = pod_none.value(); }(),
-                              nonstd::exception::bad_optional_access);
-
-            REQUIRE_THROWS_AS([=](){ auto _ = *non_pod_none; }(),
-                              nonstd::exception::bad_optional_access);
-            REQUIRE_THROWS_AS([=](){ auto _ = non_pod_none->m_b; }(),
                               nonstd::exception::bad_optional_access);
             REQUIRE_THROWS_AS([=](){ auto _ = non_pod_none.value(); }(),
                               nonstd::exception::bad_optional_access);
         }
-#endif
     }
 
     SECTION("over built-in types") {

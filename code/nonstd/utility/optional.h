@@ -11,12 +11,6 @@
  *
  *  //TODO: Update the below.
  *
- *  The largest divergence is that we do not (always) use exceptions, and so
- *  never raise `bad_optional_access`. Instead, we offer the
- *  `N2_CHECKED_OPTIONALS` compile flag; when set to `true`, we fire a debugger
- *  breakpoint, and otherwise allow segfaults when attempting to access
- *  uninitialized data.
- *
  *  The structure of these optionals is also worth discussing. They are
  *  universally composed of three parts;
  *   - The dedicated Storage component.
@@ -45,18 +39,17 @@
 
 #pragma once
 
-#include <iostream>
-#include <type_traits>
 #include <initializer_list>
+#include <iostream>
+#include <stdexcept>
+#include <type_traits>
 
 #include <thirdparty/fmt.h>
 
-#include <nonstd/preprocessor/homogenize.h>
 #include <nonstd/cpp1z/in_place_t.h>
 #include <nonstd/cpp1z/type_traits_ext.h>
 #include <nonstd/cpp1z/special_member_filters.h>
 #include <nonstd/cpp1z/valid_expression_tester.h>
-#include <nonstd/core/break.h>
 #include <nonstd/c_ish/type_name.h>
 #include <nonstd/std_ish/compare.h>
 
@@ -64,19 +57,6 @@
 /** Utilities
  *  ============================================================================
  */
-
-/** Checked Optionals
- *  -----------------
- *  Because we don't use exceptions, we optionally force a validity check per
- *  value access. If we ever attempt to access a non-containing Optional, while
- *  `N2_CHECKED_OPTIONALS` is explicitly set to `true`, a forced breakpoint will
- *  occur. If we're confident that we never misuse optionals, allowing this
- *  default-to-false to occur will let us skip that branch.
- */
-#if !defined(N2_CHECKED_OPTIONALS)
-#define N2_CHECKED_OPTIONALS false
-#endif
-
 namespace nonstd {
 
 /** Null Optional Type -- §23.6.4
@@ -1177,11 +1157,9 @@ public:
 private:
     /* Helper function to (optionally) check the validity of this Optional. */
     constexpr inline void checkValue() const {
-#if N2_CHECKED_OPTIONALS
         if (!this->_hasValue()) {
             throw nonstd::exception::bad_optional_access{};
         }
-#endif
         return;
     }
 
@@ -1191,10 +1169,10 @@ public:
      *  Return `val`.
      */
     constexpr       T *  operator -> () {
-        checkValue(); return &this->_getValue();
+        return &this->_getValue();
     }
     constexpr const T *  operator -> () const {
-        checkValue(); return &this->_getValue();
+        return &this->_getValue();
     }
 
     /** Observer `operator *` -- §23.6.3.5.5
@@ -1202,20 +1180,20 @@ public:
      *  Return `*val`.
      */
     constexpr       T &  operator *  ()       &  {
-        checkValue(); return this->_getValue();
+        return this->_getValue();
     }
     constexpr const T &  operator *  () const &  {
-        checkValue(); return this->_getValue();
+        return this->_getValue();
     }
     /** Observer `operator *` for  rvalue references -- §23.6.3.5.9
      *  -----------------------------------------------------------
      *  Return `std::move(*val)`.
      */
     constexpr       T && operator *  ()       && {
-        checkValue(); return std::move(this->_getValue());
+        return std::move(this->_getValue());
     }
     constexpr const T && operator *  () const && {
-        checkValue(); return std::move(this->_getValue());
+        return std::move(this->_getValue());
     }
 
     /** Observer `static_cast<bool>` -- §23.6.3.5.11
@@ -1300,11 +1278,9 @@ public:
 private:
     /* Helper function to (optionally) check the validity of this Optional. */
     constexpr inline void checkValue() const {
-#if N2_CHECKED_OPTIONALS
         if (!this->_hasValue()) {
             throw nonstd::exception::bad_optional_access();
         }
-#endif
         return;
     }
 
@@ -1314,10 +1290,10 @@ public:
      *  Return `val`.
      */
     constexpr       T * operator -> ()       {
-        checkValue(); return &this->_getValue();
+        return &this->_getValue();
     }
     constexpr const T * operator -> () const {
-        checkValue(); return &this->_getValue();
+        return &this->_getValue();
     }
 
     /** Observer `operator *` -- §23.6.3.5.5
@@ -1325,10 +1301,10 @@ public:
      *  Return `*val`.
      */
     constexpr       T& operator * ()       {
-        checkValue(); return this->_getValue();
+        return this->_getValue();
     }
     constexpr const T& operator * () const {
-        checkValue(); return this->_getValue();
+        return this->_getValue();
     }
 
     /** Observer `static_cast<bool>` -- §23.6.3.5.11
