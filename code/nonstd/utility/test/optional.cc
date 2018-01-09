@@ -7,6 +7,19 @@
  *  - Perform those tests over a couple different templated types
  *  - Perform those tests on both POD and non-trivial types
  *  - Test accessors and initializers over reference types
+ *
+ *
+ * TODO:
+ * - test an object for which
+ *      `is_trivially_copy_constructible_v` == true
+ *      `is_trivially_move_constructible_v` == true
+ *      `is_trivially_destructible_v`       == false
+ * - test an object for which
+ *      `is_[copy/move]_constructible_v` == false
+ *      `is_[copy/move]_assignable_v`    == true
+ * - test the except guarantees of §26.6.3.3.4.
+ * - test reference to constant type
+ * - test reference to constant pointer type.
  */
 
 #include <testrunner/testrunner.h>
@@ -31,6 +44,7 @@ struct PODType {
     u16 a;
     u16 b;
 };
+static_assert(std::is_pod_v<PODType>);
 
 /* Compound POD datatype used to test non-builtin-type Optionals */
 struct CompoundType {
@@ -39,12 +53,18 @@ struct CompoundType {
         u32 word;
     };
 };
+static_assert(std::is_trivially_copy_constructible_v<CompoundType>);
+static_assert(std::is_trivially_move_constructible_v<CompoundType>);
+static_assert(std::is_trivially_destructible_v<CompoundType>);
 
 /* Compound non-POD datatype used to test optionals over funky c++ey classes */
 class NonPODType {
 public:
     u16 m_a, m_b;
-    NonPODType(u16 a, u16 b) : m_a(a), m_b(b) {}
+    NonPODType(u16 a, u16 b)
+        : m_a(a)
+        , m_b(b)
+    { }
     u16& getA() { return m_a; }
     u16& getB() { return m_b; }
     u32& getWord() { return *((u32*) &m_a); }
@@ -63,7 +83,11 @@ public:
     // Without this volatile qualifier, GCC will skip nulling the variable when
     // the destructor is called. As such, we test dtors with volatile members.
     volatile bool has_been_destroyed;
-    NonTrivialType(u16 a, u16 b) : m_a(a), m_b(b), has_been_destroyed(false) {}
+    NonTrivialType(u16 a, u16 b)
+        : m_a(a)
+        , m_b(b)
+        , has_been_destroyed(false)
+    { }
     ~NonTrivialType() {
         m_a = 0; m_b = 0;
         has_been_destroyed = true;
@@ -84,11 +108,14 @@ struct OptionalContainer {
     Optional<size_t> maybe;
 
     OptionalContainer()
-        : maybe ( nonstd::nullopt ) { }
+        : maybe ( nonstd::nullopt )
+    { }
     OptionalContainer(size_t val)
-        : maybe ( val ) { }
+        : maybe ( val )
+    { }
     OptionalContainer(Optional<size_t> opt)
-        : maybe ( opt ) { }
+        : maybe ( opt )
+    { }
 
     void assign(size_t v) {
         maybe = v;
@@ -365,14 +392,10 @@ TEST_CASE("Optionals API Demo", "[nonstd][api][optionals]") {
      */
     SECTION("Un-seating Optionals") {
         Optional<u64> maybe = 42;
-        Optional<u64> other = 42;
         REQUIRE(maybe);
-        REQUIRE(other);
 
-        maybe.reset();
-        other = nullopt;
+        maybe = nullopt;
         REQUIRE_FALSE(maybe);
-        REQUIRE_FALSE(other);
     }
 
     /** Non-Trivially-Destructible Objects Work
@@ -390,7 +413,7 @@ TEST_CASE("Optionals API Demo", "[nonstd][api][optionals]") {
 
         // Note; The destructor of the `NonTrivialType` just nulls member
         // variables. Those should be accessible until the end of this frame.
-        maybe.reset();
+        maybe = nullopt;
 
         REQUIRE_FALSE(maybe);
         REQUIRE(m_ref.has_been_destroyed);
@@ -445,10 +468,6 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
             REQUIRE(maybe_value.valueOr(20) == 20);
             REQUIRE(none_value.valueOr(10) == 10);
             REQUIRE(none_value.valueOr(20) == 20);
-            REQUIRE(maybe_ref.valueOr(10) == 10);
-            REQUIRE(maybe_ref.valueOr(20) == 20);
-            REQUIRE(none_ref.valueOr(10) == 10);
-            REQUIRE(none_ref.valueOr(20) == 20);
         }
 
         SECTION("should stay non-containing through copies") {
@@ -716,7 +735,7 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
                 REQUIRE(*maybe == new_vptr);
                 REQUIRE(**maybe == new_value);
 
-                maybe.reset();
+                maybe = nullopt;
                 REQUIRE_FALSE(maybe);
                 REQUIRE(new_value == initial_value + 12);
             }
@@ -767,7 +786,7 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
                 REQUIRE(*maybe == new_vptr);
                 REQUIRE(nonstd::equal_to(**maybe, new_value));
 
-                maybe.reset();
+                maybe = nullopt;
                 REQUIRE_FALSE(maybe);
                 REQUIRE(nonstd::equal_to(new_value, "54"));
             }
