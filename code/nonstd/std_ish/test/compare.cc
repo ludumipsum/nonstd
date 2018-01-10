@@ -78,7 +78,7 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(compare((u8)2,  (u64)1) >  0);
         }
 
-        SECTION("of Optional variations") {
+        SECTION("of optional variations") {
             nonstd::optional<u32> maybe_int = { 1 };
             nonstd::optional<u32> none_int  = { };
             nonstd::optional<c_cstr> maybe_string = { "Foo" };
@@ -122,7 +122,7 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(equal_to((f64)2, (i8)2));
         }
 
-        SECTION("of Optional variations") {
+        SECTION("of optional variations") {
             nonstd::optional<u32> maybe_int = { 1 };
             nonstd::optional<u32> none_int  = { };
             nonstd::optional<c_cstr> maybe_string = { "Foo" };
