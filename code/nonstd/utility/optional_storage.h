@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <initializer_list>
 
 #include <nonstd/cpp1z/in_place_t.h>
 
