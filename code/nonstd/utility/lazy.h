@@ -24,8 +24,8 @@ class lazy {
 private:
     using storage_type = std::remove_const_t<T>;
 
-    _Optional_Storage<storage_type>   m_storage;
-    std::function<void()>             m_init;
+    nonstd::optional_storage<storage_type> m_storage;
+    std::function<void()>                  m_init;
 
     template <typename TuplePtr_T, std::size_t ... Is>
     void initialize(TuplePtr_T arg_tuple_ptr, std::index_sequence<Is...>) {
