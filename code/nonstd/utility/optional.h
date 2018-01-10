@@ -144,11 +144,6 @@ template < typename T
          , bool DestructorIsTrivial = std::is_trivially_destructible_v<T> >
 class optional_storage;
 
-//TODO: I don't think I need the lvalref storage class. Should be able to use
-//      the optional_storage directly, and get the most trivial version.
-template <typename T>
-class _optional_lvalref_storage;
-
 
 /** Helpers
  *  ============================================================================
@@ -468,44 +463,6 @@ public:
     noexcept(std::is_nothrow_destructible_v<T>) {
         if (is_containing) { value.~T(); }
     }
-};
-
-
-/** Storage for LValue Reference types
- *  ----------------------------------
- */
-template <typename T>
-class _optional_lvalref_storage {
-    static_assert(std::is_pointer_v<T>,
-        "_optional_lvalref_storage expects to be specialized on a pointer type");
-    static_assert(!std::is_same_v<std::remove_cv_t<T>, in_place_t*>,
-        "_optional_lvalref_storage objects cannot wrap `in_place_t *`.");
-
-public:
-    bool is_containing;
-    T    value;
-
-    constexpr _optional_lvalref_storage() noexcept
-        : is_containing ( false   )
-        , value         ( nullptr )
-    { }
-
-    constexpr _optional_lvalref_storage(_optional_lvalref_storage const & rhs)
-    noexcept
-        : is_containing ( rhs.is_containing )
-        , value         ( rhs.value         )
-    { }
-
-    constexpr _optional_lvalref_storage(_optional_lvalref_storage && rhs)
-    noexcept
-        : is_containing ( rhs.is_containing    )
-        , value         ( std::move(rhs.value) )
-    { }
-
-    constexpr _optional_lvalref_storage(T value) noexcept
-        : is_containing ( true  )
-        , value         ( value )
-    { }
 };
 
 
@@ -1009,9 +966,9 @@ private:
     /* Reference types can't be directly stored and can't be reseated once
      * initialized. To get around this, we strip the ref qualifier and store a
      * mutable pointer to the base type of the reference. */
-    using storage_type = std::decay_t<T>*;
+    using storage_type = nonstd::remove_cvref_t<T>*;
 
-    _optional_lvalref_storage<storage_type> _storage;
+    optional_storage<storage_type> _storage;
 
 public:
     using value_type = T;
