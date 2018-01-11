@@ -283,8 +283,8 @@ TEST_CASE("Optionals API Demo", "[nonstd][api][optionals]") {
 
         // You can also skip the check, and request an optional's Value, Or a
         // default. (Do you see what I did there?)
-        auto maybe_val = has_value.valueOr(20); // `has_value` is containing
-        auto maybe_dflt = no_value.valueOr(20); // `no_value` is non-containing
+        auto maybe_val = has_value.value_or(20); // `has_value` is containing
+        auto maybe_dflt = no_value.value_or(20); // `no_value` is non-containing
         REQUIRE(maybe_val  == 10);
         REQUIRE(maybe_dflt == 20);
     }
@@ -463,11 +463,11 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
             }
         }
 
-        SECTION("should correctly return default from valueOr") {
-            REQUIRE(maybe_value.valueOr(10) == 10);
-            REQUIRE(maybe_value.valueOr(20) == 20);
-            REQUIRE(none_value.valueOr(10) == 10);
-            REQUIRE(none_value.valueOr(20) == 20);
+        SECTION("should correctly return default from value_or") {
+            REQUIRE(maybe_value.value_or(10) == 10);
+            REQUIRE(maybe_value.value_or(20) == 20);
+            REQUIRE(none_value.value_or(10) == 10);
+            REQUIRE(none_value.value_or(20) == 20);
         }
 
         SECTION("should stay non-containing through copies") {
@@ -557,9 +557,9 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
             REQUIRE(maybe_qword.value() == initial_value);
         }
 
-        SECTION("should return their value from valueOr") {
-            REQUIRE(maybe_qword.valueOr(0) == initial_value);
-            REQUIRE(maybe_not_qword.valueOr(0) == 0);
+        SECTION("should return their value from value_or") {
+            REQUIRE(maybe_qword.value_or(0) == initial_value);
+            REQUIRE(maybe_not_qword.value_or(0) == 0);
         }
 
         SECTION("shouldn't do anything weird with rvalues") {

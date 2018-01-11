@@ -1235,7 +1235,7 @@ public:
      *  `static_cast<T>(std::forward<U>(value))`.
      */
     template < typename U = T >
-    constexpr T valueOr(U && value) const & {
+    constexpr T value_or(U && value) const & {
         return this->_has_value() ? this->_get_value()
                                  : static_cast<T>(std::forward<U>(value));
     }
@@ -1245,7 +1245,7 @@ public:
      *  return `static_cast<T>(std::forward<U>(value))`.
      */
     template < typename U = T >
-    constexpr T valueOr(U && value) && {
+    constexpr T value_or(U && value) && {
         return this->_has_value() ? std::move(this->_get_value())
                                  : static_cast<T>(std::forward<U>(value));
     }
