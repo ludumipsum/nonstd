@@ -818,5 +818,7 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
     }
 }
 
+#include "optional.disabled_special_members.inl"
+
 } /* namespace optional */
 } /* namespace nonstd_test */
