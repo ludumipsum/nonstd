@@ -78,11 +78,11 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(compare((u8)2,  (u64)1) >  0);
         }
 
-        SECTION("of Optional variations") {
-            nonstd::Optional<u32> maybe_int = { 1 };
-            nonstd::Optional<u32> none_int  = { };
-            nonstd::Optional<c_cstr> maybe_string = { "Foo" };
-            nonstd::Optional<c_cstr> none_string  = { };
+        SECTION("of optional variations") {
+            nonstd::optional<u32> maybe_int = { 1 };
+            nonstd::optional<u32> none_int  = { };
+            nonstd::optional<c_cstr> maybe_string = { "Foo" };
+            nonstd::optional<c_cstr> none_string  = { };
 
             /* Remember */
             REQUIRE(0 == strcmp("a", "a"));
@@ -122,11 +122,11 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(equal_to((f64)2, (i8)2));
         }
 
-        SECTION("of Optional variations") {
-            nonstd::Optional<u32> maybe_int = { 1 };
-            nonstd::Optional<u32> none_int  = { };
-            nonstd::Optional<c_cstr> maybe_string = { "Foo" };
-            nonstd::Optional<c_cstr> none_string  = { };
+        SECTION("of optional variations") {
+            nonstd::optional<u32> maybe_int = { 1 };
+            nonstd::optional<u32> none_int  = { };
+            nonstd::optional<c_cstr> maybe_string = { "Foo" };
+            nonstd::optional<c_cstr> none_string  = { };
 
             REQUIRE( nonstd::equal_to(maybe_int, nonstd::just<u32>(1)));
             REQUIRE(!nonstd::equal_to(maybe_int, none_int));

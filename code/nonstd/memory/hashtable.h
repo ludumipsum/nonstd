@@ -271,8 +271,8 @@ public: /*< ## Public Member Methods */
     /* Lookup Operations
      * ----------------- */
 
-    /* Search for the given key, returning an Optional. */
-    inline nonstd::Optional<T_VAL> get(T_KEY key)
+    /* Search for the given key, returning an `optional<T_VAL>`. */
+    inline nonstd::optional<T_VAL> get(T_KEY key)
     noexcept(find_cell_is_noexcept) {
         Cell * const cell = _findCell(key);
         if (cell != nullptr) return { cell->value };
