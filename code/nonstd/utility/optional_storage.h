@@ -13,14 +13,23 @@ namespace nonstd {
  *  -------------------------------
  *  This utility class is designed to provide value-semantics for possibly
  *  uninitialized data. It wraps an anonymous union that contains either an
- *  `_empty` tag type, or a member of type `T`. This allows the initialization
- *  of an instance of `T` to be deferred, or skipped entirely.
+ *  `_empty_tag_t`, or a member of type `T` (this is actually a white lie; see
+ *  below). This allows the initialization of an instance of `T` to be deferred,
+ *  or skipped entirely.
  *
  *  This class is not designed to be used directly. User-facing utility classes
  *  like `optional<T>` -- that provide maybe-a-value semantics -- and `lazy<T>`
  *  -- that allows for transparent, deferred initialization -- should include
  *  this type as a member, and provide a more complete set of operations around
  *  the given concept.
+ *
+ *  NB. `optional_storage<T>`s do not actually contain a member of type `T`. In
+ *  order to defer initialization of storage when `T` is cv-qualified, this
+ *  class defines the `storage_type` member type as `std::remove_cost_t<T>`.
+ *  Due to the low-level nature of this class, the `storage_type value;` member
+ *  is public, but it is still preferred to use `get_value`, `construct_value`,
+ *  and `remove_value` member functions s.t. users interact with `T`s and `T&`s,
+ *  rather than needing to keep in mind the `storage_type` variations.
  *
  *  Complete specializations of this template are kept as trivial and constexpr
  *  as possible through partial specialization on type traits of the wrapped
@@ -61,15 +70,21 @@ class optional_storage<T, /* TrivialCopyCtor */ true,
 {
     static_assert(!std::is_same_v<T, nonstd::in_place_t>,
         "optional_storage objects cannot wrap `in_place_t`.");
+    static_assert(!std::is_reference_v<T>,
+        "optional_storage objects cannot wrap referential types.");
 
 public:
-    struct _Empty { };
+    using value_type = T;
+    using storage_type = std::remove_const_t<T>;
+
+    struct _empty_tag_t { };
 
     bool is_containing;
     union {
-        _Empty empty;
-        T      value;
+        _empty_tag_t empty;
+        storage_type value;
     };
+
 
     // NB. These five constructors will be identical for all specializations.
     constexpr optional_storage() noexcept
@@ -78,12 +93,12 @@ public:
     { }
 
     constexpr optional_storage(T const & value)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
+    noexcept(std::is_nothrow_copy_constructible_v<storage_type>)
         : is_containing ( true  )
         , value         ( value )
     { }
     constexpr optional_storage(T && value)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
+    noexcept(std::is_nothrow_move_constructible_v<storage_type>)
         : is_containing ( true             )
         , value         ( std::move(value) )
     { }
@@ -91,7 +106,7 @@ public:
     template <typename ... Args>
     constexpr explicit optional_storage(nonstd::in_place_t,
                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args && ...>)
+    noexcept(std::is_nothrow_constructible_v<storage_type, Args && ...>)
         : is_containing ( true                        )
         , value         ( std::forward<Args>(args)... )
     { }
@@ -100,17 +115,42 @@ public:
     constexpr explicit optional_storage(nonstd::in_place_t,
                                         std::initializer_list<Il> il,
                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T,
+    noexcept(std::is_nothrow_constructible_v<storage_type,
                                              std::initializer_list<Il>,
                                              Args && ...>)
         : is_containing ( true                            )
         , value         ( il, std::forward<Args>(args)... )
     { }
 
+
     // NB. These three members will vary per partial specialization.
     constexpr optional_storage(optional_storage const &) noexcept = default;
     constexpr optional_storage(optional_storage &&) noexcept = default;
     ~optional_storage() noexcept = default;
+
+
+    constexpr bool has_value() const noexcept {
+        return is_containing;
+    }
+
+    constexpr T       &  get_value()       &  { return value;            }
+    constexpr T const &  get_value() const &  { return value;            }
+    constexpr T       && get_value()       && { return std::move(value); }
+    constexpr T const && get_value() const && { return std::move(value); }
+
+    template <typename ... Args>
+    T& construct_value(Args && ... args)
+    noexcept(std::is_nothrow_constructible_v<storage_type, Args...>) {
+        new ((void*)(&value)) storage_type(std::forward<Args>(args)...);
+        is_containing = true;
+        return value;
+    }
+
+    void remove_value()
+    noexcept(std::is_nothrow_destructible_v<storage_type>) {
+        is_containing = false;
+        value.~storage_type();
+    }
 };
 
 /** Optional Storage -- Non-Trivially Copy Ctor
@@ -123,7 +163,7 @@ public:
  *  correctly change the active member of an anonymous union.
  *
  *  Interestingly, we can leave the copy and move constructors `constexpr` as
- *  the compiler will be able to skip the `_construct` call if `rhs` is
+ *  the compiler will be able to skip the `construct_value` call if `rhs` is
  *  non-containing. I don't know if a compile-time, non-containing,
  *  non-trivially constructible optional will be of use, but... You can do it!
  */
@@ -134,23 +174,21 @@ class optional_storage<T, /* TrivialCopyCtor */ false,
 {
     static_assert(!std::is_same_v<T, nonstd::in_place_t>,
         "optional_storage objects cannot wrap `in_place_t`.");
-
-private:
-    template <typename ... Args>
-    void _construct(Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args...>) {
-        new ((void*)(&value)) T(std::forward<Args>(args)...);
-        is_containing = true;
-    }
+    static_assert(!std::is_reference_v<T>,
+        "optional_storage objects cannot wrap referential types.");
 
 public:
-    struct _Empty { };
+    using value_type = T;
+    using storage_type = std::remove_const_t<T>;
+
+    struct _empty_tag_t { };
 
     bool is_containing;
     union {
-        _Empty empty;
-        T      value;
+        _empty_tag_t empty;
+        storage_type value;
     };
+
 
     // NB. These five constructors will be identical for all specializations.
     constexpr optional_storage() noexcept
@@ -159,12 +197,12 @@ public:
     { }
 
     constexpr optional_storage(T const & value)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
+    noexcept(std::is_nothrow_copy_constructible_v<storage_type>)
         : is_containing ( true  )
         , value         ( value )
     { }
     constexpr optional_storage(T && value)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
+    noexcept(std::is_nothrow_move_constructible_v<storage_type>)
         : is_containing ( true             )
         , value         ( std::move(value) )
     { }
@@ -172,7 +210,7 @@ public:
     template <typename ... Args>
     constexpr explicit optional_storage(nonstd::in_place_t,
                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args && ...>)
+    noexcept(std::is_nothrow_constructible_v<storage_type, Args && ...>)
         : is_containing ( true                        )
         , value         ( std::forward<Args>(args)... )
     { }
@@ -181,23 +219,48 @@ public:
     constexpr explicit optional_storage(nonstd::in_place_t,
                                         std::initializer_list<Il> il,
                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T,
+    noexcept(std::is_nothrow_constructible_v<storage_type,
                                              std::initializer_list<Il>,
                                              Args && ...>)
         : is_containing ( true                            )
         , value         ( il, std::forward<Args>(args)... )
     { }
 
+
     // NB. These three members will vary per partial specialization.
     constexpr optional_storage(optional_storage const & rhs)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
+    noexcept(std::is_nothrow_copy_constructible_v<storage_type>)
         : is_containing ( false )
         , empty         (       )
     {
-        if (rhs.is_containing) { _construct(rhs.value); }
+        if (rhs.is_containing) { construct_value(rhs.value); }
     }
     constexpr optional_storage(optional_storage &&) noexcept = default;
     ~optional_storage() noexcept = default;
+
+
+    constexpr bool has_value() const noexcept {
+        return is_containing;
+    }
+
+    constexpr T       &  get_value()       &  { return value;            }
+    constexpr T const &  get_value() const &  { return value;            }
+    constexpr T       && get_value()       && { return std::move(value); }
+    constexpr T const && get_value() const && { return std::move(value); }
+
+    template <typename ... Args>
+    T& construct_value(Args && ... args)
+    noexcept(std::is_nothrow_constructible_v<storage_type, Args...>) {
+        new ((void*)(&value)) storage_type(std::forward<Args>(args)...);
+        is_containing = true;
+        return value;
+    }
+
+    void remove_value()
+    noexcept(std::is_nothrow_destructible_v<storage_type>) {
+        is_containing = false;
+        value.~storage_type();
+    }
 };
 
 /** Optional Storage -- Non-Trivially Move Ctor
@@ -211,23 +274,21 @@ class optional_storage<T, /* TrivialCopyCtor */ true,
 {
     static_assert(!std::is_same_v<T, nonstd::in_place_t>,
         "optional_storage objects cannot wrap `in_place_t`.");
-
-private:
-    template <typename ... Args>
-    void _construct(Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args...>) {
-        new ((void*)(&value)) T(std::forward<Args>(args)...);
-        is_containing = true;
-    }
+    static_assert(!std::is_reference_v<T>,
+        "optional_storage objects cannot wrap referential types.");
 
 public:
-    struct _Empty { };
+    using value_type = T;
+    using storage_type = std::remove_const_t<T>;
+
+    struct _empty_tag_t { };
 
     bool is_containing;
     union {
-        _Empty empty;
-        T      value;
+        _empty_tag_t empty;
+        storage_type value;
     };
+
 
     // NB. These five constructors will be identical for all specializations.
     constexpr optional_storage() noexcept
@@ -236,12 +297,12 @@ public:
     { }
 
     constexpr optional_storage(T const & value)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
+    noexcept(std::is_nothrow_copy_constructible_v<storage_type>)
         : is_containing ( true  )
         , value         ( value )
     { }
     constexpr optional_storage(T && value)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
+    noexcept(std::is_nothrow_move_constructible_v<storage_type>)
         : is_containing ( true             )
         , value         ( std::move(value) )
     { }
@@ -249,7 +310,7 @@ public:
     template <typename ... Args>
     constexpr explicit optional_storage(nonstd::in_place_t,
                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args && ...>)
+    noexcept(std::is_nothrow_constructible_v<storage_type, Args && ...>)
         : is_containing ( true                        )
         , value         ( std::forward<Args>(args)... )
     { }
@@ -258,23 +319,48 @@ public:
     constexpr explicit optional_storage(nonstd::in_place_t,
                                         std::initializer_list<Il> il,
                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T,
+    noexcept(std::is_nothrow_constructible_v<storage_type,
                                              std::initializer_list<Il>,
                                              Args && ...>)
         : is_containing ( true                            )
         , value         ( il, std::forward<Args>(args)... )
     { }
 
+
     // NB. These three members will vary per partial specialization.
     constexpr optional_storage(optional_storage const &) noexcept = default;
     constexpr optional_storage(optional_storage && rhs)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
+    noexcept(std::is_nothrow_move_constructible_v<storage_type>)
         : is_containing ( false )
         , empty         (       )
     {
-        if (rhs.is_containing) { _construct(std::move(rhs.value)); }
+        if (rhs.is_containing) { construct_value(std::move(rhs.value)); }
     }
     ~optional_storage() noexcept = default;
+
+
+    constexpr bool has_value() const noexcept {
+        return is_containing;
+    }
+
+    constexpr T       &  get_value()       &  { return value;            }
+    constexpr T const &  get_value() const &  { return value;            }
+    constexpr T       && get_value()       && { return std::move(value); }
+    constexpr T const && get_value() const && { return std::move(value); }
+
+    template <typename ... Args>
+    T& construct_value(Args && ... args)
+    noexcept(std::is_nothrow_constructible_v<storage_type, Args...>) {
+        new ((void*)(&value)) storage_type(std::forward<Args>(args)...);
+        is_containing = true;
+        return value;
+    }
+
+    void remove_value()
+    noexcept(std::is_nothrow_destructible_v<storage_type>) {
+        is_containing = false;
+        value.~storage_type();
+    }
 };
 
 /** Optional Storage -- Non-Trivially Copy & Move Ctors
@@ -288,23 +374,21 @@ class optional_storage<T, /* TrivialCopyCtor */ false,
 {
     static_assert(!std::is_same_v<T, nonstd::in_place_t>,
         "optional_storage objects cannot wrap `in_place_t`.");
-
-private:
-    template <typename ... Args>
-    void _construct(Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args...>) {
-        new ((void*)(&value)) T(std::forward<Args>(args)...);
-        is_containing = true;
-    }
+    static_assert(!std::is_reference_v<T>,
+        "optional_storage objects cannot wrap referential types.");
 
 public:
-    struct _Empty { };
+    using value_type = T;
+    using storage_type = std::remove_const_t<T>;
+
+    struct _empty_tag_t { };
 
     bool is_containing;
     union {
-        _Empty empty;
-        T      value;
+        _empty_tag_t empty;
+        storage_type value;
     };
+
 
     // NB. These five constructors will be identical for all specializations.
     constexpr optional_storage() noexcept
@@ -313,12 +397,12 @@ public:
     { }
 
     constexpr optional_storage(T const & value)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
+    noexcept(std::is_nothrow_copy_constructible_v<storage_type>)
         : is_containing ( true  )
         , value         ( value )
     { }
     constexpr optional_storage(T && value)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
+    noexcept(std::is_nothrow_move_constructible_v<storage_type>)
         : is_containing ( true             )
         , value         ( std::move(value) )
     { }
@@ -326,7 +410,7 @@ public:
     template <typename ... Args>
     constexpr explicit optional_storage(nonstd::in_place_t,
                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args && ...>)
+    noexcept(std::is_nothrow_constructible_v<storage_type, Args && ...>)
         : is_containing ( true                        )
         , value         ( std::forward<Args>(args)... )
     { }
@@ -335,7 +419,7 @@ public:
     constexpr explicit optional_storage(nonstd::in_place_t,
                                         std::initializer_list<Il> il,
                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T,
+    noexcept(std::is_nothrow_constructible_v<storage_type,
                                              std::initializer_list<Il>,
                                              Args && ...>)
         : is_containing ( true                            )
@@ -345,20 +429,44 @@ public:
 
     // NB. These three members will vary per partial specialization.
     constexpr optional_storage(optional_storage const & rhs)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
+    noexcept(std::is_nothrow_copy_constructible_v<storage_type>)
         : is_containing ( false )
         , empty         (       )
     {
-        if (rhs.is_containing) { _construct(rhs.value); }
+        if (rhs.is_containing) { construct_value(rhs.value); }
     }
     constexpr optional_storage(optional_storage && rhs)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
+    noexcept(std::is_nothrow_move_constructible_v<storage_type>)
         : is_containing ( false )
         , empty         (       )
     {
-        if (rhs.is_containing) { _construct(std::move(rhs.value)); }
+        if (rhs.is_containing) { construct_value(std::move(rhs.value)); }
     }
     ~optional_storage() noexcept = default;
+
+
+    constexpr bool has_value() const noexcept {
+        return is_containing;
+    }
+
+    constexpr T       &  get_value()       &  { return value;            }
+    constexpr T const &  get_value() const &  { return value;            }
+    constexpr T       && get_value()       && { return std::move(value); }
+    constexpr T const && get_value() const && { return std::move(value); }
+
+    template <typename ... Args>
+    T& construct_value(Args && ... args)
+    noexcept(std::is_nothrow_constructible_v<storage_type, Args...>) {
+        new ((void*)(&value)) storage_type(std::forward<Args>(args)...);
+        is_containing = true;
+        return value;
+    }
+
+    void remove_value()
+    noexcept(std::is_nothrow_destructible_v<storage_type>) {
+        is_containing = false;
+        value.~storage_type();
+    }
 };
 
 /** Optional Storage -- Non-Trivially Dtor
@@ -377,23 +485,21 @@ class optional_storage<T, /* TrivialCopyCtor */ false,
 {
     static_assert(!std::is_same_v<T, nonstd::in_place_t>,
         "optional_storage objects cannot wrap `in_place_t`.");
-
-private:
-    template <typename ... Args>
-    void _construct(Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args...>) {
-        new ((void*)(&value)) T(std::forward<Args>(args)...);
-        is_containing = true;
-    }
+    static_assert(!std::is_reference_v<T>,
+        "optional_storage objects cannot wrap referential types.");
 
 public:
-    struct _Empty { };
+    using value_type = T;
+    using storage_type = std::remove_const_t<T>;
+
+    struct _empty_tag_t { };
 
     bool is_containing;
     union {
-        _Empty empty;
-        T      value;
+        _empty_tag_t empty;
+        storage_type value;
     };
+
 
     // NB. These five constructors will be identical for all specializations.
     constexpr optional_storage() noexcept
@@ -402,12 +508,12 @@ public:
     { }
 
     constexpr optional_storage(T const & value)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
+    noexcept(std::is_nothrow_copy_constructible_v<storage_type>)
         : is_containing ( true  )
         , value         ( value )
     { }
     constexpr optional_storage(T && value)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
+    noexcept(std::is_nothrow_move_constructible_v<storage_type>)
         : is_containing ( true             )
         , value         ( std::move(value) )
     { }
@@ -415,7 +521,7 @@ public:
     template <typename ... Args>
     constexpr explicit optional_storage(nonstd::in_place_t,
                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args && ...>)
+    noexcept(std::is_nothrow_constructible_v<storage_type, Args && ...>)
         : is_containing ( true                        )
         , value         ( std::forward<Args>(args)... )
     { }
@@ -424,7 +530,7 @@ public:
     constexpr explicit optional_storage(nonstd::in_place_t,
                                         std::initializer_list<Il> il,
                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T,
+    noexcept(std::is_nothrow_constructible_v<storage_type,
                                              std::initializer_list<Il>,
                                              Args && ...>)
         : is_containing ( true                            )
@@ -434,26 +540,50 @@ public:
 
     // NB. These three members will vary per partial specialization.
     constexpr optional_storage(optional_storage const & rhs)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
+    noexcept(std::is_nothrow_copy_constructible_v<storage_type>)
         : is_containing ( false )
         , empty         (       )
     {
-        if (rhs.is_containing) { _construct(rhs.value); }
+        if (rhs.is_containing) { construct_value(rhs.value); }
     }
     constexpr optional_storage(optional_storage && rhs)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
+    noexcept(std::is_nothrow_move_constructible_v<storage_type>)
         : is_containing ( false )
         , empty         (       )
     {
-        if (rhs.is_containing) { _construct(std::move(rhs.value)); }
+        if (rhs.is_containing) { construct_value(std::move(rhs.value)); }
     }
 
     /** Non-Trivial Storage Destruction
      *  §23.6.3.2 of the c++ n4713 specification.
      */
     ~optional_storage()
-    noexcept(std::is_nothrow_destructible_v<T>) {
-        if (is_containing) { value.~T(); }
+    noexcept(std::is_nothrow_destructible_v<storage_type>) {
+        if (is_containing) { value.~storage_type(); }
+    }
+
+
+    constexpr bool has_value() const noexcept {
+        return is_containing;
+    }
+
+    constexpr T       &  get_value()       &  { return value;            }
+    constexpr T const &  get_value() const &  { return value;            }
+    constexpr T       && get_value()       && { return std::move(value); }
+    constexpr T const && get_value() const && { return std::move(value); }
+
+    template <typename ... Args>
+    T& construct_value(Args && ... args)
+    noexcept(std::is_nothrow_constructible_v<storage_type, Args...>) {
+        new ((void*)(&value)) storage_type(std::forward<Args>(args)...);
+        is_containing = true;
+        return value;
+    }
+
+    void remove_value()
+    noexcept(std::is_nothrow_destructible_v<storage_type>) {
+        is_containing = false;
+        value.~storage_type();
     }
 };
 
