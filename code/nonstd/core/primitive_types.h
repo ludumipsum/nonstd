@@ -1,4 +1,4 @@
-/** Primative Types
+/** Primitive Types
  *  ===============
  *  Defines some foundational types used across different pieces of the system.
  */
@@ -9,7 +9,9 @@
 #include <cstddef>
 #include <cinttypes>
 
-#include "nonstd/cpp1z/type_trait_assertions.h"
+// TODO: Condisider moving this include -- and the ENFORCE_SIZE calls it allows
+//       -- out of this file, and into a test file.
+#include "nonstd/cpp1z/type_traits_ext.h"
 
 
 /** Basic Types

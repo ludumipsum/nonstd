@@ -99,8 +99,6 @@
 
 #include <utility>
 
-#include "type_traits.h"
-
 
 /* BOOST_PP_ redefinitions; For Great Readability. */
 // #define SEQ                   BOOST_PP_SEQ

@@ -1,6 +1,8 @@
 #pragma once
 
-#include <nonstd/cpp1z/type_trait_assertions.h>
+#include <type_traits>
+
+#include <nonstd/cpp1z/type_traits_ext.h>
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
 #include <nonstd/std_ish/compare.h>
@@ -13,7 +15,7 @@ namespace nonstd {
 
 template <typename T>
 struct nr_ptr {
-    static_assert(!IS_REFERENCE(T), "nr_ptrs cannot wrap reference types.");
+    static_assert(!std::is_reference_v<T>, "nr_ptrs cannot wrap reference types.");
 
 private:
     Buffer * m_buf;
