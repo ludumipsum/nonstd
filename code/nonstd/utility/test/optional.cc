@@ -35,12 +35,18 @@ using nonstd::just_ref;
 using nonstd::just_cref;
 using nonstd::none;
 
+using std::is_pod_v;
+using std::is_trivially_copy_constructible_v;
+using std::is_trivially_move_constructible_v;
+using std::is_trivially_destructible_v;
+
+
 /* Simple POD datatype used to test non-builtin-type optionals */
 struct PODType {
     u16 a;
     u16 b;
 };
-static_assert(std::is_pod_v<PODType>);
+static_assert(is_pod_v<PODType>);
 
 /* Compound POD datatype used to test non-builtin-type optionals */
 struct CompoundType {
@@ -49,9 +55,9 @@ struct CompoundType {
         u32 word;
     };
 };
-static_assert(std::is_trivially_copy_constructible_v<CompoundType>);
-static_assert(std::is_trivially_move_constructible_v<CompoundType>);
-static_assert(std::is_trivially_destructible_v<CompoundType>);
+static_assert(is_trivially_copy_constructible_v<CompoundType>);
+static_assert(is_trivially_move_constructible_v<CompoundType>);
+static_assert(is_trivially_destructible_v<CompoundType>);
 
 /* Compound non-POD datatype used to test optionals over funky c++ey classes */
 class NonPODType {

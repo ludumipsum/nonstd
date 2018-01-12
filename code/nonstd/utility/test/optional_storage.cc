@@ -19,6 +19,13 @@ namespace optional_storage {
 
 using nonstd::optional_storage;
 
+using std::is_trivially_copy_constructible_v;
+using std::is_trivially_copy_constructible_v;
+using std::is_trivially_destructible_v;
+using std::is_trivially_move_constructible_v;
+using std::is_trivially_move_constructible_v;
+
+
 struct Trivial {
     int i;
 
@@ -29,9 +36,9 @@ struct Trivial {
     Trivial(Trivial && rhs) = default;
     ~Trivial() = default;
 };
-ENFORCE( std::is_trivially_copy_constructible_v<Trivial>);
-ENFORCE( std::is_trivially_move_constructible_v<Trivial>);
-ENFORCE( std::is_trivially_destructible_v<Trivial>);
+ENFORCE( is_trivially_copy_constructible_v<Trivial>);
+ENFORCE( is_trivially_move_constructible_v<Trivial>);
+ENFORCE( is_trivially_destructible_v<Trivial>);
 
 struct NonTrivial_Copy {
     int i;
@@ -43,9 +50,9 @@ struct NonTrivial_Copy {
     NonTrivial_Copy(NonTrivial_Copy && rhs) = default;
     ~NonTrivial_Copy() = default;
 };
-ENFORCE(!std::is_trivially_copy_constructible_v<NonTrivial_Copy>);
-ENFORCE( std::is_trivially_move_constructible_v<NonTrivial_Copy>);
-ENFORCE( std::is_trivially_destructible_v<NonTrivial_Copy>);
+ENFORCE(!is_trivially_copy_constructible_v<NonTrivial_Copy>);
+ENFORCE( is_trivially_move_constructible_v<NonTrivial_Copy>);
+ENFORCE( is_trivially_destructible_v<NonTrivial_Copy>);
 
 struct NonTrivial_Move {
     int i;
@@ -57,9 +64,9 @@ struct NonTrivial_Move {
     constexpr NonTrivial_Move(NonTrivial_Move && rhs) noexcept : i ( std::move(rhs.i) ) { }
     ~NonTrivial_Move() = default;
 };
-ENFORCE( std::is_trivially_copy_constructible_v<NonTrivial_Move>);
-ENFORCE(!std::is_trivially_move_constructible_v<NonTrivial_Move>);
-ENFORCE( std::is_trivially_destructible_v<NonTrivial_Move>);
+ENFORCE( is_trivially_copy_constructible_v<NonTrivial_Move>);
+ENFORCE(!is_trivially_move_constructible_v<NonTrivial_Move>);
+ENFORCE( is_trivially_destructible_v<NonTrivial_Move>);
 
 struct NonTrivial_CopyMove {
     int i;
@@ -71,9 +78,9 @@ struct NonTrivial_CopyMove {
     constexpr NonTrivial_CopyMove(NonTrivial_CopyMove && rhs) noexcept : i ( std::move(rhs.i) ) { }
     ~NonTrivial_CopyMove() = default;
 };
-ENFORCE(!std::is_trivially_copy_constructible_v<NonTrivial_CopyMove>);
-ENFORCE(!std::is_trivially_move_constructible_v<NonTrivial_CopyMove>);
-ENFORCE( std::is_trivially_destructible_v<NonTrivial_CopyMove>);
+ENFORCE(!is_trivially_copy_constructible_v<NonTrivial_CopyMove>);
+ENFORCE(!is_trivially_move_constructible_v<NonTrivial_CopyMove>);
+ENFORCE( is_trivially_destructible_v<NonTrivial_CopyMove>);
 
 struct NonTrivial_Dtor {
     int i;
@@ -87,9 +94,9 @@ struct NonTrivial_Dtor {
         //noop
     }
 };
-static_assert(!std::is_trivially_copy_constructible_v<NonTrivial_Dtor>);
-static_assert(!std::is_trivially_move_constructible_v<NonTrivial_Dtor>);
-static_assert(!std::is_trivially_destructible_v<NonTrivial_Dtor>);
+static_assert(!is_trivially_copy_constructible_v<NonTrivial_Dtor>);
+static_assert(!is_trivially_move_constructible_v<NonTrivial_Dtor>);
+static_assert(!is_trivially_destructible_v<NonTrivial_Dtor>);
 
 
 /** Optional Storage -- Fully Trivial Types
@@ -154,41 +161,41 @@ constexpr bool play_with_NonTrivial_Dtor() {
 
 TEST_CASE("Optional Storage Types", "[nonstd][optional_storage]") {
     SECTION("that wrap types that are fully trivial") {
-        ENFORCE( std::is_trivially_copy_constructible_v<optional_storage<Trivial>>);
-        ENFORCE( std::is_trivially_move_constructible_v<optional_storage<Trivial>>);
-        ENFORCE( std::is_trivially_destructible_v<optional_storage<Trivial>>);
+        ENFORCE( is_trivially_copy_constructible_v<optional_storage<Trivial>>);
+        ENFORCE( is_trivially_move_constructible_v<optional_storage<Trivial>>);
+        ENFORCE( is_trivially_destructible_v<optional_storage<Trivial>>);
 
         constexpr bool works_in_constexpr_context = play_with_Trivial();
         REQUIRE(works_in_constexpr_context);
     }
     SECTION("for `T`s that are non-trivially copy constructible") {
-        ENFORCE(!std::is_trivially_copy_constructible_v<optional_storage<NonTrivial_Copy>>);
-        ENFORCE( std::is_trivially_move_constructible_v<optional_storage<NonTrivial_Copy>>);
-        ENFORCE( std::is_trivially_destructible_v<optional_storage<NonTrivial_Copy>>);
+        ENFORCE(!is_trivially_copy_constructible_v<optional_storage<NonTrivial_Copy>>);
+        ENFORCE( is_trivially_move_constructible_v<optional_storage<NonTrivial_Copy>>);
+        ENFORCE( is_trivially_destructible_v<optional_storage<NonTrivial_Copy>>);
 
         constexpr bool works_in_constexpr_context = play_with_NonTrivial_Copy();
         REQUIRE(works_in_constexpr_context);
     }
     SECTION("for `T`s that are non-trivially move constructible") {
-        ENFORCE( std::is_trivially_copy_constructible_v<optional_storage<NonTrivial_Move>>);
-        ENFORCE(!std::is_trivially_move_constructible_v<optional_storage<NonTrivial_Move>>);
-        ENFORCE( std::is_trivially_destructible_v<optional_storage<NonTrivial_Move>>);
+        ENFORCE( is_trivially_copy_constructible_v<optional_storage<NonTrivial_Move>>);
+        ENFORCE(!is_trivially_move_constructible_v<optional_storage<NonTrivial_Move>>);
+        ENFORCE( is_trivially_destructible_v<optional_storage<NonTrivial_Move>>);
 
         constexpr bool works_in_constexpr_context = play_with_NonTrivial_Move();
         REQUIRE(works_in_constexpr_context);
     }
     SECTION("for `T`s that are non-trivially copy or move constructible") {
-        ENFORCE(!std::is_trivially_copy_constructible_v<optional_storage<NonTrivial_CopyMove>>);
-        ENFORCE(!std::is_trivially_move_constructible_v<optional_storage<NonTrivial_CopyMove>>);
-        ENFORCE( std::is_trivially_destructible_v<optional_storage<NonTrivial_CopyMove>>);
+        ENFORCE(!is_trivially_copy_constructible_v<optional_storage<NonTrivial_CopyMove>>);
+        ENFORCE(!is_trivially_move_constructible_v<optional_storage<NonTrivial_CopyMove>>);
+        ENFORCE( is_trivially_destructible_v<optional_storage<NonTrivial_CopyMove>>);
 
         constexpr bool works_in_constexpr_context = play_with_NonTrivial_CopyMove();
         REQUIRE(works_in_constexpr_context);
     }
     SECTION("for `T`s that are non-trivially destructible") {
-        ENFORCE(!std::is_trivially_copy_constructible_v<optional_storage<NonTrivial_Dtor>>);
-        ENFORCE(!std::is_trivially_move_constructible_v<optional_storage<NonTrivial_Dtor>>);
-        ENFORCE(!std::is_trivially_destructible_v<optional_storage<NonTrivial_Dtor>>);
+        ENFORCE(!is_trivially_copy_constructible_v<optional_storage<NonTrivial_Dtor>>);
+        ENFORCE(!is_trivially_move_constructible_v<optional_storage<NonTrivial_Dtor>>);
+        ENFORCE(!is_trivially_destructible_v<optional_storage<NonTrivial_Dtor>>);
 
         constexpr bool works_in_constexpr_context = play_with_NonTrivial_Dtor();
         REQUIRE(works_in_constexpr_context);
