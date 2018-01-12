@@ -115,14 +115,14 @@ public:
 
 /** Optional Storage -- Non-Trivially Copy Ctor
  *  -------------------------------------------
- *  For types that are not trivially copy constructible or not trivially move
- *  constructible, the compiler will be unable to implicitly define the relevant
- *  special member function. In these cases we need to explicitly define the
- *  relevant member. Additionally, we may have to wait until runtime to
- *  construct a contained value, as placement new must be used to correctly
- *  change the active member of an anonymous union.
+ *  For types that are either not trivially copy constructible or not trivially
+ *  move constructible, the compiler will be unable to implicitly define the
+ *  relevant special member function. In these cases we need to explicitly
+ *  define the relevant member. In those cases, we may need to wait until
+ *  runtime to construct the contained value, as Placement New must be used to
+ *  correctly change the active member of an anonymous union.
  *
- *  Interestingly, we can leave the copy and move constructors `constexpr`, as
+ *  Interestingly, we can leave the copy and move constructors `constexpr` as
  *  the compiler will be able to skip the `_construct` call if `rhs` is
  *  non-containing. I don't know if a compile-time, non-containing,
  *  non-trivially constructible optional will be of use, but... You can do it!
@@ -139,10 +139,6 @@ private:
     template <typename ... Args>
     void _construct(Args && ... args)
     noexcept(std::is_nothrow_constructible_v<T, Args...>) {
-        // If the anonymous union was initialized to `empty`, we need to use
-        // placement new to guarantee the active member is switched. If there's
-        // any ambiguity in which member is active, or if construction needs to
-        // be deferred, use this method to construct.
         new ((void*)(&value)) T(std::forward<Args>(args)...);
         is_containing = true;
     }
@@ -220,10 +216,6 @@ private:
     template <typename ... Args>
     void _construct(Args && ... args)
     noexcept(std::is_nothrow_constructible_v<T, Args...>) {
-        // If the anonymous union was initialized to `empty`, we need to use
-        // placement new to guarantee the active member is switched. If there's
-        // any ambiguity in which member is active, or if construction needs to
-        // be deferred, use this method to construct.
         new ((void*)(&value)) T(std::forward<Args>(args)...);
         is_containing = true;
     }
@@ -301,10 +293,6 @@ private:
     template <typename ... Args>
     void _construct(Args && ... args)
     noexcept(std::is_nothrow_constructible_v<T, Args...>) {
-        // If the anonymous union was initialized to `empty`, we need to use
-        // placement new to guarantee the active member is switched. If there's
-        // any ambiguity in which member is active, or if construction needs to
-        // be deferred, use this method to construct.
         new ((void*)(&value)) T(std::forward<Args>(args)...);
         is_containing = true;
     }
@@ -379,6 +367,8 @@ public:
  *  implicitly define a destructor, and so we need to explicitly define one that
  *  explicitly calls the destructor on the contained value (if there is a
  *  contained value).
+ *
+ *  See the 'NOTE ON THE TRIVIALITY OF CLASSES WITH DESTRUCTORS'.
  */
 template <typename T>
 class optional_storage<T, /* TrivialCopyCtor */ false,
@@ -392,10 +382,6 @@ private:
     template <typename ... Args>
     void _construct(Args && ... args)
     noexcept(std::is_nothrow_constructible_v<T, Args...>) {
-        // If the anonymous union was initialized to `empty`, we need to use
-        // placement new to guarantee the active member is switched. If there's
-        // any ambiguity in which member is active, or if construction needs to
-        // be deferred, use this method to construct.
         new ((void*)(&value)) T(std::forward<Args>(args)...);
         is_containing = true;
     }
@@ -461,6 +447,7 @@ public:
     {
         if (rhs.is_containing) { _construct(std::move(rhs.value)); }
     }
+
     /** Non-Trivial Storage Destruction
      *  §23.6.3.2 of the c++ n4713 specification.
      */
