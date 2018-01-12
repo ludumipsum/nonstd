@@ -363,9 +363,9 @@ public:
 
 /** Optional Storage -- Non-Trivially Dtor
  *  --------------------------------------
- *  For types that are not trivial destructible, the compiler will be unable to
- *  implicitly define a destructor, and so we need to explicitly define one that
- *  explicitly calls the destructor on the contained value (if there is a
+ *  For types that are not trivially destructible, the compiler will be unable
+ *  to implicitly define a destructor, and so we need to explicitly define one
+ *  that explicitly calls the destructor on the contained value (if there is a
  *  contained value).
  *
  *  See the 'NOTE ON THE TRIVIALITY OF CLASSES WITH DESTRUCTORS'.
