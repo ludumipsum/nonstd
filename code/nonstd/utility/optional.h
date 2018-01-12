@@ -9,19 +9,20 @@
  *
  *  All section references (§) refer to the above documents.
  *
- *  //TODO: Update the below.
- *
  *  The structure of these optionals is also worth discussing. They are
- *  universally composed of three parts;
- *   - The dedicated Storage component.
+ *  composed of three parts;
+ *   - The dedicated `optional_storage<T>` component.
  *     Contains the wrapped value (or not), and the `is_containing` boolean.
- *   - The storage-aware Base class.
- *     Contains a Storage component, and understands how to interact with the
- *     value and boolean stored therein.
- *   - The complete `optional<T>`.
- *     Inherits from the Base class, but remains unaware of the Storage
- *     component. May also inherit from classes that prevent copy and move
- *     construction or assignment.
+ *     See optional_storage.h for the implementation of this member variable.
+ *   - The storage-aware `optional_*_base<T>` template class.
+ *     Has an `optional_storage` as a member variable. Is fully aware of how
+ *     `optional_storage` works, and implements (nearly) all construction
+ *     logic. Does not implement any observer methods.
+ *   - The complete `optional<T>` template class.
+ *     Inherits from either `optional_val_base`, `optional_ref_base` class
+ *     s.t. it may remain unaware of the `optional_storage` member. May also
+ *     inherit from utility classes that prevent copy and/or move construction
+ *     and/or assignment.
  *
  *  See the class descriptors in the Forward Declarations section below for
  *  additional details.
