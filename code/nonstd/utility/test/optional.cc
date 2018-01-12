@@ -11,13 +11,9 @@
  *
  * TODO:
  * - test an object for which
- *      `is_trivially_copy_constructible_v` == true
- *      `is_trivially_move_constructible_v` == true
- *      `is_trivially_destructible_v`       == false
- * - test an object for which
  *      `is_[copy/move]_constructible_v` == false
  *      `is_[copy/move]_assignable_v`    == true
- * - test the except guarantees of §26.6.3.3.4.
+ * - test the except guarantees of §23.6.3.3.4.
  * - test reference to constant type
  * - test reference to constant pointer type.
  */

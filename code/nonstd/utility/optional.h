@@ -9,19 +9,20 @@
  *
  *  All section references (§) refer to the above documents.
  *
- *  //TODO: Update the below.
- *
  *  The structure of these optionals is also worth discussing. They are
- *  universally composed of three parts;
- *   - The dedicated Storage component.
+ *  composed of three parts;
+ *   - The dedicated `optional_storage<T>` component.
  *     Contains the wrapped value (or not), and the `is_containing` boolean.
- *   - The storage-aware Base class.
- *     Contains a Storage component, and understands how to interact with the
- *     value and boolean stored therein.
- *   - The complete `optional<T>`.
- *     Inherits from the Base class, but remains unaware of the Storage
- *     component. May also inherit from classes that prevent copy and move
- *     construction or assignment.
+ *     See optional_storage.h for the implementation of this member variable.
+ *   - The storage-aware `optional_*_base<T>` template class.
+ *     Has an `optional_storage` as a member variable. Is fully aware of how
+ *     `optional_storage` works, and implements (nearly) all construction
+ *     logic. Does not implement any observer methods.
+ *   - The complete `optional<T>` template class.
+ *     Inherits from either `optional_val_base`, `optional_ref_base` class
+ *     s.t. it may remain unaware of the `optional_storage` member. May also
+ *     inherit from utility classes that prevent copy and/or move construction
+ *     and/or assignment.
  *
  *  See the class descriptors in the Forward Declarations section below for
  *  additional details.
@@ -52,6 +53,7 @@
 #include <nonstd/cpp1z/valid_expression_tester.h>
 #include <nonstd/c_ish/type_name.h>
 #include <nonstd/std_ish/compare.h>
+#include <nonstd/utility/optional_storage.h>
 
 
 /** Utilities
@@ -101,7 +103,6 @@ public:
 
 /** Forward Declarations
  *  ============================================================================
- *  Because we have a _lot_ of classes to define and specialize in this file.
  */
 
 /** Optional Class Template -- §23.6.3
@@ -130,24 +131,6 @@ class _optional_val_base;
 
 template <typename T>
 class _optional_ref_base;
-
-
-/** Optional Storage Class Templates -- nonstd
- *  -------------------------------------------
- *  A simple wrapper that will directly implement the construction and reseating
- *  of stored values.
- */
-//TODO: This class is a product in itself; It should be moved to its own file.
-template < typename T
-         , bool MoveAndCopyCtorsAreTrivial = std::is_trivially_copy_constructible_v<T>
-                                          && std::is_trivially_move_constructible_v<T>
-         , bool DestructorIsTrivial = std::is_trivially_destructible_v<T> >
-class optional_storage;
-
-//TODO: I don't think I need the lvalref storage class. Should be able to use
-//      the optional_storage directly, and get the most trivial version.
-template <typename T>
-class _optional_lvalref_storage;
 
 
 /** Helpers
@@ -182,338 +165,9 @@ inline constexpr bool is_assignable_from_optional_v =
     is_assignable_from_optional<T,U>::value;
 
 
-/** Optional Storage Class
- *  ============================================================================
- *  //TODO: These comments are going to be wrong soon. Be ready to rewrite them.
- *
- *  Wrapper around the `is_containing` boolean, and the value-or-no-value union.
- *  We need to give optionals their own storage class s.t. SFINAE can be used to
- *  selectively define constructors and destructors based on `T`.
- *
- *  When storing an object that is trivially copy and move constructible, the
- *  implicitly defined copy/move ctors will be correct in all cases; the active
- *  member of the union will be determined (at compile time, if possible) and
- *  used to initialize the relevant member in the new _storage object. Otherwise
- *  the implicit copy/move ctors will not be defined, which forces us to
- *  explicitly define them. In these cases, we also need to wait till run-time
- *  to (optionally) construct a value based on the `rhs`.
- *
- *  When storing a type that is not trivial destructible, the _storage object's
- *  implicitly defined destructor won't be defined, and so needs to be
- *  explicitly created (and needs to explicitly call the destructor on the
- *  stored value). When storing a type that is trivially destructible, the
- *  implicitly defined destructor will be defined, will correctly clean up the
- *  stored value, and will match the constexpr-ness of the stored type.
- *
- *  The _lvalref_storage is _dramatically_ simpler than its counterpart, as it
- *  requires no in-place construction, and never requires a destructor (it will
- *  be storing raw pointers, and raw pointers don't need to be automatically
- *  cleaned up). We use it primarily to maintain architecture parity between
- *  value- and reference-wrapping optionals.
- */
-
-/** Storage for types with trivial construction and trivial destruction
- *  -------------------------------------------------------------------
- */
-template <typename T>
-class optional_storage<T, /* MoveAndCopyCtorsAreTrivial */ true,
-                          /* DestructorIsTrivial        */ true>
-{
-    static_assert(!std::is_same_v<T, in_place_t>,
-        "optional_storage objects cannot wrap `in_place_t`.");
-
-private:
-    struct _Empty { };
-
-public:
-    bool is_containing;
-    union {
-        _Empty empty;
-        T      value;
-    };
-
-
-    constexpr optional_storage() noexcept
-        : is_containing ( false )
-        , empty         (       )
-    { }
-
-
-    constexpr optional_storage(optional_storage const &) = default;
-    constexpr optional_storage(optional_storage &&     ) = default;
-
-
-    constexpr optional_storage(T const & value)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
-        : is_containing ( true  )
-        , value         ( value )
-    { }
-
-    constexpr optional_storage(T && value)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
-        : is_containing ( true             )
-        , value         ( std::move(value) )
-    { }
-
-    template <typename ... Args>
-    constexpr explicit optional_storage(nonstd::in_place_t,
-                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args && ...>)
-        : is_containing ( true                        )
-        , value         ( std::forward<Args>(args)... )
-    { }
-
-    template <typename Il, typename ... Args>
-    constexpr explicit optional_storage(nonstd::in_place_t,
-                                         std::initializer_list<Il> il,
-                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T,
-                                             std::initializer_list<Il>,
-                                             Args && ...>)
-        : is_containing ( true                            )
-        , value         ( il, std::forward<Args>(args)... )
-    { }
-};
-
-
-/** Storage for types with non-trivial construction & trivial destruction
- *  ---------------------------------------------------------------------
- *  Note: Interestingly, we can leave the copy and move constructors
- *  `constexpr`, as the compiler will be able to skip the `_construct` call if
- *  `rhs` is non-containing. I don't know if a compile-time, non-containing,
- *  non-trivially constructible optional will be of use, but... You can do it!
- */
-template <typename T>
-class optional_storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
-                          /* DestructorIsTrivial        */ true>
-{
-    static_assert(!std::is_same_v<std::decay_t<T>, in_place_t>,
-        "optional_storage objects cannot wrap `in_place_t`.");
-
-private:
-    struct _Empty { };
-
-public:
-    bool is_containing;
-    union {
-        _Empty empty;
-        T      value;
-    };
-
-private:
-    // If the anonymous union was initialized to `empty`, we need to use
-    // placement new to guarantee the active member is switched. Any there's
-    // ambiguity in which member is active, or construction needs to be
-    // deferred, use this method to construct.
-    template <typename ... Args>
-    void _construct(Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args...>) {
-        new ((void*)(&value)) T(std::forward<Args>(args)...);
-        is_containing = true;
-    }
-
-
-public:
-    constexpr optional_storage() noexcept
-        : is_containing ( false )
-        , empty         (       )
-    { }
-
-    constexpr optional_storage(optional_storage const & rhs)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
-        : is_containing ( rhs.is_containing )
-        , empty         (                   )
-    {
-        if (rhs.is_containing) { _construct(rhs.value); }
-    }
-
-    constexpr optional_storage(optional_storage && rhs)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
-        : is_containing ( rhs.is_containing )
-        , empty         (                   )
-    {
-        if (rhs.is_containing) { _construct(std::move(rhs.value)); }
-    }
-
-
-    constexpr optional_storage(T const & value)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
-        : is_containing ( true  )
-        , value         ( value )
-    { }
-
-    constexpr optional_storage(T && value)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
-        : is_containing ( true             )
-        , value         ( std::move(value) )
-    { }
-
-    template <typename ... Args>
-    constexpr explicit optional_storage(nonstd::in_place_t,
-                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args && ...>)
-        : is_containing ( true                        )
-        , value         ( std::forward<Args>(args)... )
-    { }
-
-    template <typename Il, typename ... Args>
-    constexpr explicit optional_storage(nonstd::in_place_t,
-                                         std::initializer_list<Il> il,
-                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T,
-                                             std::initializer_list<Il>,
-                                             Args && ...>)
-        : is_containing ( true                            )
-        , value         ( il, std::forward<Args>(args)... )
-    { }
-};
-
-
-/** Storage for types with non-trivial construction & non-trivial destruction
- *  -------------------------------------------------------------------------
- */
-template <typename T>
-class optional_storage<T, /* MoveAndCopyCtorsAreTrivial */ false,
-                          /* DestructorIsTrivial        */ false>
-{
-    static_assert(!std::is_same_v<std::decay_t<T>, in_place_t>,
-        "optional_storage objects cannot wrap `in_place_t`.");
-    static_assert(!std::is_same_v<std::decay_t<T>, nullopt_t>,
-        "optional_storage objects cannot wrap `nullopt_t`.");
-
-private:
-    struct _Empty { };
-
-public:
-    bool is_containing;
-    union {
-        _Empty empty;
-        T      value;
-    };
-
-private:
-    // If the anonymous union was initialized to `empty`, we need to use
-    // placement new to guarantee the active member is switched. Any there's
-    // ambiguity in which member is active, or construction needs to be
-    // deferred, use this method to construct.
-    template <typename ... Args>
-    void _construct(Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args && ...>) {
-        new ((void*)(&value)) T(std::forward<Args>(args)...);
-        is_containing = true;
-    }
-
-public:
-    constexpr optional_storage() noexcept
-        : is_containing ( false )
-        , empty         (       )
-    { }
-
-
-    constexpr optional_storage(optional_storage const & rhs)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
-        : is_containing ( rhs.is_containing )
-        , empty         (                   )
-    {
-        if (rhs.is_containing) { _construct(rhs.value); }
-    }
-
-    constexpr optional_storage(optional_storage && rhs)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
-        : is_containing ( rhs.is_containing )
-        , empty         (                   )
-    {
-        if (rhs.is_containing) { _construct(std::move(rhs.value)); }
-    }
-
-
-    constexpr optional_storage(T const & value)
-    noexcept(std::is_nothrow_copy_constructible_v<T>)
-        : is_containing ( true  )
-        , value         ( value )
-    { }
-
-    constexpr optional_storage(T && value)
-    noexcept(std::is_nothrow_move_constructible_v<T>)
-        : is_containing ( true             )
-        , value         ( std::move(value) )
-    { }
-
-    template <typename ... Args>
-    constexpr explicit optional_storage(nonstd::in_place_t,
-                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T, Args && ...>)
-        : is_containing ( true                        )
-        , value         ( std::forward<Args>(args)... )
-    { }
-
-    template <typename Il, typename ... Args>
-    constexpr explicit optional_storage(nonstd::in_place_t,
-                                         std::initializer_list<Il> il,
-                                         Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<T,
-                                             std::initializer_list<Il>,
-                                             Args && ...>)
-        : is_containing ( true                            )
-        , value         ( il, std::forward<Args>(args)... )
-    { }
-
-    /** Non-Trivial Storage Destruction -- §23.6.3.2
-     *  --------------------------------------------
-     *  We only ever need to call this if `std::is_trivially_destructible_v<T>`
-     *  is `false`, and if there is a contained value. In other words, only in
-     *  this class, and iff `is_containing` is `true`.
-     */
-    ~optional_storage()
-    noexcept(std::is_nothrow_destructible_v<T>) {
-        if (is_containing) { value.~T(); }
-    }
-};
-
-
-/** Storage for LValue Reference types
- *  ----------------------------------
- */
-template <typename T>
-class _optional_lvalref_storage {
-    static_assert(std::is_pointer_v<T>,
-        "_optional_lvalref_storage expects to be specialized on a pointer type");
-    static_assert(!std::is_same_v<std::remove_cv_t<T>, in_place_t*>,
-        "_optional_lvalref_storage objects cannot wrap `in_place_t *`.");
-
-public:
-    bool is_containing;
-    T    value;
-
-    constexpr _optional_lvalref_storage() noexcept
-        : is_containing ( false   )
-        , value         ( nullptr )
-    { }
-
-    constexpr _optional_lvalref_storage(_optional_lvalref_storage const & rhs)
-    noexcept
-        : is_containing ( rhs.is_containing )
-        , value         ( rhs.value         )
-    { }
-
-    constexpr _optional_lvalref_storage(_optional_lvalref_storage && rhs)
-    noexcept
-        : is_containing ( rhs.is_containing    )
-        , value         ( std::move(rhs.value) )
-    { }
-
-    constexpr _optional_lvalref_storage(T value) noexcept
-        : is_containing ( true  )
-        , value         ( value )
-    { }
-};
-
-
-
 /** Optional Base-Class; Construction Logic and Storage for Value Types
  *  ===================================================================
  */
-
 template <typename T>
 class _optional_val_base {
 private:
@@ -1009,9 +663,9 @@ private:
     /* Reference types can't be directly stored and can't be reseated once
      * initialized. To get around this, we strip the ref qualifier and store a
      * mutable pointer to the base type of the reference. */
-    using storage_type = std::decay_t<T>*;
+    using storage_type = nonstd::remove_cvref_t<T>*;
 
-    _optional_lvalref_storage<storage_type> _storage;
+    optional_storage<storage_type> _storage;
 
 public:
     using value_type = T;
