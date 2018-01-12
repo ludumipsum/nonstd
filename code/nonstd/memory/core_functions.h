@@ -43,9 +43,9 @@ inline release_fn release =
     };
 
 /* Look up a memory buffer by name */
-using  find_fn = nonstd::Optional<nonstd::Buffer *const> (*)(c_cstr name);
+using  find_fn = nonstd::optional<nonstd::Buffer *const> (*)(c_cstr name);
 inline find_fn find =
-    [](c_cstr name) -> nonstd::Optional<nonstd::Buffer *const> {
+    [](c_cstr name) -> nonstd::optional<nonstd::Buffer *const> {
         N2BREAK(N2Error::ModuleNotStarted,
                 "Attempting to use nonstd::memory::find without a memory "
                 "backend. Please be sure to set up nonstd::memory function "
