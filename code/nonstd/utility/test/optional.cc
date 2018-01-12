@@ -10,12 +10,10 @@
  *
  *
  * TODO:
- * - test an object for which
- *      `is_[copy/move]_constructible_v` == false
- *      `is_[copy/move]_assignable_v`    == true
  * - test the except guarantees of §23.6.3.3.4.
- * - test reference to constant type
  * - test reference to constant pointer type.
+ * - Mirror the static asserts present in test/optional_storage.cc (to insure
+ *   triviality / constexpr-ness propagates through to `optional<T>`)
  */
 
 #include <nonstd/utility/optional.h>
@@ -541,12 +539,25 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
         }
 
         SECTION("should be assignable from empty") {
-            optional<u64> maybe = { };
+            optional<i32> maybe = { };
             REQUIRE_FALSE(maybe);
 
             maybe = 42;
             REQUIRE(maybe);
             REQUIRE(*maybe == 42);
+
+            // NB. This demonstrates that we're correctly working through a very
+            // subtle type deduction issue. The below assignment could either be
+            // parsed as `maybe = optional<int> { }` or `maybe = int { }`.
+            // Importantly, the conversion to a zero-initialized scalar take
+            // priority over the construction of a temporary. We want the zero
+            // initialization, so it's good that we're constructing a temporary,
+            // then performing a move assignment.
+            // On the downside, the above `maybe = 42` assignment has to go
+            // through the same conversion-to-temporary -> move assignment. Not
+            // a bad price to pay for scalar types, though.
+            maybe = { };
+            REQUIRE(!maybe);
         }
 
         SECTION("should be sensibly coercible to boolean") {
