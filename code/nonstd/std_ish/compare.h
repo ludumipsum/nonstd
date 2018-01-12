@@ -9,7 +9,6 @@
 
 #include "nonstd/preprocessor/homogenize.h"
 #include "nonstd/core/primitive_types.h"
-#include "nonstd/cpp1z/type_traits.h"
 
 
 namespace nonstd {
@@ -21,7 +20,7 @@ namespace nonstd {
  *
  *  Additional noexcept overloads may be added with ex;
  *      template<typename L, typename R>
- *      constexpr inline bool equal_to(Optional<L> lhs, Optional<R> rhs)
+ *      constexpr inline bool equal_to(optional<L> lhs, optional<R> rhs)
  *      noexcept {
  *          return lhs == rhs;
  *      }
@@ -45,7 +44,7 @@ inline bool equal_to(c_cstr lhs, c_cstr rhs) {
  *
  *  Additional noexcept overloads may be added with ex;
  *     template<typename L, typename R>
- *     constexpr inline bool compare(Optional<L> lhs, Optional<R> rhs)
+ *     constexpr inline bool compare(optional<L> lhs, optional<R> rhs)
  *     noexcept {
  *         if (lhs > rhs) { return  1; } else
  *         if (lhs < rhs) { return -1; }
