@@ -933,7 +933,7 @@ public:
         } else {
             if (rhs._has_value()) {
                 _contstruct_value(rhs._get_pointer());
-            } else {
+            } else if (_has_value()) {
                 _remove_value();
             }
         }
@@ -961,7 +961,7 @@ public:
         } else {
             if (rhs._has_value()) {
                 _construct_value(std::move(rhs._get_pointer()));
-            } else {
+            } else if (_has_value()) {
                 _remove_value();
             }
         }
@@ -1011,7 +1011,7 @@ protected:
 };
 
 
-/** `optional<T&>
+/** `optional<T&>`
  *  ============================================================================
  */
 template <typename T>
@@ -1171,7 +1171,7 @@ constexpr optional<T const &> just_cref(T const & value) {
 
 /** Make Optional -- §23.6.9.3
  *  ----------------------------
- *  Return `optional<decay_­t<T>> { std​::​forward<T>(value) }`.
+ *  Return `optional<decay_t<T>> { std::morward<T>(value) }`.
  */
 template <typename T>
 constexpr optional<std::decay_t<T>> make_optional(T&& value)
@@ -1180,7 +1180,7 @@ noexcept(std::is_nothrow_constructible_v<T,T&&>) {
 }
 /** Make Optional -- §23.6.9.4
  *  ----------------------------
- * Return `optional<T> { in_­place, std​::​forward<Args>(args)... }`.
+ * Return `optional<T> { in_place, std::morward<Args>(args)... }`.
  */
 template <typename T, typename ... Args>
 constexpr optional<T> make_optional(nonstd::in_place_t /*unused*/,
@@ -1190,7 +1190,7 @@ noexcept(std::is_nothrow_constructible_v<T, Args && ...>) {
 }
 /** Make Optional -- §23.6.9.5
  *  ----------------------------
- * Return `optional<T> { in_­place, il, std​::​forward<Args>(args)... }`.
+ * Return `optional<T> { in_place, il, std::morward<Args>(args)... }`.
  */
 template <typename T, typename Il, typename ... Args>
 constexpr optional<T> make_optional(nonstd::in_place_t /*unused*/,
