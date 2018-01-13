@@ -15,7 +15,7 @@
 
 namespace nonstd {
 
-/** has_same_type
+/** have_same_type
  *  Check if, essentially, ::std::is_same_v<decltype(L), decltype(R)>
  */
 template <typename L, typename R>
@@ -23,19 +23,84 @@ constexpr bool have_same_type(L const & l, R const & r) noexcept {
     return ::std::is_same_v<L, R>;
 }
 
+
 /** remove_cvref
- *  If the type `T` is a reference type, provides the member typedef `type`
- *  which is the type referred to by `T` with its topmost cv-qualifiers removed.
+ *  If the type `T` is a reference type, provides the member type `type` which
+ *  is the type referred to by `T` with its topmost cv-qualifiers removed.
  *  Otherwise `type` is `T` with its topmost cv-qualifiers removed.
+ *
+ *  This is a C++20-ism, so is being included as a future-polyfil.
  */
 template <typename T>
 struct remove_cvref {
-    typedef std::remove_cv_t<std::remove_reference_t<T>> type;
+    using type = std::remove_cv_t<std::remove_reference_t<T>>;
 };
 template <typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 
-}
+
+/** is_swappable && is_nothrow_swappable
+ *  If the expressions `swap(std::declval<T>(), std::declval<T>())` is
+ *  well-formed in an unevaluated context after using std::swap; provides the
+ *  member constant `value` equal to `true`. Otherwise, `value` is `false`.
+ *
+ *  Not all standards in use (Apple clang, at least) include a std::is_swappable
+ *  implementation, so this is being included to complete the standard library.
+ *
+ *  This implementation was largely taken from the GCC 7.2 libstdc++ v3.
+ */
+namespace __is_swappable_details  {
+
+    struct do_impl {
+        template < typename T
+                 , typename _ = decltype(std::swap(std::declval<T&>(),
+                                                   std::declval<T&>()))>
+        static std::true_type test(int);
+
+        template <typename>
+        static std::false_type test(...);
+    };
+    template <typename T>
+    struct impl : public do_impl {
+        using type = decltype(test<T>(0));
+    };
+    template <typename T>
+    using impl_t = typename impl<T>::type;
+
+    struct do_nothrow {
+        template <typename T>
+        static std::bool_constant<noexcept(std::swap(std::declval<T&>(),
+                                                     std::declval<T&>()))>
+        test(int);
+
+        template <typename>
+        static std::false_type test(...);
+    };
+    template <typename T>
+    struct nothrow : public do_nothrow {
+        using type = decltype(test<T>(0));
+    };
+    template <typename T>
+    using nothrow_t = typename nothrow<T>::type;
+
+} /* namespace __is_swappable_details */
+
+template <typename T>
+struct is_swappable
+    : public __is_swappable_details::impl_t<T>
+{ };
+template <typename T>
+inline constexpr bool is_swappable_v = is_swappable<T>::value;
+
+
+template <typename T>
+struct is_nothrow_swappable
+    : public __is_swappable_details::nothrow_t<T>
+{ };
+template <typename T>
+inline constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
+
+} /* namespace nonstd */
 
 
 /** Assertions
