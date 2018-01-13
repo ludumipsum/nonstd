@@ -42,6 +42,19 @@
  *     and mutators as possible, all in terms of the `_base` class, and will be
  *     responsible for all of the observers and special algorithms.
  *
+ *  Author's note: I say this class strictly adheres to the standard, but we do
+ *  diverge on two major points;
+ *  First, we allow optionals to wrap referential types. There are valid reasons
+ *  not to do this, but I'm curious if there's value in the concept. Best way to
+ *  find out is to not restrict their use. Luckily, the implementation of an
+ *  `optional<T&>` is dramatically simpler than an `optional<T>` (effectively
+ *  it's an `optional<T*>`) so we can cut out all conversion operators, emplace,
+ *  value_or... Pretty much everything that's hard.
+ *  Second, we don't specialize on std::hash because... I'm not sure what that
+ *  should really look like. What should the hash of a non-containing optional
+ *  be? Is it even safe to specialize a struct that's part of std::? Maybe
+ *  there are answers to these questions but... I don't have them at present.
+ *
  *  Author's Note: This file really does try to maintain an 80 column maximum,
  *  but... it fails. Sometimes pretty badly. It is with great shame that I
  *  apologize for that failure, but it is honestly less painful that forcing
