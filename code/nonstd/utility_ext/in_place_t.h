@@ -19,27 +19,23 @@
  *  Note that in the C++17 standard, the default (0-arg) constructors are
  *  explicitly defined with `= default` and are marked `explicit`. I have _no
  *  idea_ why this was done, and have chosen to not replicate that definition.
- *
- *  NB. We would like the constexpr instances of these types as inline variables
- *  s.t. external linkage is applied to them, but constexpr inline variables are
- *  a C++17 thing, so we're going to have to rely on the compiler to not make a
- *  million copies of each.
  */
 
-#pragma once
+//TODO: Find out if there's some way to test libc++ to find out if they provide
+// an in_place_t, and `using` that in here, rather than redefining.
 
-#include <cstddef>
+#pragma once
 
 
 namespace nonstd {
 
 struct in_place_t { };
-constexpr /*inline*/ in_place_t in_place{};
+inline constexpr in_place_t in_place{};
 
 template <typename T> struct in_place_type_t { };
-template <typename T> constexpr /*inline*/ in_place_type_t<T> in_place_type{};
+template <typename T> inline constexpr in_place_type_t<T> in_place_type{};
 
 template <size_t I> struct in_place_index_t { };
-template <size_t I> constexpr /*inline*/ in_place_index_t<I> in_place_index{};
+template <size_t I> inline constexpr in_place_index_t<I> in_place_index{};
 
 } /* namespace nonstd */

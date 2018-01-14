@@ -61,11 +61,8 @@
 #include "preprocessor/symbol_stringifier.h"
 #include "preprocessor/unused.h"
 
-#include "cpp1z/any_t.h"
-#include "cpp1z/in_place_t.h"
 #include "cpp1z/special_member_filters.h"
 #include "cpp1z/type_traits_ext.h"
-#include "cpp1z/void_t.h"
 
 #include "core/break.h"
 #include "core/error_types.h"
@@ -87,11 +84,9 @@
 #include "c_ish/type_name.h"
 #include "c_ish/value_category.h"
 
-#include "std_ish/compare.h"
 #include "std_ish/cx_math.h"
 #include "std_ish/hash.h"
 #include "std_ish/math.h"
-#include "std_ish/to_cstr.h"
 
 #include "quantity/angle.h"
 
@@ -99,7 +94,6 @@
 #include "utility/four_char_code.h"
 #include "utility/iterator.h"
 #include "utility/lazy.h"
-#include "utility/nop.h"
 #include "utility/optional.h"
 
 /* Platform specific includes */

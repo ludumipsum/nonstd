@@ -1,13 +1,13 @@
-/* Compare Utility Function Smoke Tests
- * =====================================
- * Smoke tests for the (typically noexcept) nonstd::compare and nonstd::equal_to
- * family of functions.
+/** Compare Utility Function Smoke Tests
+ *  =====================================
+ *  Smoke tests for the (typically noexcept) nonstd::compare and
+ *  nonstd::equal_to family of functions.
  */
 
-#include <testrunner/testrunner.h>
+//TOOD: Move all optional tests into the optional test suite.
 
-#include "nonstd/std_ish/compare.h"
-#include "nonstd/utility/optional.h"
+#include <nonstd/utility_ext/compare.h>
+#include <testrunner/testrunner.h>
 
 
 namespace nonstd_test {
@@ -78,6 +78,7 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(compare((u8)2,  (u64)1) >  0);
         }
 
+#if 0
         SECTION("of optional variations") {
             nonstd::optional<u32> maybe_int = { 1 };
             nonstd::optional<u32> none_int  = { };
@@ -105,6 +106,7 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(0 <  nonstd::compare(maybe_string, none_string));
             REQUIRE(0 == nonstd::compare(nonstd::nullopt, none_string));
         }
+#endif
     }
 
     SECTION("should correctly calculate equality") {
@@ -122,6 +124,7 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(equal_to((f64)2, (i8)2));
         }
 
+#if 0
         SECTION("of optional variations") {
             nonstd::optional<u32> maybe_int = { 1 };
             nonstd::optional<u32> none_int  = { };
@@ -144,6 +147,7 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(!nonstd::equal_to(maybe_string, none_string));
             REQUIRE( nonstd::equal_to(nonstd::nullopt, none_string));
         }
+#endif
     }
 }
 

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "nonstd/preprocessor/homogenize.h"
+#include <nonstd/preprocessor/homogenize.h>
 
 #if defined(NONSTD_OS_WINDOWS)
 #include <intrin.h>

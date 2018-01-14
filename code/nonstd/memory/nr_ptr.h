@@ -5,7 +5,7 @@
 #include <nonstd/cpp1z/type_traits_ext.h>
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
-#include <nonstd/std_ish/compare.h>
+#include <nonstd/utility_ext.h>
 
 #include "buffer.h"
 #include "core_functions.h"

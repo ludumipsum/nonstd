@@ -8,15 +8,15 @@
  */
 #pragma once
 
-#include "nonstd/core/primitive_types.h"
+#include <nonstd/core/primitive_types.h>
 
 
 namespace nonstd {
 
-template<typename T>
-constexpr inline c_cstr to_cstr(T a);
+template <typename T>
+inline constexpr c_cstr to_cstr(T a);
 
-constexpr inline c_cstr to_cstr(bool a) noexcept {
+inline constexpr c_cstr to_cstr(bool a) noexcept {
     return a ? "true" : "false";
 }
 

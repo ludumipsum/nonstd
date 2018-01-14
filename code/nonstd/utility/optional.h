@@ -70,12 +70,11 @@
 
 #include <thirdparty/fmt.h>
 
-#include <nonstd/cpp1z/in_place_t.h>
+#include <nonstd/utility_ext.h>
 #include <nonstd/cpp1z/type_traits_ext.h>
 #include <nonstd/cpp1z/special_member_filters.h>
 #include <nonstd/cpp1z/valid_expression_tester.h>
 #include <nonstd/c_ish/type_name.h>
-#include <nonstd/std_ish/compare.h>
 #include <nonstd/utility/optional_storage.h>
 
 

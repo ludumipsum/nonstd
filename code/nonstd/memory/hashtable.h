@@ -75,7 +75,7 @@
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
 #include <nonstd/c_ish/mem.h>
-#include <nonstd/std_ish/compare.h>
+#include <nonstd/utility_ext.h>
 #include <nonstd/std_ish/math.h>
 #include <nonstd/utility/optional.h>
 

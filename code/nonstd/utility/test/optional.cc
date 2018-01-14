@@ -19,7 +19,7 @@
 #include <nonstd/utility/optional.h>
 #include <testrunner/testrunner.h>
 
-#include <nonstd/std_ish/compare.h>
+#include <nonstd/utility_ext.h>
 #include <nonstd/cpp1z/type_traits_ext.h>
 
 #include <type_traits>
