@@ -1,19 +1,22 @@
 /** Scope Guard
  *  ===========
+ *  Provides an automated cleanup mechanism to help preserve sane control flows.
+ *
  *  Heavily inspired by Andrei Alexandrescu's Systematic Error Handling in C++,
  *  channel9.msdn.com/Shows/Going+Deep/C-and-Beyond-2012-Andrei-Alexandrescu-Systematic-Error-Handling-in-C
  *  Additional details inspired by Facebook's Folly implementation
  *
- *  Provides an automated cleanup mechanism to help preserve sane control flows.
+ *  TODO: Pull more ideas from the Folly implementation. It has more good stuff
+ *  we could use.
  */
 
 #pragma once
 
-#include <functional>
+#include <exception>
 #include <iostream>
 #include <string>
-
-#include <nonstd/cpp1z/type_traits.h>
+#include <type_traits>
+#include <utility>
 
 
 namespace nonstd {
@@ -26,11 +29,11 @@ private:
 
 public:
     scope_guard(Fn_T const & fn)
-    noexcept(IS_NOTHROW_COPY_CONSTRUCTIBLE(Fn_T))
+    noexcept(std::is_nothrow_copy_constructible_v<Fn_T>)
         : fn     ( fn   )
         , active ( true ) { }
     scope_guard(Fn_T && fn)
-    noexcept(IS_NOTHROW_MOVE_CONSTRUCTIBLE(Fn_T))
+    noexcept(std::is_nothrow_move_constructible_v<Fn_T>)
         : fn     ( std::move_if_noexcept(fn) )
         , active ( true ) { }
 
@@ -38,14 +41,14 @@ public:
     scope_guard & operator= (scope_guard const &) = delete;
 
     scope_guard(scope_guard && other)
-    noexcept(IS_NOTHROW_MOVE_CONSTRUCTIBLE(Fn_T))
+    noexcept(std::is_nothrow_move_constructible_v<Fn_T>)
         : fn     ( std::move_if_noexcept(other.fn) )
         , active ( other.active )
     {
         other.dismiss();
     }
     scope_guard & operator= (scope_guard && other )
-    noexcept(IS_NOTHROW_MOVE_CONSTRUCTIBLE(Fn_T)) {
+    noexcept(std::is_nothrow_move_constructible_v<Fn_T>) {
         fn     = std::move_if_noexcept(other.fn);
         active = other.active;
         other.dismiss();
@@ -56,7 +59,9 @@ public:
             try {
                 fn();
             } catch (...) {
-                std::cout
+                //TODO: Always printing to cerr might not be the best choice.
+                //      Look up better alternatives?
+                std::cerr
                     << std::string(20, '~') << "\n"
                     << "CRITICAL FAILURE: scope_guard executions cannot throw. "
                        "Calling std::terminate." << "\n"
@@ -71,8 +76,8 @@ public:
 
 template <typename Fn_T>
 auto make_guard(Fn_T && fn)
-noexcept(IS_NOTHROW_CONSTRUCTIBLE(DECAY_TYPE(Fn_T), Fn_T)) {
-    return scope_guard<DECAY_TYPE(Fn_T)>(std::forward<Fn_T>(fn));
+noexcept(std::is_nothrow_constructible_v<std::decay_t<Fn_T>, Fn_T>) {
+    return scope_guard<std::decay_t<Fn_T>>(std::forward<Fn_T>(fn));
 }
 
 } /* namespace nonstd */
