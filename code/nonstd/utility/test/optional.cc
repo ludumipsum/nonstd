@@ -10,12 +10,10 @@
  *
  *
  * TODO:
- * - test an object for which
- *      `is_[copy/move]_constructible_v` == false
- *      `is_[copy/move]_assignable_v`    == true
  * - test the except guarantees of §23.6.3.3.4.
- * - test reference to constant type
  * - test reference to constant pointer type.
+ * - Mirror the static asserts present in test/optional_storage.cc (to insure
+ *   triviality / constexpr-ness propagates through to `optional<T>`)
  */
 
 #include <nonstd/utility/optional.h>
@@ -36,6 +34,7 @@ using nonstd::just_cref;
 using nonstd::none;
 
 using std::is_pod_v;
+using std::is_same_v;
 using std::is_trivially_copy_constructible_v;
 using std::is_trivially_move_constructible_v;
 using std::is_trivially_destructible_v;
@@ -171,6 +170,7 @@ TEST_CASE("Optionals API Demo", "[nonstd][api][optionals]") {
         // templatized function defining the type of optional.
         optional<i8> definitely_i8 = just(8);
         auto         still_def_i8  = just<i8>(8);
+        auto         implicitly_i8 = just(static_cast<i8>(8));
 
         // You can also use both copy and move semantics to construct or assign
         // optionals from other optionals,
@@ -420,6 +420,60 @@ TEST_CASE("Optionals API Demo", "[nonstd][api][optionals]") {
         REQUIRE_FALSE(maybe);
         REQUIRE(m_ref.has_been_destroyed);
     }
+
+    /** Swapping Optionals
+     *  ------------------
+     */
+    SECTION("Swapping the values wrapped by optionals") {
+        // NB. `using std::swap` is _required_ to guarantee out custom swap
+        // functions can be found w/ ADL.
+        using std::swap;
+
+        optional<int> a { 1 };
+        optional<int> b { 2 };
+        optional<int> c { };
+        optional<int> d { };
+
+        swap(a, b);
+        REQUIRE(*a == 2); REQUIRE(*b == 1);
+
+        swap(a, c);
+        REQUIRE((bool)a == false); REQUIRE(*c == 2);
+
+        swap(a, d);
+        REQUIRE((bool)a == false); REQUIRE((bool)d == false);
+
+        swap(a, c);
+        REQUIRE(*a == 2); REQUIRE((bool)c == false);
+    }
+    SECTION("Swapping the values wrapped by reference-wrapping-optionals") {
+        // NB. `using std::swap` is _required_ to guarantee out custom swap
+        // functions can be found w/ ADL.
+        using std::swap;
+
+        int x = 1;
+        int y = 2;
+        optional<int&> a { x };
+        optional<int&> b { y };
+        optional<int&> c { };
+        optional<int&> d { };
+
+        swap(a, b);
+        REQUIRE(*a == 2); REQUIRE(*b == 1);
+        REQUIRE(x == 2); REQUIRE(y == 1);
+
+        swap(a, c);
+        REQUIRE((bool)a == false); REQUIRE(*c == 2);
+        REQUIRE(x == 2); REQUIRE(y == 1);
+
+        swap(a, d);
+        REQUIRE((bool)a == false); REQUIRE((bool)d == false);
+        REQUIRE(x == 2); REQUIRE(y == 1);
+
+        swap(a, c);
+        REQUIRE(*a == 2); REQUIRE((bool)c == false);
+        REQUIRE(x == 2); REQUIRE(y == 1);
+    }
 }
 
 
@@ -530,23 +584,35 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
 
         SECTION("should be constructible in all the usual ways") {
             auto value = initial_value;
-            optional<u64> maybe = { value };
-            optional<u64> by_value = value;
-            auto implicit = just<decltype(value)>(value);
-            auto lazy = just(value);
+            optional<u64> by_ctor { value };
+            optional<u64> by_assign = value;
+            auto by_just = just(value);
 
-            REQUIRE(HAS_SAME_TYPE(maybe, by_value));
-            REQUIRE(HAS_SAME_TYPE(maybe, implicit));
-            REQUIRE(HAS_SAME_TYPE(maybe, lazy));
+            REQUIRE(is_same_v<optional<u64>, decltype(by_ctor)>);
+            REQUIRE(is_same_v<optional<u64>, decltype(by_assign)>);
+            REQUIRE(is_same_v<optional<u64>, decltype(by_just)>);
         }
 
         SECTION("should be assignable from empty") {
-            optional<u64> maybe = { };
+            optional<i32> maybe = { };
             REQUIRE_FALSE(maybe);
 
             maybe = 42;
             REQUIRE(maybe);
             REQUIRE(*maybe == 42);
+
+            // NB. This demonstrates that we're correctly working through a very
+            // subtle type deduction issue. The below assignment could either be
+            // parsed as `maybe = optional<int> { }` or `maybe = int { }`.
+            // Importantly, the conversion to a zero-initialized scalar take
+            // priority over the construction of a temporary. We want the zero
+            // initialization, so it's good that we're constructing a temporary,
+            // then performing a move assignment.
+            // On the downside, the above `maybe = 42` assignment has to go
+            // through the same conversion-to-temporary -> move assignment. Not
+            // a bad price to pay for scalar types, though.
+            maybe = { };
+            REQUIRE(!maybe);
         }
 
         SECTION("should be sensibly coercible to boolean") {
@@ -576,11 +642,10 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
 
         SECTION("should preserve constness in construction") {
             optional<u64 const &> maybe = { vref };
-            auto implicit = just<decltype(vref)>(vref);
-            auto crefsafe = just_cref(vref);
+            auto implicit = just_cref(vref);
 
-            REQUIRE(HAS_SAME_TYPE(maybe, implicit));
-            REQUIRE(HAS_SAME_TYPE(maybe, crefsafe));
+            REQUIRE(is_same_v<optional<u64 const &>, decltype(maybe)>);
+            REQUIRE(is_same_v<optional<u64 const &>, decltype(implicit)>);
         }
 
         optional<u64 const &> maybe = { vref };
@@ -603,14 +668,28 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
 
         SECTION("should handle references gracefully in construction") {
             auto & vref = value;
-            optional<u64&> maybe  = { vref };
-            optional<u64&> direct = { value };
-            auto implicit = just<decltype(vref)>(vref);
-            auto refsafe  = just_ref(vref);
+            optional<u64&> by_ctor { vref };
+            optional<u64&> by_assign = value;
+            auto by_just = just_ref(vref);
 
-            REQUIRE(HAS_SAME_TYPE(maybe, direct));
-            REQUIRE(HAS_SAME_TYPE(maybe, implicit));
-            REQUIRE(HAS_SAME_TYPE(maybe, refsafe));
+            REQUIRE(is_same_v<optional<u64&>, decltype(by_ctor)>);
+            REQUIRE(is_same_v<optional<u64&>, decltype(by_assign)>);
+            REQUIRE(is_same_v<optional<u64&>, decltype(by_just)>);
+        }
+
+        SECTION("should handle constness in arguments correctly") {
+            i32 number = 1;
+            i32 &       val = number;
+            i32 const & const_val = number;
+
+            optional<i32&>        a { val };
+            optional<i32 const &> b { val };
+         // optional<i32&>        d { const_val }; // Fails; would loose const
+            optional<i32 const &> c { const_val };
+            auto e = just_ref(val);
+            auto f = just_cref(val);
+            auto g = just_ref(const_val); // Works; deduces constness
+            auto h = just_cref(const_val);
         }
 
         auto maybe = just_ref(value);
@@ -689,14 +768,13 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
 
             SECTION("should be constructible as per usual") {
                 auto * vptr = &value;
-                optional<u64 *> maybe  = { vptr };
-                optional<u64 *> direct = { &value };
-                auto implicit = just<decltype(vptr)>(vptr);
-                auto lazy     = just(vptr);
+                optional<u64 *> by_ctor { vptr };
+                optional<u64 *> by_assign { &value };
+                auto by_just = just(vptr);
 
-                REQUIRE(HAS_SAME_TYPE(maybe, direct));
-                REQUIRE(HAS_SAME_TYPE(maybe, implicit));
-                REQUIRE(HAS_SAME_TYPE(maybe, lazy));
+                REQUIRE(is_same_v<optional<u64 *>, decltype(by_ctor)>);
+                REQUIRE(is_same_v<optional<u64 *>, decltype(by_assign)>);
+                REQUIRE(is_same_v<optional<u64 *>, decltype(by_just)>);
             }
 
             auto maybe = just(&value);
@@ -736,18 +814,21 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
 
             SECTION("should be constructible as per usual") {
                 auto * vptr = &value;
-                optional<c_cstr *> maybe  = { vptr };
-                optional<c_cstr *> direct = { &value };
-                auto implicit = just<decltype(vptr)>(vptr);
-                auto lazy     = just(vptr);
-                auto copy     = maybe;
-                auto explicit_copy { maybe };
-                auto move     = std::move(copy);
-                auto explicit_move { std::move(explicit_copy) };
+                optional<c_cstr *> by_ctor { vptr };
+                optional<c_cstr *> by_assign = &value;
+                auto by_just = just(vptr);
+                auto by_copy_ctor { by_ctor };
+                auto by_copy_assign = by_ctor;
+                auto by_move_ctor { std::move(by_copy_ctor) };
+                auto by_move_assign = std::move(by_copy_assign);
 
-                REQUIRE(HAS_SAME_TYPE(maybe, direct));
-                REQUIRE(HAS_SAME_TYPE(maybe, implicit));
-                REQUIRE(HAS_SAME_TYPE(maybe, lazy));
+                REQUIRE(is_same_v<optional<c_cstr *>, decltype(by_ctor)>);
+                REQUIRE(is_same_v<optional<c_cstr *>, decltype(by_assign)>);
+                REQUIRE(is_same_v<optional<c_cstr *>, decltype(by_just)>);
+                REQUIRE(is_same_v<optional<c_cstr *>, decltype(by_copy_ctor)>);
+                REQUIRE(is_same_v<optional<c_cstr *>, decltype(by_copy_assign)>);
+                REQUIRE(is_same_v<optional<c_cstr *>, decltype(by_move_ctor)>);
+                REQUIRE(is_same_v<optional<c_cstr *>, decltype(by_move_assign)>);
             }
 
             auto maybe = just(&value);
@@ -806,6 +887,8 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
         }
     }
 }
+
+#include "optional.disabled_special_members.inl"
 
 } /* namespace optional */
 } /* namespace nonstd_test */

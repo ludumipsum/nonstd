@@ -22,16 +22,12 @@ namespace nonstd {
 template <typename T>
 class lazy {
 private:
-    using storage_type = std::remove_const_t<T>;
-
-    nonstd::optional_storage<storage_type> m_storage;
-    std::function<void()>                  m_init;
+    nonstd::optional_storage<T> m_storage;
+    std::function<void()>       m_init;
 
     template <typename TuplePtr_T, std::size_t ... Is>
     void initialize(TuplePtr_T arg_tuple_ptr, std::index_sequence<Is...>) {
-        void * val_ptr = &m_storage.value;
-        new (val_ptr) storage_type(std::get<Is>(std::move(*arg_tuple_ptr))...);
-        m_storage.is_containing = true;
+        m_storage.construct_value(std::get<Is>(std::move(*arg_tuple_ptr))...);
         delete arg_tuple_ptr;
     }
 
@@ -55,16 +51,16 @@ public:
     lazy& operator= (lazy const&) = delete;
     lazy& operator= (lazy &&)     = delete;
 
-    constexpr bool initialized() { return m_storage.is_containing; }
+    constexpr bool initialized() { return m_storage.has_value(); }
 
     T& operator * () {
         if (!initialized()) { m_init(); }
-        return m_storage.value;
+        return m_storage.get_value();
     }
 
     T* operator -> () {
         if (!initialized()) { m_init(); }
-        return &m_storage.value;
+        return &m_storage.get_value();
     }
 };
 
