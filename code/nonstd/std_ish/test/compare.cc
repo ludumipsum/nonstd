@@ -89,15 +89,15 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(0 <  strcmp("b", "a"));
             REQUIRE(0 >  strcmp("a", "b"));
 
-            REQUIRE(0 == nonstd::compare(maybe_int, nonstd::just<u32>(1)));
+            REQUIRE(0 == nonstd::compare(maybe_int, nonstd::optional<u32> { 1 }));
             REQUIRE(0 <  nonstd::compare(maybe_int, none_int));
             REQUIRE(0 <  nonstd::compare(maybe_int, nonstd::nullopt));
             REQUIRE(0 == nonstd::compare(maybe_int, 1));
             REQUIRE(0 >  nonstd::compare(maybe_int, 2));
             REQUIRE(0 == strcmp("Foo", "Foo"));
-            REQUIRE(0 == nonstd::compare(nonstd::just<c_cstr>("Foo"), "Foo"));
+            REQUIRE(0 == nonstd::compare(nonstd::optional<c_cstr> { "Foo" }, "Foo"));
             REQUIRE(0 <  strcmp("Foo", "Bar"));
-            REQUIRE(0 <  nonstd::compare(nonstd::just<c_cstr>("Foo"), "Bar"));
+            REQUIRE(0 <  nonstd::compare(nonstd::optional<c_cstr> { "Foo" }, "Bar"));
             REQUIRE(0 == strcmp("Foo", "Foo"));
             REQUIRE(0 == nonstd::compare(maybe_string, "Foo"));
             REQUIRE(0 <  strcmp("Foo", "Bar"));
@@ -128,15 +128,15 @@ TEST_CASE("Comparison utilities") {
             nonstd::optional<c_cstr> maybe_string = { "Foo" };
             nonstd::optional<c_cstr> none_string  = { };
 
-            REQUIRE( nonstd::equal_to(maybe_int, nonstd::just<u32>(1)));
+            REQUIRE( nonstd::equal_to(maybe_int, nonstd::optional<u32> { 1 }));
             REQUIRE(!nonstd::equal_to(maybe_int, none_int));
             REQUIRE(!nonstd::equal_to(maybe_int, nonstd::nullopt));
             REQUIRE( nonstd::equal_to(maybe_int, 1));
             REQUIRE(!nonstd::equal_to(maybe_int, 2));
             REQUIRE(0 == strcmp("Foo", "Foo"));
-            REQUIRE( nonstd::equal_to(nonstd::just<c_cstr>("Foo"), "Foo"));
+            REQUIRE( nonstd::equal_to(nonstd::optional<c_cstr> { "Foo" }, "Foo"));
             REQUIRE(0 != strcmp("Foo", "Bar"));
-            REQUIRE(!nonstd::equal_to(nonstd::just<c_cstr>("Foo"), "Bar"));
+            REQUIRE(!nonstd::equal_to(nonstd::optional<c_cstr> { "Foo" }, "Bar"));
             REQUIRE(0 == strcmp("Foo", "Foo"));
             REQUIRE( nonstd::equal_to(maybe_string, "Foo"));
             REQUIRE(0 != strcmp("Foo", "Bar"));

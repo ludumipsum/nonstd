@@ -7,30 +7,44 @@
  *  Move Assignment) based on template type traits or constexpr boolean checks.
  *  The idiom to use them is as follows;
  *
- *  - Let's say we have a wrapper class `<template T> class Foo`, and we want
- *    the assignment operators to not be defined unless `T` is
- *    trivially assignable.
- *  - Rename `Foo` to `_Foo_Base`
- *  - Create a new `Foo` using the below definition pattern;
- *        template <typename T>
- *        class Foo
- *              : _Foo_Base<T>
- *              , nonstd::_EnableCopyAssign<IS_TRIVIALLY_ASSIGNABLE(T), T>
- *              , nonstd::_EnableMoveAssign<IS_TRIVIALLY_ASSIGNABLE(T), T> {
- *            using _Foo_Base::_Foo_Base;
- *        };
- *    NB:
- *    - We allow `Foo`s special members to all be implicitly defined.
- *      This causes any invocation of `Foo& operator=` to call into both
- *      `_Foo_Base& operator=` and `_EnableCopyAssign& operator=`. The later
- *      does nothing, but if `IS_TRIVIALLY_ASSIGNABLE(T)` is false,
- *      `_EnableCopyAssign& operator=` will be explicitly deleted, causing a
- *      compilation error if `Foo& operator=` is ever misused.
- *    - We use `using _Foo_Base::_Foo_Base` to inherit all of `_Foo_Base`'s
- *      valid constructors, s.t. all explicit constructors defined by
- *      `_Foo_Base` will be available to `Foo`.
- *      TODO: Find out if `using` can be used to (cleanly) pull all of
- *            `_Foo_Base`s member functions in.
+ *  Let's say we have a wrapper class `<template T> class Foo`, and we want to
+ *  conditionally disable Foo's special members based on the output of
+ *  `myConstexprTest<T>()`.
+ *
+ *  1. Define a new template class `template <typename T> _Foo_Base`.
+ *  2. Move all of `Foo`'s special members into `_Foo_Base` --- reworking the
+ *     signatures and member storage, of course.
+ *  3. Modify the definition of `Foo` to something like the below;
+ *
+ *         template <typename T>
+ *         class Foo
+ *               : _Foo_Base<T>
+ *               , nonstd::EnableCopyCtorIf<myConstexprTest<T>(), Foo<T>>
+ *               , nonstd::EnableMoveCtorIf<myConstexprTest<T>(), Foo<T>>
+ *               , nonstd::EnableCopyAssignIf<myConstexprTest<T>(), Foo<T>>
+ *               , nonstd::EnableMoveAssignIf<myConstexprTest<T>(), Foo<T>> {
+ *             . . .
+ *         };
+ *
+ *  This works because the special members of `Foo` will be implicitly defined
+ *  once they've been moved to `_Foo_Base`, and each of them will implicitly
+ *  call the relative member of `_Foo_Base`, `nonstd::EnableCopyCtorIf<...>`,
+ *  `nonstd::EnableMoveCtorIf<...>`, etc.. The special members functions of each
+ *  of the `Enable[Member]If` types will do, at most, nothing. In the cases
+ *  where they've been deleted, though, the compiler will see that `Foo`'s
+ *  implicit member will always fail (by calling an explicitly deleted function)
+ *  and simply not instantiate that member.
+ *
+ *  NB. While it may be possible to skip the `_Foo_Base` extension and
+ *  explicitly call the correct `Enable[Member]If::` member function, that is...
+ *  _highly_ brittle, and may in fact never be correct for assignment operators.
+ *
+ *  NB. If `Foo` is sufficiently simple, you may be able to move all of `Foo`s
+ *  functionality into `_Foo_Base`, and use `using` declarations to pull in
+ *  selected functionality, including constructors. There is a significat risk
+ *  of interfering with the compiler's ability to disambiguate coplex calls,
+ *  though (conssider `template <typename U> _FooBase(Foo<U> rhs)`, specifically
+ *  how it doesn't really work.)
  */
 
 #pragma once
