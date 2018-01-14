@@ -17,9 +17,13 @@
  */
 
 #include <nonstd/utility/optional.h>
-#include <nonstd/std_ish/compare.h>
-
 #include <testrunner/testrunner.h>
+
+#include <nonstd/std_ish/compare.h>
+#include <nonstd/cpp1z/type_traits_ext.h>
+
+#include <type_traits>
+#include <utility>
 
 
 namespace nonstd_test {
@@ -651,14 +655,14 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
         optional<u64 const &> maybe = { vref };
 
         SECTION("should preserve constness when accessed") {
-            REQUIRE(HAS_SAME_TYPE(*maybe, vref));
+            REQUIRE(nonstd::have_same_type(*maybe, vref));
 
             // Remember, `auto` uses `typeof` semantics, and so does not
             // implicitly deduce when it's supposed to be a reference.
             auto & maybe_vref = *maybe;
             auto   maybe_value = *maybe;
-            REQUIRE(IS_SAME_TYPE(decltype(maybe_vref), u64 const &));
-            REQUIRE(IS_SAME_TYPE(decltype(maybe_value), u64));
+            REQUIRE(std::is_same_v<decltype(maybe_vref), u64 const &>);
+            REQUIRE(std::is_same_v<decltype(maybe_value), u64>);
         }
     }
 
