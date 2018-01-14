@@ -101,7 +101,6 @@
 #include "utility/lazy.h"
 #include "utility/nop.h"
 #include "utility/optional.h"
-#include "utility/scope_guard.h"
 
 /* Platform specific includes */
 #if defined(NONSTD_OS_WINDOWS) || defined(__MINGW32__)

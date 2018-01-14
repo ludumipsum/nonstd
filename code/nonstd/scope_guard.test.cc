@@ -2,7 +2,7 @@
  *  =======================
  */
 
-#include <nonstd/utility/scope_guard.h>
+#include <nonstd/scope_guard.h>
 #include <testrunner/testrunner.h>
 
 #include <functional>

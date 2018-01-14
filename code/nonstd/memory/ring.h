@@ -26,7 +26,7 @@
 #include <nonstd/cpp1z/type_traits_ext.h>
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
-#include <nonstd/utility/scope_guard.h>
+#include <nonstd/scope_guard.h>
 
 #include "buffer.h"
 #include "core_functions.h"
