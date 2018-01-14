@@ -42,10 +42,18 @@
  *     and mutators as possible, all in terms of the `_base` class, and will be
  *     responsible for all of the observers and special algorithms.
  *
- *  NB. No specialization on swap was added because `std::is_swappabale<T>` has
- *  not landed in Apple Clang (at the time of writing), and because the std::
- *  namespace should not be modified by user code. This is also the reason no
- *  specialization on hash:: was added.
+ *  Author's note: I say this class strictly adheres to the standard, but we do
+ *  diverge on two major points;
+ *  First, we allow optionals to wrap referential types. There are valid reasons
+ *  not to do this, but I'm curious if there's value in the concept. Best way to
+ *  find out is to not restrict their use. Luckily, the implementation of an
+ *  `optional<T&>` is dramatically simpler than an `optional<T>` (effectively
+ *  it's an `optional<T*>`) so we can cut out all conversion operators, emplace,
+ *  value_or... Pretty much everything that's hard.
+ *  Second, we don't specialize on std::hash because... I'm not sure what that
+ *  should really look like. What should the hash of a non-containing optional
+ *  be? Is it even safe to specialize a struct that's part of std::? Maybe
+ *  there are answers to these questions but... I don't have them at present.
  *
  *  Author's Note: This file really does try to maintain an 80 column maximum,
  *  but... it fails. Sometimes pretty badly. It is with great shame that I
@@ -738,6 +746,48 @@ public:
     }
 
 
+    /** Swap -- §23.6.3.4.1
+     *  -------------------
+     *  Swap the values of `*this` and `rhs`, based on whether `*this`
+     *  and/or `rhs` contain or do not contain values;
+     *   - If `*this` contais a value and `rhs` contains a value
+     *     call `swap(*(*this), *rhs)`.
+     *   - If `*this` contains a value and `rhs` contains no value
+     *     initialize the contained value of `rhs` as if direct-non-list-
+     *     initializing an object of type `T` with the expression
+     *     `std::move(*(*this))`, then destruct the value contained in `*this`.
+     *     Postcondition: `*this` shall not contain a value, and `rhs` shall.
+     *   - If `*this` contains no value and `rhs` contains a value
+     *     initialize the contained value of `*this` as if direct-non-list-
+     *     initializing an object of type `T` with the expression
+     *     `std::move(*rhs)`, then destruct the value contained in `rhs`.
+     *     Postcondition: `*this` shall contain a value, and `rhs` shall not.
+     *   - If `*this` contains no value and `rhs` contains no value
+     *     no effect.
+     *
+     *  Author's Note: The specification of this function requires that "Lvalues
+     *  of type `T` shall be swappable and `is_move_constructible_v<T>` is
+     *  `true`." At the time of writing, I'm not sure how to enforce those
+     *  requirements, but I am confident lower-level compilation errors will
+     *  prevent misuse of this function.
+     */
+    void swap(optional& rhs)
+    noexcept(   std::is_nothrow_move_constructible_v<T>
+             && nonstd::is_nothrow_swappable_v<T>) {
+        if (this->_has_value() && rhs._has_value()) {
+            std::swap(this->_get_value(), rhs._get_value());
+        } else {
+            if (rhs._has_value()) {
+                this->_construct_value(std::move(rhs._get_value()));
+                rhs._remove_value();
+            } else if (this->_has_value()) {
+                rhs._construct_value(std::move(this->_get_value()));
+                this->_remove_value();
+            }
+        }
+    }
+
+
     /** Observer `operator ->` -- §23.6.3.5.1
      *  -------------------------------------
      *  Return `val`.
@@ -1065,6 +1115,49 @@ public:
         return *this;
     }
 
+
+    /** Swap -- §23.6.3.4.1
+     *  -------------------
+     *  Swap the values of `*this` and `rhs`, based on whether `*this`
+     *  and/or `rhs` contain or do not contain values;
+     *   - If `*this` contais a value and `rhs` contains a value
+     *     call `swap(*(*this), *rhs)`.
+     *   - If `*this` contains a value and `rhs` contains no value
+     *     initialize the contained value of `rhs` as if direct-non-list-
+     *     initializing an object of type `T` with the expression
+     *     `std::move(*(*this))`, then destruct the value contained in `*this`.
+     *     Postcondition: `*this` shall not contain a value, and `rhs` shall.
+     *   - If `*this` contains no value and `rhs` contains a value
+     *     initialize the contained value of `*this` as if direct-non-list-
+     *     initializing an object of type `T` with the expression
+     *     `std::move(*rhs)`, then destruct the value contained in `rhs`.
+     *     Postcondition: `*this` shall contain a value, and `rhs` shall not.
+     *   - If `*this` contains no value and `rhs` contains no value
+     *     no effect.
+     *
+     *  Author's Note: The specification of this function requires that "Lvalues
+     *  of type `T` shall be swappable and `is_move_constructible_v<T>` is
+     *  `true`." At the time of writing, I'm not sure how to enforce those
+     *  requirements, but I am confident lower-level compilation errors will
+     *  prevent misuse of this function.
+     */
+    void swap(optional& rhs)
+    noexcept(   std::is_nothrow_move_constructible_v<T>
+             && nonstd::is_nothrow_swappable_v<T>) {
+        if (this->_has_value() && rhs._has_value()) {
+            std::swap(this->_get_reference(), rhs._get_reference());
+        } else {
+            if (rhs._has_value()) {
+                this->_construct_value(std::move(rhs._get_pointer()));
+                rhs._remove_value();
+            } else if (this->_has_value()) {
+                rhs._construct_value(std::move(this->_get_pointer()));
+                this->_remove_value();
+            }
+        }
+    }
+
+
     /** Observer `operator ->` -- §23.6.3.5.1
      *  -------------------------------------
      *  Return `val`.
@@ -1201,6 +1294,28 @@ noexcept(std::is_nothrow_constructible_v<T,
                                          Args && ...>) {
     return optional<T> { nonstd::in_place, il, std::forward<Args>(args)... };
 }
+
+
+/** Swap -- §23.6.9.1
+ *  -----------------
+ *  Swap the values of `lhs` and `rhs`.
+ *
+ *  See §23.6.3.4.1 for details.
+ */
+template < typename T
+         , typename std::enable_if_t< (   std::is_move_constructible_v<T>
+                                       && nonstd::is_swappable_v<T>)
+                                    , int > = 0 >
+inline void swap(optional<T>& lhs, optional<T>& rhs)
+noexcept(noexcept(lhs.swap(rhs))) {
+    lhs.swap(rhs);
+}
+template < typename T
+         , typename std::enable_if_t< !(   std::is_move_constructible_v<T>
+                                        && nonstd::is_swappable_v<T>)
+                                    , int > = 1 >
+inline void swap(optional<T>& lhs, optional<T>& rhs)
+noexcept(noexcept(lhs.swap(rhs))) = delete;
 
 
 

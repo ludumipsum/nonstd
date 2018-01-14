@@ -420,6 +420,60 @@ TEST_CASE("Optionals API Demo", "[nonstd][api][optionals]") {
         REQUIRE_FALSE(maybe);
         REQUIRE(m_ref.has_been_destroyed);
     }
+
+    /** Swapping Optionals
+     *  ------------------
+     */
+    SECTION("Swapping the values wrapped by optionals") {
+        // NB. `using std::swap` is _required_ to guarantee out custom swap
+        // functions can be found w/ ADL.
+        using std::swap;
+
+        optional<int> a { 1 };
+        optional<int> b { 2 };
+        optional<int> c { };
+        optional<int> d { };
+
+        swap(a, b);
+        REQUIRE(*a == 2); REQUIRE(*b == 1);
+
+        swap(a, c);
+        REQUIRE((bool)a == false); REQUIRE(*c == 2);
+
+        swap(a, d);
+        REQUIRE((bool)a == false); REQUIRE((bool)d == false);
+
+        swap(a, c);
+        REQUIRE(*a == 2); REQUIRE((bool)c == false);
+    }
+    SECTION("Swapping the values wrapped by reference-wrapping-optionals") {
+        // NB. `using std::swap` is _required_ to guarantee out custom swap
+        // functions can be found w/ ADL.
+        using std::swap;
+
+        int x = 1;
+        int y = 2;
+        optional<int&> a { x };
+        optional<int&> b { y };
+        optional<int&> c { };
+        optional<int&> d { };
+
+        swap(a, b);
+        REQUIRE(*a == 2); REQUIRE(*b == 1);
+        REQUIRE(x == 2); REQUIRE(y == 1);
+
+        swap(a, c);
+        REQUIRE((bool)a == false); REQUIRE(*c == 2);
+        REQUIRE(x == 2); REQUIRE(y == 1);
+
+        swap(a, d);
+        REQUIRE((bool)a == false); REQUIRE((bool)d == false);
+        REQUIRE(x == 2); REQUIRE(y == 1);
+
+        swap(a, c);
+        REQUIRE(*a == 2); REQUIRE((bool)c == false);
+        REQUIRE(x == 2); REQUIRE(y == 1);
+    }
 }
 
 
