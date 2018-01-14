@@ -8,15 +8,16 @@
  *  and reading, but that came at the cost of some ~95 column lines.
  */
 
-#include <nonstd/cpp1z/type_traits_ext.h>
+#include <nonstd/type_traits_ext.h>
 #include <testrunner/testrunner.h>
 
-#include <nonstd/core/primitive_types.h>
 #include <type_traits>
+
+#include <nonstd/core/primitive_types.h>
+
 
 namespace nonstd_test {
 namespace type_macros {
-
 
 using nonstd::remove_cvref_t;
 using nonstd::is_swappable_v;

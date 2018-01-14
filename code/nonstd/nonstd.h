@@ -61,8 +61,6 @@
 #include "preprocessor/symbol_stringifier.h"
 #include "preprocessor/unused.h"
 
-#include "cpp1z/type_traits_ext.h"
-
 #include "core/break.h"
 #include "core/error_types.h"
 #include "core/primitive_types.h"

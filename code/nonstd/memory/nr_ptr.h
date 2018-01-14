@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-#include <nonstd/cpp1z/type_traits_ext.h>
+#include <nonstd/type_traits_ext.h>
 #include <nonstd/core/break.h>
 #include <nonstd/core/primitive_types.h>
 #include <nonstd/utility_ext.h>

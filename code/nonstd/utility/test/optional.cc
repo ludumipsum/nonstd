@@ -20,7 +20,7 @@
 #include <testrunner/testrunner.h>
 
 #include <nonstd/utility_ext.h>
-#include <nonstd/cpp1z/type_traits_ext.h>
+#include <nonstd/type_traits_ext.h>
 
 #include <type_traits>
 #include <utility>

@@ -9,24 +9,20 @@
 #include <cstddef>
 #include <cinttypes>
 
-// TODO: Condisider moving this include -- and the ENFORCE_SIZE calls it allows
-//       -- out of this file, and into a test file.
-#include "nonstd/cpp1z/type_traits_ext.h"
-
 
 /** Basic Types
  *  ----------- */
-typedef uint8_t          u8;       ENFORCE_SIZE( u8,  1);
-typedef uint16_t        u16;       ENFORCE_SIZE(u16,  2);
-typedef uint32_t        u32;       ENFORCE_SIZE(u32,  4);
-typedef uint64_t        u64;       ENFORCE_SIZE(u64,  8);
-typedef int8_t           i8;       ENFORCE_SIZE( i8,  1);
-typedef int16_t         i16;       ENFORCE_SIZE(i16,  2);
-typedef int32_t         i32;       ENFORCE_SIZE(i32,  4);
-typedef int64_t         i64;       ENFORCE_SIZE(i64,  8);
-typedef float           f32;       ENFORCE_SIZE(f32,  4);
-typedef double          f64;       ENFORCE_SIZE(f64,  8);
-typedef long double     f_long; // Size is implementation specific.
+typedef uint8_t          u8;
+typedef uint16_t        u16;
+typedef uint32_t        u32;
+typedef uint64_t        u64;
+typedef int8_t           i8;
+typedef int16_t         i16;
+typedef int32_t         i32;
+typedef int64_t         i64;
+typedef float           f32;
+typedef double          f64;
+typedef long double     f_long;
 typedef char *          cstr;
 typedef char const *    c_cstr;
 typedef ptrdiff_t       ptrdiff;
