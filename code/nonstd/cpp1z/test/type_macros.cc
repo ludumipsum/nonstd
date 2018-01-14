@@ -62,26 +62,34 @@ TEST_CASE("Extended Type Traits", "[nonstd][types]") {
     }
 
     SECTION("have_same_type should work correctly") {
-        u8       u8_a   = 0;
-        u8       u8_b   = 255;
-        u8 const u8_c_a = 0;
-        i8       i8_a   = 0;
-        u16      u16_a  = 0;
+        u8         u8_a    = 0;
+        u8         u8_b    = 0;
+        u8 const   u8_c_a  = 0;
+        i8         i8_a    = 0;
+        u16        u16_a   = 0;
+        u8       & u8_r_a  = u8_a;
+        u8 const & u8_cr_a = u8_a;
+        u8 const & u8_cr_b = u8_a;
         ContainerA a_one = { 0 };
         ContainerA a_two = { 0 };
         ContainerB b_one = { 0 };
         auto auto_u8_a = identityFunction<u8>(0);
-        auto auto_u8_b = identityFunction<u8>(255);
+        auto auto_u8_b = identityFunction<u8>(0);
 
-        REQUIRE(nonstd::have_same_type(u8_a, u8_b));
-        REQUIRE(nonstd::have_same_type(a_one, a_two));
-        REQUIRE(nonstd::have_same_type(auto_u8_a, auto_u8_b));
-        REQUIRE(nonstd::have_same_type(auto_u8_a, u8_a));
+        REQUIRE(have_same_type(u8_a, u8_b));
+        REQUIRE(have_same_type(a_one, a_two));
+        REQUIRE(have_same_type(auto_u8_a, auto_u8_b));
+        REQUIRE(have_same_type(auto_u8_a, u8_a));
+        REQUIRE(have_same_type(u8_cr_a, u8_cr_b));
+        REQUIRE(have_same_type(std::move(u8_a), std::move(u8_r_a)));
+        REQUIRE(have_same_type(std::move(u8_c_a), std::move(u8_cr_a)));
 
-        REQUIRE(!nonstd::have_same_type(u8_a, i8_a));
-        REQUIRE(!nonstd::have_same_type(u8_a, u16_a));
-        REQUIRE(!nonstd::have_same_type(u8_a, u8_c_a));
-        REQUIRE(!nonstd::have_same_type(a_one, b_one));
+        REQUIRE(!have_same_type(u8_a, i8_a));
+        REQUIRE(!have_same_type(u8_a, u16_a));
+        REQUIRE(!have_same_type(u8_a, u8_c_a));
+        REQUIRE(!have_same_type(a_one, b_one));
+        REQUIRE(!have_same_type(u8_r_a, u8_cr_a));
+        REQUIRE(!have_same_type(std::move(u8_a), std::move(u8_cr_a)));
     }
 
 }
@@ -158,8 +166,8 @@ TEST_CASE("Type Macros", "[nonstd][types]") {
             TemplateContainer<u8       &> tmplt_mutbl_ref = { u8_ };
             TemplateContainer<u8 const &> tmplt_const_ref = { u8_ };
 
-            REQUIRE(!nonstd::have_same_type(tmplt_mutbl.member, tmplt_const.member));
-            REQUIRE(!nonstd::have_same_type(tmplt_mutbl_ref.member, tmplt_const_ref.member));
+            REQUIRE(!have_same_type(tmplt_mutbl.member, tmplt_const.member));
+            REQUIRE(!have_same_type(tmplt_mutbl_ref.member, tmplt_const_ref.member));
 
             auto tmplt_mutbl_m     = tmplt_mutbl.member;
             auto tmplt_const_m     = tmplt_const.member;
