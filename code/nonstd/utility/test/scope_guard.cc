@@ -2,10 +2,12 @@
  *  =======================
  */
 
+#include <nonstd/utility/scope_guard.h>
 #include <testrunner/testrunner.h>
+
+#include <functional>
 #include <nonstd/core/primitive_types.h>
 
-#include "nonstd/utility/scope_guard.h"
 
 namespace nonstd_test {
 namespace scope_guard {
