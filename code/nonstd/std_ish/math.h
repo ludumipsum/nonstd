@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "nonstd/cpp1z/type_traits.h"
-#include "nonstd/core/primitive_types.h"
+#include <type_traits>
+#include <nonstd/core/primitive_types.h>
 
 
 namespace nonstd {
@@ -42,7 +42,7 @@ constexpr inline T rescale(T value,
  */
 template<typename T> inline
 constexpr T maskLowestBits(u16 nbits) noexcept {
-      using UT = MAKE_UNSIGNED(T);
+      using UT = std::make_unsigned_t<T>;
       // There are two pieces of undefined behavior we're avoiding here,
       //   1. Shifting past the width of a type (ex `<< 32` against an `i32`)
       //   2. Shifting a negative operand (which `~0` is for all signed types)
