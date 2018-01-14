@@ -4,8 +4,6 @@
  *
  *  Used as a catch-all argument when low-priority coercion is required for
  *  sizeof and/or declval tricks.
- *
- *  See nonstd/cpp1z/type_traits.h for some uses.
  */
 
 #pragma once
