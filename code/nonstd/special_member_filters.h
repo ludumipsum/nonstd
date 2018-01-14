@@ -1,5 +1,5 @@
-/** Selective Special Member Disablers
- *  ==================================
+/** Selective Special Member Filters
+ *  ================================
  *  Beware. There be Template Magic Here.
  *
  *  These helper structs allow us selectively disable a parent classes' special

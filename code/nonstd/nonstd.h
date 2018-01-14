@@ -61,7 +61,6 @@
 #include "preprocessor/symbol_stringifier.h"
 #include "preprocessor/unused.h"
 
-#include "cpp1z/special_member_filters.h"
 #include "cpp1z/type_traits_ext.h"
 
 #include "core/break.h"
