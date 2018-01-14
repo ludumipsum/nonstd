@@ -19,7 +19,7 @@ namespace nonstd {
  *  Check if, essentially, ::std::is_same_v<decltype(L), decltype(R)>
  */
 template <typename L, typename R>
-constexpr bool have_same_type(L const & l, R const & r) noexcept {
+constexpr bool have_same_type(L&& l, R&& r) noexcept {
     return ::std::is_same_v<L, R>;
 }
 
