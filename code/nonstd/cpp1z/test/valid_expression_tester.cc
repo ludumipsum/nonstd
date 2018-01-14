@@ -1,14 +1,13 @@
 /** nonstd::valid_expression_tester
- *  =======================
+ *  ===============================
  *  Madness. Pure madness.
  */
 
-#include <string>
-
+#include <nonstd/cpp1z/valid_expression_tester.h>
 #include <testrunner/testrunner.h>
 
-#include "nonstd/core/primitive_types.h"
-#include "nonstd/cpp1z/valid_expression_tester.h"
+#include <string>
+
 
 namespace nonstd_test {
 namespace valid_expression_tester {
@@ -108,11 +107,11 @@ struct E {
  *  Like it says on the tin. This is probably the way to get run-time goodness
  *  out of N2VET_TESTERS. */
 template <typename T>
-ENABLE_IF_TYPE( has_stringify::types<T>::value, std::string)
+std::enable_if_t<has_stringify::types<T>::value, std::string>
 /* std::string */globalStringify(T& obj) { return obj.stringify(); }
 
 template <typename T>
-ENABLE_IF_TYPE(!has_stringify::types<T>::value, std::string)
+std::enable_if_t<!has_stringify::types<T>::value, std::string>
 /* std::string */globalStringify(T& obj) { return to_string(obj); }
 
 
