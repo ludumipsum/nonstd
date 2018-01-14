@@ -2,6 +2,11 @@
  *  =============
  *  Utility type for representing maybe-a-value.
  *
+ *  An optional object is an object that contains the storage for another object
+ *  and manages the lifetime of this contained object, if any. The contained
+ *  object may be initialized after the optional object has been initialized,
+ *  and may be destroyed before the optional object has been destroyed.
+ *
  *  This implementation should strictly adhere to the C++ specification n4713;
  *  https://github.com/cplusplus/draft/blob/master/papers/n4713.pdf
  *  For ease of navigation, the 2018-01-05 publication of eel.is was used;
@@ -12,34 +17,43 @@
  *  The structure of these optionals is also worth discussing. They are
  *  composed of three parts;
  *
- *   - The dedicated `optional_storage<T>` component.
+ *   - The `optional_storage<T>` component.
  *     Contains the wrapped value (or doesn't), and the `is_containing` boolean.
- *     See optional_storage.h for the implementation details thereof.
+ *     The `optional_storage` understands how to construct and destruct stored
+ *     values irrespective of `T`s const-ness. See optional_storage.h for the
+ *     implementation details thereof.
  *
- *   - The storage-aware `optional_*_base<T>` class template.
- *     Has an `optional_storage` as a member variable, and is fully aware both
- *     of the `optional_storage<T> _storage` member, and  how `optional_storage`
- *     class works. It implements a minimal set of constructors and assignment
- *     operators; only those necessary to construct and (re)assign the stored
- *     value.
- *     It implements no user-facing observer, but it does expose (private)
- *     observers that the `optional<T>` class will use to interact with the
- *     `_storage` member without leaking implementation details.
+ *   - The intermediate `_optional_*_base<T>` class template.
+ *     This class is required to correctly make use of the `Enable[Member]If`
+ *     utility classes that will conditionally disable special member functions
+ *     based on the type traits of `T`. See special_member_filters.h for
+ *     implementation details thereof.
+ *     Because of the necessary inheritance graph, no special member functions
+ *     may be defined on `optional<T>`. As such, the `optional_storage` member
+ *     will be stored on the `_optional_*_base` class. We will define as few
+ *     members functions on this class as possible, so there  will be no
+ *     (public) observers or value assignment operators.
  *
  *   - The complete `optional<T>` template class.
- *     Inherits from either `_optional_val_base` or `_optional_ref_base` and
- *     remains unaware of the `optional_storage` class. It implements most
- *     construction logic in terms of the `*_base` class it inherits from,
- *     occasionally relying on the private observers exposed by the `*_base`
- *     class to indirectly interact with the stored value. It also implements
- *     all user-facing observers and special algorithms.
- *     May also inherit from utility classes that prevent copy and/or move
- *     construction and/or assignment.
+ *     Inherits from either `_optional_val_base` or `_optional_ref_base`, as
+ *     well as the `Enable[Member]If` utility classes. A side effect of
+ *     inheriting from a `_base` class means it can be entirely unaware of the
+ *     `optional_storage` member. It will implement as many of the constructors
+ *     and mutators as possible, all in terms of the `_base` class, and will be
+ *     responsible for all of the observers and special algorithms.
  *
- *  NB. No specialization on swap was added because `std::is_swappabale<T>` has
- *  not landed in Apple Clang (at the time of writing), and because the std::
- *  namespace should not be modified by user code. This is also the reason no
- *  specialization on hash:: was added.
+ *  Author's note: I say this class strictly adheres to the standard, but we do
+ *  diverge on two major points;
+ *  First, we allow optionals to wrap referential types. There are valid reasons
+ *  not to do this, but I'm curious if there's value in the concept. Best way to
+ *  find out is to not restrict their use. Luckily, the implementation of an
+ *  `optional<T&>` is dramatically simpler than an `optional<T>` (effectively
+ *  it's an `optional<T*>`) so we can cut out all conversion operators, emplace,
+ *  value_or... Pretty much everything that's hard.
+ *  Second, we don't specialize on std::hash because... I'm not sure what that
+ *  should really look like. What should the hash of a non-containing optional
+ *  be? Is it even safe to specialize a struct that's part of std::? Maybe
+ *  there are answers to these questions but... I don't have them at present.
  *
  *  Author's Note: This file really does try to maintain an 80 column maximum,
  *  but... it fails. Sometimes pretty badly. It is with great shame that I
@@ -117,12 +131,6 @@ public:
 /** Optional Class Template -- §23.6.3
  *  ----------------------------------
  *  The end product. The Maybe-A-Value type.
- *  This class will inherit from one of the `_optional_*_base` classes; the
- *  primary template will inherit from `_optional_val_base`, a partial
- *  specialization on `optional<T&>` will inherit from `_optional_ref_base`.
- *  It will also inherit from the `Enable[Copy/Move][Ctor/Assign]If<B,T>` helper
- *  classes to conditionally "delete" the relevant special member function based
- *  on the salient type_traits of `T`.
  */
 template <typename T>
 class optional;
@@ -130,10 +138,6 @@ class optional;
 
 /** Optional Base-Class Templates -- nonstd
  *  ---------------------------------------
- *  The primary base-classes of the complete `optional<T>` type. These classes
- *  will contain all necessary storage -- by including an `optional_storage` as
- *  a member variable -- and construction logic that may be used by the complete
- *  `optional<T>` type.
  */
 template <typename T>
 class _optional_val_base;
@@ -174,75 +178,79 @@ inline constexpr bool is_assignable_from_optional_v =
     is_assignable_from_optional<T,U>::value;
 
 
-/** Optional Base-Class; Construction Logic and Storage for Value Types
- *  ===================================================================
+/** Base-Class for Value-Wrapping Optional Types
+ *  ============================================================================
  */
 template <typename T>
 class _optional_val_base {
-private:
-    //TODO: Update this s.t. it correctly stores a T, not a `storage_type`, and
-    //      exposes an `optional_storage<T>::stored_type`?
-    /** A Note on Storage Types
-     *  To let us use (and re-use) storage when `T` is cv qualified, we strip
-     *  any const-ness when defining our `optional_storage` type. All public and
-     *  protected methods will take and return `T`s, though, so the removal of
-     *  the cv-qualifier should be entirely invisible. In fact, most methods in
-     *  this class should call `_get_value` rather than directly accessing
-     *  `_storage.value` so that they access a `T`, rather than a
-     *  `std::remove_const_t<T>`.
-     */
-    using storage_type = std::remove_const_t<T>;
-    optional_storage<storage_type> _storage;
-
 public:
     using value_type = T;
+    using pointer_type = T*;
 
+private:
+    optional_storage<T> m_storage;
+
+public:
     /** Empty Ctors -- §23.6.3.1.1
      *  --------------------------
      *  Initialize a non-containing optional.
      *
-     *  NB. These are duplicated in `optional<T>`.
+     *  NB. These are duplicated on `optional<T>`.
      */
     constexpr _optional_val_base() noexcept
-        : _storage ( )
+        : m_storage ( )
     { }
     constexpr _optional_val_base(nonstd::nullopt_t /*unused*/) noexcept
-        : _storage ( )
+        : m_storage ( )
     { }
 
     /** Copy Ctor -- §23.6.3.1.3
      *  ------------------------
      *  Initialize `this` by copying `rhs`. If a value is initialized, it will
      *  be as if direct-non-list-initialization occurred with `*rhs`.
+     *
      *  If `std::is_copy_constructible_v<T> == false`, this constructor will be
      *  explicitly deleted by `nonstd::EnableCopyCtorIf`, which `optional<T>`
      *  is an inheritor of.
+     *
      *  This constructor will only be (successfully) `constexpr` if `T` is
      *  trivially copy constructible; `optional_storage` will only have a
      *  `constexpr` copy constructor if `is_trivially_copy_constructible_v<T>`
      *  is `true`.
+     *
+     *  NB. We copy `m_storage` here, not `_get_value()`, because the later
+     *  assumes storage is containing. That is a bad assumption.
+     *
+     *  NB. This is _not_ duplicated on `optional<T>`.
      */
     constexpr _optional_val_base(_optional_val_base const & rhs)
     noexcept(std::is_nothrow_copy_constructible_v<T>)
-        : _storage ( rhs._storage )
+        : m_storage ( rhs.m_storage )
     { }
 
     /** Move Ctor -- §23.6.3.1.7
      *  ------------------------
      *  Initialize `this` by copying `rhs`. If a value is initialized, it will
-     *  be as if direct-non-list-initialization occurred with
-     *  `std::move(*rhs)`. **This will not change `bool(rhs)`**.
+     *  be as if direct-non-list-initialization occurred with `std::move(*rhs)`.
+     *  **This will not change `bool(rhs)`**.
+     *
      *  If `std::is_move_constructible_v<T> == false`, this constructor will be
      *  explicitly deleted by `nonstd::EnableMoveCtorIf`, which `optional<T>`
      *  is an inheritor of.
+     *
      *  This constructor will only be (successfully) `constexpr` if `T` is
      *  trivially move constructible; `optional_storage` will only have a
      *  `constexpr` move constructor if `is_trivially_move_constructible_v<T>`
      *  is `true`.
+     *
+     *  NB. We copy `m_storage` here, not `_get_value()`, because the later
+     *  assumes storage is containing. That is a bad assumption.
+     *
+     *  NB. This is _not_ duplicated on `optional<T>`.
      */
     constexpr _optional_val_base(_optional_val_base && rhs)
     noexcept(std::is_nothrow_move_constructible_v<T>)
-        : _storage ( std::move(rhs._storage) )
+        : m_storage ( std::move(rhs.m_storage) )
     { }
 
     /** In-Place Argument Forwarding Ctor -- §23.6.3.1.11
@@ -250,7 +258,7 @@ public:
      *  Initialize the contained value as if direct-non-list-initializing an
      *  object of type `T` with the arguments `std::forward<Args>(args)...`.
      *
-     *  NB. These are duplicated in `optional<T>`.
+     *  NB. This is duplicated on `optional<T>`.
      */
     template < typename ... Args
              , typename std::enable_if_t< std::is_constructible_v<T, Args...>
@@ -258,13 +266,15 @@ public:
     constexpr explicit _optional_val_base(nonstd::in_place_t /*unused*/,
                                           Args && ... args)
     noexcept(std::is_nothrow_constructible_v<T, Args && ...>)
-        : _storage ( nonstd::in_place, std::forward<Args>(args)... )
+        : m_storage ( nonstd::in_place, std::forward<Args>(args)... )
     { }
 
     /** In-Place Initializer List Ctor -- §23.6.3.1.15
      *  ----------------------------------------------
      *  Initialize the contained value as if direct-non-list-initializing an
      *  object of type `T` with the arguments `il, std::forward<Args>(args)...`.
+     *
+     *  NB. This is duplicated on `optional<T>`.
      */
     template < typename Il, typename ... Args
              , typename std::enable_if_t< std::is_constructible_v< T
@@ -277,7 +287,7 @@ public:
     noexcept(std::is_nothrow_constructible_v< T
                                             , std::initializer_list<Il> &
                                             , Args && ...>)
-        : _storage ( nonstd::in_place, il, std::forward<Args>(args)... )
+        : m_storage ( nonstd::in_place, il, std::forward<Args>(args)... )
     { }
 
     /** Converting Value Move Ctor -- §23.6.3.1.20
@@ -285,7 +295,7 @@ public:
      *  Initialize the contained value as if direct-non-list-initializing an
      *  object of type `T` with the expression `std::forward<U>(v)`.
      *
-     *  NB. These are duplicated in `optional<T>`.
+     *  NB. These are duplicated on `optional<T>`.
      */
     template < typename U = T
              , typename std::enable_if_t< (   !std::is_same_v<std::decay_t<U>, nonstd::in_place_t>
@@ -295,7 +305,7 @@ public:
                                         , int > = 0 >
     constexpr _optional_val_base(U && value)
     noexcept(std::is_nothrow_constructible_v<T, U&&>)
-        : _storage ( std::forward<U>(value) )
+        : m_storage ( std::forward<U>(value) )
     { }
 
     template < typename U = T
@@ -306,7 +316,7 @@ public:
                                         , int > = 1 >
     constexpr explicit _optional_val_base(U && value)
     noexcept(std::is_nothrow_constructible_v<T, U&&>)
-        : _storage ( std::forward<U>(value) )
+        : m_storage ( std::forward<U>(value) )
     { }
 
     /** Copy Assignment -- §23.6.3.3.4
@@ -326,15 +336,17 @@ public:
      *  `std::is_copy_assignable_v<T> == false`, this constructor will be
      *  explicitly deleted by `nonstd::EnableCopyAssignIf`, which `optional<T>`
      *  is an inheritor of.
+     *
      *  If any exception is thrown, the result of the expression `bool(*this)`
      *  shall remain unchanged.
+     *
+     *  NB. This is _not_ duplicated on `optional<T>`.
      */
     _optional_val_base& operator= (_optional_val_base const & rhs)
     noexcept(   std::is_nothrow_copy_assignable_v<T>
              && std::is_nothrow_copy_constructible_v<T>
              && std::is_nothrow_destructible_v<T>) {
         if (_has_value() && rhs._has_value()) {
-            // See the "Note on Storage Types" above.
             _get_value() = rhs._get_value();
         } else {
             if (rhs._has_value()) {
@@ -367,17 +379,19 @@ public:
      *  `std::is_move_assignable_v<T> == false`, this constructor will be
      *  explicitly deleted by `nonstd::EnableMoveAssignIf`, which `optional<T>`
      *  is an inheritor of.
+     *
      *  If any exception is thrown, the result of the expression `bool(*this)`
      *  shall remain unchanged. The state of `*rhs.val` -- whether the exception
      *  is thrown during move construction or move assignment -- shall be
      *  defined by the safety guarantees of the relevant opeartion on `T`.
+     *
+     *  NB. This is _not_ duplicated on `optional<T>`.
      */
     _optional_val_base& operator= (_optional_val_base && rhs)
     noexcept(   std::is_nothrow_move_assignable_v<T>
              && std::is_nothrow_move_constructible_v<T>
              && std::is_nothrow_destructible_v<T>) {
         if (_has_value() && rhs._has_value()) {
-            // See the "Note on Storage Types" above.
             _get_value() = std::move(rhs._get_value());
         } else {
             if (rhs._has_value()) {
@@ -390,182 +404,38 @@ public:
     }
 
 protected:
-    /** Destruct and empty the constained value. */
-    void _remove_value()
-    noexcept(std::is_nothrow_destructible_v<storage_type>) {
-        _storage.is_containing = false;
-        _storage.value.~storage_type();
+    constexpr bool _has_value() const noexcept {
+        return m_storage.has_value();
     }
 
-    /** (Re)set the contained value (via Placement New). */
-    template <typename ... Args>
-    void _construct_value(Args && ... args)
-    noexcept(std::is_nothrow_constructible_v<storage_type, Args && ...>) {
-        // We may be trying to switch the active member of the union in
-        // `_storage` to a class with a user-defined constructor. Use
-        // Placement New to accomplish this.
-        void * val_ptr = &_storage.value;
-        new (val_ptr) storage_type(std::forward<Args>(args)...);
-        _storage.is_containing = true;
+    constexpr T       &  _get_value()       &  {
+        return m_storage.get_value();
     }
-
-    // NB. These methods cannot be noexcept because they may access an inactive
-    // member of the `_storage` class' anonymous union. Most internal uses may
-    // be considered noexcept, though, so long as we can be sure there `.value`
-    // is the active member of `_storage`.
-
-    /** Fetch the contained value (as `T [cv][ref]`). */
-    constexpr T       &  _get_value()       &  { return _storage.value; }
-    constexpr T const &  _get_value() const &  { return _storage.value; }
+    constexpr T const &  _get_value() const &  {
+        return m_storage.get_value();
+    }
     constexpr T       && _get_value()       && {
-        return std::move(_storage.value);
+        return std::move(m_storage.get_value());
     }
     constexpr T const && _get_value() const && {
-        return std::move(_storage.value);
+        return std::move(m_storage.get_value());
     }
 
-    /** Check if there is a contained value. */
-    constexpr bool _has_value() const noexcept {
-        return _storage.is_containing;
+    template <typename ... Args>
+    void _construct_value(Args && ... args)
+    noexcept(std::is_nothrow_constructible_v<optional_storage<T>, Args...>) {
+        m_storage.construct_value(std::forward<Args>(args)...);
+    }
+
+    void _remove_value()
+    noexcept(std::is_nothrow_destructible_v<optional_storage<T>>) {
+        m_storage.remove_value();
     }
 };
 
 
-/** Optional Construction Logic and Storage for LValue Reference Types
+/** `optional<T>`
  *  ============================================================================
- */
-template <typename T>
-class _optional_ref_base {
-    static_assert(std::is_lvalue_reference_v<T>,
-        "_optional_ref_base expects to be specialized on an lval ref type");
-
-private:
-    /* Reference types can't be directly stored and can't be reseated once
-     * initialized. To get around this, we strip the ref qualifier and store a
-     * mutable pointer to the base type of the reference. */
-    using storage_type = nonstd::remove_cvref_t<T>*;
-
-    optional_storage<storage_type> _storage;
-
-public:
-    using value_type = T;
-
-    /** Empty Ctors -- §23.6.3.1.1
-     *  --------------------------
-     *  Initialize a non-containing optional.
-     */
-    constexpr _optional_ref_base() noexcept
-        : _storage ( )
-    { }
-    constexpr _optional_ref_base(nonstd::nullopt_t /*unused*/) noexcept
-        : _storage ( )
-    { }
-
-    /** Copy Ctor -- §23.6.3.1.3
-     *  ------------------------
-     *  Initialize `this` by copying `rhs`.
-     */
-    constexpr _optional_ref_base(_optional_ref_base const & rhs)
-    noexcept
-        : _storage ( rhs._storage )
-    { }
-
-    /** Move Ctor -- §23.6.3.1.7
-     *  ------------------------
-     *  Initialize `this` by copying `rhs`.
-     */
-    constexpr _optional_ref_base(_optional_ref_base && rhs) noexcept
-        : _storage ( std::move(rhs._storage) )
-    { }
-
-    /** Value Ctor -- §23.6.3.1.20
-     *  --------------------------
-     *  Create an optional referencing the given value.
-     */
-    constexpr _optional_ref_base(T & value) noexcept
-        : _storage ( const_cast<storage_type>(&value) )
-    { }
-
-    /** Empty Assignment -- §23.6.3.3.1
-     *  -------------------------------
-     *  If `*this` contains a value, destroy it; otherwise, no effect.
-     */
-    _optional_ref_base<T&>& operator= (nonstd::nullopt_t /*unused*/)
-    noexcept {
-        if (_has_value()) { _remove_value(); }
-        return *this;
-    }
-
-    /** Copy Assignment -- §23.6.3.3.4
-     *  ------------------------------
-     */
-    _optional_ref_base<T&>& operator= (_optional_ref_base const & rhs)
-    noexcept {
-        if (_has_value() && rhs._has_value()) {
-            _storage.value = rhs._storage.value;
-        } else {
-            if (rhs._has_value()) {
-                _storage.value = rhs._storage.value;
-                _storage.is_containing = true;
-            } else {
-                _remove_value();
-            }
-        }
-        return *this;
-    }
-
-    /* Move Assignment -- §23.6.3.3.8
-     * ------------------------------
-     */
-    _optional_ref_base<T&>& operator= (_optional_ref_base && rhs)
-    noexcept {
-        if (_has_value() && rhs._has_value()) {
-            _storage.value = std::move(rhs._storage.value);
-        } else {
-            if (rhs._has_value()) {
-                _storage.value = std::move(rhs._storage.value);
-                _storage.is_containing = true;
-            } else {
-                _remove_value();
-            }
-        }
-        return *this;
-    }
-
-    /** Value Assignment -- nonstd
-     *  --------------------------
-     */
-    _optional_ref_base<T&>& operator= (T value) noexcept {
-        _storage.value = const_cast<storage_type>(&value);
-        _storage.is_containing = true;
-        return *this;
-    }
-
-protected:
-    /* Helper Functions
-     * ---------------- */
-    void _remove_value() noexcept {
-        _storage.is_containing = false;
-        _storage.value = nullptr;
-    }
-
-    // NB. These methods cannot be noexcept because they may access an inactive
-    // member of the `_storage` class' anonymous union. Most internal uses may
-    // be considered noexcept, though, due to the checks that will need to be
-    // performed prior to access.
-    constexpr T       &  _get_value()       { return *_storage.value; }
-    constexpr T const &  _get_value() const { return *_storage.value; }
-
-    constexpr bool _has_value() const noexcept { return _storage.is_containing; }
-};
-
-
-
-/** Value-Wrapping Optional
- *  ============================================================================
- *  Note that nearly all meaningful functionality related to storage is
- *  implemented in the `_optional_val_base` parent. This class only deals in
- *  user-facing observers.
  */
 template <typename T>
 class optional
@@ -579,6 +449,7 @@ class optional
 {
 public:
     using value_type = T;
+    using pointer_type = T*;
 
     /** Empty Ctors -- §23.6.3.1.1
      *  --------------------------
@@ -625,8 +496,8 @@ public:
                                   std::forward<Args>(args)... )
     { }
 
-    /** Converting Value Move Ctor -- §23.6.3.1.20
-     *  ------------------------------------------
+    /** Converting Perfect Forwarding Value Ctor -- §23.6.3.1.20
+     *  --------------------------------------------------------
      *  Initialize the contained value as if direct-non-list-initializing an
      *  object of type `T` with the expression `std::forward<U>(v)`.
      */
@@ -656,6 +527,9 @@ public:
      *  ------------------------------------
      *  Initialize `this` by copying `rhs`. If a value is initialized, it will
      *  be as if direct-non-list-initialization occurred with `*rhs`.
+     *
+     *  NB. We use the user-facing observers here because `optional<T>` may not
+     *  be the same type as `optional<U>`
      */
     template < typename U
              , typename std::enable_if_t< (   !std::is_same_v<T, U>
@@ -687,7 +561,11 @@ public:
      *  ------------------------------------
      *  Initialize `this` by copying `rhs`. If a value is initialized, it will
      *  be as if direct-non-list-initialization occurred with
-     *  `std::move(*rhs)`. **This will not change `bool(rhs)`**.
+     *  `std::move(*rhs)`.
+     *  **This will not change `bool(rhs)`**.
+     *
+     *  NB. We use the user-facing observers here because `optional<T>` may not
+     *  be the same type as `optional<U>`
      */
     template < typename U
              , typename std::enable_if_t< (   !std::is_same_v<T, U>
@@ -721,12 +599,12 @@ public:
      */
     optional& operator= (nonstd::nullopt_t /*unused*/)
     noexcept(std::is_nothrow_destructible_v<T>) {
-        if (has_value()) { this->_remove_value(); }
+        if (this->_has_value()) { this->_remove_value(); }
         return *this;
     }
 
-    /** Converting Value Move Assignment -- §23.6.3.3.13
-     *  ------------------------------------------------
+    /** Converting Perfect Forwarding Value Assignment -- §23.6.3.3.13
+     *  --------------------------------------------------------------
      *  If `*this` contains a value, assign `std::forward<U>(value)` to the
      *  contained value; otherwise initializes the contained value as if direct-
      *  non-list-initializing an object of type `T` with `std::forward<U>(v)`.
@@ -740,7 +618,7 @@ public:
     optional& operator= (U&& value)
     noexcept(   std::is_nothrow_assignable_v<T, U&&>
              && std::is_nothrow_constructible_v<T, U&&>) {
-        if (has_value()) {
+        if (this->_has_value()) {
             this->_get_value() = std::forward<U>(value);
         } else {
             this->_construct_value(std::forward<U>(value));
@@ -763,7 +641,9 @@ public:
      *
      *  If any exception is thrown, the result of the expression `bool(*this)`
      *  shall remain unchanged.
-     *  [sic.] `rhs` is a `optional<U>`, _not_ an `optional<U>`.
+     *
+     *  NB. We use the user-facing observers here because `optional<T>` may not
+     *  be the same type as `optional<U>`
      */
     template < typename U
              , typename std::enable_if_t< (   !std::is_same_v<T, U>
@@ -776,12 +656,12 @@ public:
     noexcept(   std::is_nothrow_assignable_v<T, U>
              && std::is_nothrow_constructible_v<T, U>
              && std::is_nothrow_destructible_v<T>) {
-        if (has_value() && rhs.has_value()) {
+        if (this->_has_value() && rhs.has_value()) {
             this->_get_value() = *rhs;
         } else {
             if (rhs.has_value()) {
                 this->_construct_value(*rhs);
-            } else if (has_value()) {
+            } else if (this->_has_value()) {
                 this->_remove_value();
             }
         }
@@ -806,7 +686,8 @@ public:
      *  is thrown during move construction or move assignment -- shall be
      *  defined by the safety guarantees of the relevant opeartion on `T`.
      *
-     *  [sic.] `rhs` is a `optional<U>`, _not_ an `optional<U>`.
+     *  NB. We use the user-facing observers here because `optional<T>` may not
+     *  be the same type as `optional<U>`
      */
     template < typename U
              , typename std::enable_if_t< (   !std::is_same_v<T, U>
@@ -819,12 +700,12 @@ public:
     noexcept(   std::is_nothrow_assignable_v<T, U>
              && std::is_nothrow_constructible_v<T, U>
              && std::is_nothrow_destructible_v<T>) {
-        if (has_value() && rhs.has_value()) {
+        if (this->_has_value() && rhs.has_value()) {
             this->_get_value() = std::move(*rhs);
         } else {
             if (rhs.has_value()) {
                 this->_construct_value(std::move(*rhs));
-            } else if (has_value()) {
+            } else if (this->_has_value()) {
                 this->_remove_value();
             }
         }
@@ -859,9 +740,51 @@ public:
     T& emplace(std::initializer_list<Il> il, Args && ... args)
     noexcept(   std::is_nothrow_constructible_v<T, std::initializer_list<Il> &, Args && ...>
              && std::is_nothrow_destructible_v<T>) {
-        if (has_value()) { this->_remove_value(); }
+        if (this->_has_value()) { this->_remove_value(); }
         this->_construct_value(il, std::forward<Args>(args)...);
         return this->_get_value();
+    }
+
+
+    /** Swap -- §23.6.3.4.1
+     *  -------------------
+     *  Swap the values of `*this` and `rhs`, based on whether `*this`
+     *  and/or `rhs` contain or do not contain values;
+     *   - If `*this` contais a value and `rhs` contains a value
+     *     call `swap(*(*this), *rhs)`.
+     *   - If `*this` contains a value and `rhs` contains no value
+     *     initialize the contained value of `rhs` as if direct-non-list-
+     *     initializing an object of type `T` with the expression
+     *     `std::move(*(*this))`, then destruct the value contained in `*this`.
+     *     Postcondition: `*this` shall not contain a value, and `rhs` shall.
+     *   - If `*this` contains no value and `rhs` contains a value
+     *     initialize the contained value of `*this` as if direct-non-list-
+     *     initializing an object of type `T` with the expression
+     *     `std::move(*rhs)`, then destruct the value contained in `rhs`.
+     *     Postcondition: `*this` shall contain a value, and `rhs` shall not.
+     *   - If `*this` contains no value and `rhs` contains no value
+     *     no effect.
+     *
+     *  Author's Note: The specification of this function requires that "Lvalues
+     *  of type `T` shall be swappable and `is_move_constructible_v<T>` is
+     *  `true`." At the time of writing, I'm not sure how to enforce those
+     *  requirements, but I am confident lower-level compilation errors will
+     *  prevent misuse of this function.
+     */
+    void swap(optional& rhs)
+    noexcept(   std::is_nothrow_move_constructible_v<T>
+             && nonstd::is_nothrow_swappable_v<T>) {
+        if (this->_has_value() && rhs._has_value()) {
+            std::swap(this->_get_value(), rhs._get_value());
+        } else {
+            if (rhs._has_value()) {
+                this->_construct_value(std::move(rhs._get_value()));
+                rhs._remove_value();
+            } else if (this->_has_value()) {
+                rhs._construct_value(std::move(this->_get_value()));
+                this->_remove_value();
+            }
+        }
     }
 
 
@@ -942,8 +865,9 @@ public:
      */
     template < typename U = T >
     constexpr T value_or(U && value) const & {
-        return this->_has_value() ? this->_get_value()
-                                 : static_cast<T>(std::forward<U>(value));
+        return this->_has_value()
+             ? this->_get_value()
+             : static_cast<T>(std::forward<U>(value));
     }
     /** Observer `value_or(value)` for rvalue references -- §23.6.3.5.19
      *  ----------------------------------------------------------------
@@ -952,12 +876,13 @@ public:
      */
     template < typename U = T >
     constexpr T value_or(U && value) && {
-        return this->_has_value() ? std::move(this->_get_value())
-                                 : static_cast<T>(std::forward<U>(value));
+        return this->_has_value()
+             ? std::move(this->_get_value())
+             : static_cast<T>(std::forward<U>(value));
     }
 
 private:
-    /* Helper function to check the validity of indirecting through `*this`. */
+    /** Helper function; Check the validity of indirecting through `*this`. */
     constexpr inline void _check_value() const {
         if (!this->_has_value()) {
             throw nonstd::exception::bad_optional_access{};
@@ -967,43 +892,281 @@ private:
 };
 
 
-
-/** LValue-Reference-Wrapping Optional
+/** Base-Class for Reference-Wrapping Optional Types
  *  ============================================================================
- *  Note that nearly all meaningful functionality related to storage is
- *  implemented in the `_optional_val_base` parent. This class only deals in
- *  user-facing observers.
+ */
+template <typename T>
+class _optional_ref_base<T&> {
+public:
+    using value_type = T;
+    using pointer_type = T*;
+    using reference_type = T&;
+
+private:
+    // Reference types can't be directly stored and can't be reseated once
+    // initialized. To get around this, we store a mutable pointer to the
+    // referenced type.
+    optional_storage<pointer_type> m_storage;
+
+public:
+    /** Empty Ctors -- §23.6.3.1.1
+     *  --------------------------
+     *  Initialize a non-containing optional.
+     *
+     *  NB. These are duplicated on `optional<T&>`.
+     */
+    constexpr _optional_ref_base() noexcept
+        : m_storage ( )
+    { }
+    constexpr _optional_ref_base(nonstd::nullopt_t /*unused*/) noexcept
+        : m_storage ( )
+    { }
+
+    /** Copy Ctor -- §23.6.3.1.3
+     *  ------------------------
+     *  Initialize `this` by copying `rhs`. If a value is initialized, it will
+     *  be as if direct-non-list-initialization occurred with `*rhs`.
+     *
+     *  NB. We copy `m_storage` here, not `_get_value()`, because the later
+     *  assumes storage is containing. That is a bad assumption.
+     *
+     *  NB. This is _not_ duplicated on `optional<T&>`.
+     */
+    constexpr _optional_ref_base(_optional_ref_base const & rhs) noexcept
+        : m_storage ( rhs.m_storage )
+    { }
+
+    /** Move Ctor -- §23.6.3.1.7
+     *  ------------------------
+     *  Initialize `this` by copying `rhs`. If a value is initialized, it will
+     *  be as if direct-non-list-initialization occurred with `std::move(*rhs)`.
+     *  **This will not change `bool(rhs)`**.
+     *
+     *  NB. We copy `m_storage` here, not `_get_value()`, because the later
+     *  assumes storage is containing. That is a bad assumption.
+     *
+     *  NB. This is _not_ duplicated on `optional<T&>`.
+     */
+    constexpr _optional_ref_base(_optional_ref_base && rhs) noexcept
+        : m_storage ( std::move(rhs.m_storage) )
+    { }
+
+    /** Value Ctor -- §23.6.3.1.20
+     *  --------------------------
+     *  Initialize the contained value as if direct-non-list-initializing an
+     *  object of type `T*` with the expression `&value`.
+     *
+     *  NB. This is duplicated on `optional<T&>`.
+     */
+    constexpr _optional_ref_base(T& value) noexcept
+        : m_storage ( &value )
+    { }
+
+    /** Copy Assignment -- §23.6.3.3.4
+     *  ------------------------------
+     *  Assign a value based on whether `*this` and `rhs` contain values;
+     *   - If `*this` contains a value and `rhs` contains a value
+     *     assign `*rhs` to the contained value.
+     *   - If `*this` contains a value and `rhs` contains no value
+     *     destroy the value contained in `*this`.
+     *   - If `*this` contains no value and `rhs` contains a value
+     *     initialize the contained value as if direct-non-list-initializing
+     *     an object of type `T` with `*rhs`.
+     *   - If `*this` contains no value and `rhs` contains no value
+     *     no effect.
+     *
+     *  NB. This is _not_ duplicated on `optional<T&>`.
+     */
+    _optional_ref_base& operator= (_optional_ref_base const & rhs) noexcept {
+        if (_has_value() && rhs._has_value()) {
+            _get_pointer() = rhs._get_pointer();
+        } else {
+            if (rhs._has_value()) {
+                _contstruct_value(rhs._get_pointer());
+            } else if (_has_value()) {
+                _remove_value();
+            }
+        }
+        return *this;
+    }
+
+    /* Move Assignment -- §23.6.3.3.8
+     * ------------------------------
+     *  Assign a value based on whether `*this` and `rhs` contain values;
+     *   - If `*this` contains a value and `rhs` contains a value
+     *     assign `std::move(*rhs)` to the contained value.
+     *   - If `*this` contains a value and `rhs` contains no value
+     *     destroy the value contained in `*this`.
+     *   - If `*this` contains no value and `rhs` contains a value
+     *     initialize the contained value as if direct-non-list-initializing
+     *     an object of type `T` with `std::move(*rhs)`.
+     *   - If `*this` contains no value and `rhs` contains no value
+     *     no effect.
+     *
+     *  NB. This is _not_ duplicated on `optional<T&>`.
+     */
+    _optional_ref_base& operator= (_optional_ref_base && rhs) noexcept {
+        if (_has_value() && rhs._has_value()) {
+            _get_pointer() = std::move(rhs._get_pointer());
+        } else {
+            if (rhs._has_value()) {
+                _construct_value(std::move(rhs._get_pointer()));
+            } else if (_has_value()) {
+                _remove_value();
+            }
+        }
+        return *this;
+    }
+
+protected:
+    constexpr bool _has_value() const noexcept {
+        return m_storage.is_containing;
+    }
+
+    constexpr pointer_type       &  _get_pointer()       &  {
+        return m_storage.get_value();
+    }
+    constexpr pointer_type const &  _get_pointer() const &  {
+        return m_storage.get_value();
+    }
+    constexpr pointer_type       && _get_pointer()       && {
+        return std::move(m_storage.get_value());
+    }
+    constexpr pointer_type const && _get_pointer() const && {
+        return std::move(m_storage.get_value());
+    }
+
+    constexpr T       & _get_reference()       {
+        return *(m_storage.get_value());
+    }
+    constexpr T const & _get_reference() const {
+        return *(m_storage.get_value());
+    }
+
+    constexpr void _assign_reference(T& value) noexcept {
+        m_storage.get_value() = &value;
+    }
+
+    void _construct_value(pointer_type value) noexcept {
+        m_storage.construct_value(value);
+    }
+
+    void _construct_value(T& value) noexcept {
+        m_storage.construct_value(&value);
+    }
+
+    void _remove_value() noexcept {
+        m_storage.remove_value();
+    }
+};
+
+
+/** `optional<T&>`
+ *  ============================================================================
  */
 template <typename T>
 class optional<T&>
     : _optional_ref_base<T&>
 {
 public:
-    using _optional_ref_base<T&>::_optional_ref_base;
-    using _optional_ref_base<T&>::operator=;
-
     using value_type = T;
+    using pointer_type = T*;
     using reference_type = T&;
 
-private:
-    /* Helper function to check the validity of indirecting through `*this`. */
-    constexpr inline void _check_value() const {
-        if (!this->_has_value()) {
-            throw nonstd::exception::bad_optional_access();
-        }
-        return;
+    /** Empty Ctors -- §23.6.3.1.1
+     *  --------------------------
+     *  Initialize a non-containing optional.
+     */
+    constexpr optional() noexcept = default;
+    constexpr optional(nonstd::nullopt_t /*unused*/) noexcept
+        : _optional_ref_base<T&> ( nonstd::nullopt )
+    { }
+
+    /** Value Ctor -- §23.6.3.1.20
+     *  --------------------------
+     *  Initialize the contained value as if direct-non-list-initializing an
+     *  object of type `T&` with the expression `value`.
+     */
+    constexpr optional(T& value) noexcept
+        : _optional_ref_base<T&> ( value )
+    { }
+
+    /** Empty Assignment -- §23.6.3.3.1
+     *  -------------------------------
+     *  If `*this` contains a value, destroy it; otherwise, no effect.
+     */
+    optional& operator= (nonstd::nullopt_t /*unused*/) noexcept {
+        if (this->_has_value()) { this->_remove_value(); }
+        return *this;
     }
 
-public:
+    /** Value Assignment -- §23.6.3.3.13
+     *  --------------------------------
+     *  If `*this` contains a value, assign `value` to the contained value;
+     *  otherwise initializes the contained value as if direct-non-list-
+     *  initializing an object of type `T&` with `value`.
+     */
+    optional& operator= (T& value) noexcept {
+        if (this->_has_value()) {
+            this->_assign_reference(value);
+        } else {
+            this->_construct_value(value);
+        }
+        return *this;
+    }
+
+
+    /** Swap -- §23.6.3.4.1
+     *  -------------------
+     *  Swap the values of `*this` and `rhs`, based on whether `*this`
+     *  and/or `rhs` contain or do not contain values;
+     *   - If `*this` contais a value and `rhs` contains a value
+     *     call `swap(*(*this), *rhs)`.
+     *   - If `*this` contains a value and `rhs` contains no value
+     *     initialize the contained value of `rhs` as if direct-non-list-
+     *     initializing an object of type `T` with the expression
+     *     `std::move(*(*this))`, then destruct the value contained in `*this`.
+     *     Postcondition: `*this` shall not contain a value, and `rhs` shall.
+     *   - If `*this` contains no value and `rhs` contains a value
+     *     initialize the contained value of `*this` as if direct-non-list-
+     *     initializing an object of type `T` with the expression
+     *     `std::move(*rhs)`, then destruct the value contained in `rhs`.
+     *     Postcondition: `*this` shall contain a value, and `rhs` shall not.
+     *   - If `*this` contains no value and `rhs` contains no value
+     *     no effect.
+     *
+     *  Author's Note: The specification of this function requires that "Lvalues
+     *  of type `T` shall be swappable and `is_move_constructible_v<T>` is
+     *  `true`." At the time of writing, I'm not sure how to enforce those
+     *  requirements, but I am confident lower-level compilation errors will
+     *  prevent misuse of this function.
+     */
+    void swap(optional& rhs)
+    noexcept(   std::is_nothrow_move_constructible_v<T>
+             && nonstd::is_nothrow_swappable_v<T>) {
+        if (this->_has_value() && rhs._has_value()) {
+            std::swap(this->_get_reference(), rhs._get_reference());
+        } else {
+            if (rhs._has_value()) {
+                this->_construct_value(std::move(rhs._get_pointer()));
+                rhs._remove_value();
+            } else if (this->_has_value()) {
+                rhs._construct_value(std::move(this->_get_pointer()));
+                this->_remove_value();
+            }
+        }
+    }
+
+
     /** Observer `operator ->` -- §23.6.3.5.1
      *  -------------------------------------
      *  Return `val`.
      */
     constexpr       T * operator -> ()       {
-        return &this->_get_value();
+        return this->_get_pointer();
     }
     constexpr const T * operator -> () const {
-        return &this->_get_value();
+        return this->_get_pointer();
     }
 
     /** Observer `operator *` -- §23.6.3.5.5
@@ -1011,10 +1174,10 @@ public:
      *  Return `*val`.
      */
     constexpr       T& operator * ()       {
-        return this->_get_value();
+        return this->_get_reference();
     }
     constexpr const T& operator * () const {
-        return this->_get_value();
+        return this->_get_reference();
     }
 
     /** Observer `static_cast<bool>` -- §23.6.3.5.11
@@ -1038,10 +1201,21 @@ public:
      *  an exception of type `bad_optional_access`.
      */
     constexpr       T& value()       {
-        _check_value(); return this->_get_value();
+        _check_value();
+        return this->_get_reference();
     }
     constexpr const T& value() const {
-        _check_value(); return this->_get_value();
+        _check_value();
+        return this->_get_reference();
+    }
+
+private:
+    /** Helper function; Check the validity of indirecting through `*this`. */
+    constexpr inline void _check_value() const {
+        if (!this->_has_value()) {
+            throw nonstd::exception::bad_optional_access();
+        }
+        return;
     }
 };
 
@@ -1049,18 +1223,17 @@ public:
 
 /** Helper Creation Functions
  *  ============================================================================
- *  When you want to specify the type as part of an assignment or return.
  */
 
-/* Create an `optional` with no value */
+/** Create an `optional` with no value. */
 template <typename T>
 constexpr optional<T> none() noexcept { return optional<T>(); }
 
-/* Create an `optional` with a real value */
+/** Create an `optional` containing a value, deducing the type if possible. */
 template <typename T>
-constexpr optional<T> just(T value)
-noexcept(std::is_nothrow_constructible_v<T,T>) {
-    return optional<T> { value };
+constexpr optional<std::decay_t<T>> just(T&& value)
+noexcept(std::is_nothrow_constructible_v<T,T&&>) {
+    return optional<std::decay_t<T>> { std::forward<T>(value) };
 }
 template <typename T, typename ... Args>
 constexpr optional<T> just(nonstd::in_place_t /*unused*/, Args && ... args)
@@ -1069,22 +1242,80 @@ noexcept(std::is_nothrow_constructible_v<T, Args && ...>) {
 }
 template <typename T, typename Il, typename ... Args>
 constexpr optional<T> just(nonstd::in_place_t /*unused*/,
-                           std::initializer_list<Il> il, Args && ... args)
+                           std::initializer_list<Il> il,
+                           Args && ... args)
 noexcept(std::is_nothrow_constructible_v<T,
                                          std::initializer_list<Il>,
                                          Args && ...>) {
     return optional<T> { nonstd::in_place, il, std::forward<Args>(args)... };
 }
 
+/** Create an `optional` wrapping a reference. */
 template <typename T>
 constexpr optional<T&> just_ref(T & value) {
     return optional<T&> { value };
 }
 
+/** Create an `optional` wrapping a reference to a const. */
 template <typename T>
 constexpr optional<T const &> just_cref(T const & value) {
     return optional<T const &> { value };
 }
+
+/** Make Optional -- §23.6.9.3
+ *  ----------------------------
+ *  Return `optional<decay_t<T>> { std::morward<T>(value) }`.
+ */
+template <typename T>
+constexpr optional<std::decay_t<T>> make_optional(T&& value)
+noexcept(std::is_nothrow_constructible_v<T,T&&>) {
+    return optional<std::decay_t<T>> { std::forward<T>(value) };
+}
+/** Make Optional -- §23.6.9.4
+ *  ----------------------------
+ * Return `optional<T> { in_place, std::morward<Args>(args)... }`.
+ */
+template <typename T, typename ... Args>
+constexpr optional<T> make_optional(nonstd::in_place_t /*unused*/,
+                                    Args && ... args)
+noexcept(std::is_nothrow_constructible_v<T, Args && ...>) {
+    return optional<T> { nonstd::in_place, std::forward<Args>(args)... };
+}
+/** Make Optional -- §23.6.9.5
+ *  ----------------------------
+ * Return `optional<T> { in_place, il, std::morward<Args>(args)... }`.
+ */
+template <typename T, typename Il, typename ... Args>
+constexpr optional<T> make_optional(nonstd::in_place_t /*unused*/,
+                                    std::initializer_list<Il> il,
+                                    Args && ... args)
+noexcept(std::is_nothrow_constructible_v<T,
+                                         std::initializer_list<Il>,
+                                         Args && ...>) {
+    return optional<T> { nonstd::in_place, il, std::forward<Args>(args)... };
+}
+
+
+/** Swap -- §23.6.9.1
+ *  -----------------
+ *  Swap the values of `lhs` and `rhs`.
+ *
+ *  See §23.6.3.4.1 for details.
+ */
+template < typename T
+         , typename std::enable_if_t< (   std::is_move_constructible_v<T>
+                                       && nonstd::is_swappable_v<T>)
+                                    , int > = 0 >
+inline void swap(optional<T>& lhs, optional<T>& rhs)
+noexcept(noexcept(lhs.swap(rhs))) {
+    lhs.swap(rhs);
+}
+template < typename T
+         , typename std::enable_if_t< !(   std::is_move_constructible_v<T>
+                                        && nonstd::is_swappable_v<T>)
+                                    , int > = 1 >
+inline void swap(optional<T>& lhs, optional<T>& rhs)
+noexcept(noexcept(lhs.swap(rhs))) = delete;
 
 
 

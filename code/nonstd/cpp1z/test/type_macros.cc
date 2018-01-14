@@ -243,5 +243,34 @@ TEST_CASE("Type Macros", "[nonstd][types]") {
     }
 }
 
+
+using nonstd::remove_cvref_t;
+using nonstd::is_swappable_v;
+using std::is_same_v;
+
+struct NotAssignable {
+    u8 i;
+
+    NotAssignable& operator= (NotAssignable const &) = delete;
+};
+
+TEST_CASE("Extended Type Traits", "[nonstd][types]") {
+    SECTION("remove_cvref should work correctly") {
+        REQUIRE(is_same_v<int, remove_cvref_t<int>>);
+        REQUIRE(is_same_v<int, remove_cvref_t<int const>>);
+        REQUIRE(is_same_v<int, remove_cvref_t<int&>>);
+        REQUIRE(is_same_v<int, remove_cvref_t<int const &>>);
+        REQUIRE(is_same_v<int, remove_cvref_t<int volatile &>>);
+    }
+
+    SECTION("is_swappable shoudl work correctly") {
+        REQUIRE(is_swappable_v<int>);
+        REQUIRE(is_swappable_v<int&>);
+
+        REQUIRE(!is_swappable_v<int const>);
+        REQUIRE(!is_swappable_v<NotAssignable>);
+    }
+}
+
 } /* namespace type_macros */
 } /* namespace nonstd_test */
