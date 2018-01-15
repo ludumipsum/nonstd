@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include <nonstd/core/primitive_types.h>
+#include <nonstd/type_traits_ext.h>
 #include <nonstd/cx_math.h>
 
 

@@ -2,10 +2,10 @@
  *  ===========================
  */
 
+#include <nonstd/angle.h>
 #include <testrunner/testrunner.h>
 
 #include <nonstd/cx_math.h>
-#include <nonstd/quantity/angle.h>
 
 
 namespace nonstd_test {

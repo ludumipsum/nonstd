@@ -75,8 +75,6 @@
 #include "c_ish/mem.h"
 #include "c_ish/stacktrace.h"
 
-#include "quantity/angle.h"
-
 /* Platform specific includes */
 #if defined(NONSTD_OS_WINDOWS) || defined(__MINGW32__)
 #include <io.h>     // mktmp
