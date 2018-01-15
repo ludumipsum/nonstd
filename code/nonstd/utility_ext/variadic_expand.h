@@ -12,7 +12,7 @@
 #include <cstdarg>
 #include <string>
 
-#include "primitive_types.h"
+#include <nonstd/core/primitive_types.h>
 
 
 namespace nonstd {

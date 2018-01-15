@@ -67,7 +67,6 @@
 #include "core/break.h"
 #include "core/error_types.h"
 #include "core/primitive_types.h"
-#include "core/variadic_expand.h"
 
 #include "memory/buffer.h"
 #include "memory/core_functions.h"
