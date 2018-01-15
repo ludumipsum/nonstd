@@ -3,10 +3,10 @@
  * GOAL: Validate the basic functionality of Iterator utilites.
  */
 
+#include <nonstd/iterator_ext.h>
 #include <testrunner/testrunner.h>
-#include <nonstd/preprocessor/homogenize.h>
 
-#include "nonstd/utility/iterator.h"
+#include <nonstd/preprocessor/homogenize.h>
 
 
 namespace nonstd_test {
