@@ -77,7 +77,6 @@
 
 #include "std_ish/cx_math.h"
 #include "std_ish/hash.h"
-#include "std_ish/math.h"
 
 #include "quantity/angle.h"
 
