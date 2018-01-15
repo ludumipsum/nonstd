@@ -1,10 +1,10 @@
 #pragma once
 
-#include <nonstd/core/break.h>
-#include <nonstd/core/primitive_types.h>
-#include <nonstd/utility/optional.h>
+#include <nonstd/nonstd.h>
+#include <nonstd/nonstdexcept.h>
+#include <nonstd/optional.h>
 
-#include <nonstd/memory/buffer.h>
+#include "buffer.h"
 
 
 namespace nonstd::memory {
