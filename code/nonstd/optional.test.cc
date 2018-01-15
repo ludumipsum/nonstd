@@ -890,6 +890,7 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
     }
 }
 
+#include "optional.test.compare_overloads.inl"
 #include "optional.test.disabled_special_members.inl"
 
 } /* namespace optional */
