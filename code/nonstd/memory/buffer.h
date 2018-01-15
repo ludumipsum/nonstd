@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <nonstd/cpp1z/type_traits_ext.h>
-#include <nonstd/core/primitive_types.h>
+#include <nonstd/nonstd.h>
+#include <nonstd/type_traits_ext.h>
 
 
 namespace nonstd {

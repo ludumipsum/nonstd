@@ -6,7 +6,7 @@
 #include <testrunner/testrunner.h>
 
 #include <functional>
-#include <nonstd/core/primitive_types.h>
+#include <nonstd/nonstd.h>
 
 
 namespace nonstd_test {
