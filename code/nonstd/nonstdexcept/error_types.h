@@ -29,6 +29,7 @@ enum class N2Error {
     InvalidArguments,
     HashCollision,
     DoubleInitialization,
+    TargetNotFound,
 };
 
 /** N2 Error Strings
@@ -73,6 +74,8 @@ constexpr c_cstr N2_ERROR_STRINGS[] = {
                 "A hash collision has been detected",
     /* DoubleInitialization */
                 "Double (non-idempotent) initialized detected.",
+    /* TargetNotFound */
+                "Execution target could not be found.",
 };
 
 
