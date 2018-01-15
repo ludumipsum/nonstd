@@ -11,7 +11,9 @@
 #include <memory/memory.h>
 #include <testrunner/helpers/construction_counter.h>
 
+
 namespace nonstd_test::lazy {
+
 using namespace Catch::Matchers;
 using nonstd::lazy;
 using nonstd::nr_ptr;

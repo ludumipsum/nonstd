@@ -6,8 +6,6 @@
 #include <nonstd/iterator_ext.h>
 #include <testrunner/testrunner.h>
 
-#include <nonstd/nonstd.h>
-
 
 namespace nonstd_test {
 namespace iterator {

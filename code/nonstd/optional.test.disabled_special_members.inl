@@ -2,9 +2,6 @@
 #include <nonstd/optional.h>
 #include <thirdparty/catch.h>
 
-#include <nonstd/nonstd.h>
-#include <nonstd/type_traits_ext.h>
-
 namespace disabled_special_members {
 
 using nonstd::optional;
@@ -136,8 +133,8 @@ ENFORCE( is_move_constructible_v<Has_MoveCtor_MoveAssign>);
 
 
 
-TEST_CASE("Optionals Types", "[nonstd][optional]") {
-SECTION("that wrap types that are")
+TEST_CASE("Optionals + Special Member Filters", "[nonstd][optional]") {
+SECTION("optionals that wrap types that are")
     SECTION("fully trivial") {
         // [sic] a valid copy operation maybe use used in place of a move.
         REQUIRE( is_copy_assignable_v<optional<Trivial>>);
