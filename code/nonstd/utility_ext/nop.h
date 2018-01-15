@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <nonstd/preprocessor/homogenize.h>
+#include <nonstd/nonstd.h>
 
 #if defined(NONSTD_OS_WINDOWS)
 #include <intrin.h>
@@ -39,4 +39,4 @@ inline void asm_nop() noexcept {
     #endif
 }
 
-}
+} /* namespace nonstd */

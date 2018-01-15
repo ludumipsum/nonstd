@@ -14,6 +14,7 @@
  */
 #pragma once
 
+#include <cmath>
 #include <limits>
 #include <type_traits>
 

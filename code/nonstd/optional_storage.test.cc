@@ -5,13 +5,11 @@
  *  functions (notably dtor, copy ctor, and move ctor).
  */
 
-#include <nonstd/utility/optional_storage.h>
-#include <nonstd/core/primitive_types.h>
-
-#include <type_traits>
-#include <nonstd/type_traits_ext.h>
-
+#include <nonstd/optional_storage.h>
 #include <testrunner/testrunner.h>
+
+#include <nonstd/nonstd.h>
+#include <nonstd/type_traits_ext.h>
 
 
 namespace nonstd_test {

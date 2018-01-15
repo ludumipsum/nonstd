@@ -3,9 +3,8 @@
  * Smoke tests for common math functions.
  */
 
+#include <nonstd/math.h>
 #include <testrunner/testrunner.h>
-
-#include "nonstd/std_ish/math.h"
 
 
 namespace nonstd_test {

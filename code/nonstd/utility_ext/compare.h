@@ -5,10 +5,8 @@
 
 #pragma once
 
-#include <cstring>
-
-#include <nonstd/preprocessor/homogenize.h>
-#include <nonstd/core/primitive_types.h>
+#include <cstring> // strcmp
+#include <nonstd/nonstd.h>
 
 
 namespace nonstd {
