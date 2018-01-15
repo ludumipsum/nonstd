@@ -16,12 +16,10 @@
 
 #include <cstddef>
 #include <cstring>
-#include <stdexcept>
 #include <ostream>
+#include <stdexcept>
 
-#include <thirdparty/fmt.h>
-#include <nonstd/preprocessor/homogenize.h>
-#include <nonstd/core/primitive_types.h>
+#include <nonstd/nonstd.h>
 
 
 /** Ftype

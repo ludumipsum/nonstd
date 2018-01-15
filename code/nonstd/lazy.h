@@ -4,11 +4,11 @@
  */
 #pragma once
 
-#include <nonstd/utility/optional_storage.h>
-
 #include <functional>
 #include <tuple>
 #include <type_traits>
+
+#include <nonstd/optional_storage.h>
 
 
 namespace nonstd {
