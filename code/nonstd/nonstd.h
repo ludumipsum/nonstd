@@ -81,7 +81,6 @@
 
 #include "quantity/angle.h"
 
-#include "utility/color.h"
 #include "utility/four_char_code.h"
 #include "utility/iterator.h"
 #include "utility/lazy.h"
