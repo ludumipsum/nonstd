@@ -3,9 +3,9 @@
 #include <cassert>
 #include <cmath>
 
-#include <nonstd/core/primitive_types.h>
-#include <nonstd/type_traits_ext.h>
+#include <nonstd/nonstd.h>
 #include <nonstd/cx_math.h>
+#include <nonstd/type_traits_ext.h>
 
 
 namespace nonstd {

@@ -55,25 +55,14 @@
 
 
 /* Nonstandard */
-#include "preprocessor/disallow_copy_and_assign.h"
-#include "preprocessor/homogenize.h"
-#include "preprocessor/require_linkage.h"
-#include "preprocessor/symbol_stringifier.h"
-#include "preprocessor/unused.h"
-
+#include "core/disallow_copy_and_assign.h"
+#include "core/homogenize.h"
+#include "core/math.h"
 #include "core/primitive_types.h"
-
-#include "c_ish/math.h"
-#include "c_ish/mem.h"
-#include "c_ish/stacktrace.h"
-
-/* Platform specific includes */
-#if defined(NONSTD_OS_WINDOWS) || defined(__MINGW32__)
-#include <io.h>     // mktmp
-#include <malloc.h> // alloca
-#else
-#include <alloca.h> // alloca
-#endif
+#include "core/require_linkage.h"
+#include "core/stacktrace.h"
+#include "core/symbol_stringifier.h"
+#include "core/unused.h"
 
 /* Nonstandard library initialization */
 namespace nonstd {

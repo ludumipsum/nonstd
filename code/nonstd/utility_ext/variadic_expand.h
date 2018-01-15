@@ -9,10 +9,9 @@
 
 #pragma once
 
+#include <nonstd/nonstd.h>
 #include <cstdarg>
-#include <string>
-
-#include <nonstd/core/primitive_types.h>
+#include <cstdio>
 
 
 namespace nonstd {

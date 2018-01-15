@@ -11,9 +11,7 @@
 #include <nonstd/type_traits_ext.h>
 #include <testrunner/testrunner.h>
 
-#include <type_traits>
-
-#include <nonstd/core/primitive_types.h>
+#include <nonstd/nonstd.h>
 
 
 namespace nonstd_test {

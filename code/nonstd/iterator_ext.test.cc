@@ -6,7 +6,7 @@
 #include <nonstd/iterator_ext.h>
 #include <testrunner/testrunner.h>
 
-#include <nonstd/preprocessor/homogenize.h>
+#include <nonstd/nonstd.h>
 
 
 namespace nonstd_test {

@@ -71,9 +71,7 @@
 
 #pragma once
 
-#include <nonstd/core/primitive_types.h>
-#include <nonstd/c_ish/mem.h>
-
+#include <nonstd/nonstd.h>
 #include <nonstd/memory.h>
 #include <nonstd/math.h>
 #include <nonstd/nonstdexcept.h>

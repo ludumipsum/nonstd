@@ -6,7 +6,7 @@
  */
 
 #include <nonstd/type_traits_ext.h>
-#include <nonstd/preprocessor/homogenize.h>
+
 
  #if defined(NONSTD_OS_WINDOWS)
 // Guarantee Windows API types are what we think they are.

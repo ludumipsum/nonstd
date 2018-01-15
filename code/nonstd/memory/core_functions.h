@@ -1,7 +1,7 @@
 #pragma once
 
+#include <nonstd/nonstd.h>
 #include <nonstd/nonstdexcept.h>
-#include <nonstd/core/primitive_types.h>
 #include <nonstd/optional.h>
 
 #include "buffer.h"

@@ -6,7 +6,7 @@
 #pragma once
 
 #include <type_traits>
-#include <nonstd/preprocessor/symbol_stringifier.h>
+#include <nonstd/nonstd.h>
 
 
 /** Extensions

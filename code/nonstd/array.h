@@ -9,12 +9,10 @@
 
 #pragma once
 
-#include <nonstd/core/primitive_types.h>
-#include <nonstd/c_ish/math.h>
-
+#include <nonstd/nonstd.h>
 #include <nonstd/memory.h>
-#include <nonstd/type_traits_ext.h>
 #include <nonstd/nonstdexcept.h>
+#include <nonstd/type_traits_ext.h>
 
 
 namespace nonstd {

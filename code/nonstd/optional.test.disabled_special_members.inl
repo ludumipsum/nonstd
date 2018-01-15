@@ -2,9 +2,7 @@
 #include <nonstd/optional.h>
 #include <thirdparty/catch.h>
 
-#include <nonstd/core/primitive_types.h>
-
-#include <type_traits>
+#include <nonstd/nonstd.h>
 #include <nonstd/type_traits_ext.h>
 
 namespace disabled_special_members {
