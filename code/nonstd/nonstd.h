@@ -78,7 +78,6 @@
 #include "quantity/angle.h"
 
 #include "utility/iterator.h"
-#include "utility/lazy.h"
 #include "utility/optional.h"
 
 /* Platform specific includes */
