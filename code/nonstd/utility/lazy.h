@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <nonstd/utility/optional_storage.h>
+#include <nonstd/optional_storage.h>
 
 #include <functional>
 #include <tuple>

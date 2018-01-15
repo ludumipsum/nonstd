@@ -75,7 +75,7 @@
 #include <nonstd/type_traits_ext.h>
 #include <nonstd/valid_expression_tester.h>
 #include <nonstd/type_name.h>
-#include <nonstd/utility/optional_storage.h>
+#include <nonstd/optional_storage.h>
 
 
 /** Utilities
