@@ -16,78 +16,44 @@
 #  define NDEBUG
 #endif
 
-/* C Standard Library Includes */
-#include <cassert>
-#include <cctype>
-#include <cerrno>
-#include <cinttypes>
-#include <cmath>
-#include <csignal>
-#include <cstdarg>
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 
-/* C++ Standard Library Includes */
-#include <functional>
-#include <iterator>
-#include <limits>
-#include <ostream>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <type_traits>
-#include <unordered_map>
+/** Globally-Available Thirdparty Libraries
+ *  =======================================
+ */
 
-/* Globally-available thirdparty libraries */
-
-/* Boot Preprocessor
- * For file inside the nonstd/ dir it will still be best to ex; include exactly
- * <boost/preprocessor/seq.hpp>, to help manage which boost_pp headers are used
- * where. The thirdparty/boost/preprocessor.h header will aggregate those.
+/** Boot Preprocessor
+ *  -----------------
+ *  For files inside the nonstd/ library, it will still be best to include
+ *  exactly the file needed (ex; <boost/preprocessor/seq.hpp>) to help manage
+ *  which boost_pp headers are used, where. The thirdparty/boost/preprocessor.h
+ *  header will aggregate those.
  */
 #include <thirdparty/boost/preprocessor.h>
 
-/* {fmt} Printing Library */
+/** {fmt} Printing Library
+ *  ----------------------
+ *  Printing is hard, but it's slightly less hard with {fmt}. Expect that it's
+ *  usable everywhere.
+ */
 #include <thirdparty/fmt.h>
 
 
-/* Nonstandard */
-#include "preprocessor/disallow_copy_and_assign.h"
-#include "preprocessor/homogenize.h"
-#include "preprocessor/require_linkage.h"
-#include "preprocessor/symbol_stringifier.h"
-#include "preprocessor/unused.h"
-
+/** Nonstandard Core
+ *  ================
+ */
+#include "core/disallow_copy_and_assign.h"
+#include "core/homogenize.h"
+#include "core/math.h"
 #include "core/primitive_types.h"
+#include "core/require_linkage.h"
+#include "core/stacktrace.h"
+#include "core/symbol_stringifier.h"
+#include "core/unused.h"
 
-#include "memory/buffer.h"
-#include "memory/core_functions.h"
-#include "memory/array.h"
-#include "memory/hashtable.h"
-#include "memory/nr_ptr.h"
-#include "memory/ring.h"
-#include "memory/stream.h"
 
-#include "c_ish/math.h"
-#include "c_ish/mem.h"
-#include "c_ish/stacktrace.h"
-
-#include "quantity/angle.h"
-
-#include "utility/optional.h"
-
-/* Platform specific includes */
-#if defined(NONSTD_OS_WINDOWS) || defined(__MINGW32__)
-#include <io.h>     // mktmp
-#include <malloc.h> // alloca
-#else
-#include <alloca.h> // alloca
-#endif
-
-/* Nonstandard library initialization */
+/** Nonstandard Library Initialization
+ *  ==================================
+ */
 namespace nonstd {
     inline void init(void) {
         REGISTER_STACK_HANDLERS();

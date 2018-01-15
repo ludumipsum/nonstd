@@ -16,14 +16,12 @@
  *   triviality / constexpr-ness propagates through to `optional<T>`)
  */
 
-#include <nonstd/utility/optional.h>
+#include <nonstd/optional.h>
 #include <testrunner/testrunner.h>
 
+#include <utility>
 #include <nonstd/utility_ext.h>
 #include <nonstd/type_traits_ext.h>
-
-#include <type_traits>
-#include <utility>
 
 
 namespace nonstd_test {
@@ -892,7 +890,8 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
     }
 }
 
-#include "optional.disabled_special_members.inl"
+#include "optional.test.compare_overloads.inl"
+#include "optional.test.disabled_special_members.inl"
 
 } /* namespace optional */
 } /* namespace nonstd_test */

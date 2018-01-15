@@ -8,8 +8,7 @@
 #include <nonstd/optional_storage.h>
 #include <testrunner/testrunner.h>
 
-#include <nonstd/core/primitive_types.h>
-
+#include <nonstd/nonstd.h>
 #include <nonstd/type_traits_ext.h>
 
 

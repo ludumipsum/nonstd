@@ -8,9 +8,10 @@
 #pragma once
 
 // This whole thing only works on non-msvc compilers
-#include "nonstd/preprocessor/homogenize.h"
-
 #if !defined(NONSTD_OS_WINDOWS)
+
+#include "homogenize.h"
+#include "primitive_types.h"
 
 #include <cctype>
 #include <csignal>
@@ -23,15 +24,13 @@
 #include <execinfo.h>
 #include <unistd.h>
 
-#include "nonstd/core/primitive_types.h"
-
 
 namespace nonstd {
 namespace sighandler {
 
 static const u32 g_trace_skip = 1;
 
-#if defined(__APPLE__)
+#if defined(NONSTD_OS_IOS) || defined(NONSTD_OS_MACOS)
 #  define SIGTABLE sys_signame
 #else
 #  define SIGTABLE sys_siglist

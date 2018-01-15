@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include <nonstd/core/primitive_types.h>
+#include <nonstd/nonstd.h>
 
 
 /** N2 Error Codes
