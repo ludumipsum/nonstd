@@ -77,8 +77,6 @@
 
 #include "quantity/angle.h"
 
-#include "utility/optional.h"
-
 /* Platform specific includes */
 #if defined(NONSTD_OS_WINDOWS) || defined(__MINGW32__)
 #include <io.h>     // mktmp

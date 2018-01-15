@@ -2,7 +2,7 @@
 
 #include <nonstd/nonstdexcept.h>
 #include <nonstd/core/primitive_types.h>
-#include <nonstd/utility/optional.h>
+#include <nonstd/optional.h>
 
 #include <nonstd/memory/buffer.h>
 

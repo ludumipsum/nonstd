@@ -77,7 +77,7 @@
 #include <nonstd/c_ish/mem.h>
 #include <nonstd/utility_ext.h>
 #include <nonstd/math.h>
-#include <nonstd/utility/optional.h>
+#include <nonstd/optional.h>
 
 #include "buffer.h"
 #include "core_functions.h"

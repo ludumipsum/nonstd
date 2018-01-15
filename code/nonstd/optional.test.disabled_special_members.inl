@@ -1,7 +1,7 @@
 // Possibly duplicate includes from inlined code
+#include <nonstd/optional.h>
 #include <thirdparty/catch.h>
 
-#include <nonstd/utility/optional.h>
 #include <nonstd/core/primitive_types.h>
 
 #include <type_traits>
