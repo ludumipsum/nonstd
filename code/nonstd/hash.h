@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include <cstring>
-
-#include "nonstd/core/primitive_types.h"
+#include <nonstd/nonstd.h>
 
 
 namespace nonstd {

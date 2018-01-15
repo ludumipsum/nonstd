@@ -6,7 +6,6 @@
 #include <nonstd/cx_math.h>
 #include <testrunner/testrunner.h>
 
-#include <cmath>
 #include <random>
 
 
