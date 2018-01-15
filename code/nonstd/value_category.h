@@ -14,6 +14,8 @@
 #pragma once
 
 
+namespace nonstd {
+
 template<typename T> struct value_category {
     static constexpr auto value = "prvalue";
 };
@@ -26,5 +28,10 @@ template<typename T> struct value_category<T&&> {
     static constexpr auto value = "xvalue";
 };
 
+template <template T>
+inline constexpr bool value_category_v = value_category<T>::value;
+
 // Double parens for ensuring we inspect an expression, not an entity
-#define VALUE_CATEGORY(expr) value_category<decltype((expr))>::value
+#define VALUE_CATEGORY(expr) ::nonstd::value_category_v<decltype((expr))>
+
+}
