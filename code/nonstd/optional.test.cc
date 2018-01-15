@@ -19,11 +19,9 @@
 #include <nonstd/optional.h>
 #include <testrunner/testrunner.h>
 
+#include <utility>
 #include <nonstd/utility_ext.h>
 #include <nonstd/type_traits_ext.h>
-
-#include <type_traits>
-#include <utility>
 
 
 namespace nonstd_test {

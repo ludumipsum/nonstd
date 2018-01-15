@@ -16,8 +16,8 @@
 
 #include <cstddef>
 #include <cstring>
-#include <stdexcept>
 #include <ostream>
+#include <stdexcept>
 
 #include <nonstd/nonstd.h>
 

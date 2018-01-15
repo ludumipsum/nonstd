@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include <nonstd/nonstd.h>
 #include <cstdarg>
 #include <cstdio>
+#include <nonstd/nonstd.h>
 
 
 namespace nonstd {
