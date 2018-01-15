@@ -76,7 +76,6 @@
 #include "c_ish/stacktrace.h"
 
 #include "std_ish/cx_math.h"
-#include "std_ish/hash.h"
 
 #include "quantity/angle.h"
 
