@@ -6,14 +6,14 @@
 #include <nonstd/lazy.h>
 #include <testrunner/testrunner.h>
 
-#include <nonstd/core/primitive_types.h>
-#include <nonstd/memory/nr_ptr.h>
-#include <nonstd/preprocessor/homogenize.h>
-
+#include <nonstd/nonstd.h>
+#include <nonstd/memory.h>
 #include <memory/memory.h>
 #include <testrunner/helpers/construction_counter.h>
 
+
 namespace nonstd_test::lazy {
+
 using namespace Catch::Matchers;
 using nonstd::lazy;
 using nonstd::nr_ptr;

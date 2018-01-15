@@ -19,11 +19,9 @@
 #include <nonstd/optional.h>
 #include <testrunner/testrunner.h>
 
+#include <utility>
 #include <nonstd/utility_ext.h>
 #include <nonstd/type_traits_ext.h>
-
-#include <type_traits>
-#include <utility>
 
 
 namespace nonstd_test {
@@ -892,6 +890,7 @@ TEST_CASE("Optional types", "[nonstd][optional]") {
     }
 }
 
+#include "optional.test.compare_overloads.inl"
 #include "optional.test.disabled_special_members.inl"
 
 } /* namespace optional */

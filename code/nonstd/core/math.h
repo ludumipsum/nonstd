@@ -2,6 +2,8 @@
  *  ==============
  *  Both type- and compiler-safe.
  */
+//TODO: I'm not sure these are really type-safe. We should probably turn these
+// into function templates and move them into nonstd::
 
 #pragma once
 
