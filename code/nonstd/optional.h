@@ -68,14 +68,13 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include <thirdparty/fmt.h>
-
-#include <nonstd/special_member_filters.h>
-#include <nonstd/utility_ext.h>
-#include <nonstd/type_traits_ext.h>
-#include <nonstd/valid_expression_tester.h>
-#include <nonstd/type_name.h>
+#include <nonstd/nonstd.h>
 #include <nonstd/optional_storage.h>
+#include <nonstd/special_member_filters.h>
+#include <nonstd/type_name.h>
+#include <nonstd/type_traits_ext.h>
+#include <nonstd/utility_ext.h>
+#include <nonstd/valid_expression_tester.h>
 
 
 /** Utilities

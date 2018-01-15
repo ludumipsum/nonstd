@@ -71,13 +71,9 @@
 
 #pragma once
 
-#include <nonstd/core/primitive_types.h>
-#include <nonstd/c_ish/mem.h>
-
-#include <nonstd/memory/buffer.h>
-#include <nonstd/memory/core_functions.h>
-
+#include <nonstd/nonstd.h>
 #include <nonstd/math.h>
+#include <nonstd/memory.h>
 #include <nonstd/nonstdexcept.h>
 #include <nonstd/optional.h>
 #include <nonstd/type_traits_ext.h>

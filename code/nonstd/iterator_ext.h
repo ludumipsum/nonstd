@@ -8,9 +8,7 @@
 #pragma once
 
 #include <iterator>
-
-#include <nonstd/core/primitive_types.h>
-#include <nonstd/c_ish/math.h>
+#include <nonstd/nonstd.h>
 
 
 namespace nonstd {
