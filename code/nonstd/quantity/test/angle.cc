@@ -4,7 +4,7 @@
 
 #include <testrunner/testrunner.h>
 
-#include <nonstd/std_ish/cx_math.h>
+#include <nonstd/cx_math.h>
 #include <nonstd/quantity/angle.h>
 
 

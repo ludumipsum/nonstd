@@ -4,7 +4,7 @@
 #include <cmath>
 
 #include <nonstd/core/primitive_types.h>
-#include <nonstd/std_ish/cx_math.h>
+#include <nonstd/cx_math.h>
 
 
 namespace nonstd {

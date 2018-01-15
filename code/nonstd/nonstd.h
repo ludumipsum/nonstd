@@ -75,8 +75,6 @@
 #include "c_ish/mem.h"
 #include "c_ish/stacktrace.h"
 
-#include "std_ish/cx_math.h"
-
 #include "quantity/angle.h"
 
 #include "utility/iterator.h"
