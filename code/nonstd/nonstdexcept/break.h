@@ -9,10 +9,7 @@
 #pragma once
 
 #include <string>
-
-#include <thirdparty/fmt.h>
-#include <nonstd/preprocessor/homogenize.h>
-#include <nonstd/core/primitive_types.h>
+#include <nonstd/nonstd.h>
 
 #include "error_types.h"
 

@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <type_traits>
-#include <nonstd/core/primitive_types.h>
+#include <nonstd/nonstd.h>
+#include <nonstd/type_traits_ext.h>
 
 
 namespace nonstd {
