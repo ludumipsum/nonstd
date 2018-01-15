@@ -7,9 +7,9 @@
 #include <testrunner/testrunner.h>
 
 #include <nonstd/core/primitive_types.h>
-#include <nonstd/memory/nr_ptr.h>
 #include <nonstd/preprocessor/homogenize.h>
 
+#include <nonstd/memory.h>
 #include <memory/memory.h>
 #include <testrunner/helpers/construction_counter.h>
 

@@ -4,7 +4,7 @@
 #include <nonstd/core/primitive_types.h>
 #include <nonstd/optional.h>
 
-#include <nonstd/memory/buffer.h>
+#include "buffer.h"
 
 
 namespace nonstd::memory {

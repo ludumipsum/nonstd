@@ -63,10 +63,6 @@
 
 #include "core/primitive_types.h"
 
-#include "memory/buffer.h"
-#include "memory/core_functions.h"
-#include "memory/nr_ptr.h"
-
 #include "c_ish/math.h"
 #include "c_ish/mem.h"
 #include "c_ish/stacktrace.h"
