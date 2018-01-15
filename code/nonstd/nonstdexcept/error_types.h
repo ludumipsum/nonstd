@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "primitive_types.h"
+#include <nonstd/core/primitive_types.h>
 
 
 /** N2 Error Codes
@@ -74,3 +74,17 @@ constexpr c_cstr N2_ERROR_STRINGS[] = {
     /* DoubleInitialization */
                 "Double (non-idempotent) initialized detected.",
 };
+
+
+/** `strerror` for N2Errors
+ *  =======================
+ *  Analogous to the C `strerr` function; turns an N2Error into a string.
+ *
+ *  TODO: This is a bad place for this functionality. Either it should be a
+ *  to_cstr override, moved into explicit exception types, or... something?
+ *  Else? Something better.
+ *        Give this more thought when we're well into the exceptions shift.
+ */
+constexpr inline c_cstr n2strerr(N2Error err) noexcept {
+    return N2_ERROR_STRINGS[(i32)(err)];
+}

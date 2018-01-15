@@ -9,13 +9,13 @@
 #pragma once
 
 #include <string>
-#include <thirdparty/fmt.h>
 
-#include "primitive_types.h"
+#include <thirdparty/fmt.h>
+#include <nonstd/preprocessor/homogenize.h>
+#include <nonstd/core/primitive_types.h>
+
 #include "error_types.h"
 
-#include "nonstd/c_ish/n2strerr.h"
-#include "nonstd/preprocessor/homogenize.h"
 
 /** BREAKPOINT and DEBUG_BREAKPOINT
  *  -------------------------------

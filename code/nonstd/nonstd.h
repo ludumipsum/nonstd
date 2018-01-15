@@ -61,8 +61,6 @@
 #include "preprocessor/symbol_stringifier.h"
 #include "preprocessor/unused.h"
 
-#include "core/break.h"
-#include "core/error_types.h"
 #include "core/primitive_types.h"
 
 #include "memory/buffer.h"
@@ -75,7 +73,6 @@
 
 #include "c_ish/math.h"
 #include "c_ish/mem.h"
-#include "c_ish/n2strerr.h"
 #include "c_ish/stacktrace.h"
 #include "c_ish/type_name.h"
 #include "c_ish/value_category.h"

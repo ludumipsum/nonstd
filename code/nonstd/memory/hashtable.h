@@ -72,7 +72,7 @@
 #pragma once
 
 #include <nonstd/type_traits_ext.h>
-#include <nonstd/core/break.h>
+#include <nonstd/nonstdexcept.h>
 #include <nonstd/core/primitive_types.h>
 #include <nonstd/c_ish/mem.h>
 #include <nonstd/utility_ext.h>
