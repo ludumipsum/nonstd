@@ -2,9 +2,9 @@
 
 #include <type_traits>
 
+#include <nonstd/nonstd.h>
+#include <nonstd/nonstdexcept.h>
 #include <nonstd/type_traits_ext.h>
-#include <nonstd/core/break.h>
-#include <nonstd/core/primitive_types.h>
 #include <nonstd/utility_ext.h>
 
 #include "buffer.h"
