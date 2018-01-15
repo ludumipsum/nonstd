@@ -77,36 +77,6 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(compare((f64)1, (i8)2)  <  0);
             REQUIRE(compare((u8)2,  (u64)1) >  0);
         }
-
-#if 0
-        SECTION("of optional variations") {
-            nonstd::optional<u32> maybe_int = { 1 };
-            nonstd::optional<u32> none_int  = { };
-            nonstd::optional<c_cstr> maybe_string = { "Foo" };
-            nonstd::optional<c_cstr> none_string  = { };
-
-            /* Remember */
-            REQUIRE(0 == strcmp("a", "a"));
-            REQUIRE(0 <  strcmp("b", "a"));
-            REQUIRE(0 >  strcmp("a", "b"));
-
-            REQUIRE(0 == nonstd::compare(maybe_int, nonstd::optional<u32> { 1 }));
-            REQUIRE(0 <  nonstd::compare(maybe_int, none_int));
-            REQUIRE(0 <  nonstd::compare(maybe_int, nonstd::nullopt));
-            REQUIRE(0 == nonstd::compare(maybe_int, 1));
-            REQUIRE(0 >  nonstd::compare(maybe_int, 2));
-            REQUIRE(0 == strcmp("Foo", "Foo"));
-            REQUIRE(0 == nonstd::compare(nonstd::optional<c_cstr> { "Foo" }, "Foo"));
-            REQUIRE(0 <  strcmp("Foo", "Bar"));
-            REQUIRE(0 <  nonstd::compare(nonstd::optional<c_cstr> { "Foo" }, "Bar"));
-            REQUIRE(0 == strcmp("Foo", "Foo"));
-            REQUIRE(0 == nonstd::compare(maybe_string, "Foo"));
-            REQUIRE(0 <  strcmp("Foo", "Bar"));
-            REQUIRE(0 <  nonstd::compare(maybe_string, "Bar"));
-            REQUIRE(0 <  nonstd::compare(maybe_string, none_string));
-            REQUIRE(0 == nonstd::compare(nonstd::nullopt, none_string));
-        }
-#endif
     }
 
     SECTION("should correctly calculate equality") {
@@ -123,31 +93,6 @@ TEST_CASE("Comparison utilities") {
             REQUIRE(equal_to((u8)2,  (u64)2));
             REQUIRE(equal_to((f64)2, (i8)2));
         }
-
-#if 0
-        SECTION("of optional variations") {
-            nonstd::optional<u32> maybe_int = { 1 };
-            nonstd::optional<u32> none_int  = { };
-            nonstd::optional<c_cstr> maybe_string = { "Foo" };
-            nonstd::optional<c_cstr> none_string  = { };
-
-            REQUIRE( nonstd::equal_to(maybe_int, nonstd::optional<u32> { 1 }));
-            REQUIRE(!nonstd::equal_to(maybe_int, none_int));
-            REQUIRE(!nonstd::equal_to(maybe_int, nonstd::nullopt));
-            REQUIRE( nonstd::equal_to(maybe_int, 1));
-            REQUIRE(!nonstd::equal_to(maybe_int, 2));
-            REQUIRE(0 == strcmp("Foo", "Foo"));
-            REQUIRE( nonstd::equal_to(nonstd::optional<c_cstr> { "Foo" }, "Foo"));
-            REQUIRE(0 != strcmp("Foo", "Bar"));
-            REQUIRE(!nonstd::equal_to(nonstd::optional<c_cstr> { "Foo" }, "Bar"));
-            REQUIRE(0 == strcmp("Foo", "Foo"));
-            REQUIRE( nonstd::equal_to(maybe_string, "Foo"));
-            REQUIRE(0 != strcmp("Foo", "Bar"));
-            REQUIRE(!nonstd::equal_to(maybe_string, "Bar"));
-            REQUIRE(!nonstd::equal_to(maybe_string, none_string));
-            REQUIRE( nonstd::equal_to(nonstd::nullopt, none_string));
-        }
-#endif
     }
 }
 
