@@ -71,16 +71,18 @@
 
 #pragma once
 
-#include <nonstd/type_traits_ext.h>
-#include <nonstd/nonstdexcept.h>
 #include <nonstd/core/primitive_types.h>
 #include <nonstd/c_ish/mem.h>
-#include <nonstd/utility_ext.h>
-#include <nonstd/math.h>
-#include <nonstd/optional.h>
 
-#include "buffer.h"
-#include "core_functions.h"
+#include <nonstd/memory/buffer.h>
+#include <nonstd/memory/core_functions.h>
+
+#include <nonstd/math.h>
+#include <nonstd/nonstdexcept.h>
+#include <nonstd/optional.h>
+#include <nonstd/type_traits_ext.h>
+#include <nonstd/utility_ext.h>
+
 
 
 namespace nonstd {

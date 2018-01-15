@@ -23,13 +23,14 @@
 
 #pragma once
 
+#include <nonstd/core/primitive_types.h>
+
+#include <nonstd/memory/buffer.h>
+#include <nonstd/memory/core_functions.h>
+
 #include <nonstd/type_traits_ext.h>
 #include <nonstd/nonstdexcept.h>
-#include <nonstd/core/primitive_types.h>
 #include <nonstd/scope_guard.h>
-
-#include "buffer.h"
-#include "core_functions.h"
 
 
 namespace nonstd {

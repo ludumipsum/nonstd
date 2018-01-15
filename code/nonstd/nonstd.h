@@ -65,11 +65,7 @@
 
 #include "memory/buffer.h"
 #include "memory/core_functions.h"
-#include "memory/array.h"
-#include "memory/hashtable.h"
 #include "memory/nr_ptr.h"
-#include "memory/ring.h"
-#include "memory/stream.h"
 
 #include "c_ish/math.h"
 #include "c_ish/mem.h"
