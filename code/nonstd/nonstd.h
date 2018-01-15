@@ -74,7 +74,6 @@
 #include "c_ish/math.h"
 #include "c_ish/mem.h"
 #include "c_ish/stacktrace.h"
-#include "c_ish/type_name.h"
 #include "c_ish/value_category.h"
 
 #include "std_ish/cx_math.h"
