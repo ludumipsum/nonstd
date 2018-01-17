@@ -45,6 +45,7 @@
 #include "core/homogenize.h"
 #include "core/math.h"
 #include "core/primitive_types.h"
+#include "core/range.h"
 #include "core/require_linkage.h"
 #include "core/stacktrace.h"
 #include "core/symbol_stringifier.h"
