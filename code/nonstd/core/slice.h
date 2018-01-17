@@ -1,8 +1,9 @@
-/** Iteration Tool Extensions
- *  =========================
+/** Slice
+ *  =====
  *  C++11/14 added great automatic deduction and iteration facilities, but it's
  *  often missing little conveniences to make the task of using them as simple
- *  as it could be.
+ *  as it could be. This utility will lazily iterate over `count` elements from
+ *  the typed pointer given.
  */
 
 #pragma once
@@ -13,14 +14,21 @@
 
 namespace nonstd {
 
+// Forward declaration
+template <typename T> struct Slice;
 
-/** Slice
- *  =====
- *  Lazily iterate over `count` elements from the typed pointer `data`.
+/** `nonstd::slice` Free Functions
+ *   =============================
  */
+template<typename T> inline
+Slice<T> slice(T* data, u64 count, u64 stride = 1) {
+    return Slice<T>(data, count, stride);
+}
+
 template<typename T>
-class Slice {
-public:
+struct Slice {
+    struct iterator;
+
     T*  start;
     T*  stop;
     u64 stride;
@@ -34,13 +42,27 @@ public:
         , stop   ( ((T*)data) + count )
         , stride ( stride             ) { }
 
-    T& operator[](u64 index) {
-        return *( start + (index * stride) );
+    constexpr inline iterator begin() const {
+        return { *this, 0 };
+    }
+    constexpr inline iterator end()   const {
+        return { *this, stop - start };
     }
 
-    class iterator {
-    public:
-        typedef std::output_iterator_tag iterator_category;
+    T& operator[](u64 index) {
+        return *(start + (index * stride));
+    }
+
+    struct iterator {
+        /* Iterator type trait boilerplate. See,
+         * http://en.cppreference.com/w/cpp/iterator/iterator_traits
+         * http://www.cplusplus.com/reference/iterator/
+         */
+        using difference_type   = ptrdiff;
+        using value_type        = T;
+        using pointer           = T*;
+        using reference         = T&;
+        using iterator_category = std::output_iterator_tag;
 
         Slice const& s;
         T* cursor;
@@ -96,19 +118,6 @@ public:
             return *this;
         }
     };
-
-    constexpr inline iterator begin() const {
-        return Slice<T>::iterator(*this, 0);
-    }
-    constexpr inline iterator end()   const {
-        return Slice<T>::iterator(*this, stop - start);
-    }
 };
-
-/* Create a lazy iterator over `count` elements from the typed pointer `data`. */
-template<typename T> inline
-Slice<T> slice(T* data, u64 count, u64 stride = 1) {
-    return Slice<T>(data, count, stride);
-}
 
 } /* namespace nonstd */
