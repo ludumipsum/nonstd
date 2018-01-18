@@ -1,9 +1,9 @@
-/* Iterator Smoke Tests
- * ====================
- * GOAL: Validate the basic functionality of Iterator utilites.
+/* Range Smoke Tests
+ * =================
+ * GOAL: Validate the basic functionality of the Range utility.
  */
 
-#include <nonstd/iterator_ext.h>
+#include <nonstd/core/range.h>
 #include <testrunner/testrunner.h>
 
 
@@ -26,7 +26,7 @@ using nonstd::range;
  */
 
 TEST_CASE("Range API Demo", "[nonstd][api][range]") {
-    SECTION("Do exactly what's advertised") {
+    SECTION("They do exactly what's advertised") {
         auto count = 0;
         auto sum   = 0;
 
@@ -37,7 +37,7 @@ TEST_CASE("Range API Demo", "[nonstd][api][range]") {
         }
 
         REQUIRE(count == 10);
-        REQUIRE(sum   == 45); // The sum of (0,9) is 45, by the by.
+        REQUIRE(sum   == 45); // The sum of [0,9] is 45, by the by.
     }
 
     SECTION("They can be given a start and end") {
@@ -51,7 +51,7 @@ TEST_CASE("Range API Demo", "[nonstd][api][range]") {
         }
 
         REQUIRE(count == 10);
-        REQUIRE(sum   == 145); // The sum of (10,19) is 145.
+        REQUIRE(sum   == 145); // The sum of [10,19] is 145.
     }
 
     SECTION("They can be given a range, and an amount to step by") {
