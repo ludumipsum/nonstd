@@ -1,5 +1,5 @@
-/** Quantity::Angle Smoke Tests
- *  ===========================
+/** Angle Smoke Tests
+ *  =================
  */
 
 #include <nonstd/angle.h>
@@ -24,7 +24,7 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
     SECTION("Creating Angles") {
         // Quantities are, for better or worse, pretty heavily namespaced. As
         // such, you'll probably want to declare them in scope.
-        using nonstd::quantity::angle;
+        using nonstd::angle;
         // To make creation easy, a number of user-defined literals are provided
         // in the `nonstd::literals::angle_literals` scope. You'll have to pull
         // them in with a `using namespace` directive.
@@ -80,7 +80,7 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
      *  Getting data out of an `angle` is... Pretty easy.
      */
     SECTION("Observing Angles") {
-        using nonstd::quantity::angle;
+        using nonstd::angle;
         using namespace nonstd::literals::angle_literals;
         using nonstd::cx;
 
@@ -140,7 +140,7 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
      *  Because that's exactly what's happening.
      */
     SECTION("Comparing Angles") {
-        using nonstd::quantity::angle;
+        using nonstd::angle;
         using namespace nonstd::literals::angle_literals;
 
         auto smaller = 1.0_rads;
@@ -184,7 +184,7 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
      *  `angle`s, or you compose an `angle` and a scalar.
      */
     SECTION("Modifying Angles") {
-        using nonstd::quantity::angle;
+        using nonstd::angle;
         using namespace nonstd::literals::angle_literals;
 
         // You can compose `angel`s with addition and subtraction.
@@ -220,7 +220,7 @@ TEST_CASE("Angle API Demo", "[nonstd][api][quantity]") {
      *  members; `angle::cx::pi`, `angle::cx::tau`, and `angle::cx::zero`.
      */
     SECTION("Static & `constexpr`") {
-        using nonstd::quantity::angle;
+        using nonstd::angle;
         using namespace nonstd::literals::angle_literals;
 
         auto half  = angle::pi;  REQUIRE(half == 180_degs);

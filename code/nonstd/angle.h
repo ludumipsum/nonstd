@@ -9,7 +9,6 @@
 
 
 namespace nonstd {
-namespace quantity {
 
 struct angle {
 private:
@@ -365,8 +364,6 @@ struct angle::cx {
     static constexpr angle zero = angle::in_radians(0.0);
 };
 
-} /* namespace quantity */
-
 
 namespace literals {
 namespace angle_literals {
@@ -375,29 +372,29 @@ namespace angle_literals {
  *  ---------------------
  */
 constexpr inline
-quantity::angle operator "" _radians (udl_float_t radians) noexcept {
-    return quantity::angle::in_radians(static_cast<f32>(radians));
+angle operator "" _radians (udl_float_t radians) noexcept {
+    return angle::in_radians(static_cast<f32>(radians));
 }
 constexpr inline
-quantity::angle operator "" _rads    (udl_float_t radians) noexcept {
-    return quantity::angle::in_radians(static_cast<f32>(radians));
+angle operator "" _rads    (udl_float_t radians) noexcept {
+    return angle::in_radians(static_cast<f32>(radians));
 }
 
 constexpr inline
-quantity::angle operator "" _degrees (udl_float_t degrees) noexcept {
-    return quantity::angle::in_degrees(static_cast<f32>(degrees));
+angle operator "" _degrees (udl_float_t degrees) noexcept {
+    return angle::in_degrees(static_cast<f32>(degrees));
 }
 constexpr inline
-quantity::angle operator "" _degs    (udl_float_t degrees) noexcept {
-    return quantity::angle::in_degrees(static_cast<f32>(degrees));
+angle operator "" _degs    (udl_float_t degrees) noexcept {
+    return angle::in_degrees(static_cast<f32>(degrees));
 }
 constexpr inline
-quantity::angle operator "" _degrees (udl_int_t degrees) noexcept {
-    return quantity::angle::in_degrees(degrees);
+angle operator "" _degrees (udl_int_t degrees) noexcept {
+    return angle::in_degrees(degrees);
 }
 constexpr inline
-quantity::angle operator "" _degs    (udl_int_t degrees) noexcept {
-    return quantity::angle::in_degrees(degrees);
+angle operator "" _degs    (udl_int_t degrees) noexcept {
+    return angle::in_degrees(degrees);
 }
 
 } /* namespace angle_literals */
