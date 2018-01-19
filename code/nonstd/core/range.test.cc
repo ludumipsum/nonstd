@@ -82,6 +82,12 @@ TEST_CASE("Range API Demo", "[nonstd][api][range]") {
         REQUIRE(sum   == 27);
     }
 
+    SECTION("If told to go zero steps; noop") {
+        for (auto i : range(0)) {
+            REQUIRE(false);
+        }
+    }
+
 #if !defined(NONSTD_OS_WINDOWS)
     SECTION("They're even constexpr, if you're not on MSVC") {
         constexpr auto result = constexpr_sum(10, 20);
