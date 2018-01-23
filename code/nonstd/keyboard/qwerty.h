@@ -162,7 +162,7 @@ struct qwerty {
 namespace detail {
     struct ScancodeToQwertyMapping {
         scancode code;
-        c_cstr name;
+        c_cstr   name;
     };
 
     constexpr ScancodeToQwertyMapping scancode_to_qwerty_map[] = {

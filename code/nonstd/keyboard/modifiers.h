@@ -67,8 +67,8 @@ noexcept {
  */
 namespace detail {
     struct KeyboardModifierNameMapping {
-        modifier modifier;
-        c_cstr           name;
+        modifier mod;
+        c_cstr   name;
     };
 
     constexpr KeyboardModifierNameMapping keyboard_modifier_name_map[] = {
@@ -103,7 +103,7 @@ namespace detail {
                 &keyboard_modifier_name_map[0])
     noexcept {
         return map != nullptr
-             ? ( modifier == map->modifier
+             ? ( modifier == map->mod
                ? map->name
                : _get_modifier_name(modifier, map+1) )
              : nullptr;
