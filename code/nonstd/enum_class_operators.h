@@ -30,7 +30,7 @@ inline std::ostream & operator<< (std::ostream & s,                            \
                                   ENUM const & e) {                            \
     return s << "0x{:x}"_format(static_cast<std::underlying_type_t<ENUM>>(e)); \
 }                                                                              \
-struct __n2_force_semicolon_on_macro
+struct ___n2_force_semicolon_on_macro
 
 
 #define GENERATE_OPERATOR_OVERLOADS_FOR_ENUM_CLASS(ENUM) \
@@ -110,6 +110,6 @@ inline constexpr bool is_null(ENUM const & e) noexcept {                       \
 inline constexpr bool is_any(ENUM const & e) noexcept {                        \
     return static_cast<std::underlying_type_t<ENUM>>(e) != 0;                  \
 }                                                                              \
-struct __n2_force_semicolon_on_macro
+struct ___n2_force_semicolon_on_macro
 
 } /* namespace nonstd */
