@@ -66,12 +66,12 @@ noexcept {
  *  ============================================
  */
 namespace detail {
-    struct modifierNameMapping {
+    struct KeyboardModifierNameMapping {
         modifier modifier;
         c_cstr           name;
     };
 
-    constexpr modifierNameMapping keyboard_modifier_map[] = {
+    constexpr KeyboardModifierNameMapping keyboard_modifier_name_map[] = {
         { modifier::LeftShift, "Left Shift" },
         { modifier::LeftCtrl, "Left Ctrl" },
         { modifier::LeftAlt, "Left Alt" },
@@ -99,7 +99,8 @@ namespace detail {
      */
     inline constexpr c_cstr _get_modifier_name(
             modifier const modifier,
-            modifierNameMapping const * map = &keyboard_modifier_map[0])
+            KeyboardModifierNameMapping const * map =
+                &keyboard_modifier_name_map[0])
     noexcept {
         return map != nullptr
              ? ( modifier == map->modifier
