@@ -45,8 +45,8 @@ GENERATE_OPERATOR_OVERLOADS_FOR_ENUM_CLASS(modifier);
 
 
 /** Convert a keyboard scancode to its corresponding modifier mask. */
-inline constexpr
-keyboard::modifier scancode_to_modifier(keyboard::scancode code)
+inline constexpr keyboard::modifier
+modifier_from_scancode(keyboard::scancode code)
 noexcept {
     switch (code) {
     case keyboard::scancode::LeftCtrl:   { return modifier::LeftCtrl;   }
