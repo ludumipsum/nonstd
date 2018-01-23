@@ -104,6 +104,12 @@ inline constexpr ENUM& operator-= (ENUM& lhs, ENUM const & rhs) noexcept {     \
     );                                                                         \
     return lhs;                                                                \
 }                                                                              \
+inline constexpr bool is_null(ENUM const & e) noexcept {                       \
+    return static_cast<std::underlying_type_t<ENUM>>(e) == 0;                  \
+}                                                                              \
+inline constexpr bool is_any(ENUM const & e) noexcept {                        \
+    return static_cast<std::underlying_type_t<ENUM>>(e) != 0;                  \
+}                                                                              \
 struct __n2_force_semicolon_on_macro
 
 } /* namespace nonstd */
