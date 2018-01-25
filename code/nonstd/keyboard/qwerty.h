@@ -10,148 +10,148 @@ struct qwerty {
     /** Return the QWERTY symbol corresponding to the given scancode. */
     static inline constexpr c_cstr to_cstr(scancode code) noexcept;
 
-    static constexpr scancode A = scancode::A;
-    static constexpr scancode B = scancode::B;
-    static constexpr scancode C = scancode::C;
-    static constexpr scancode D = scancode::D;
-    static constexpr scancode E = scancode::E;
-    static constexpr scancode F = scancode::F;
-    static constexpr scancode G = scancode::G;
-    static constexpr scancode H = scancode::H;
-    static constexpr scancode I = scancode::I;
-    static constexpr scancode J = scancode::J;
-    static constexpr scancode K = scancode::K;
-    static constexpr scancode L = scancode::L;
-    static constexpr scancode M = scancode::M;
-    static constexpr scancode N = scancode::N;
-    static constexpr scancode O = scancode::O;
-    static constexpr scancode P = scancode::P;
-    static constexpr scancode Q = scancode::Q;
-    static constexpr scancode R = scancode::R;
-    static constexpr scancode S = scancode::S;
-    static constexpr scancode T = scancode::T;
-    static constexpr scancode U = scancode::U;
-    static constexpr scancode V = scancode::V;
-    static constexpr scancode W = scancode::W;
-    static constexpr scancode X = scancode::X;
-    static constexpr scancode Y = scancode::Y;
-    static constexpr scancode Z = scancode::Z;
+    static constexpr scancode a = scancode::a;
+    static constexpr scancode b = scancode::b;
+    static constexpr scancode c = scancode::c;
+    static constexpr scancode d = scancode::d;
+    static constexpr scancode e = scancode::e;
+    static constexpr scancode f = scancode::f;
+    static constexpr scancode g = scancode::g;
+    static constexpr scancode h = scancode::h;
+    static constexpr scancode i = scancode::i;
+    static constexpr scancode j = scancode::j;
+    static constexpr scancode k = scancode::k;
+    static constexpr scancode l = scancode::l;
+    static constexpr scancode m = scancode::m;
+    static constexpr scancode n = scancode::n;
+    static constexpr scancode o = scancode::o;
+    static constexpr scancode p = scancode::p;
+    static constexpr scancode q = scancode::q;
+    static constexpr scancode r = scancode::r;
+    static constexpr scancode s = scancode::s;
+    static constexpr scancode t = scancode::t;
+    static constexpr scancode u = scancode::u;
+    static constexpr scancode v = scancode::v;
+    static constexpr scancode w = scancode::w;
+    static constexpr scancode x = scancode::x;
+    static constexpr scancode y = scancode::y;
+    static constexpr scancode z = scancode::z;
 
-    static constexpr scancode n1 = scancode::kb_1;
-    static constexpr scancode n2 = scancode::kb_2;
-    static constexpr scancode n3 = scancode::kb_3;
-    static constexpr scancode n4 = scancode::kb_4;
-    static constexpr scancode n5 = scancode::kb_5;
-    static constexpr scancode n6 = scancode::kb_6;
-    static constexpr scancode n7 = scancode::kb_7;
-    static constexpr scancode n8 = scancode::kb_8;
-    static constexpr scancode n9 = scancode::kb_9;
-    static constexpr scancode n0 = scancode::kb_0;
+    static constexpr scancode one   = scancode::one;
+    static constexpr scancode two   = scancode::two;
+    static constexpr scancode three = scancode::three;
+    static constexpr scancode four  = scancode::four;
+    static constexpr scancode five  = scancode::five;
+    static constexpr scancode six   = scancode::six;
+    static constexpr scancode seven = scancode::seven;
+    static constexpr scancode eight = scancode::eight;
+    static constexpr scancode nine  = scancode::nine;
+    static constexpr scancode zero  = scancode::zero;
 
-    static constexpr scancode Return = scancode::Return;
-    static constexpr scancode Escape = scancode::Escape;
-    static constexpr scancode Backspace = scancode::Backspace;
-    static constexpr scancode Tab = scancode::Tab;
-    static constexpr scancode Space = scancode::Space;
+    static constexpr scancode enter = scancode::enter;
+    static constexpr scancode escape = scancode::escape;
+    static constexpr scancode backspace = scancode::backspace;
+    static constexpr scancode tab = scancode::tab;
+    static constexpr scancode space = scancode::space;
 
-    static constexpr scancode Minus = scancode::kb_Minus;
-    static constexpr scancode Equals = scancode::kb_Equals;
+    static constexpr scancode minus = scancode::minus;
+    static constexpr scancode equals = scancode::equals;
 
-    static constexpr scancode LeftBracket = scancode::LeftBracket;
-    static constexpr scancode RightBracket = scancode::RightBracket;
+    static constexpr scancode left_bracket = scancode::left_bracket;
+    static constexpr scancode right_bracket = scancode::right_bracket;
 
-    static constexpr scancode Backslash = scancode::Backslash;
+    static constexpr scancode backslash = scancode::backslash;
 
-    static constexpr scancode Semicolon = scancode::Semicolon;
-    static constexpr scancode Apostrophe = scancode::Apostrophe;
-    static constexpr scancode Grave = scancode::Grave;
+    static constexpr scancode semicolon = scancode::semicolon;
+    static constexpr scancode apostrophe = scancode::apostrophe;
+    static constexpr scancode grave = scancode::grave;
 
-    static constexpr scancode Comma = scancode::Comma;
-    static constexpr scancode Period = scancode::Period;
+    static constexpr scancode comma = scancode::comma;
+    static constexpr scancode period = scancode::period;
 
-    static constexpr scancode ForwardSlash = scancode::ForwardSlash;
+    static constexpr scancode forward_slash = scancode::forward_slash;
 
-    static constexpr scancode CapsLock = scancode::CapsLock;
+    static constexpr scancode caps_lock = scancode::caps_lock;
 
-    static constexpr scancode F1  = scancode::F1;
-    static constexpr scancode F2  = scancode::F2;
-    static constexpr scancode F3  = scancode::F3;
-    static constexpr scancode F4  = scancode::F4;
-    static constexpr scancode F5  = scancode::F5;
-    static constexpr scancode F6  = scancode::F6;
-    static constexpr scancode F7  = scancode::F7;
-    static constexpr scancode F8  = scancode::F8;
-    static constexpr scancode F9  = scancode::F9;
-    static constexpr scancode F10 = scancode::F10;
-    static constexpr scancode F11 = scancode::F11;
-    static constexpr scancode F12 = scancode::F12;
-    static constexpr scancode F13 = scancode::F13;
-    static constexpr scancode F14 = scancode::F14;
-    static constexpr scancode F15 = scancode::F15;
-    static constexpr scancode F16 = scancode::F16;
-    static constexpr scancode F17 = scancode::F17;
-    static constexpr scancode F18 = scancode::F18;
-    static constexpr scancode F19 = scancode::F19;
-    static constexpr scancode F20 = scancode::F20;
-    static constexpr scancode F21 = scancode::F21;
-    static constexpr scancode F22 = scancode::F22;
-    static constexpr scancode F23 = scancode::F23;
-    static constexpr scancode F24 = scancode::F24;
+    static constexpr scancode f1  = scancode::f1;
+    static constexpr scancode f2  = scancode::f2;
+    static constexpr scancode f3  = scancode::f3;
+    static constexpr scancode f4  = scancode::f4;
+    static constexpr scancode f5  = scancode::f5;
+    static constexpr scancode f6  = scancode::f6;
+    static constexpr scancode f7  = scancode::f7;
+    static constexpr scancode f8  = scancode::f8;
+    static constexpr scancode f9  = scancode::f9;
+    static constexpr scancode f10 = scancode::f10;
+    static constexpr scancode f11 = scancode::f11;
+    static constexpr scancode f12 = scancode::f12;
+    static constexpr scancode f13 = scancode::f13;
+    static constexpr scancode f14 = scancode::f14;
+    static constexpr scancode f15 = scancode::f15;
+    static constexpr scancode f16 = scancode::f16;
+    static constexpr scancode f17 = scancode::f17;
+    static constexpr scancode f18 = scancode::f18;
+    static constexpr scancode f19 = scancode::f19;
+    static constexpr scancode f20 = scancode::f20;
+    static constexpr scancode f21 = scancode::f21;
+    static constexpr scancode f22 = scancode::f22;
+    static constexpr scancode f23 = scancode::f23;
+    static constexpr scancode f24 = scancode::f24;
 
-    static constexpr scancode PrintScreen = scancode::PrintScreen;
-    static constexpr scancode ScrollLock = scancode::ScrollLock;
-    static constexpr scancode Pause = scancode::Pause;
-    static constexpr scancode Insert = scancode::Insert;
+    static constexpr scancode print_screen = scancode::print_screen;
+    static constexpr scancode scroll_lock = scancode::scroll_lock;
+    static constexpr scancode pause = scancode::pause;
+    static constexpr scancode insert = scancode::insert;
 
-    static constexpr scancode Home = scancode::Home;
-    static constexpr scancode PageUp = scancode::PageUp;
-    static constexpr scancode Delete = scancode::Delete;
-    static constexpr scancode End = scancode::End;
-    static constexpr scancode PageDown = scancode::PageDown;
+    static constexpr scancode home      = scancode::home;
+    static constexpr scancode page_up   = scancode::page_up;
+    static constexpr scancode del       = scancode::del;
+    static constexpr scancode end       = scancode::end;
+    static constexpr scancode page_down = scancode::page_down;
 
-    static constexpr scancode RightArrow = scancode::RightArrow;
-    static constexpr scancode LeftArrow = scancode::LeftArrow;
-    static constexpr scancode DownArrow = scancode::DownArrow;
-    static constexpr scancode UpArrow = scancode::UpArrow;
+    static constexpr scancode right_arrow = scancode::right_arrow;
+    static constexpr scancode left_arrow = scancode::left_arrow;
+    static constexpr scancode down_arrow = scancode::down_arrow;
+    static constexpr scancode up_arrow = scancode::up_arrow;
 
-    static constexpr scancode Mute = scancode::Mute;
-    static constexpr scancode VolumeUp = scancode::VolumeUp;
-    static constexpr scancode VolumeDown = scancode::VolumeDown;
+    static constexpr scancode mute = scancode::mute;
+    static constexpr scancode volume_up = scancode::volume_up;
+    static constexpr scancode volume_down = scancode::volume_down;
 
-    static constexpr scancode LeftCtrl = scancode::LeftCtrl;
-    static constexpr scancode LeftShift = scancode::LeftShift;
-    static constexpr scancode LeftAlt = scancode::LeftAlt;
-    static constexpr scancode LeftGUI = scancode::LeftGUI;
-    static constexpr scancode RightCtrl = scancode::RightCtrl;
-    static constexpr scancode RightShift = scancode::RightShift;
-    static constexpr scancode RightAlt = scancode::RightAlt;
-    static constexpr scancode RightGUI = scancode::RightGUI;
+    static constexpr scancode left_ctrl = scancode::left_ctrl;
+    static constexpr scancode left_shift = scancode::left_shift;
+    static constexpr scancode left_alt = scancode::left_alt;
+    static constexpr scancode left_gui = scancode::left_gui;
+    static constexpr scancode right_ctrl = scancode::right_ctrl;
+    static constexpr scancode right_shift = scancode::right_shift;
+    static constexpr scancode right_alt = scancode::right_alt;
+    static constexpr scancode right_gui = scancode::right_gui;
 
-    struct keypad {
-        static constexpr scancode NumLock = scancode::kp_NumLock;
+    struct numpad {
+        static constexpr scancode num_lock = scancode::numpad_num_lock;
 
-        static constexpr scancode Divide = scancode::kp_Divide;
-        static constexpr scancode Multiply = scancode::kp_Multiply;
-        static constexpr scancode Minus = scancode::kp_Minus;
-        static constexpr scancode Plus = scancode::kp_Plus;
+        static constexpr scancode divide = scancode::numpad_divide;
+        static constexpr scancode multiply = scancode::numpad_multiply;
+        static constexpr scancode minus = scancode::numpad_minus;
+        static constexpr scancode plus = scancode::numpad_plus;
 
-        static constexpr scancode Enter = scancode::kp_Enter;
+        static constexpr scancode enter = scancode::numpad_enter;
 
-        static constexpr scancode n1 = scancode::kp_1;
-        static constexpr scancode n2 = scancode::kp_2;
-        static constexpr scancode n3 = scancode::kp_3;
-        static constexpr scancode n4 = scancode::kp_4;
-        static constexpr scancode n5 = scancode::kp_5;
-        static constexpr scancode n6 = scancode::kp_6;
-        static constexpr scancode n7 = scancode::kp_7;
-        static constexpr scancode n8 = scancode::kp_8;
-        static constexpr scancode n9 = scancode::kp_9;
-        static constexpr scancode n0 = scancode::kp_0;
+        static constexpr scancode one   = scancode::numpad_one;
+        static constexpr scancode two   = scancode::numpad_two;
+        static constexpr scancode three = scancode::numpad_three;
+        static constexpr scancode four  = scancode::numpad_four;
+        static constexpr scancode five  = scancode::numpad_five;
+        static constexpr scancode six   = scancode::numpad_six;
+        static constexpr scancode seven = scancode::numpad_seven;
+        static constexpr scancode eight = scancode::numpad_eight;
+        static constexpr scancode nine  = scancode::numpad_nine;
+        static constexpr scancode zero  = scancode::numpad_zero;
 
-        static constexpr scancode Period = scancode::kp_Period;
+        static constexpr scancode period = scancode::numpad_period;
 
-        static constexpr scancode Equals = scancode::kp_Equals;
-        static constexpr scancode Comma = scancode::kp_Comma;
+        static constexpr scancode equals = scancode::numpad_equals;
+        static constexpr scancode comma = scancode::numpad_comma;
     };
 };
 
@@ -160,159 +160,159 @@ struct qwerty {
  *  ============================================
  */
 namespace detail {
-    struct ScancodeToQwertyMapping {
+    struct scancode_to_qwerty_mapping {
         scancode code;
         c_cstr   name;
     };
 
-    constexpr ScancodeToQwertyMapping scancode_to_qwerty_map[] = {
-        { keyboard::qwerty::A, "A" },
-        { keyboard::qwerty::B, "B" },
-        { keyboard::qwerty::C, "C" },
-        { keyboard::qwerty::D, "D" },
-        { keyboard::qwerty::E, "E" },
-        { keyboard::qwerty::F, "F" },
-        { keyboard::qwerty::G, "G" },
-        { keyboard::qwerty::H, "H" },
-        { keyboard::qwerty::I, "I" },
-        { keyboard::qwerty::J, "J" },
-        { keyboard::qwerty::K, "K" },
-        { keyboard::qwerty::L, "L" },
-        { keyboard::qwerty::M, "M" },
-        { keyboard::qwerty::N, "N" },
-        { keyboard::qwerty::O, "O" },
-        { keyboard::qwerty::P, "P" },
-        { keyboard::qwerty::Q, "Q" },
-        { keyboard::qwerty::R, "R" },
-        { keyboard::qwerty::S, "S" },
-        { keyboard::qwerty::T, "T" },
-        { keyboard::qwerty::U, "U" },
-        { keyboard::qwerty::V, "V" },
-        { keyboard::qwerty::W, "W" },
-        { keyboard::qwerty::X, "X" },
-        { keyboard::qwerty::Y, "Y" },
-        { keyboard::qwerty::Z, "Z" },
+    constexpr scancode_to_qwerty_mapping scancode_to_qwerty_map[] = {
+        { keyboard::qwerty::a, "A" },
+        { keyboard::qwerty::b, "B" },
+        { keyboard::qwerty::c, "C" },
+        { keyboard::qwerty::d, "D" },
+        { keyboard::qwerty::e, "E" },
+        { keyboard::qwerty::f, "F" },
+        { keyboard::qwerty::g, "G" },
+        { keyboard::qwerty::h, "H" },
+        { keyboard::qwerty::i, "I" },
+        { keyboard::qwerty::j, "J" },
+        { keyboard::qwerty::k, "K" },
+        { keyboard::qwerty::l, "L" },
+        { keyboard::qwerty::m, "M" },
+        { keyboard::qwerty::n, "N" },
+        { keyboard::qwerty::o, "O" },
+        { keyboard::qwerty::p, "P" },
+        { keyboard::qwerty::q, "Q" },
+        { keyboard::qwerty::r, "R" },
+        { keyboard::qwerty::s, "S" },
+        { keyboard::qwerty::t, "T" },
+        { keyboard::qwerty::u, "U" },
+        { keyboard::qwerty::v, "V" },
+        { keyboard::qwerty::w, "W" },
+        { keyboard::qwerty::x, "X" },
+        { keyboard::qwerty::y, "Y" },
+        { keyboard::qwerty::z, "Z" },
 
-        { keyboard::qwerty::n1, "1" },
-        { keyboard::qwerty::n2, "2" },
-        { keyboard::qwerty::n3, "3" },
-        { keyboard::qwerty::n4, "4" },
-        { keyboard::qwerty::n5, "5" },
-        { keyboard::qwerty::n6, "6" },
-        { keyboard::qwerty::n7, "7" },
-        { keyboard::qwerty::n8, "8" },
-        { keyboard::qwerty::n9, "9" },
-        { keyboard::qwerty::n0, "0" },
+        { keyboard::qwerty::one,   "1" },
+        { keyboard::qwerty::two,   "2" },
+        { keyboard::qwerty::three, "3" },
+        { keyboard::qwerty::four,  "4" },
+        { keyboard::qwerty::five,  "5" },
+        { keyboard::qwerty::six,   "6" },
+        { keyboard::qwerty::seven, "7" },
+        { keyboard::qwerty::eight, "8" },
+        { keyboard::qwerty::nine,  "9" },
+        { keyboard::qwerty::zero,  "0" },
 
-        { keyboard::qwerty::Return, "Return" },
-        { keyboard::qwerty::Escape, "Escape" },
-        { keyboard::qwerty::Backspace, "Backspace" },
-        { keyboard::qwerty::Tab, "Tab" },
-        { keyboard::qwerty::Space, "Space" },
+        { keyboard::qwerty::enter, "Return" },
+        { keyboard::qwerty::escape, "Escape" },
+        { keyboard::qwerty::backspace, "Backspace" },
+        { keyboard::qwerty::tab, "Tab" },
+        { keyboard::qwerty::space, "Space" },
 
-        { keyboard::qwerty::Minus, "-" },
-        { keyboard::qwerty::Equals, "=" },
+        { keyboard::qwerty::minus, "-" },
+        { keyboard::qwerty::equals, "=" },
 
-        { keyboard::qwerty::LeftBracket, "[" },
-        { keyboard::qwerty::RightBracket, "]" },
+        { keyboard::qwerty::left_bracket, "[" },
+        { keyboard::qwerty::right_bracket, "]" },
 
-        { keyboard::qwerty::Backslash, "\\" },
+        { keyboard::qwerty::backslash, "\\" },
 
-        { keyboard::qwerty::Semicolon, ";" },
-        { keyboard::qwerty::Apostrophe, "'" },
-        { keyboard::qwerty::Grave, "`" },
+        { keyboard::qwerty::semicolon, ";" },
+        { keyboard::qwerty::apostrophe, "'" },
+        { keyboard::qwerty::grave, "`" },
 
-        { keyboard::qwerty::Comma, "," },
-        { keyboard::qwerty::Period, "." },
+        { keyboard::qwerty::comma, "," },
+        { keyboard::qwerty::period, "." },
 
-        { keyboard::qwerty::ForwardSlash, "/" },
+        { keyboard::qwerty::forward_slash, "/" },
 
-        { keyboard::qwerty::CapsLock, "Caps Lock" },
+        { keyboard::qwerty::caps_lock, "Caps Lock" },
 
-        { keyboard::qwerty::F1, "F1" },
-        { keyboard::qwerty::F2, "F2" },
-        { keyboard::qwerty::F3, "F3" },
-        { keyboard::qwerty::F4, "F4" },
-        { keyboard::qwerty::F5, "F5" },
-        { keyboard::qwerty::F6, "F6" },
-        { keyboard::qwerty::F7, "F7" },
-        { keyboard::qwerty::F8, "F8" },
-        { keyboard::qwerty::F9, "F9" },
-        { keyboard::qwerty::F10, "F10" },
-        { keyboard::qwerty::F11, "F11" },
-        { keyboard::qwerty::F12, "F12" },
-        { keyboard::qwerty::F13, "F13" },
-        { keyboard::qwerty::F14, "F14" },
-        { keyboard::qwerty::F15, "F15" },
-        { keyboard::qwerty::F16, "F16" },
-        { keyboard::qwerty::F17, "F17" },
-        { keyboard::qwerty::F18, "F18" },
-        { keyboard::qwerty::F19, "F19" },
-        { keyboard::qwerty::F20, "F20" },
-        { keyboard::qwerty::F21, "F21" },
-        { keyboard::qwerty::F22, "F22" },
-        { keyboard::qwerty::F23, "F23" },
-        { keyboard::qwerty::F24, "F24" },
+        { keyboard::qwerty::f1,  "F1" },
+        { keyboard::qwerty::f2,  "F2" },
+        { keyboard::qwerty::f3,  "F3" },
+        { keyboard::qwerty::f4,  "F4" },
+        { keyboard::qwerty::f5,  "F5" },
+        { keyboard::qwerty::f6,  "F6" },
+        { keyboard::qwerty::f7,  "F7" },
+        { keyboard::qwerty::f8,  "F8" },
+        { keyboard::qwerty::f9,  "F9" },
+        { keyboard::qwerty::f10, "F10" },
+        { keyboard::qwerty::f11, "F11" },
+        { keyboard::qwerty::f12, "F12" },
+        { keyboard::qwerty::f13, "F13" },
+        { keyboard::qwerty::f14, "F14" },
+        { keyboard::qwerty::f15, "F15" },
+        { keyboard::qwerty::f16, "F16" },
+        { keyboard::qwerty::f17, "F17" },
+        { keyboard::qwerty::f18, "F18" },
+        { keyboard::qwerty::f19, "F19" },
+        { keyboard::qwerty::f20, "F20" },
+        { keyboard::qwerty::f21, "F21" },
+        { keyboard::qwerty::f22, "F22" },
+        { keyboard::qwerty::f23, "F23" },
+        { keyboard::qwerty::f24, "F24" },
 
-        { keyboard::qwerty::PrintScreen, "Print Screen" },
-        { keyboard::qwerty::ScrollLock, "Scroll Lock" },
-        { keyboard::qwerty::Pause, "Pause" },
-        { keyboard::qwerty::Insert, "Insert" },
+        { keyboard::qwerty::print_screen, "Print Screen" },
+        { keyboard::qwerty::scroll_lock, "Scroll Lock" },
+        { keyboard::qwerty::pause, "Pause" },
+        { keyboard::qwerty::insert, "Insert" },
 
-        { keyboard::qwerty::Home, "Home" },
-        { keyboard::qwerty::PageUp, "Page Up" },
-        { keyboard::qwerty::Delete, "Delete" },
-        { keyboard::qwerty::End, "End" },
-        { keyboard::qwerty::PageDown, "Page Down" },
+        { keyboard::qwerty::home,      "Home" },
+        { keyboard::qwerty::page_up,   "Page Up" },
+        { keyboard::qwerty::del,       "Delete" },
+        { keyboard::qwerty::end,       "End" },
+        { keyboard::qwerty::page_down, "Page Down" },
 
-        { keyboard::qwerty::RightArrow, "Right Arrow" },
-        { keyboard::qwerty::LeftArrow, "Left Arrow" },
-        { keyboard::qwerty::DownArrow, "Down Arrow" },
-        { keyboard::qwerty::UpArrow, "Up Arrow" },
+        { keyboard::qwerty::right_arrow, "Right Arrow" },
+        { keyboard::qwerty::left_arrow, "Left Arrow" },
+        { keyboard::qwerty::down_arrow, "Down Arrow" },
+        { keyboard::qwerty::up_arrow, "Up Arrow" },
 
-        { keyboard::qwerty::Mute, "Mute" },
-        { keyboard::qwerty::VolumeUp, "Volume Up" },
-        { keyboard::qwerty::VolumeDown, "Volume Down" },
+        { keyboard::qwerty::mute, "Mute" },
+        { keyboard::qwerty::volume_up, "Volume Up" },
+        { keyboard::qwerty::volume_down, "Volume Down" },
 
-        { keyboard::qwerty::LeftCtrl, "Left Ctrl" },
-        { keyboard::qwerty::LeftShift, "Left Shift" },
-        { keyboard::qwerty::LeftAlt, "Left Alt" },
-        { keyboard::qwerty::LeftGUI, "Left " GUI_KEY_NAME },
-        { keyboard::qwerty::RightCtrl, "Right Ctrl" },
-        { keyboard::qwerty::RightShift, "Right Shift" },
-        { keyboard::qwerty::RightAlt, "Right Alt" },
-        { keyboard::qwerty::RightGUI, "Right " GUI_KEY_NAME },
+        { keyboard::qwerty::left_ctrl, "Left Ctrl" },
+        { keyboard::qwerty::left_shift, "Left Shift" },
+        { keyboard::qwerty::left_alt, "Left Alt" },
+        { keyboard::qwerty::left_gui, "Left " GUI_KEY_NAME },
+        { keyboard::qwerty::right_ctrl, "Right Ctrl" },
+        { keyboard::qwerty::right_shift, "Right Shift" },
+        { keyboard::qwerty::right_alt, "Right Alt" },
+        { keyboard::qwerty::right_gui, "Right " GUI_KEY_NAME },
 
-        { keyboard::qwerty::keypad::NumLock, "Keypad Numlock" },
+        { keyboard::qwerty::numpad::num_lock, "NumberPad Num Lock" },
 
-        { keyboard::qwerty::keypad::Divide, "Keypad Divide" },
-        { keyboard::qwerty::keypad::Multiply, "Keypad Multiply" },
-        { keyboard::qwerty::keypad::Minus, "Keypad Minus" },
-        { keyboard::qwerty::keypad::Plus, "Keypad Plus" },
+        { keyboard::qwerty::numpad::divide, "NumberPad Divide" },
+        { keyboard::qwerty::numpad::multiply, "NumberPad Multiply" },
+        { keyboard::qwerty::numpad::minus, "NumberPad Minus" },
+        { keyboard::qwerty::numpad::plus, "NumberPad Plus" },
 
-        { keyboard::qwerty::keypad::Enter, "Keypad Enter" },
+        { keyboard::qwerty::numpad::enter, "NumberPad Enter" },
 
-        { keyboard::qwerty::keypad::n1, "Keypad 1" },
-        { keyboard::qwerty::keypad::n2, "Keypad 2" },
-        { keyboard::qwerty::keypad::n3, "Keypad 3" },
-        { keyboard::qwerty::keypad::n4, "Keypad 4" },
-        { keyboard::qwerty::keypad::n5, "Keypad 5" },
-        { keyboard::qwerty::keypad::n6, "Keypad 6" },
-        { keyboard::qwerty::keypad::n7, "Keypad 7" },
-        { keyboard::qwerty::keypad::n8, "Keypad 8" },
-        { keyboard::qwerty::keypad::n9, "Keypad 9" },
-        { keyboard::qwerty::keypad::n0, "Keypad 0" },
+        { keyboard::qwerty::numpad::one,   "NumberPad 1" },
+        { keyboard::qwerty::numpad::two,   "NumberPad 2" },
+        { keyboard::qwerty::numpad::three, "NumberPad 3" },
+        { keyboard::qwerty::numpad::four,  "NumberPad 4" },
+        { keyboard::qwerty::numpad::five,  "NumberPad 5" },
+        { keyboard::qwerty::numpad::six,   "NumberPad 6" },
+        { keyboard::qwerty::numpad::seven, "NumberPad 7" },
+        { keyboard::qwerty::numpad::eight, "NumberPad 8" },
+        { keyboard::qwerty::numpad::nine,  "NumberPad 9" },
+        { keyboard::qwerty::numpad::zero,  "NumberPad 0" },
 
-        { keyboard::qwerty::keypad::Period, "Keypad Period" },
+        { keyboard::qwerty::numpad::period, "NumberPad Period" },
 
-        { keyboard::qwerty::keypad::Equals, "Keypad Equals" },
-        { keyboard::qwerty::keypad::Comma, "Keypad Comma" },
+        { keyboard::qwerty::numpad::equals, "NumberPad Equals" },
+        { keyboard::qwerty::numpad::comma, "NumberPad Comma" },
     };
 
 
     inline constexpr c_cstr _get_qwerty_name(
             scancode const code,
-            ScancodeToQwertyMapping const * map = &scancode_to_qwerty_map[0])
+            scancode_to_qwerty_mapping const * map = &scancode_to_qwerty_map[0])
     noexcept {
         constexpr c_cstr unknown = "/unknown/";
         return map != nullptr

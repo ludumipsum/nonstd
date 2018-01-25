@@ -21,25 +21,25 @@
 namespace keyboard {
 
 enum class modifier : u16 {
-    None = 0,
-    LeftShift = 1 << 0,
-    LeftCtrl  = 1 << 1,
-    LeftAlt   = 1 << 2,
-    LeftGUI   = 1 << 3,
-    RightShift = 1 << 4,
-    RightCtrl  = 1 << 5,
-    RightAlt   = 1 << 6,
-    RightGUI   = 1 << 7,
-    Shift = LeftShift | RightShift,
-    Ctrl  = LeftCtrl  | RightCtrl,
-    Alt   = LeftAlt   | RightAlt,
-    GUI   = LeftGUI   | RightGUI,
-    Fn = 1 << 8,
-    CapsLock     = 1 << 9,
-    NumberLock   = 1 << 10,
-    ScrollLock   = 1 << 11,
-    FunctionLock = 1 << 12,
-    All = 0xffff,
+    none = 0,
+    left_shift = 1 << 0,
+    left_ctrl  = 1 << 1,
+    left_alt   = 1 << 2,
+    left_gui   = 1 << 3,
+    right_shift = 1 << 4,
+    right_ctrl  = 1 << 5,
+    right_alt   = 1 << 6,
+    right_gui   = 1 << 7,
+    shift = left_shift | right_shift,
+    ctrl  = left_ctrl  | right_ctrl,
+    alt   = left_alt   | right_alt,
+    gui   = left_gui   | right_gui,
+    fn = 1 << 8,
+    caps_lock     = 1 << 9,
+    number_lock   = 1 << 10,
+    scroll_lock   = 1 << 11,
+    function_lock = 1 << 12,
+    all = 0xffff,
 };
 GENERATE_OPERATOR_OVERLOADS_FOR_ENUM_CLASS(modifier);
 
@@ -49,15 +49,15 @@ inline constexpr keyboard::modifier
 modifier_from_scancode(keyboard::scancode code)
 noexcept {
     switch (code) {
-    case keyboard::scancode::LeftCtrl:   { return modifier::LeftCtrl;   }
-    case keyboard::scancode::LeftShift:  { return modifier::LeftShift;  }
-    case keyboard::scancode::LeftAlt:    { return modifier::LeftAlt;    }
-    case keyboard::scancode::LeftGUI:    { return modifier::LeftGUI;    }
-    case keyboard::scancode::RightCtrl:  { return modifier::RightCtrl;  }
-    case keyboard::scancode::RightShift: { return modifier::RightShift; }
-    case keyboard::scancode::RightAlt:   { return modifier::RightAlt;   }
-    case keyboard::scancode::RightGUI:   { return modifier::RightGUI;   }
-    default:                             { return modifier::None;       }
+    case keyboard::scancode::left_ctrl:   { return modifier::left_ctrl;   }
+    case keyboard::scancode::left_shift:  { return modifier::left_shift;  }
+    case keyboard::scancode::left_alt:    { return modifier::left_alt;    }
+    case keyboard::scancode::left_gui:    { return modifier::left_gui;    }
+    case keyboard::scancode::right_ctrl:  { return modifier::right_ctrl;  }
+    case keyboard::scancode::right_shift: { return modifier::right_shift; }
+    case keyboard::scancode::right_alt:   { return modifier::right_alt;   }
+    case keyboard::scancode::right_gui:   { return modifier::right_gui;   }
+    default:                              { return modifier::none;        }
     } /* switch (code) */
 }
 
@@ -66,25 +66,25 @@ noexcept {
  *  ============================================
  */
 namespace detail {
-    struct KeyboardModifierNameMapping {
+    struct keyboard_modifier_name_mapping {
         modifier mod;
         c_cstr   name;
     };
 
-    constexpr KeyboardModifierNameMapping keyboard_modifier_name_map[] = {
-        { modifier::LeftShift, "Left Shift" },
-        { modifier::LeftCtrl, "Left Ctrl" },
-        { modifier::LeftAlt, "Left Alt" },
-        { modifier::LeftGUI, "Left " GUI_KEY_NAME },
-        { modifier::RightShift, "Right Shift" },
-        { modifier::RightCtrl, "Right Ctrl" },
-        { modifier::RightAlt, "Right Alt" },
-        { modifier::RightGUI, "Right " GUI_KEY_NAME },
-        { modifier::Fn, "Fn" },
-        { modifier::CapsLock, "Caps Lock" },
-        { modifier::NumberLock, "Number Lock" },
-        { modifier::ScrollLock, "Scroll Lock" },
-        { modifier::FunctionLock, "Function Lock" },
+    constexpr keyboard_modifier_name_mapping keyboard_modifier_name_map[] = {
+        { modifier::left_shift,    "Left Shift"          },
+        { modifier::left_ctrl,     "Left Ctrl"           },
+        { modifier::left_alt,      "Left Alt"            },
+        { modifier::left_gui,      "Left " GUI_KEY_NAME  },
+        { modifier::right_shift,   "Right Shift"         },
+        { modifier::right_ctrl,    "Right Ctrl"          },
+        { modifier::right_alt,     "Right Alt"           },
+        { modifier::right_gui,     "Right " GUI_KEY_NAME },
+        { modifier::fn,            "Fn"                  },
+        { modifier::caps_lock,     "Caps Lock"           },
+        { modifier::number_lock,   "Number Lock"         },
+        { modifier::scroll_lock,   "Scroll Lock"         },
+        { modifier::function_lock, "Function Lock"       },
     };
 
     /**
@@ -99,7 +99,7 @@ namespace detail {
      */
     inline constexpr c_cstr _get_modifier_name(
             modifier const modifier,
-            KeyboardModifierNameMapping const * map =
+            keyboard_modifier_name_mapping const * map =
                 &keyboard_modifier_name_map[0])
     noexcept {
         return map != nullptr
@@ -115,7 +115,7 @@ inline void format_arg(fmt::BasicFormatter<char> & f,
                        modifier const            & modifier) {
     f.writer().write( detail::_get_modifier_name(modifier) );
 }
-inline std::ostream & operator<< (std::ostream & stream,
+inline std::ostream & operator<< (std::ostream   & stream,
                                   modifier const & modifier) {
     return stream << detail::_get_modifier_name(modifier);
 }
