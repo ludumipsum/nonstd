@@ -54,8 +54,7 @@
 
 namespace keyboard {
 
-using scancode_t = u8;
-enum class scancode : scancode_t {
+enum class scancode : u8 {
     _first = 0,
 
     A = 4,
@@ -303,7 +302,7 @@ enum class scancode : scancode_t {
     RightAlt = 230,
     RightGUI = 231,
 
-    _last = std::numeric_limits<scancode_t>::max(),
+    _last = std::numeric_limits<std::underlying_type_t<scancode>>::max(),
 };
 
 } /* namespace keyboard */
