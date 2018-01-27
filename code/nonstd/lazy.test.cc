@@ -58,7 +58,7 @@ TEST_CASE("Lazy Wrappers", "[nonstd][lazy]") {
 
         SECTION("with inline argument construction") {
             // Create a lazy wrapper around a counter, initialize it, and get a
-            // reference to the contained, so we can use them in subsequent tests
+            // reference to the contained
             lazy<inline_test_t> lazy_container { construction_counter{} };
             REQUIRE(lazy_container.initialized() == false);
             auto& counter = (*lazy_container).counter;
@@ -72,7 +72,7 @@ TEST_CASE("Lazy Wrappers", "[nonstd][lazy]") {
 
         SECTION("with copied arguments") {
             // Create a lazy wrapper around a counter, initialize it, and get a
-            // reference to the contained, so we can use them in subsequent tests
+            // reference to the contained
             construction_counter initial_counter;
             lazy<inline_test_t> lazy_container { initial_counter };
             REQUIRE(lazy_container.initialized() == false);
