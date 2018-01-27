@@ -10,3 +10,4 @@
 #include "memory/core_functions.h"
 #include "memory/buffer.h"
 #include "memory/nr_ptr.h"
+#include "memory/nr_lazy.h"
