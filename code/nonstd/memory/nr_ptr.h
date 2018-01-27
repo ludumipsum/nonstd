@@ -18,17 +18,19 @@ struct nr_ptr {
     static_assert(!std::is_reference_v<T>, "nr_ptrs cannot wrap reference types.");
 
 private:
+    using storage_type = std::remove_const_t<T>;
+
     Buffer * m_buf;
 
     inline Buffer * find_or_allocate_buffer(c_cstr buffer_name) {
         auto maybe_buffer = memory::find(buffer_name);
         return maybe_buffer
              ? *maybe_buffer
-             : memory::allocate(buffer_name, sizeof(T));
+             : memory::allocate(buffer_name, sizeof(storage_type));
     }
 
-    inline void verify_buffer_type(Buffer * const buf) {
-        if (buf->type == Buffer::type_id::single_value) { return; }
+    inline bool buffer_initialization_required(Buffer * const buf) {
+        if (buf->type == Buffer::type_id::single_value) { return false; }
 
         N2BREAK_IF(buf->type != Buffer::type_id::raw,
                    N2Error::InvalidMemory,
@@ -39,6 +41,7 @@ private:
                    buf->type, buf->name, buf);
 
         buf->type = Buffer::type_id::single_value;
+        return true;
     }
 
 public:
@@ -49,15 +52,25 @@ public:
         : m_buf ( nullptr )
     { }
 
-    constexpr explicit nr_ptr(Buffer * buf) noexcept
+    template <typename ... Args>
+    constexpr explicit nr_ptr(Buffer * buf, Args&& ... args) noexcept
         : m_buf ( buf )
     {
-        verify_buffer_type(m_buf);
+        if (buffer_initialization_required(m_buf)) {
+            new ((void*)m_buf->data) storage_type {
+                std::forward<Args>(args)...
+            };
+        }
     }
-    explicit nr_ptr(c_cstr buffer_name)
+    template <typename ... Args>
+    explicit nr_ptr(c_cstr buffer_name, Args&& ... args)
         : m_buf ( find_or_allocate_buffer(buffer_name) )
     {
-        verify_buffer_type(m_buf);
+        if (buffer_initialization_required(m_buf)) {
+            new ((void*)m_buf->data) storage_type {
+                std::forward<Args>(args)...
+            };
+        }
     }
 
     nr_ptr(nr_ptr const & other) = default;
@@ -82,23 +95,31 @@ public:
     // Set the backing Buffer* directly.
     nr_ptr& backing_buffer(Buffer *const buf) & {
         m_buf = buf;
-        verify_buffer_type(m_buf);
+        if (buffer_initialization_required(m_buf)) {
+            new ((void*)m_buf->data) storage_type { };
+        }
         return *this;
     }
     nr_ptr&& backing_buffer(Buffer *const buf) && {
         m_buf = buf;
-        verify_buffer_type(m_buf);
+        if (buffer_initialization_required(m_buf)) {
+            new ((void*)m_buf->data) storage_type { };
+        }
         return std::move(*this);
     }
     // Set the backing Buffer* by name.
     nr_ptr& backing_buffer(c_cstr buffer_name) & {
         m_buf = find_or_allocate_buffer(buffer_name);
-        verify_buffer_type(m_buf);
+        if (buffer_initialization_required(m_buf)) {
+            new ((void*)m_buf->data) storage_type { };
+        }
         return *this;
     }
     nr_ptr&& backing_buffer(c_cstr buffer_name) && {
         m_buf = find_or_allocate_buffer(buffer_name);
-        verify_buffer_type(m_buf);
+        if (buffer_initialization_required(m_buf)) {
+            new ((void*)m_buf->data) storage_type { };
+        }
         return std::move(*this);
     }
 

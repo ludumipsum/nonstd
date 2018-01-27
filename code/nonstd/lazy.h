@@ -51,14 +51,14 @@ public:
     lazy& operator= (lazy const&) = delete;
     lazy& operator= (lazy &&)     = delete;
 
-    constexpr bool initialized() { return m_storage.has_value(); }
+    inline bool initialized() const { return m_storage.has_value(); }
 
-    T& operator * () {
+    inline T& operator * () {
         if (!initialized()) { m_init(); }
         return m_storage.get_value();
     }
 
-    T* operator -> () {
+    inline T* operator -> () {
         if (!initialized()) { m_init(); }
         return &m_storage.get_value();
     }
