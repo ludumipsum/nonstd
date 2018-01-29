@@ -33,7 +33,7 @@ ENFORCE_SIZE(f64,  8);
 
 #define WIN32_LEAN_AND_MEAN 1
 #define NOMINMAX 1
-#include <windows.h>
+#include "nonstd/windows.h"
 
 ENFORCE_SIZE(WORD,      2);
 ENFORCE_SIZE(DWORD,     4);
