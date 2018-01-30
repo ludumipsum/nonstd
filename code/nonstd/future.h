@@ -30,6 +30,8 @@ using std::future_status;
 /** Future -- Wrapped in an Optional
  *  ================================
  */
+// TODO: The reference and void overloads of this class have not been tested.
+// They probably work, but if they don't... blame me.
 template <typename T>
 class future : public std::future<optional<T>> {
 public:
@@ -109,6 +111,8 @@ class future<void> : public std::future<void> {
 /** Promise -- Wrapped in an Optional
  *  =================================
  */
+// TODO: The reference and void overloads of this class have not been tested.
+// They probably work, but if they don't... blame me.
 template <typename T>
 class promise : public std::promise<optional<T>> {
 public:
