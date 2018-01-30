@@ -16,8 +16,8 @@
 #pragma once
 
 #include <nonstd/nonstd.h>
+#include <nonstd/optional.h>
 #include <nonstd/type_traits_ext.h>
-#include <nonstd/optional_storage.h>
 #include <chrono>
 #include <future>
 
@@ -28,16 +28,16 @@ using std::future_status;
 
 
 template <typename T>
-class future : std::future<optional_storage<T>> {
+class future : std::future<optional<T>> {
 public:
     future() noexcept = default;
     future(future && rhs) noexcept = default;
-    future(std::future<optional_storage<T>> && rhs)
-        : std::future<optional_storage<T>> ( std::move(rhs) )
+    future(std::future<optional<T>> && rhs)
+        : std::future<optional<T>> ( std::move(rhs) )
     { }
     future& operator= (future && rhs) noexcept = default;
-    future& operator= (std::future<optional_storage<T>> && rhs) {
-        std::future<optional_storage<T>>::operator=(std::move(rhs));
+    future& operator= (std::future<optional<T>> && rhs) {
+        std::future<optional<T>>::operator=(std::move(rhs));
     }
 
     ~future() = default;
@@ -45,26 +45,26 @@ public:
     future(future const &) = delete;
     future& operator= (future const &) = delete;
 
-    std::shared_future<optional_storage<T>> share() noexcept {
+    std::shared_future<optional<T>> share() noexcept {
         return std::move(this->share());
     }
 
     T get() {
-        return std::move(std::future<optional_storage<T>>::get().get_value());
+        return std::move(std::future<optional<T>>::get().value());
     }
 
     bool valid() const noexcept {
-        return std::future<optional_storage<T>>::valid();
+        return std::future<optional<T>>::valid();
     }
 
     void wait() const {
-        std::future<optional_storage<T>>::wait();
+        std::future<optional<T>>::wait();
     }
 
     template <typename Rep, typename Period>
     future_status wait_for(std::chrono::duration<Rep, Period> const & rel_time)
     const {
-        return std::future<optional_storage<T>>::wait_for(rel_time);
+        return std::future<optional<T>>::wait_for(rel_time);
     }
 
     // [sic] `Duration_`; osx typedefs `Duration` for drivers.
@@ -72,7 +72,7 @@ public:
     future_status wait_until(
         std::chrono::time_point<Clock, Duration_>& abs_time )
     const {
-        return std::future<optional_storage<T>>::wait_until(abs_time);
+        return std::future<optional<T>>::wait_until(abs_time);
     }
 };
 
@@ -101,40 +101,5 @@ class future<void> : std::future<void> {
 
     ~future() = default;
 };
-
-
-
-
-
-
-// template <typename T>
-// class promise : std::promise<optional_storage<T>> {
-// public:
-//     promise() = default;
-
-//     // template <typename Allocator>
-//     // promise(std::allocator_arg_t, Allocator const & a);
-
-//     promise(promise && rhs) noexcept = default;
-//     promise& operator= (promise && rhs) noexcept = default;
-//     ~promise() = default;
-
-//     promise(promise const & rhs) = delete;
-//     promise& operator= (promise const & rhs) = delete;
-
-//     // void swap(promise& other) noexcept;
-
-//     future<T> get_future() {
-//         return
-//     }
-
-//     void set_value();
-//     void set_exception();
-
-//     void set_value_at_thread_exit(see below);
-//     void set_exception_at_thread_exit(exception_ptr p);
-// }
-
-
 
 } /* namespace nonstd */
