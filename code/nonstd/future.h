@@ -27,8 +27,11 @@ namespace nonstd {
 using std::future_status;
 
 
+/** Future -- Wrapped in an Optional
+ *  ================================
+ */
 template <typename T>
-class future : std::future<optional<T>> {
+class future : public std::future<optional<T>> {
 public:
     future() noexcept = default;
     future(future && rhs) noexcept = default;
@@ -78,7 +81,7 @@ public:
 
 
 template <typename T>
-class future<T&> : std::future<T&> {
+class future<T&> : public std::future<T&> {
 public:
     future() noexcept = default;
     future(future && rhs) noexcept = default;
@@ -91,7 +94,7 @@ public:
 };
 
 template <>
-class future<void> : std::future<void> {
+class future<void> : public std::future<void> {
     future() noexcept = default;
     future(future && rhs) noexcept = default;
     future& operator= (future && rhs) noexcept = default;
@@ -100,6 +103,50 @@ class future<void> : std::future<void> {
     future& operator= (future const &) = delete;
 
     ~future() = default;
+};
+
+
+/** Promise -- Wrapped in an Optional
+ *  =================================
+ */
+template <typename T>
+class promise : public std::promise<optional<T>> {
+public:
+    promise() = default;
+    promise(promise const &) = delete;
+    promise(promise &&) = default;
+    promise& operator= (promise const &) = delete;
+    promise& operator= (promise &&) = delete;
+    template <typename Allocator>
+    promise(std::allocator_arg_t allocator_arg, Allocator const & allocator)
+        : promise (allocator_arg, allocator)
+    { }
+    ~promise() = default;
+
+    // assignment
+    void swap(promise& other) noexcept {
+        auto tmp = std::move(other);
+        other = std::move(*this);
+        *this = std::move(tmp);
+    }
+};
+
+template <typename T>
+class promise<T&> : public std::promise<T&> {
+    promise() = default;
+    promise(promise const &) = delete;
+    promise(promise &&) = default;
+    promise& operator= (promise const &) = delete;
+    promise& operator= (promise &&) = delete;
+};
+
+template <>
+class promise<void> : public std::promise<void> {
+    promise() = default;
+    promise(promise const &) = delete;
+    promise(promise &&) = default;
+    promise& operator= (promise const &) = delete;
+    promise& operator= (promise &&) = delete;
 };
 
 } /* namespace nonstd */
