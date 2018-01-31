@@ -123,11 +123,26 @@ public:
     promise& operator= (promise &&) = delete;
     template <typename Allocator>
     promise(std::allocator_arg_t allocator_arg, Allocator const & allocator)
-        : promise (allocator_arg, allocator)
+        : std::promise<optional<T>> ( allocator_arg, allocator )
     { }
     ~promise() = default;
 
-    // assignment
+    void set_value(T const & val) {
+        std::promise<optional<T>>::set_value({ val });
+    }
+    void set_value(T && val) {
+        std::promise<optional<T>>::set_value({ std::forward<T>(val) });
+    }
+
+    void set_value_at_thread_exit(T const & val) {
+        std::promise<optional<T>>::set_value_at_thread_exit({ val });
+    }
+    void set_value_at_thread_exit(T && val) {
+        std::promise<optional<T>>::set_value_at_thread_exit({
+            std::forward<T>(val)
+        });
+    }
+
     void swap(promise& other) noexcept {
         auto tmp = std::move(other);
         other = std::move(*this);
