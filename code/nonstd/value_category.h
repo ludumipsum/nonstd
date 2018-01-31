@@ -16,22 +16,22 @@
 
 namespace nonstd {
 
-template<typename T> struct value_category {
-    static constexpr auto value = "prvalue";
+template<typename T> struct value_category_t {
+    static inline constexpr c_cstr value = "prvalue";
 };
 
-template<typename T> struct value_category<T&> {
-    static constexpr auto value = "lvalue";
+template<typename T> struct value_category_t<T&> {
+    static inline constexpr c_cstr value = "lvalue";
 };
 
-template<typename T> struct value_category<T&&> {
-    static constexpr auto value = "xvalue";
+template<typename T> struct value_category_t<T&&> {
+    static inline constexpr c_cstr value = "xvalue";
 };
 
-template <template T>
-inline constexpr bool value_category_v = value_category<T>::value;
+template <typename T>
+inline constexpr c_cstr value_category = value_category_t<T>::value;
 
 // Double parens for ensuring we inspect an expression, not an entity
-#define VALUE_CATEGORY(expr) ::nonstd::value_category_v<decltype((expr))>
+#define VALUE_CATEGORY(expr) ::nonstd::value_category<decltype((expr))>
 
 }
