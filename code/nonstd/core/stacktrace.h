@@ -7,8 +7,8 @@
 
 #pragma once
 
-// This whole thing only works on non-msvc compilers
-#if !defined(NONSTD_OS_WINDOWS)
+// Our whole sighandler/trace system only works on POSIX hosts
+#if defined(NONSTD_OS_MACOS) || defined(NONSTD_OS_LINUX)
 
 #include "homogenize.h"
 #include "primitive_types.h"
