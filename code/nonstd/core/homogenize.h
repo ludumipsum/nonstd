@@ -13,6 +13,8 @@ enum struct operating_system_t {
     pc_linux,
     pc_macos,
     pc_windows,
+
+    web_emscripten,
 };
 enum struct compiler_t {
     unknown,
@@ -20,10 +22,14 @@ enum struct compiler_t {
     clang,
     gcc,
     msvc,
+    emcc,
 };
 
 /* OS Detection */
-#if defined(__linux__)
+#if defined(EMSCRIPTEN)
+    constexpr auto os_string = "Web";
+    constexpr auto os = operating_system_t::web_emscripten;
+#elif defined(__linux__)
     constexpr auto os_string = "Linux";
     constexpr auto os = operating_system_t::pc_linux;
     #define NONSTD_OS_LINUX true
@@ -53,7 +59,10 @@ enum struct compiler_t {
 #endif
 
 /* Compiler Detection */
-#if defined(__clang__)
+#if defined(EMSCRIPTEN)
+    constexpr auto compiler_string = "emcc";
+    constexpr auto compiler = compiler_t::emcc;
+#elif defined(__clang__)
     constexpr auto compiler_string = "Clang";
     constexpr auto compiler = compiler_t::clang;
     #define NONSTD_COMPILER_CLANG true
