@@ -9,9 +9,9 @@
 #pragma once
 
 #include <string>
+#include <system_error>
 #include <nonstd/nonstd.h>
 
-#include "error_types.h"
 
 
 /** BREAKPOINT and DEBUG_BREAKPOINT
@@ -90,20 +90,20 @@
 namespace nonstd {
 namespace detail {
 
-inline i32 logAndBreak(N2Error error, std::string && reason,
+inline i32 logAndBreak(std::error_code error, std::string && reason,
                        c_cstr __function__, c_cstr __file__, u64 __line__) {
     fmt::print("~~~~~~~~~~~~~~~\n"
                "Fatal Error in:\n"
                "    {}\n"
                "    {}:{}\n"
-               "Errno:  {} ({})\n"
+               "Error:  {} -- {}\n"
                "Reason: {}\n"
                "~~~~~~~~~~~~~~~\n",
                __function__, __file__, __line__,
-               (i32)error, n2strerr(error),
+               error, error.message(),
                reason);
     BREAKPOINT();
-    exit((i32)(error));
+    exit(error.value());
 }
 
 } /* namespace detail */
