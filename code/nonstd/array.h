@@ -29,13 +29,13 @@ public: /*< ## Class Methods */
 
     static inline Buffer * initializeBuffer(Buffer *const buf) {
         N2BREAK_IF(buf->type == Buffer::type_id::array,
-                   N2Error::DoubleInitialization,
+                   nonstd::error::double_initialization,
                    "Buffer corruption detected by type_id; Buffer has already "
                    "been correctly initialized as an Array.\n"
                    "Underlying buffer is named '{}', and it is located at {}.",
                    buf->name, buf);
         N2BREAK_IF(buf->type != Buffer::type_id::raw,
-                   N2Error::InvalidMemory,
+                   nonstd::error::invalid_memory,
                    "Buffer corruption detected by type_id; Attempting to "
                    "initialize a previously initialized Buffer. type_id is "
                    "currently 0x{:X}\n"
@@ -60,7 +60,7 @@ public: /*< ## Ctors, Detors, and Assignments */
 
         /* Verify `buf` has been correctly initialized. */
         N2BREAK_IF(m_buf->type != Buffer::type_id::array,
-            N2Error::InvalidMemory,
+            nonstd::error::invalid_memory,
             "Array corruption detected by type_id; Buffer has not been "
             "initialized as an Array.\n"
             "type_id is currently 0x{:X}\n"
@@ -128,13 +128,13 @@ public: /*< ## Public Memebr Methods */
     /* Direct index operator. */
     inline T const & operator[](u64 index) const {
 #if defined(DEBUG)
-        N2BREAK_IF(index >= capacity(), N2Error::OutOfBounds,
+        N2BREAK_IF(index >= capacity(), nonstd::error::out_of_bounds,
             "Array index operation exceeds maximum capacity.\n"
             "Entry {} / {} (capacity is {}).\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             index, (count() > 0 ? std::to_string(count()) : "-"), capacity(),
             m_buf->name, m_buf);
-        N2BREAK_IF(index >= count(), N2Error::OutOfBounds,
+        N2BREAK_IF(index >= count(), nonstd::error::out_of_bounds,
             "Array index operation exceeds current count.\n"
             "Entry {} / {} (capacity is {}).\n"
             "Underlying buffer is named '{}', and it is located at {}.",
@@ -164,7 +164,7 @@ public: /*< ## Public Memebr Methods */
             ends_before_beginning ||
             ends_after_buffer)
         {
-            N2BREAK(N2Error::OutOfBounds,
+            N2BREAK(nonstd::error::out_of_bounds,
                 "Erasing invalid index ranges;\n"
                 "  begin       : {}\n"
                 "  range begin : {}\n"

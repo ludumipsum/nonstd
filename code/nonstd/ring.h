@@ -47,13 +47,13 @@ public: /*< ## Class Methods */
 
     static inline Buffer * initializeBuffer(Buffer *const buf) {
         N2BREAK_IF(buf->type == Buffer::type_id::ring,
-                   N2Error::DoubleInitialization,
+                   nonstd::error::double_initialization,
                    "Buffer corruption detected by type_id; Buffer has already "
                    "been correctly initialized as a Ring.\n"
                    "Underlying buffer is named '{}', and it is located at {}.",
                    buf->name, buf);
         N2BREAK_IF(buf->type != Buffer::type_id::raw,
-                   N2Error::InvalidMemory,
+                   nonstd::error::invalid_memory,
                    "Buffer corruption detected by type_id; Attempting to "
                    "initialize a previously initialized Buffer. type_id is "
                    "currently 0x{:X}\n"
@@ -61,7 +61,7 @@ public: /*< ## Class Methods */
                    buf->type, buf->name, buf);
 
         N2BREAK_IF(buf->size < sizeof(T),
-                   N2Error::InsufficientMemory,
+                   nonstd::error::insufficient_memory,
                    "This Ring is being overlaid onto a Buffer that is too "
                    "small ({}B) to fit at least one <{}>({}B). Rings _must_ be "
                    "able to store at least one element.\n"
@@ -88,7 +88,7 @@ public: /*< ## Ctors, Detors, and Assignments */
 
         /* Verify `buf` has been correctly initialized. */
         N2BREAK_IF(m_buf->type != Buffer::type_id::ring,
-            N2Error::InvalidMemory,
+            nonstd::error::invalid_memory,
             "Ring corruption detected by type_id; Buffer has not been "
             "initialized as a Ring.\n"
             "type_id is currently 0x{:X}\n"
@@ -133,7 +133,7 @@ public: /*< ## Public Member Methods */
     }
 
     inline T* consume(u64 count) {
-        N2BREAK(N2Error::UnimplementedCode, "");
+        N2BREAK(nonstd::error::unimplemented_code, "");
     }
 
     inline T& operator[](i64 index) noexcept {
@@ -192,7 +192,7 @@ public: /*< ## Public Member Methods */
 
             // Fetch enough scratch space to move section B aside.
             ptr scratch = n2malloc(size_of_b);
-            N2BREAK_IF(scratch == nullptr, N2Error::System,
+            N2BREAK_IF(scratch == nullptr, nonstd::error::insufficient_memory,
                        "Failed to `n2malloc` memory. Godspeed.");
             auto guard = make_guard([scratch](){ n2free(scratch); });
 
@@ -232,7 +232,8 @@ public: /*< ## Public Member Methods */
                 // scratch space to move that data aside.
                 size_t bytes_retained_from_b = size_of_b - bytes_removed;
                 ptr scratch = n2malloc(bytes_retained_from_b);
-                N2BREAK_IF(scratch == nullptr, N2Error::System,
+                N2BREAK_IF(scratch == nullptr,
+                           nonstd::error::insufficient_memory,
                            "Failed to `n2malloc` memory. Godspeed.");
                 auto guard = make_guard([scratch](){ n2free(scratch); });
 
@@ -302,7 +303,7 @@ public: /*< ## Public Member Methods */
 
             // Fetch enough scratch space to move section B aside.
             ptr scratch = n2malloc(size_of_b);
-            N2BREAK_IF(scratch == nullptr, N2Error::System,
+            N2BREAK_IF(scratch == nullptr,nonstd::error::insufficient_memory,
                        "Failed to `n2malloc` memory. Godspeed.");
             auto guard = make_guard([scratch](){ n2free(scratch); });
 
@@ -345,7 +346,8 @@ public: /*< ## Public Member Methods */
                 // move section B aside to make room for that. Fetch enough
                 // scratch space to move section B aside.
                 ptr scratch = n2malloc(size_of_b);
-                N2BREAK_IF(scratch == nullptr, N2Error::System,
+                N2BREAK_IF(scratch == nullptr,
+                           nonstd::error::insufficient_memory,
                            "Failed to `n2malloc` memory. Godspeed.");
                 auto guard = make_guard([scratch](){ n2free(scratch); });
 
