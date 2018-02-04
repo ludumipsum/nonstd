@@ -6,5 +6,5 @@
 #pragma once
 
 #include "nonstdexcept/break.h"
-#include "nonstdexcept/error_types.h"
+#include "nonstdexcept/nonstd_error.h"
 #include "nonstdexcept/reload_request.h"
