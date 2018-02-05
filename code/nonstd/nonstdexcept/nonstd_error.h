@@ -14,6 +14,7 @@
  */
 #pragma once
 
+#include <cassert>
 #include <system_error>
 #include <nonstd/nonstd.h>
 
@@ -112,41 +113,44 @@ inline c_cstr error_category_t::name() const noexcept {
 inline std::string error_category_t::message(int code) const {
     switch (static_cast<nonstd::error>(code)) {
     case nonstd::error::success:
-        return "No error. (Please update this codepath to cleanly exit.)";
+        return "No error (Please update this codepath to cleanly exit)";
     case nonstd::error::undefined:
-        return "Undefined N2 Error. (Please update error_types.h with an "
-                "appropriate and descriptive error for this case.)";
+        return "Undefined N2 Error (Please update error_typesh with an "
+                "appropriate and descriptive error for this case)";
     case nonstd::error::uncategorized:
-        return "Uncategorized system Failure.";
+        return "Uncategorized system Failure";
     case nonstd::error::pebcak:
-        return "Unidentified problem exists somewhere between a chair and the "
-               "nearest keyboard.";
+        return "A problem exists between chair and keyboard.";
     case nonstd::error::unimplemented_code:
-        return "Attempted to invoke unimplemented logic.";
+        return "Attempted to invoke unimplemented logic";
     case nonstd::error::null_ptr:
-        return "Attempted to dereference a null pointer.";
+        return "Attempted to dereference a null pointer";
     case nonstd::error::out_of_bounds:
-        return "Accessing out-of-bounds address or index.";
+        return "Accessing out-of-bounds address or index";
     case nonstd::error::in_use:
-        return "Address or index already in use.";
+        return "Address or index already in use";
     case nonstd::error::insufficient_memory:
-        return "Insufficient memory.";
+        return "Insufficient memory";
     case nonstd::error::invalid_memory:
-        return "Invalid memory location or system state.";
+        return "Invalid memory location or system state";
     case nonstd::error::uninitialized_memory:
-        return "Uninitialized memory location or system state.";
+        return "Uninitialized memory location or system state";
     case nonstd::error::double_initialization:
-        return "Double (non-idempotent) initialization detected.";
+        return "Double (non-idempotent) initialization detected";
     case nonstd::error::module_not_started:
-        return "Attempted interaction with uninitialized module.";
+        return "Attempted interaction with uninitialized module";
     case nonstd::error::missing_data:
-        return "Data is missing or unreachable.";
+        return "Data is missing or unreachable";
     case nonstd::error::invalid_arguments:
-        return "Invalid arguments for operation.";
+        return "Invalid arguments for operation";
     case nonstd::error::hash_collision:
-        return "Non-reconcilable hash collision detected.";
+        return "Non-reconcilable hash collision detected";
     case nonstd::error::target_not_found:
-        return "Execution target not found.";
+        return "Execution target not found";
+    default:
+        assert(false);
+        return "Unknown nonstd error. You should never see this. If you see "
+               "this, something is very broken.";
     } /* switch (static_cast<nonstd::error>(code)) */
 }
 
