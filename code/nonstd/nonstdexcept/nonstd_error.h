@@ -25,23 +25,25 @@ namespace nonstd {
  *  --------------------
  */
 enum class error : int {
-    success = 0,
-    undefined,
-    uncategorized,
-    pebcak,
-    unimplemented_code,
-    null_ptr,
-    out_of_bounds,
-    in_use,
-    insufficient_memory,
-    invalid_memory,
-    uninitialized_memory,
-    double_initialization,
-    module_not_started,
-    missing_data,
-    invalid_arguments,
-    target_not_found,
-    hash_collision,
+    error         = 0x100, // generic error
+    pebcak        = 0x101, // generic author error
+    unimplemented = 0x102, // the code isn't there
+    os            = 0x1e0, // unspecified error from the operating system
+    external      = 0x1e1, // unspecified error from an external system
+
+    memory               = 0x200, // generic memory error
+    insufficient_memory  = 0x201, // not enough memory
+    uninitialized_memory = 0x202, // memory not initialized
+    reinitialized_memory = 0x203, // non-idempotent memory re-initialization
+    invalid_memory       = 0x204, // memory not valid
+
+    // The below are highly specific errors that don't really fit into a larger
+    // category. The `uncategorized` type is more to set the value range of
+    // these error than to be used as an actual error code.
+
+    uncategorized = 0x1000, // uncategorized error. Don't use this.
+    module_not_started, // module was used before it was started
+    hash_collision, // distinct values returned an identical hash
 };
 
 } /* namespace nonstd */
@@ -112,45 +114,35 @@ inline c_cstr error_category_t::name() const noexcept {
  */
 inline std::string error_category_t::message(int code) const {
     switch (static_cast<nonstd::error>(code)) {
-    case nonstd::error::success:
-        return "No error (Please update this codepath to cleanly exit)";
-    case nonstd::error::undefined:
-        return "Undefined N2 Error (Please update error_typesh with an "
-                "appropriate and descriptive error for this case)";
-    case nonstd::error::uncategorized:
-        return "Uncategorized system Failure";
+    case nonstd::error::error:
+        return "Unspecified generic N2 error (Please update nonstd_error.h "
+               "with an appropriate and descriptive error for this case)";
     case nonstd::error::pebcak:
-        return "A problem exists between chair and keyboard.";
-    case nonstd::error::unimplemented_code:
+        return "A problem exists between someone's chair and keyboard";
+    case nonstd::error::unimplemented:
         return "Attempted to invoke unimplemented logic";
-    case nonstd::error::null_ptr:
-        return "Attempted to dereference a null pointer";
-    case nonstd::error::out_of_bounds:
-        return "Accessing out-of-bounds address or index";
-    case nonstd::error::in_use:
-        return "Address or index already in use";
+    case nonstd::error::os:
+        return "Unspecified OS-level error";
+    case nonstd::error::external:
+        return "Unspecified external system error";
+    case nonstd::error::memory:
+        return "Unspecified N2 memory error (Please update nonstd_error.h "
+               "with an appropriate and descriptive error for this case)";
     case nonstd::error::insufficient_memory:
-        return "Insufficient memory";
-    case nonstd::error::invalid_memory:
-        return "Invalid memory location or system state";
+        return "Insufficient system or buffered memory";
     case nonstd::error::uninitialized_memory:
-        return "Uninitialized memory location or system state";
-    case nonstd::error::double_initialization:
-        return "Double (non-idempotent) initialization detected";
+        return "Uninitialized memory or buffer";
+    case nonstd::error::reinitialized_memory:
+        return "Non-idempotent (destructive?) memory re-initialization";
+    case nonstd::error::invalid_memory:
+        return "Invalid memory or buffer";
+    case nonstd::error::uncategorized:
+        return "Uncategorized error ((Please update nonstd_error.h "
+               "with an appropriate and descriptive error for this case)";
     case nonstd::error::module_not_started:
         return "Attempted interaction with uninitialized module";
-    case nonstd::error::missing_data:
-        return "Data is missing or unreachable";
-    case nonstd::error::invalid_arguments:
-        return "Invalid arguments for operation";
     case nonstd::error::hash_collision:
         return "Non-reconcilable hash collision detected";
-    case nonstd::error::target_not_found:
-        return "Execution target not found";
-    default:
-        assert(false);
-        return "Unknown nonstd error. You should never see this. If you see "
-               "this, something is very broken.";
     } /* switch (static_cast<nonstd::error>(code)) */
 }
 
