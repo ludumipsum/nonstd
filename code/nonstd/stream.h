@@ -53,18 +53,17 @@ public: /*< ## Class Methods */
 
     static inline Buffer * initializeBuffer(Buffer *const buf) {
         N2BREAK_IF(buf->type == Buffer::type_id::stream,
-                   nonstd::error::double_initialization,
-                   "Buffer corruption detected by type_id; Buffer has already "
-                   "been correctly initialized as an Stream.\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->name, buf);
+            nonstd::error::reinitialized_memory,
+            "Buffer corruption detected by type_id; Buffer has already been "
+            "correctly initialized as an Stream.\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            buf->name, buf);
         N2BREAK_IF(buf->type != Buffer::type_id::raw,
-                   nonstd::error::invalid_memory,
-                   "Buffer corruption detected by type_id; Attempting to "
-                   "initialize a previously initialized Buffer. type_id is "
-                   "currently 0x{:X}\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->type, buf->name, buf);
+            nonstd::error::invalid_memory,
+            "Buffer corruption detected by type_id; Attempting to initialize a "
+            "previously initialized Buffer. type_id is currently 0x{:X}\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            buf->type, buf->name, buf);
 
         Metadata * metadata = (Metadata *)(buf->data);
 
@@ -72,14 +71,13 @@ public: /*< ## Class Methods */
         u64 capacity         = (data_region_size) / sizeof(T);
 
         N2BREAK_IF(buf->size < (sizeof(Metadata) + sizeof(T)),
-                   nonstd::error::insufficient_memory,
-                   "This Stream is being overlaid onto a Buffer that is too "
-                   "small ({}B) to fit the Stream Metadata ({}B) and at least "
-                   "one <{}>({}B). Streams _must_ be able to store at least "
-                   "one element.\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->size, sizeof(Metadata), type_name<T>(), sizeof(T),
-                   buf->name, buf);
+            nonstd::error::insufficient_memory,
+            "This Stream is being overlaid onto a Buffer that is too small "
+            "({}B) to fit the Stream Metadata ({}B) and at least one "
+            "<{}>({}B). Streams _must_ be able to store at least one element.\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            buf->size, sizeof(Metadata), type_name<T>(), sizeof(T),
+            buf->name, buf);
 
         metadata->count    = 0;
         metadata->capacity = capacity;
@@ -158,21 +156,19 @@ public: /*< ## Stream Accessors */
     }
 
     inline T* consume(u64 count) {
-        N2BREAK(nonstd::error::unimplemented_code, "");
+        N2BREAK(nonstd::error::unimplemented, "");
     }
 
-    inline T& operator[](i64 index) const noexcept {
+    inline T& operator[](i64 index) noexcept {
 #if defined(DEBUG)
-        N2BREAK_IF(index >= capacity(), nonstd::error::out_of_bounds,
-            "Stream index access exceeds maximum capacity.\n"
-            "Entry (1-indexed) {} / {} ({} maximum).\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            index+1, count(), capacity(), m_buf->name, m_buf);
-        N2BREAK_IF(index >= count(), nonstd::error::out_of_bounds,
-            "Stream index access exceeds current count.\n"
-            "Entry (1-indexed) {} / {} ({} maximum).\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            index+1, count(), capacity(), m_buf->name, m_buf);
+        if (index >= count()) {
+            throw std::out_of_range {
+                "Stream index access exceeds current count.\n"
+                "Entry (1-indexed) {} / {} ({} maximum).\n"
+                "Buffer ({}) '{}'"_format(
+                index+1, count(), capacity(), m_buf->name, m_buf)
+            };
+        }
 #endif
         u64 target_index = _increment_index(_read_index(), index);
         return m_metadata->data[target_index];
@@ -188,7 +184,7 @@ public: /*< ## Stream Accessors */
      *  about how complex this shit is gonna be).
      */
     inline u64 resize(u64 capacity) {
-        N2BREAK(nonstd::error::unimplemented_code, "");
+        N2BREAK(nonstd::error::unimplemented, "");
         return 0;
     }
 

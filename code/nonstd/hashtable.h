@@ -130,18 +130,17 @@ public: /*< ## Class Methods */
         using nonstd::roundDownToPowerOfTwo;
 
         N2BREAK_IF(buf->type == Buffer::type_id::hash_table,
-                   nonstd::error::double_initialization,
-                   "Buffer corruption detected by type_id; Buffer has already "
-                   "been correctly initialized as a HashTable.\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->name, buf);
+            nonstd::error::reinitialized_memory,
+            "Buffer corruption detected by type_id; Buffer has already been "
+            "correctly initialized as a HashTable.\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            buf->name, buf);
         N2BREAK_IF(buf->type != Buffer::type_id::raw,
-                   nonstd::error::invalid_memory,
-                   "Buffer corruption detected by type_id; Attempting to "
-                   "initialize a previously initialized Buffer. type_id is "
-                   "currently 0x{:X}\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->type, buf->name, buf);
+            nonstd::error::invalid_memory,
+            "Buffer corruption detected by type_id; Attempting to initialize a "
+            "previously initialized Buffer. type_id is currently 0x{:X}\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            buf->type, buf->name, buf);
 
         Metadata * metadata = (Metadata *)(buf->data);
 
@@ -152,21 +151,21 @@ public: /*< ## Class Methods */
 
         u64 required_capacity = (practical_capacity + max_miss_distance);
 
-        N2BREAK_IF(buf->size < sizeof(Metadata), nonstd::error::insufficient_memory,
-                   "This HashTable is being overlaid onto a Buffer that is too "
-                   "small ({}B) to fit the HashTable Metadata ({}).\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->size, sizeof(Metadata), buf->name, buf);
+        N2BREAK_IF(buf->size < sizeof(Metadata),
+            nonstd::error::insufficient_memory,
+            "This HashTable is being overlaid onto a Buffer that is too small "
+            "({}B) to fit the HashTable Metadata ({}).\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            buf->size, sizeof(Metadata), buf->name, buf);
         N2BREAK_IF(required_capacity > data_region_capacity,
-                   nonstd::error::insufficient_memory,
-                   "This HashTable has been initialized with a data region "
-                   "that does not have room for overallocation. The data "
-                   "region can store up to {} cells. The target capacity is {},"
-                   "and the desired overflow is {} -- totaling {} cells.\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   data_region_capacity, practical_capacity, max_miss_distance,
-                   required_capacity,
-                   buf->name, buf);
+            nonstd::error::insufficient_memory,
+            "This HashTable has been initialized with a data region that does "
+            "not have room for overallocation. The data region can store up to "
+            "{} cells. The target capacity is {}, and the desired overflow is "
+            "{} -- totaling {} cells.\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            data_region_capacity, practical_capacity, max_miss_distance,
+            required_capacity, buf->name, buf);
 
         metadata->count              = 0;
         metadata->capacity           = practical_capacity;
@@ -202,6 +201,7 @@ public: /*< ## Ctors, Detors, and Assignments */
         ENFORCE_POD(Cell);
 
         /* Verify `buf` has been correctly initialized. */
+        // TODO: This smells like a precondition check. Assert?
         N2BREAK_IF(m_buf->type != Buffer::type_id::hash_table,
             nonstd::error::invalid_memory,
             "HashTable corruption detected by type_id; Buffer has not been "
@@ -331,7 +331,7 @@ public: /*< ## Public Member Methods */
                     "Distance to `log2(capacity)`, this should be "
                     "_completely impossible_.\n"
                     "Unless you're resizing downward? I think... this might be "
-                    "possible in that case... Ruh roh, raggy...\n"
+                    "possible in that case... Maybe?\n"
                     "Underlying buffer is named '{}', and it is located at {}.",
                     m_buf->name, m_buf);
 
@@ -404,8 +404,8 @@ public: /*< ## Public Member Methods */
        If no capacity is given, double the current capacity. */
     inline void resize(u64 new_capacity = 0) {
         if (new_capacity == 0) { new_capacity = this->capacity() * 2; }
-        N2BREAK_IF(new_capacity < capacity(), nonstd::error::unimplemented_code,
-                   "Downsizing HashTables is currently disallowed.");
+        N2BREAK_IF(new_capacity < capacity(), nonstd::error::unimplemented,
+            "Downsizing HashTables is currently disallowed.");
         return _resize(HashTable::precomputeSize(new_capacity));
     }
 
@@ -445,7 +445,8 @@ protected: /*< ## Protected Member Methods */
         u8  new_max_miss_distance = maxMissDistanceFor(new_capacity);
 
 #if defined(DEBUG)
-        N2BREAK_IF(m_buf->size < sizeof(Metadata), nonstd::error::insufficient_memory,
+        N2BREAK_IF(m_buf->size < sizeof(Metadata),
+            nonstd::error::insufficient_memory,
             "Buffer HashTable is being resized into a Buffer that is too small "
             "({}) to fit the HashTable Metadata ({}).\n"
             "Underlying buffer is named '{}', and it is located at {}.",
@@ -460,11 +461,11 @@ protected: /*< ## Protected Member Methods */
         u64 used_capacity = new_capacity + new_max_miss_distance;
         u64 used_size     = sizeof(Metadata) + (sizeof(Cell) * used_capacity);
         N2BREAK_IF(new_size != used_size, nonstd::error::invalid_memory,
-                   "HashTable resize may be leaving data unaccessible;\n"
-                   "  requested size  : {}\n"
-                   "  calculated size : {}\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   new_size, used_size, m_buf->name, m_buf);
+            "HashTable resize may be leaving data unaccessible;\n"
+            "  requested size  : {}\n"
+            "  calculated size : {}\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            new_size, used_size, m_buf->name, m_buf);
 #endif
 
         // Copy all current data aside to an intermediate `tmp_table` HashTable.
@@ -472,8 +473,9 @@ protected: /*< ## Protected Member Methods */
 
         // Allocate enough memory to re-create this HashTable in a temporary.
         ptr tmp_memory = n2malloc(m_buf->size);
-        N2BREAK_IF(tmp_memory == nullptr, nonstd::error::insufficient_memory,
-                   "Failed to `n2malloc` memory. Godspeed.");
+        N2BREAK_IF(!tmp_memory,
+            (std::error_code { errno, std::system_category() }),
+            "Failed to `n2malloc` temporary memory. Godspeed.");
 
         // Wrap a local Buffer around the temporary memory.
         Buffer tmp_buffer = makeBuffer(tmp_memory, m_buf->size);

@@ -29,16 +29,15 @@ private:
              : memory::allocate(buffer_name, sizeof(storage_type));
     }
 
-    inline bool buffer_initialization_required(Buffer * const buf) {
+    inline bool buffer_initialization_is_required(Buffer * const buf) {
         if (buf->type == Buffer::type_id::single_value) { return false; }
 
         N2BREAK_IF(buf->type != Buffer::type_id::raw,
-                   nonstd::error::invalid_memory,
-                   "Buffer corruption detected by type_id; Attempting to "
-                   "initialize a previously initialized Buffer. type_id is "
-                   "currently 0x{:X}\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->type, buf->name, buf);
+            nonstd::error::invalid_memory,
+            "Buffer corruption detected by type_id; Attempting to initialize a "
+            "previously initialized Buffer. type_id is currently 0x{:X}\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            buf->type, buf->name, buf);
 
         buf->type = Buffer::type_id::single_value;
         return true;
@@ -56,7 +55,7 @@ public:
     constexpr explicit nr_ptr(Buffer * buf, Args&& ... args) noexcept
         : m_buf ( buf )
     {
-        if (buffer_initialization_required(m_buf)) {
+        if (buffer_initialization_is_required(m_buf)) {
             new ((void*)m_buf->data) storage_type {
                 std::forward<Args>(args)...
             };
@@ -66,7 +65,7 @@ public:
     explicit nr_ptr(c_cstr buffer_name, Args&& ... args)
         : m_buf ( find_or_allocate_buffer(buffer_name) )
     {
-        if (buffer_initialization_required(m_buf)) {
+        if (buffer_initialization_is_required(m_buf)) {
             new ((void*)m_buf->data) storage_type {
                 std::forward<Args>(args)...
             };
@@ -95,14 +94,14 @@ public:
     // Set the backing Buffer* directly.
     nr_ptr& backing_buffer(Buffer *const buf) & {
         m_buf = buf;
-        if (buffer_initialization_required(m_buf)) {
+        if (buffer_initialization_is_required(m_buf)) {
             new ((void*)m_buf->data) storage_type { };
         }
         return *this;
     }
     nr_ptr&& backing_buffer(Buffer *const buf) && {
         m_buf = buf;
-        if (buffer_initialization_required(m_buf)) {
+        if (buffer_initialization_is_required(m_buf)) {
             new ((void*)m_buf->data) storage_type { };
         }
         return std::move(*this);
@@ -110,14 +109,14 @@ public:
     // Set the backing Buffer* by name.
     nr_ptr& backing_buffer(c_cstr buffer_name) & {
         m_buf = find_or_allocate_buffer(buffer_name);
-        if (buffer_initialization_required(m_buf)) {
+        if (buffer_initialization_is_required(m_buf)) {
             new ((void*)m_buf->data) storage_type { };
         }
         return *this;
     }
     nr_ptr&& backing_buffer(c_cstr buffer_name) && {
         m_buf = find_or_allocate_buffer(buffer_name);
-        if (buffer_initialization_required(m_buf)) {
+        if (buffer_initialization_is_required(m_buf)) {
             new ((void*)m_buf->data) storage_type { };
         }
         return std::move(*this);

@@ -29,18 +29,17 @@ public: /*< ## Class Methods */
 
     static inline Buffer * initializeBuffer(Buffer *const buf) {
         N2BREAK_IF(buf->type == Buffer::type_id::array,
-                   nonstd::error::double_initialization,
-                   "Buffer corruption detected by type_id; Buffer has already "
-                   "been correctly initialized as an Array.\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->name, buf);
+            nonstd::error::reinitialized_memory,
+            "Buffer corruption detected by type_id; Buffer has already been "
+            "correctly initialized as an Array.\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            buf->name, buf);
         N2BREAK_IF(buf->type != Buffer::type_id::raw,
-                   nonstd::error::invalid_memory,
-                   "Buffer corruption detected by type_id; Attempting to "
-                   "initialize a previously initialized Buffer. type_id is "
-                   "currently 0x{:X}\n"
-                   "Underlying buffer is named '{}', and it is located at {}.",
-                   buf->type, buf->name, buf);
+            nonstd::error::invalid_memory,
+            "Buffer corruption detected by type_id; Attempting to initialize a "
+            "previously initialized Buffer. type_id is currently 0x{:X}\n"
+            "Underlying buffer is named '{}', and it is located at {}.",
+            buf->type, buf->name, buf);
 
         buf->type = Buffer::type_id::array;
 
@@ -59,6 +58,7 @@ public: /*< ## Ctors, Detors, and Assignments */
         ENFORCE_POD(T);
 
         /* Verify `buf` has been correctly initialized. */
+        // TODO: This smells like a precondition check. Assert?
         N2BREAK_IF(m_buf->type != Buffer::type_id::array,
             nonstd::error::invalid_memory,
             "Array corruption detected by type_id; Buffer has not been "
@@ -127,24 +127,34 @@ public: /*< ## Public Memebr Methods */
 
     /* Direct index operator. */
     inline T const & operator[](u64 index) const {
-#if defined(DEBUG)
-        N2BREAK_IF(index >= capacity(), nonstd::error::out_of_bounds,
-            "Array index operation exceeds maximum capacity.\n"
-            "Entry {} / {} (capacity is {}).\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            index, (count() > 0 ? std::to_string(count()) : "-"), capacity(),
-            m_buf->name, m_buf);
-        N2BREAK_IF(index >= count(), nonstd::error::out_of_bounds,
-            "Array index operation exceeds current count.\n"
-            "Entry {} / {} (capacity is {}).\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            index, (count() > 0 ? std::to_string(count()) : "-"), capacity(),
-            m_buf->name, m_buf);
-#endif
         return *((T*)(m_buf->data) + index);
     }
     inline T& operator[](u64 index) {
-        return const_cast<T&>(static_cast<const Array<T> &>(*this)[index]);
+        return *((T*)(m_buf->data) + index);
+    }
+    inline T const & at(u64 index) const {
+        if (index >= count()) {
+            throw std::out_of_range {
+                "Array index operation exceeds current count.\n"
+                "Entry {} / {} (capacity is {}).\n"
+                "Buffer ({}) '{}'"_format(
+                    index, (count() > 0 ? std::to_string(count()) : "-"),
+                    capacity(), m_buf->name, m_buf)
+            };
+        }
+        return *((T*)(m_buf->data) + index);
+    }
+    inline T& at(u64 index) {
+        if (index >= count()) {
+            throw std::out_of_range {
+                "Array index operation exceeds current count.\n"
+                "Entry {} / {} (capacity is {}).\n"
+                "Buffer ({}) '{}'"_format(
+                    index, (count() > 0 ? std::to_string(count()) : "-"),
+                    capacity(), m_buf->name, m_buf)
+            };
+        }
+        return *((T*)(m_buf->data) + index);
     }
 
     /* Drop all elements of the region without reinitializing memory. */
@@ -164,14 +174,15 @@ public: /*< ## Public Memebr Methods */
             ends_before_beginning ||
             ends_after_buffer)
         {
-            N2BREAK(nonstd::error::out_of_bounds,
+            throw std::out_of_range {
                 "Erasing invalid index ranges;\n"
                 "  begin       : {}\n"
                 "  range begin : {}\n"
                 "  range end   : {}\n"
                 "  end         : {}\n"
-                "Underlying buffer is named '{}', and it is located at {}.",
-                begin(), range_begin, range_end, end(), m_buf->name, m_buf);
+                "Buffer ({}) '{}'"_format(
+                begin(), range_begin, range_end, end(), m_buf->name, m_buf)
+            };
         }
 #endif
         memmove(range_begin, range_end, (end() - range_end) * sizeof(T));
