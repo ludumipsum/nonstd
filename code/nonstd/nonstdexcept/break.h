@@ -39,28 +39,28 @@
 #endif
 
 
-/** N2BREAK
- *  -------
+/** BREAK
+ *  -----
  *  Convenience Macro to ensure the function name, file, and line number are
  *  correctly captured on breaks.
- *  If `DEBUG` is defined, `N2BREAK` will trigger an immediate, programmatic
+ *  If `DEBUG` is defined, `BREAK` will trigger an immediate, programmatic
  *  breakpoint; otherwise a `std::system_error` will be thrown.
  */
-#define N2BREAK(ERROR, REASON, ...)           \
+#define BREAK(ERROR, REASON, ...)             \
     ::nonstd::detail::log_and_break(          \
         ERROR,                                \
         ::fmt::format(REASON, ##__VA_ARGS__), \
         __PRETTY_FUNCTION__, __FILE__, __LINE__)
 
 
-/** N2BREAK_IF & N2BREAK_UNLESS
+/** BREAK_IF & BREAK_UNLESS
  *  ---------------------------
- *  Conditional N2BREAK helpers.
+ *  Conditional BREAK helpers.
  *
  *  Note that these macros prepend a new line -- `"Condition [un]met (. . .)"`
  *  -- to the user-provided `REASON` string.
  */
-#define N2BREAK_IF(COND, ERROR, REASON, ...)            \
+#define BREAK_IF(COND, ERROR, REASON, ...)              \
     ( (COND) ?                                          \
       ::nonstd::detail::log_and_break(                  \
           ERROR,                                        \
@@ -71,7 +71,7 @@
           __PRETTY_FUNCTION__, __FILE__, __LINE__) :    \
       0                                                 \
     )
-#define N2BREAK_UNLESS(COND, ERROR, REASON, ...)          \
+#define BREAK_UNLESS(COND, ERROR, REASON, ...)            \
     ( (COND) ?                                            \
       0      :                                            \
       ::nonstd::detail::log_and_break(                    \
@@ -84,7 +84,7 @@
     )
 
 
-/** N2ASSERT
+/** ASSERT
  *  --------
  *  <cassert> style convenience macro to perform quick checks (ex; verifying
  *  preconditions) in code. The `COND` of this macro will only executed
@@ -92,17 +92,17 @@
  *
  *  Note that `COND` will not be executed unless `DEBUG` is defined.
  *  **SIDE-EFFECTS IN `COND` WILL NOT OCCUR UNLESS `DEBUG` IS DEFINED!**
- *  Seriously. Do not put side-effects in the `COND` of an `N2ASSERT`.
+ *  Seriously. Do not put side-effects in the `COND` of an `ASSERT`.
  */
 #if defined(DEBUG)
-#   define N2ASSERT(COND)                                 \
+#   define ASSERT(COND)                                   \
         do { if (COND) {                                  \
             ::nonstd::detail::log_and_assert(             \
                 ::fmt::format("" #COND ""),               \
                 __PRETTY_FUNCTION__, __FILE__, __LINE__); \
         } } while (0)
 #else /* ndef(DEBUG) */
-#   define N2ASSERT(COND) \
+#   define ASSERT(COND) \
         do { (void)sizeof(COND); } while(0)
 #endif
 
