@@ -28,13 +28,13 @@ public: /*< ## Class Methods */
     }
 
     static inline Buffer * initializeBuffer(Buffer *const buf) {
-        N2BREAK_IF(buf->type == Buffer::type_id::array,
+        BREAK_IF(buf->type == Buffer::type_id::array,
             nonstd::error::reinitialized_memory,
             "Buffer corruption detected by type_id; Buffer has already been "
             "correctly initialized as an Array.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
-        N2BREAK_IF(buf->type != Buffer::type_id::raw,
+        BREAK_IF(buf->type != Buffer::type_id::raw,
             nonstd::error::invalid_memory,
             "Buffer corruption detected by type_id; Attempting to initialize a "
             "previously initialized Buffer. type_id is currently 0x{:X}\n"
@@ -59,7 +59,7 @@ public: /*< ## Ctors, Detors, and Assignments */
 
         /* Verify `buf` has been correctly initialized. */
         // TODO: This smells like a precondition check. Assert?
-        N2BREAK_IF(m_buf->type != Buffer::type_id::array,
+        BREAK_IF(m_buf->type != Buffer::type_id::array,
             nonstd::error::invalid_memory,
             "Array corruption detected by type_id; Buffer has not been "
             "initialized as an Array.\n"

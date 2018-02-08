@@ -32,7 +32,7 @@ private:
     inline bool buffer_initialization_is_required(Buffer * const buf) {
         if (buf->type == Buffer::type_id::single_value) { return false; }
 
-        N2BREAK_IF(buf->type != Buffer::type_id::raw,
+        BREAK_IF(buf->type != Buffer::type_id::raw,
             nonstd::error::invalid_memory,
             "Buffer corruption detected by type_id; Attempting to initialize a "
             "previously initialized Buffer. type_id is currently 0x{:X}\n"
