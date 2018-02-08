@@ -43,9 +43,11 @@
  *  -------
  *  Convenience Macro to ensure the function name, file, and line number are
  *  correctly captured on breaks.
+ *  If `DEBUG` is defined, `N2BREAK` will trigger an immediate, programmatic
+ *  breakpoint; otherwise a `std::system_error` will be thrown.
  */
 #define N2BREAK(ERROR, REASON, ...)           \
-    ::nonstd::detail::logAndBreak(            \
+    ::nonstd::detail::log_and_break(          \
         ERROR,                                \
         ::fmt::format(REASON, ##__VA_ARGS__), \
         __PRETTY_FUNCTION__, __FILE__, __LINE__)
@@ -60,7 +62,7 @@
  */
 #define N2BREAK_IF(COND, ERROR, REASON, ...)            \
     ( (COND) ?                                          \
-      ::nonstd::detail::logAndBreak(                    \
+      ::nonstd::detail::log_and_break(                  \
           ERROR,                                        \
           ::fmt::format("Condition met ( " #COND " )\n" \
                         "- - - - -\n"                   \
@@ -72,7 +74,7 @@
 #define N2BREAK_UNLESS(COND, ERROR, REASON, ...)          \
     ( (COND) ?                                            \
       0      :                                            \
-      ::nonstd::detail::logAndBreak(                      \
+      ::nonstd::detail::log_and_break(                    \
           ERROR,                                          \
           ::fmt::format("Condition unmet ( " #COND " )\n" \
                         "- - - - -\n"                     \
@@ -82,16 +84,37 @@
     )
 
 
-/** logAndBreak Implementation
- *  --------------------------
+/** N2ASSERT
+ *  --------
+ *  <cassert> style convenience macro to perform quick checks (ex; verifying
+ *  preconditions) in code. The `COND` of this macro will only executed
+ *  (potentially causing a crash) if the `DEBUG` symbol is defined.
+ *
+ *  Note that `COND` will not be executed unless `DEBUG` is defined.
+ *  **SIDE-EFFECTS IN `COND` WILL NOT OCCUR UNLESS `DEBUG` IS DEFINED!**
+ *  Seriously. Do not put side-effects in the `COND` of an `N2ASSERT`.
+ */
+#if defined(DEBUG)
+#   define N2ASSERT(COND)                                 \
+        do { if (COND) {                                  \
+            ::nonstd::detail::log_and_assert(             \
+                ::fmt::format("" #COND ""),               \
+                __PRETTY_FUNCTION__, __FILE__, __LINE__); \
+        } } while (0)
+#else /* ndef(DEBUG) */
+#   define N2ASSERT(COND) \
+        do { (void)sizeof(COND); } while(0)
+#endif
+
+/** log_and_break Implementation
+ *  ----------------------------
  *  Users should never directly call this function, but we do need more than
  *  just macros to correctly log.
  */
-namespace nonstd {
-namespace detail {
+namespace nonstd::detail {
 
-inline i32 logAndBreak(std::error_code error, std::string && reason,
-                       c_cstr __function__, c_cstr __file__, u64 __line__) {
+inline i32 log_and_break(std::error_code error_code, std::string && reason,
+                         c_cstr __function__, c_cstr __file__, u64 __line__) {
     fmt::print("~~~~~~~~~~~~~~~\n"
                "Fatal Error in:\n"
                "    {}\n"
@@ -100,11 +123,24 @@ inline i32 logAndBreak(std::error_code error, std::string && reason,
                "Reason: {}\n"
                "~~~~~~~~~~~~~~~\n",
                __function__, __file__, __line__,
-               error, error.message(),
+               error_code, error_code.message(),
                reason);
-    BREAKPOINT();
-    exit(error.value());
+    DEBUG_BREAKPOINT();
+    throw std::system_error { error_code, reason };
+    exit(error_code.value());
 }
 
-} /* namespace detail */
-} /* namespace nonstd */
+inline i32 log_and_assert(std::string && assert_str,
+                          c_cstr __function__, c_cstr __file__, u64 __line__) {
+    fmt::print("~~~~~~~~~~~~~~~~~\n"
+               "Assertion Failed: {}\n"
+               "    {}\n"
+               "    {}:{}\n"
+               "~~~~~~~~~~~~~~~~~\n",
+               assert_str,
+               __function__, __file__, __line__);
+    BREAKPOINT();
+    exit(0);
+}
+
+} /* namespace nonstd::detail */
