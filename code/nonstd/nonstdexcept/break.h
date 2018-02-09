@@ -11,7 +11,6 @@
 #include <string>
 #include <system_error>
 #include <nonstd/nonstd.h>
-#include <boost/preprocessor/facilities/overload.hpp>
 
 
 /** BREAKPOINT and DEBUG_BREAKPOINT
@@ -39,7 +38,7 @@
 #endif
 
 
-/** BREAK(ERROR, REASON[, FORMAT_ARGS])
+/** BREAK(ERROR, REASON[, FORMAT_ARGS...])
  *  -----------------------------------
  *  Convenience Macro to ensure the function name, file, and line number are
  *  correctly captured on breaks.
@@ -53,8 +52,8 @@
         __PRETTY_FUNCTION__, __FILE__, __LINE__)
 
 
-/** BREAK_[IF|_UNLESS](COND, ERROR, REASON[, FORMAT_ARGS])
- *  ------------------------------------------------------
+/** BREAK_[IF|_UNLESS](COND, ERROR, REASON[, FORMAT_ARGS...])
+ *  ---------------------------------------------------------
  *  Conditional BREAK helpers.
  *
  *  Note that these macros prepend a new line -- `"Condition [un]met (. . .)"`
@@ -84,54 +83,44 @@
     )
 
 
-/** `ASSERT(COND[, MESSAGE])`
- *  -------------------------
+/** `ASSERT(COND)` & `ASSERT_M(COND, MESSAGE[, FORMAT_ARGS...])
+ *  -----------------------------------------------------------
  *  <cassert> style convenience macro to perform quick checks (ex; verifying
  *  preconditions) in code. The `COND` of this macro will only executed
- *  (potentially causing a crash) if the `DEBUG` symbol is defined. A message
- *  may optionally be provided as a second argument.
+ *  (potentially causing a crash) if the `DEBUG` symbol is defined.
  *
  *  Note that `COND` will not be executed unless `DEBUG` is defined.
  *  **SIDE-EFFECTS IN `COND` WILL NOT OCCUR UNLESS `DEBUG` IS DEFINED!**
  *  Seriously. Do not put side-effects in the `COND` of an `ASSERT`.
  */
-
-#if !BOOST_PP_VARIADICS_MSVC
-#   define ASSERT(...) \
-        BOOST_PP_OVERLOAD(ASSERT_IMPL, __VA_ARGS__)(__VA_ARGS__)
-#else // MSVC doesn't comply with C99 macro parsing. Gotta work around that.
-#   define ASSERT(...) \
-        BOOST_PP_CAT(BOOST_PP_OVERLOAD(ASSERT_IMPL,__VA_ARGS__)(__VA_ARGS__),BOOST_PP_EMPTY())
-#endif
-
 #if defined(DEBUG)
-#   define ASSERT_IMPL1(COND)                             \
-        do { if (!COND) {                                 \
+#   define ASSERT(COND)                                   \
+        do { if (!(COND)) {                               \
             ::nonstd::detail::log_and_assert(             \
-                ::fmt::format("" #COND ""),               \
+                #COND,                                    \
                 __PRETTY_FUNCTION__, __FILE__, __LINE__); \
         } } while (0)
-#   define ASSERT_IMPL2(COND, MESSAGE)                    \
-        do { if (!COND) {                                 \
-            ::nonstd::detail::log_and_assert(             \
-                ::fmt::format("" #COND ""), MESSAGE,      \
-                __PRETTY_FUNCTION__, __FILE__, __LINE__); \
-        } } while (0)
+#   define ASSERT_M(COND, MESSAGE, ...)                           \
+        do {                                                      \
+            if (!(COND)) {                                        \
+                ::nonstd::detail::log_and_assert(                 \
+                    #COND, ::fmt::format(MESSAGE, ##__VA_ARGS__), \
+                    __PRETTY_FUNCTION__, __FILE__, __LINE__);     \
+            }                                                     \
+        } while (0)
 #else /* ndef(DEBUG) */
-#   define ASSERT_IMPL1(COND) \
-        do { (void)sizeof(COND); } while(0)
-#   define ASSERT_IMPL2(COND, MESSAGE) \
-        do { (void)sizeof(COND); } while (0)
+#   define ASSERT(COND, ...) \
+        do { (void)sizeof((COND)); } while(0)
 #endif
 
+
+namespace nonstd::detail {
 
 /** log_and_break Implementation
  *  ----------------------------
  *  Users should never directly call this function, but we do need more than
  *  just macros to correctly log.
  */
-namespace nonstd::detail {
-
 inline i32 log_and_break(std::error_code error_code, std::string && reason,
                          c_cstr __function__, c_cstr __file__, u64 __line__) {
     fmt::print("~~~~~~~~~~~~~~~\n"
@@ -149,7 +138,12 @@ inline i32 log_and_break(std::error_code error_code, std::string && reason,
     exit(error_code.value());
 }
 
-inline i32 log_and_assert(std::string && assert_str,
+/** log_and_assert Implementation
+ *  --------------=--------------
+ *  Users should never directly call this function, but we do need more than
+ *  just macros to correctly log.
+ */
+inline i32 log_and_assert(c_cstr assert_str,
                           c_cstr __function__, c_cstr __file__, u64 __line__) {
     fmt::print("~~~~~~~~~~~~~~~~~\n"
                "Assertion Failed: {}\n"
@@ -161,7 +155,7 @@ inline i32 log_and_assert(std::string && assert_str,
     BREAKPOINT();
     exit(0);
 }
-inline i32 log_and_assert(std::string && assert_str, std::string && message_str,
+inline i32 log_and_assert(c_cstr assert_str, std::string && message_str,
                           c_cstr __function__, c_cstr __file__, u64 __line__) {
     fmt::print("~~~~~~~~~~~~~~~~~\n"
                "Assertion Failed: {}\n"
@@ -169,8 +163,9 @@ inline i32 log_and_assert(std::string && assert_str, std::string && message_str,
                "    {}:{}\n"
                "Message: {}\n"
                "~~~~~~~~~~~~~~~~~\n",
-               assert_str, message_str,
-               __function__, __file__, __line__);
+               assert_str,
+               __function__, __file__, __line__,
+               message_str);
     BREAKPOINT();
     exit(0);
 }
