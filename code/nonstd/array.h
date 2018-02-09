@@ -48,7 +48,7 @@ public: /*< ## Class Methods */
 
 
 protected: /*< ## Protected Member Variables */
-    Buffer * m_buf;
+    Buffer *const m_buf;
 
 public: /*< ## Ctors, Detors, and Assignments */
     Array(Buffer * buf) noexcept
@@ -57,15 +57,9 @@ public: /*< ## Ctors, Detors, and Assignments */
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
 
-        /* Verify `buf` has been correctly initialized. */
-        // TODO: This smells like a precondition check. Assert?
-        BREAK_IF(m_buf->type != Buffer::type_id::array,
-            nonstd::error::invalid_memory,
-            "Array corruption detected by type_id; Buffer has not been "
-            "initialized as an Array.\n"
-            "type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            m_buf->type, m_buf->name, m_buf);
+        ASSERT_M(m_buf->type == Buffer::type_id::array,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+            m_buf->type);
     }
     Array(c_cstr name, u64 min_capacity = default_capacity)
         : Array ( memory::find(name)
@@ -75,9 +69,11 @@ public: /*< ## Ctors, Detors, and Assignments */
                     )
                 )
     {
-        if (capacity() < min_capacity) {
-            resize(min_capacity);
-        }
+        ASSERT_M(m_buf->type == Buffer::type_id::array,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+            m_buf->type);
+
+        if (capacity() < min_capacity) { resize(min_capacity); }
     }
 
 public: /*< ## Public Memebr Methods */

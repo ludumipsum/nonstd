@@ -200,15 +200,9 @@ public: /*< ## Ctors, Detors, and Assignments */
         ENFORCE_POD(T_VAL);
         ENFORCE_POD(Cell);
 
-        /* Verify `buf` has been correctly initialized. */
-        // TODO: This smells like a precondition check. Assert?
-        BREAK_IF(m_buf->type != Buffer::type_id::hash_table,
-            nonstd::error::invalid_memory,
-            "HashTable corruption detected by type_id; Buffer has not been "
-            "initialized as a HashTable.\n"
-            "type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            m_buf->type, m_buf->name, m_buf);
+        ASSERT_M(m_buf->type == Buffer::type_id::hash_table,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+            m_buf->type);
     }
     HashTable(c_cstr name, u64 min_capacity = default_capacity)
         : HashTable ( memory::find(name)
@@ -218,9 +212,11 @@ public: /*< ## Ctors, Detors, and Assignments */
                         )
                     )
     {
-        if (capacity() < min_capacity) {
-            resize(min_capacity);
-        }
+        ASSERT_M(m_buf->type == Buffer::type_id::hash_table,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+            m_buf->type);
+
+        if (capacity() < min_capacity) { resize(min_capacity); }
     }
 
 private: /*< ## Pseudo Type Traits */

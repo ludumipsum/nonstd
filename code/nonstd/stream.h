@@ -102,14 +102,9 @@ public: /*< ## Ctors, Detors, and Assignments */
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
 
-        /* Verify `buf` has been correctly initialized. */
-        BREAK_IF(m_buf->type != Buffer::type_id::stream,
-            nonstd::error::invalid_memory,
-            "Stream corruption detected by type_id; Buffer has not been "
-            "initialized as an Stream.\n"
-            "type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            m_buf->type, m_buf->name, m_buf);
+        ASSERT_M(m_buf->type == Buffer::type_id::stream,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+                m_buf->type);
     }
     Stream(c_cstr name, u64 min_capacity = default_capacity)
         : Stream ( memory::find(name)
@@ -119,9 +114,11 @@ public: /*< ## Ctors, Detors, and Assignments */
                      )
                  )
     {
-        if (capacity() < min_capacity) {
-            resize(min_capacity);
-        }
+        ASSERT_M(m_buf->type == Buffer::type_id::stream,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+            m_buf->type);
+
+        if (capacity() < min_capacity) { resize(min_capacity); }
     }
 
 
