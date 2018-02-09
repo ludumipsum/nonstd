@@ -109,7 +109,9 @@
             }                                                     \
         } while (0)
 #else /* ndef(DEBUG) */
-#   define ASSERT(COND, ...) \
+#   define ASSERT(COND) \
+        do { (void)sizeof((COND)); } while(0)
+#   define ASSERT_M(COND, MESSAGE, ...) \
         do { (void)sizeof((COND)); } while(0)
 #endif
 
