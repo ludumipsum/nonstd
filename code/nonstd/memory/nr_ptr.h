@@ -3,7 +3,7 @@
 #include <type_traits>
 
 #include <nonstd/nonstd.h>
-#include <nonstd/nonstdexcept.h>
+#include <nonstd/error.h>
 #include <nonstd/type_traits_ext.h>
 #include <nonstd/utility_ext.h>
 
@@ -32,7 +32,7 @@ private:
     inline bool buffer_initialization_is_required(Buffer * const buf) {
         if (buf->type == Buffer::type_id::single_value) { return false; }
 
-        N2BREAK_IF(buf->type != Buffer::type_id::raw,
+        BREAK_IF(buf->type != Buffer::type_id::raw,
             nonstd::error::invalid_memory,
             "Buffer corruption detected by type_id; Attempting to initialize a "
             "previously initialized Buffer. type_id is currently 0x{:X}\n"

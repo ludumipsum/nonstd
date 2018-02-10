@@ -25,7 +25,7 @@
 
 #include <nonstd/nonstd.h>
 #include <nonstd/memory.h>
-#include <nonstd/nonstdexcept.h>
+#include <nonstd/error.h>
 #include <nonstd/scope_guard.h>
 #include <nonstd/type_traits_ext.h>
 
@@ -46,24 +46,24 @@ public: /*< ## Class Methods */
     }
 
     static inline Buffer * initializeBuffer(Buffer *const buf) {
-        N2BREAK_IF(buf->type == Buffer::type_id::ring,
+        BREAK_IF(buf->type == Buffer::type_id::ring,
             nonstd::error::reinitialized_memory,
             "Buffer corruption detected by type_id; Buffer has already been "
             "correctly initialized as a Ring.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
-        N2BREAK_IF(buf->type != Buffer::type_id::raw,
+        BREAK_IF(buf->type != Buffer::type_id::raw,
             nonstd::error::invalid_memory,
             "Buffer corruption detected by type_id; Attempting to initialize a "
             "previously initialized Buffer. type_id is currently 0x{:X}\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->type, buf->name, buf);
 
-        N2BREAK_IF(buf->size < sizeof(T),
+        BREAK_IF(buf->size < sizeof(T),
             nonstd::error::insufficient_memory,
-            "This Ring is being overlaid onto a Buffer that is too small ({}B) "
-            "to fit at least one <{}>({}B). Rings _must_ be able to store at "
-            "least one element.\n"
+            "This Ring is being overlaid onto a Buffer that is too small ({} "
+            "bytes) to fit at least one <{}> ({}  bytes). Rings _must_ be able "
+            "to store at least one element.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->size, type_name<T>(), sizeof(T),
             buf->name, buf->data);
@@ -75,7 +75,7 @@ public: /*< ## Class Methods */
 
 
 protected: /*< ## Public Member Variables */
-    Buffer *const    m_buf;
+    Buffer *const m_buf;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
@@ -85,14 +85,9 @@ public: /*< ## Ctors, Detors, and Assignments */
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
 
-        /* Verify `buf` has been correctly initialized. */
-        N2BREAK_IF(m_buf->type != Buffer::type_id::ring,
-            nonstd::error::invalid_memory,
-            "Ring corruption detected by type_id; Buffer has not been "
-            "initialized as a Ring.\n"
-            "type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            m_buf->type, m_buf->name, m_buf);
+        ASSERT_M(m_buf->type == Buffer::type_id::ring,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+            m_buf->type);
     }
     Ring(c_cstr name, u64 min_capacity = default_capacity)
         : Ring ( memory::find(name)
@@ -102,9 +97,11 @@ public: /*< ## Ctors, Detors, and Assignments */
                    )
                )
     {
-        if (capacity() < min_capacity) {
-            resize(min_capacity);
-        }
+        ASSERT_M(m_buf->type == Buffer::type_id::ring,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+            m_buf->type);
+
+        if (capacity() < min_capacity) { resize(min_capacity); }
     }
 
 
@@ -132,7 +129,7 @@ public: /*< ## Public Member Methods */
     }
 
     inline T* consume(u64 count) {
-        N2BREAK(nonstd::error::unimplemented, "");
+        BREAK(nonstd::error::unimplemented, "");
     }
 
     inline T& operator[](i64 index) noexcept {
@@ -191,7 +188,7 @@ public: /*< ## Public Member Methods */
 
             // Fetch enough scratch space to move section B aside.
             ptr scratch = n2malloc(size_of_b);
-            N2BREAK_IF(!scratch,
+            BREAK_IF(!scratch,
                 (std::error_code { errno, std::system_category() }),
                 "Failed to `n2malloc` temporary memory. Godspeed.");
             auto guard = make_guard([scratch](){ n2free(scratch); });
@@ -232,7 +229,7 @@ public: /*< ## Public Member Methods */
                 // scratch space to move that data aside.
                 size_t bytes_retained_from_b = size_of_b - bytes_removed;
                 ptr scratch = n2malloc(bytes_retained_from_b);
-                N2BREAK_IF(!scratch,
+                BREAK_IF(!scratch,
                     (std::error_code { errno, std::system_category() }),
                     "Failed to `n2malloc` temporary memory. Godspeed.");
                 auto guard = make_guard([scratch](){ n2free(scratch); });
@@ -303,7 +300,7 @@ public: /*< ## Public Member Methods */
 
             // Fetch enough scratch space to move section B aside.
             ptr scratch = n2malloc(size_of_b);
-            N2BREAK_IF(!scratch,
+            BREAK_IF(!scratch,
                 (std::error_code { errno, std::system_category() }),
                 "Failed to `n2malloc` temporary memory. Godspeed.");
             auto guard = make_guard([scratch](){ n2free(scratch); });
@@ -347,7 +344,7 @@ public: /*< ## Public Member Methods */
                 // move section B aside to make room for that. Fetch enough
                 // scratch space to move section B aside.
                 ptr scratch = n2malloc(size_of_b);
-                N2BREAK_IF(!scratch,
+                BREAK_IF(!scratch,
                     (std::error_code { errno, std::system_category() }),
                     "Failed to `n2malloc` temporary memory. Godspeed.");
                 auto guard = make_guard([scratch](){ n2free(scratch); });

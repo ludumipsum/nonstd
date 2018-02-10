@@ -11,7 +11,7 @@
 
 #include <nonstd/nonstd.h>
 #include <nonstd/memory.h>
-#include <nonstd/nonstdexcept.h>
+#include <nonstd/error.h>
 #include <nonstd/type_traits_ext.h>
 
 
@@ -28,13 +28,13 @@ public: /*< ## Class Methods */
     }
 
     static inline Buffer * initializeBuffer(Buffer *const buf) {
-        N2BREAK_IF(buf->type == Buffer::type_id::array,
+        BREAK_IF(buf->type == Buffer::type_id::array,
             nonstd::error::reinitialized_memory,
             "Buffer corruption detected by type_id; Buffer has already been "
             "correctly initialized as an Array.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
-        N2BREAK_IF(buf->type != Buffer::type_id::raw,
+        BREAK_IF(buf->type != Buffer::type_id::raw,
             nonstd::error::invalid_memory,
             "Buffer corruption detected by type_id; Attempting to initialize a "
             "previously initialized Buffer. type_id is currently 0x{:X}\n"
@@ -57,15 +57,9 @@ public: /*< ## Ctors, Detors, and Assignments */
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
 
-        /* Verify `buf` has been correctly initialized. */
-        // TODO: This smells like a precondition check. Assert?
-        N2BREAK_IF(m_buf->type != Buffer::type_id::array,
-            nonstd::error::invalid_memory,
-            "Array corruption detected by type_id; Buffer has not been "
-            "initialized as an Array.\n"
-            "type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            m_buf->type, m_buf->name, m_buf);
+        ASSERT_M(m_buf->type == Buffer::type_id::array,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+            m_buf->type);
     }
     Array(c_cstr name, u64 min_capacity = default_capacity)
         : Array ( memory::find(name)
@@ -75,9 +69,11 @@ public: /*< ## Ctors, Detors, and Assignments */
                     )
                 )
     {
-        if (capacity() < min_capacity) {
-            resize(min_capacity);
-        }
+        ASSERT_M(m_buf->type == Buffer::type_id::array,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+            m_buf->type);
+
+        if (capacity() < min_capacity) { resize(min_capacity); }
     }
 
 public: /*< ## Public Memebr Methods */
