@@ -74,7 +74,7 @@
 #include <nonstd/nonstd.h>
 #include <nonstd/math.h>
 #include <nonstd/memory.h>
-#include <nonstd/nonstdexcept.h>
+#include <nonstd/error.h>
 #include <nonstd/optional.h>
 #include <nonstd/type_traits_ext.h>
 #include <nonstd/utility_ext.h>
@@ -154,7 +154,7 @@ public: /*< ## Class Methods */
         BREAK_IF(buf->size < sizeof(Metadata),
             nonstd::error::insufficient_memory,
             "This HashTable is being overlaid onto a Buffer that is too small "
-            "({}B) to fit the HashTable Metadata ({}).\n"
+            "({} bytes) to fit the HashTable Metadata ({}).\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->size, sizeof(Metadata), buf->name, buf);
         BREAK_IF(required_capacity > data_region_capacity,
