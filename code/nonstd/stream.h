@@ -27,7 +27,7 @@
 
 #include <nonstd/nonstd.h>
 #include <nonstd/memory.h>
-#include <nonstd/nonstdexcept.h>
+#include <nonstd/error.h>
 #include <nonstd/type_traits_ext.h>
 
 
@@ -52,13 +52,13 @@ public: /*< ## Class Methods */
     noexcept { return sizeof(Metadata) + (sizeof(T) * n2max(capacity, 1)); }
 
     static inline Buffer * initializeBuffer(Buffer *const buf) {
-        N2BREAK_IF(buf->type == Buffer::type_id::stream,
+        BREAK_IF(buf->type == Buffer::type_id::stream,
             nonstd::error::reinitialized_memory,
             "Buffer corruption detected by type_id; Buffer has already been "
             "correctly initialized as an Stream.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
-        N2BREAK_IF(buf->type != Buffer::type_id::raw,
+        BREAK_IF(buf->type != Buffer::type_id::raw,
             nonstd::error::invalid_memory,
             "Buffer corruption detected by type_id; Attempting to initialize a "
             "previously initialized Buffer. type_id is currently 0x{:X}\n"
@@ -70,11 +70,12 @@ public: /*< ## Class Methods */
         u64 data_region_size = buf->size - sizeof(Metadata);
         u64 capacity         = (data_region_size) / sizeof(T);
 
-        N2BREAK_IF(buf->size < (sizeof(Metadata) + sizeof(T)),
+        BREAK_IF(buf->size < (sizeof(Metadata) + sizeof(T)),
             nonstd::error::insufficient_memory,
             "This Stream is being overlaid onto a Buffer that is too small "
-            "({}B) to fit the Stream Metadata ({}B) and at least one "
-            "<{}>({}B). Streams _must_ be able to store at least one element.\n"
+            "({} bytes) to fit the Stream Metadata ({} bytes) and at least one "
+            "<{}> ({} bytes). Streams _must_ be able to store at least "
+            "one element.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->size, sizeof(Metadata), type_name<T>(), sizeof(T),
             buf->name, buf);
@@ -102,14 +103,9 @@ public: /*< ## Ctors, Detors, and Assignments */
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
 
-        /* Verify `buf` has been correctly initialized. */
-        N2BREAK_IF(m_buf->type != Buffer::type_id::stream,
-            nonstd::error::invalid_memory,
-            "Stream corruption detected by type_id; Buffer has not been "
-            "initialized as an Stream.\n"
-            "type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            m_buf->type, m_buf->name, m_buf);
+        ASSERT_M(m_buf->type == Buffer::type_id::stream,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+                m_buf->type);
     }
     Stream(c_cstr name, u64 min_capacity = default_capacity)
         : Stream ( memory::find(name)
@@ -119,9 +115,11 @@ public: /*< ## Ctors, Detors, and Assignments */
                      )
                  )
     {
-        if (capacity() < min_capacity) {
-            resize(min_capacity);
-        }
+        ASSERT_M(m_buf->type == Buffer::type_id::stream,
+            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
+            m_buf->type);
+
+        if (capacity() < min_capacity) { resize(min_capacity); }
     }
 
 
@@ -156,7 +154,7 @@ public: /*< ## Stream Accessors */
     }
 
     inline T* consume(u64 count) {
-        N2BREAK(nonstd::error::unimplemented, "");
+        BREAK(nonstd::error::unimplemented, "");
     }
 
     inline T& operator[](i64 index) noexcept {
@@ -184,7 +182,7 @@ public: /*< ## Stream Accessors */
      *  about how complex this shit is gonna be).
      */
     inline u64 resize(u64 capacity) {
-        N2BREAK(nonstd::error::unimplemented, "");
+        BREAK(nonstd::error::unimplemented, "");
         return 0;
     }
 
