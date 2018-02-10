@@ -20,15 +20,15 @@ struct BadComp {
     int x;
 
     bool operator==(BadComp const & other) const noexcept(false) {
-        if (x == 0) { throw std::runtime_error("What a bad class"); }
+        if (x == 0) { throw std::runtime_error { "What a bad class" }; }
         return x == other.x;
     }
     bool operator<(BadComp const & other) const noexcept(false) {
-        if (x == 0) { throw std::runtime_error("What a bad class"); }
+        if (x == 0) { throw std::runtime_error { "What a bad class" }; }
         return x < other.x;
     }
     bool operator>(BadComp const & other) const noexcept(false) {
-        if (x == 0) { throw std::runtime_error("What a bad class"); }
+        if (x == 0) { throw std::runtime_error { "What a bad class" }; }
         return x > other.x;
     }
 };

@@ -72,7 +72,7 @@ public:
     constexpr const_iterator end()   const noexcept { return p + len; }
 
     constexpr char operator[](size_t n) const {
-        return n < len ? p[n] : throw std::out_of_range("StaticString");
+        return n < len ? p[n] : throw std::out_of_range { "StaticString" };
     }
 };
 
