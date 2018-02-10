@@ -73,8 +73,9 @@ public: /*< ## Class Methods */
         BREAK_IF(buf->size < (sizeof(Metadata) + sizeof(T)),
             nonstd::error::insufficient_memory,
             "This Stream is being overlaid onto a Buffer that is too small "
-            "({}B) to fit the Stream Metadata ({}B) and at least one "
-            "<{}>({}B). Streams _must_ be able to store at least one element.\n"
+            "({} bytes) to fit the Stream Metadata ({} bytes) and at least one "
+            "<{}> ({} bytes). Streams _must_ be able to store at least "
+            "one element.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->size, sizeof(Metadata), type_name<T>(), sizeof(T),
             buf->name, buf);

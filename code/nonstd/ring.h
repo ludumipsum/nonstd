@@ -61,9 +61,9 @@ public: /*< ## Class Methods */
 
         BREAK_IF(buf->size < sizeof(T),
             nonstd::error::insufficient_memory,
-            "This Ring is being overlaid onto a Buffer that is too small ({}B) "
-            "to fit at least one <{}>({}B). Rings _must_ be able to store at "
-            "least one element.\n"
+            "This Ring is being overlaid onto a Buffer that is too small ({} "
+            "bytes) to fit at least one <{}> ({}  bytes). Rings _must_ be able "
+            "to store at least one element.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->size, type_name<T>(), sizeof(T),
             buf->name, buf->data);
