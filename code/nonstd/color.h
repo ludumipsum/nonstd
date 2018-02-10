@@ -7,6 +7,7 @@
 
 #include <nonstd/nonstd.h>
 #include <nonstd/angle.h>
+#include <nonstd/error.h>
 #include <nonstd/type_traits_ext.h>
 
 
@@ -57,13 +58,19 @@ struct RGBAu {
         , g ( gray  )
         , b ( gray  )
         , a ( alpha )
-    { }
+    {
+        ASSERT(0 <= gray && gray <= 255);
+        ASSERT(0 <= alpha && alpha <= 255);
+    }
     inline constexpr RGBAu(i32 gray, f64 alpha) noexcept
         : r ( gray  )
         , g ( gray  )
         , b ( gray  )
-        , a ( alpha )
-    { }
+        , a ( static_cast<u8>(alpha * 255.0) )
+    {
+        ASSERT(0 <= gray && gray <= 255);
+        ASSERT(0.0 <= alpha && alpha <= 1.0);
+    }
 
     inline constexpr RGBAu(i32 red, i32 green, i32 blue, i32 alpha = 255)
     noexcept
@@ -71,13 +78,23 @@ struct RGBAu {
         , g ( green )
         , b ( blue  )
         , a ( alpha )
-    { }
+    {
+        ASSERT(0 <= red && red <= 255);
+        ASSERT(0 <= green && green <= 255);
+        ASSERT(0 <= blue && blue <= 255);
+        ASSERT(0 <= alpha && alpha <= 255);
+    }
     inline constexpr RGBAu(i32 red, i32 green, i32 blue, f64 alpha) noexcept
         : r ( red   )
         , g ( green )
         , b ( blue  )
         , a ( static_cast<u8>(alpha * 255.0) )
-    { }
+    {
+        ASSERT(0 <= red && red <= 255);
+        ASSERT(0 <= green && green <= 255);
+        ASSERT(0 <= blue && blue <= 255);
+        ASSERT(0.0 <= alpha && alpha <= 1.0);
+    }
 
     inline constexpr RGBAu(f64 red, f64 green, f64 blue, f64 alpha = 1.0)
     noexcept
@@ -85,7 +102,12 @@ struct RGBAu {
         , g ( static_cast<u8>(green * 255.0) )
         , b ( static_cast<u8>(blue  * 255.0) )
         , a ( static_cast<u8>(alpha * 255.0) )
-    { }
+    {
+        ASSERT(0.0 <= red && red <= 1.0);
+        ASSERT(0.0 <= green && green <= 1.0);
+        ASSERT(0.0 <= blue && blue <= 1.0);
+        ASSERT(0.0 <= alpha && alpha <= 1.0);
+    }
 
     inline constexpr RGBAu(RGBAf const & rhs) noexcept;
     inline constexpr operator RGBAf const () noexcept;
@@ -118,7 +140,10 @@ struct RGBAf {
         , g ( gray  )
         , b ( gray  )
         , a ( alpha )
-    { }
+    {
+        ASSERT(0.0 <= gray && gray <= 1.0);
+        ASSERT(0.0 <= alpha && alpha <= 1.0);
+    }
 
     inline constexpr RGBAf(f64 red, f64 green, f64 blue, f64 alpha = 1.0)
     noexcept
@@ -126,7 +151,12 @@ struct RGBAf {
         , g ( green )
         , b ( blue  )
         , a ( alpha )
-    { }
+    {
+        ASSERT(0.0 <= red && red <= 1.0);
+        ASSERT(0.0 <= green && green <= 1.0);
+        ASSERT(0.0 <= blue && blue <= 1.0);
+        ASSERT(0.0 <= alpha && alpha <= 1.0);
+    }
 
     inline constexpr RGBAf(i32 red, i32 green, i32 blue, f64 alpha = 1.0)
     noexcept
@@ -134,14 +164,24 @@ struct RGBAf {
         , g ( green / 255.0 )
         , b ( blue  / 255.0 )
         , a ( alpha )
-    { }
+    {
+        ASSERT(0 <= red && red <= 255);
+        ASSERT(0 <= green && green <= 255);
+        ASSERT(0 <= blue && blue <= 255);
+        ASSERT(0.0 <= alpha && alpha <= 1.0);
+    }
     inline constexpr RGBAf(i32 red, i32 green, i32 blue, i32 alpha)
     noexcept
         : r ( red   / 255.0 )
         , g ( green / 255.0 )
         , b ( blue  / 255.0 )
         , a ( alpha / 255.0 )
-    { }
+    {
+        ASSERT(0 <= red && red <= 255);
+        ASSERT(0 <= green && green <= 255);
+        ASSERT(0 <= blue && blue <= 255);
+        ASSERT(0 <= alpha && alpha <= 255);
+    }
 
     inline constexpr RGBAf(RGBAu const & rhs) noexcept;
     inline constexpr operator RGBAu const () noexcept;
@@ -172,14 +212,22 @@ struct HSVA {
         , s ( saturation )
         , v ( value      )
         , a ( alpha      )
-    { }
+    {
+        ASSERT(angle::cx::zero <= hue && hue <= angle::cx::tau);
+        ASSERT(0.0 <= saturation && saturation <= 1.0);
+        ASSERT(0.0 <= value && value <= 1.0);
+        ASSERT(0.0 <= alpha && alpha <= 1.0);
+    }
 
     inline constexpr HSVA(f64 value, f64 alpha = 1.0)
         : h ( angle::cx::zero )
         , s ( 0.0             )
         , v ( value           )
         , a ( alpha           )
-    { }
+    {
+        ASSERT(0.0 <= value && value <= 1.0);
+        ASSERT(0.0 <= alpha && alpha <= 1.0);
+    }
 
     inline constexpr HSVA(RGBAu const & rhs) noexcept;
     inline constexpr explicit operator RGBAu const () noexcept;
@@ -238,7 +286,7 @@ namespace detail {
         f32 h1 = h2 < 0.0
             ? h2 + 6.0
             : h2;
-        f32 h  = h1 / 6.0; // [0.0,1.0)
+        f32 h  = h1 / 6.0;
 
         return { h * angle::cx::tau, s, v, color.a };
     }
@@ -326,7 +374,7 @@ inline constexpr HSVA::operator RGBAf const () noexcept {
 
 
 
-/** Pri32 Overloads
+/** Print Overloads
  *  ===============
  */
 inline std::ostream& operator << (std::ostream & s, RGBAu const & c) {

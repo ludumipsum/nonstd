@@ -12,8 +12,6 @@
  * TODO:
  * - test the except guarantees of §23.6.3.3.4.
  * - test reference to constant pointer type.
- * - Mirror the static asserts present in test/optional_storage.cc (to insure
- *   triviality / constexpr-ness propagates through to `optional<T>`)
  */
 
 #include <nonstd/optional.h>

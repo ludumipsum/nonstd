@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cassert>
 #include <cmath>
 
 #include <nonstd/nonstd.h>
 #include <nonstd/cx_math.h>
+#include <nonstd/error.h>
 #include <nonstd/type_traits_ext.h>
 
 
@@ -114,7 +114,7 @@ public:
         f32 ret = std::fmod(this->m_rads, tau_radians);
         if (ret < 0.0) { ret += tau_radians; }
 
-        assert(0.0 < ret); assert(ret < tau_radians);
+        ASSERT(0.0 < ret); ASSERT(ret < tau_radians);
         return ret;
     }
     // Return this angle in radians, normalized to the range [0,Tau).
@@ -128,7 +128,7 @@ public:
         f32 ret = nonstd::cx::fmod(this->m_rads, tau_radians);
         if (ret < 0.0) { ret += tau_radians; }
 
-        assert(0.0 < ret); assert(ret < tau_radians);
+        ASSERT(0.0 < ret); ASSERT(ret < tau_radians);
         return ret;
     }
     // Return this angle in radians, normalized to the range [0,Tau).
@@ -151,7 +151,7 @@ public:
         f32 ret = std::fmod(this->degrees(), 360.f);
         if (ret < 0.0) { ret += 360.f; }
 
-        assert(0.0 < ret); assert(ret < 360.f);
+        ASSERT(0.0 < ret); ASSERT(ret < 360.f);
         return ret;
     }
     // Return this angle in degrees, normalized to the range [0º,360º).
@@ -165,7 +165,7 @@ public:
         f32 ret = nonstd::cx::fmod(this->degrees(), 360.f);
         if (ret < 0.0) { ret += 360.f; }
 
-        assert(0.0 < ret); assert(ret < 360.f);
+        ASSERT(0.0 < ret); ASSERT(ret < 360.f);
         return ret;
     }
     // Return this angle in degrees, normalized to the range [0º,360º).
@@ -217,7 +217,7 @@ public:
         this->m_rads = std::fmod(this->m_rads, tau_radians);
         if (this->m_rads < 0.0) { this->m_rads += tau_radians; }
 
-        assert(0.0 <= this->m_rads); assert(this->m_rads < tau_radians);
+        ASSERT(0.0 <= this->m_rads); ASSERT(this->m_rads < tau_radians);
         return *this;
     }
     // Clamp the value of this angle to between [0,Tau) (or [0º,360º) ).
@@ -227,7 +227,7 @@ public:
         this->m_rads = nonstd::cx::fmod(this->m_rads, tau_radians);
         if (this->m_rads < 0.0) { this->m_rads += tau_radians; }
 
-        assert(0.0 <= this->m_rads); assert(this->m_rads < tau_radians);
+        ASSERT(0.0 <= this->m_rads); ASSERT(this->m_rads < tau_radians);
         return *this;
     }
 
