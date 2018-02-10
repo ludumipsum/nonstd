@@ -48,7 +48,7 @@ public: /*< ## Class Methods */
 
 
 protected: /*< ## Protected Member Variables */
-    Buffer *const m_buf;
+    Buffer * m_buf;
 
 public: /*< ## Ctors, Detors, and Assignments */
     Array(Buffer * buf) noexcept
