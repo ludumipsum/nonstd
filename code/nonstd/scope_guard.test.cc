@@ -75,7 +75,7 @@ TEST_CASE("Scope Guard API Demo", "[nonstd][api][scope guards]") {
             auto g1 = make_guard([&](){ foo = initial_foo; }); //< Set foo to 0
             REQUIRE(foo == 1);
 
-            throw std::logic_error("an expected error");
+            throw std::logic_error { "an expected error" };
 
             g1.dismiss(); //< Should not be reached
         }());
