@@ -22,7 +22,7 @@ class array {
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
-    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity = default_capacity)
     noexcept {
         return sizeof(T) * capacity;
     }
@@ -65,7 +65,7 @@ public: /*< ## Ctors, Detors, and Assignments */
         : array ( memory::find(name)
                 ? *memory::find(name)
                 : initializeBuffer(
-                        memory::allocate(name, precomputeSize(min_capacity))
+                        memory::allocate(name, precompute_size(min_capacity))
                     )
                 )
     {
@@ -193,7 +193,7 @@ public: /*< ## Public Memebr Methods */
     }
 
     inline u64 resize(u64 new_capacity) {
-        auto required_size = array<T>::precomputeSize(new_capacity);
+        auto required_size = array<T>::precompute_size(new_capacity);
         memory::resize(m_buf, required_size);
         return capacity();
     }
