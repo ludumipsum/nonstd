@@ -4,14 +4,14 @@
  *  container is aware of both its capacity and its count, and tracks usage
  *  within the metadata block. The read and write heads are also tracked using
  *  the buffer userdata.uint members. When indexing or iterating, only the used
- *  sub-section of a Stream's data will be accessible, so no `\0`-initialized
+ *  sub-section of a stream's data will be accessible, so no `\0`-initialized
  *  data will ever be accessible.
  *
  *  Iteration and subscript operations are 0-indexed to the oldest element in
- *  the Stream. Because only the used sub-section of data is available to be
- *  read, iterations across a Stream may not yield `capacity()` elements, and
+ *  the stream. Because only the used sub-section of data is available to be
+ *  read, iterations across a stream may not yield `capacity()` elements, and
  *  `capacity()-1` may not be a valid index. When `push()` or `consume()` are
- *  called against a full Stream, the oldest data in the Stream will be replaced
+ *  called against a full stream, the oldest data in the stream will be replaced
  *  with incoming data.
  *
  *  When in DEBUG mode, bounds checking is performed on index operations to
@@ -34,7 +34,7 @@
 namespace nonstd {
 
 template<typename T>
-class Stream {
+class stream {
 
 protected: /*< ## Inner-Types */
 
@@ -48,14 +48,14 @@ protected: /*< ## Inner-Types */
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
-    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity = default_capacity)
     noexcept { return sizeof(Metadata) + (sizeof(T) * n2max(capacity, 1)); }
 
-    static inline buffer * initializeBuffer(buffer *const buf) {
+    static inline buffer * initialize_buffer(buffer *const buf) {
         BREAK_IF(buf->type == buffer::type_id::stream,
             nonstd::error::reinitialized_memory,
             "buffer corruption detected by type_id; buffer has already been "
-            "correctly initialized as an Stream.\n"
+            "correctly initialized as an stream.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
         BREAK_IF(buf->type != buffer::type_id::raw,
@@ -72,8 +72,8 @@ public: /*< ## Class Methods */
 
         BREAK_IF(buf->size < (sizeof(Metadata) + sizeof(T)),
             nonstd::error::insufficient_memory,
-            "This Stream is being overlaid onto a buffer that is too small "
-            "({} bytes) to fit the Stream Metadata ({} bytes) and at least one "
+            "This stream is being overlaid onto a buffer that is too small "
+            "({} bytes) to fit the stream Metadata ({} bytes) and at least one "
             "<{}> ({} bytes). Streams _must_ be able to store at least "
             "one element.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
@@ -96,7 +96,7 @@ protected: /*< ## Public Member Variables */
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Stream(buffer *const buf) noexcept
+    stream(buffer *const buf) noexcept
         : m_buf      ( buf                                     )
         , m_metadata ( reinterpret_cast<Metadata*&>(buf->data) )
     {
@@ -107,11 +107,11 @@ public: /*< ## Ctors, Detors, and Assignments */
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
                 m_buf->type);
     }
-    Stream(c_cstr name, u64 min_capacity = default_capacity)
-        : Stream ( memory::find(name)
+    stream(c_cstr name, u64 min_capacity = default_capacity)
+        : stream ( memory::find(name)
                  ? *memory::find(name)
-                 : initializeBuffer(
-                         memory::allocate(name, precomputeSize(min_capacity))
+                 : initialize_buffer(
+                         memory::allocate(name, precompute_size(min_capacity))
                      )
                  )
     {
@@ -225,17 +225,17 @@ public:
     public:
         typedef std::output_iterator_tag iterator_category;
 
-        Stream& stream; /*< The stream being iterated.                */
-        u64     index;  /*< The index this iterator is "referencing". */
+        stream& _stream; /*< The stream being iterated.                */
+        u64     _index;  /*< The index this iterator is "referencing". */
 
-        iterator(Stream& stream,
-                 u64     index = 0)
+        iterator(stream& stream,
+                 u64     _index = 0)
         noexcept
-            : stream ( stream )
-            , index  ( index  ) { }
+            : _stream ( stream )
+            , _index  ( _index  ) { }
 
         inline bool operator==(const iterator& other) const noexcept {
-            return &stream == &other.stream && index == other.index;
+            return &_stream == &other._stream && _index == other._index;
         }
 
         inline bool operator!=(const iterator& other) const noexcept {
@@ -244,19 +244,19 @@ public:
 
         /* Pre-increment -- step forward and return `this`. */
         inline iterator& operator++() noexcept {
-            index += 1;
+            _index += 1;
             return *this;
         }
         /* Post-increment -- return a copy created before stepping forward. */
         inline iterator operator++(int) noexcept {
             iterator copy = *this;
-            index += 1;
+            _index += 1;
             return copy;
         }
         /* Increment and assign -- step forward by `n` and return `this`. */
         // TODO: Verify we don't increment past the end of the stream.
         inline iterator& operator+=(u64 n) noexcept {
-            index = n2min((index + n), stream.capacity());
+            _index = n2min((_index + n), _stream.capacity());
             return *this;
         }
         /* Arithmetic increment -- return an incremented copy. */
@@ -267,7 +267,7 @@ public:
         }
 
         /* Dereference -- return the current value. */
-        inline T& operator*() const noexcept { return stream[index]; }
+        inline T& operator*() const noexcept { return _stream[_index]; }
     };
 
 };
