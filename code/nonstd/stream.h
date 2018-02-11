@@ -48,10 +48,10 @@ protected: /*< ## Inner-Types */
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
-    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity = default_capacity)
     noexcept { return sizeof(Metadata) + (sizeof(T) * n2max(capacity, 1)); }
 
-    static inline buffer * initializeBuffer(buffer *const buf) {
+    static inline buffer * initialize_buffer(buffer *const buf) {
         BREAK_IF(buf->type == buffer::type_id::stream,
             nonstd::error::reinitialized_memory,
             "buffer corruption detected by type_id; buffer has already been "
@@ -110,8 +110,8 @@ public: /*< ## Ctors, Detors, and Assignments */
     stream(c_cstr name, u64 min_capacity = default_capacity)
         : stream ( memory::find(name)
                  ? *memory::find(name)
-                 : initializeBuffer(
-                         memory::allocate(name, precomputeSize(min_capacity))
+                 : initialize_buffer(
+                         memory::allocate(name, precompute_size(min_capacity))
                      )
                  )
     {
