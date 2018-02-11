@@ -45,7 +45,7 @@ public: /*< ## Class Methods */
         return sizeof(T) * n2max(capacity, 1);
     }
 
-    static inline buffer * initializeBuffer(buffer *const buf) {
+    static inline buffer * initialize_buffer(buffer *const buf) {
         BREAK_IF(buf->type == buffer::type_id::ring,
             nonstd::error::reinitialized_memory,
             "buffer corruption detected by type_id; buffer has already been "
@@ -92,7 +92,7 @@ public: /*< ## Ctors, Detors, and Assignments */
     ring(c_cstr name, u64 min_capacity = default_capacity)
         : ring ( memory::find(name)
                ? *memory::find(name)
-               : initializeBuffer(
+               : initialize_buffer(
                        memory::allocate(name, precompute_size(min_capacity))
                    )
                )
