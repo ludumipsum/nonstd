@@ -80,7 +80,7 @@ protected: /*< ## Public Member Variables */
 
 public: /*< ## Ctors, Detors, and Assignments */
     ring(buffer *const buf) noexcept
-        : m_buf    ( buf )
+        : m_buf ( buf )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
@@ -112,11 +112,11 @@ public: /*< ## Public Member Methods */
     inline u64                  size() const noexcept { return m_buf->size; }
     inline c_cstr               name() const noexcept { return m_buf->name; }
 
-    /* ## HashTable Accessors */
+    /* ## Ring Accessors */
     inline u64       & write_index()       noexcept { return m_buf->userdata1.u_int;  }
     inline u64 const & write_index() const noexcept { return m_buf->userdata1.u_int;  }
-    inline u64 const count()         const noexcept { return capacity();              }
-    inline u64 const capacity()      const noexcept { return m_buf->size / sizeof(T); }
+    inline u64 const   count()       const noexcept { return capacity();              }
+    inline u64 const   capacity()    const noexcept { return m_buf->size / sizeof(T); }
 
     /** Get / Set Methods
      *  -----------------
@@ -161,9 +161,9 @@ public: /*< ## Public Member Methods */
      *  elements from either section A or B will be removed from the buffer.
      */
     inline u64 resize(u64 new_capacity) {
-        return resizeShiftingLeft(new_capacity);
+        return resize_shifting_left(new_capacity);
     }
-    inline u64 resizeShiftingLeft(u64 new_capacity) {
+    inline u64 resize_shifting_left(u64 new_capacity) {
         using nonstd::make_guard;
 
         size_t required_size = ring<T>::precompute_size(new_capacity);
@@ -266,7 +266,7 @@ public: /*< ## Public Member Methods */
         return capacity();
     }
 
-    inline u64 resizeShiftingRight(u64 new_capacity) {
+    inline u64 resize_shifting_right(u64 new_capacity) {
         using nonstd::make_guard;
 
         size_t required_size = ring<T>::precompute_size(new_capacity);
@@ -386,7 +386,7 @@ public: /*< ## Public Member Methods */
         return capacity();
     }
 
-    inline u64 resizeAfterDropping(u64 new_capacity) {
+    inline u64 resize_after_dropping(u64 new_capacity) {
         size_t required_size = ring<T>::precompute_size(new_capacity);
         memory::resize(m_buf, required_size);
 
@@ -406,36 +406,36 @@ public: /*< ## Public Member Methods */
     public:
         typedef std::output_iterator_tag iterator_category;
 
-        ring& m_ring;  /*< The ring being iterated.                  */
-        u64   m_index; /*< The index this iterator is "referencing". */
+        ring& _ring;  /*< The ring being iterated.                  */
+        u64   _index; /*< The index this iterator is "referencing". */
 
         iterator(ring& ring,
                  u64   index = 0) noexcept
-            : m_ring  ( ring  )
-            , m_index ( index ) { }
+            : _ring  ( ring  )
+            , _index ( index ) { }
 
         inline bool operator==(const iterator& other) const noexcept {
-            return &m_ring == &other.m_ring && m_index == other.m_index;
+            return &_ring == &other._ring && _index == other._index;
         }
         inline bool operator!=(const iterator& other) const noexcept {
-            return &m_ring != &other.m_ring || m_index != other.m_index;
+            return &_ring != &other._ring || _index != other._index;
         }
 
         /* Pre-increment -- step forward and return `this`. */
         inline iterator& operator++() noexcept {
-            m_index += 1;
+            _index += 1;
             return *this;
         }
         /* Post-increment -- return a copy created before stepping forward. */
         inline iterator operator++(int) noexcept {
             iterator copy = *this;
-            m_index += 1;
+            _index += 1;
             return copy;
         }
         /* Increment and assign -- step forward by `n` and return `this`.
          * Be sure not to iterate past `end()`. */
         inline iterator& operator+=(u64 n) noexcept {
-            m_index = n2min((m_index + n), m_ring.capacity());
+            _index = n2min((_index + n), _ring.capacity());
             return *this;
         }
         /* Arithmetic increment -- return an incremented copy. */
@@ -446,7 +446,7 @@ public: /*< ## Public Member Methods */
         }
 
         /* Dereference -- return the current value. */
-        inline T& operator*() const noexcept { return m_ring[m_index]; }
+        inline T& operator*() const noexcept { return _ring[_index]; }
     };
 
 
