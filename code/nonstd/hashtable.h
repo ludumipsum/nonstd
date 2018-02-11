@@ -114,7 +114,7 @@ public: /*< ## Class Methods */
         return n2max(log2(capacity), 1);
     }
 
-    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity = default_capacity)
     noexcept {
         using nonstd::roundUpToPowerOfTwo;
 
@@ -208,7 +208,7 @@ public: /*< ## Ctors, Detors, and Assignments */
         : hash_table ( memory::find(name)
                      ? *memory::find(name)
                      : initialize_buffer(
-                         memory::allocate(name, precomputeSize(min_capacity))
+                         memory::allocate(name, precompute_size(min_capacity))
                        )
                      )
     {
@@ -402,7 +402,7 @@ public: /*< ## Public Member Methods */
         if (new_capacity == 0) { new_capacity = this->capacity() * 2; }
         BREAK_IF(new_capacity < capacity(), nonstd::error::unimplemented,
             "Downsizing hash tables is currently disallowed.");
-        return _resize(hash_table::precomputeSize(new_capacity));
+        return _resize(hash_table::precompute_size(new_capacity));
     }
 
 
