@@ -27,7 +27,7 @@ public: /*< ## Class Methods */
         return sizeof(T) * capacity;
     }
 
-    static inline buffer * initializeBuffer(buffer *const buf) {
+    static inline buffer * initialize_buffer(buffer *const buf) {
         BREAK_IF(buf->type == buffer::type_id::array,
             nonstd::error::reinitialized_memory,
             "buffer corruption detected by type_id; buffer has already been "
@@ -64,7 +64,7 @@ public: /*< ## Ctors, Detors, and Assignments */
     array(c_cstr name, u64 min_capacity = default_capacity)
         : array ( memory::find(name)
                 ? *memory::find(name)
-                : initializeBuffer(
+                : initialize_buffer(
                         memory::allocate(name, precompute_size(min_capacity))
                     )
                 )
