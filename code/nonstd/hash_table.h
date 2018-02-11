@@ -1,5 +1,5 @@
-/** Typed Buffer-Backed HashTable
- *  =============================
+/** Typed Buffer-Backed Hash Table
+ *  ==============================
  *  This is a "relatively simple", buffer-backed, typed (POD-only) hash table
  *  that uses Robin Hood, open-power-of-two-hashing. This structure _requires_ a
  *  resize function to be provided at construction time, as it does not make
@@ -84,7 +84,7 @@
 namespace nonstd {
 
 template<typename T_KEY, typename T_VAL>
-class HashTable {
+class hash_table {
 protected: /*< ## Inner-Types */
 
     struct Cell {
@@ -92,10 +92,10 @@ protected: /*< ## Inner-Types */
         T_VAL value;
         u8    distance;
 
-        inline bool isEmpty()                const noexcept { return distance == 0; }
-        inline bool isInUse()                const noexcept { return distance >  0; }
-        inline bool isAtNaturalPosition()    const noexcept { return distance == 1; }
-        inline bool isNotAtNaturalPosition() const noexcept { return distance >  1; }
+        inline bool is_empty()                   const noexcept { return distance == 0; }
+        inline bool is_in_use()                  const noexcept { return distance >  0; }
+        inline bool is_at_natural_position()     const noexcept { return distance == 1; }
+        inline bool is_not_at_natural_position() const noexcept { return distance >  1; }
     };
 
     struct Metadata {
@@ -110,29 +110,27 @@ protected: /*< ## Inner-Types */
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
-    static constexpr u8 maxMissDistanceFor(u64 capacity) noexcept {
+    static constexpr u8 max_miss_distance_for(u64 capacity) noexcept {
         return n2max(log2(capacity), 1);
     }
 
-    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity = default_capacity)
     noexcept {
-        using nonstd::roundUpToPowerOfTwo;
-
         // Round the requested capacity up to the nearest power-of-two, and then
         // tack on additional cells enough to handle the maximum miss distance.
-        u64 target_capacity   = roundUpToPowerOfTwo(capacity);
-        u64 max_miss_distance = maxMissDistanceFor(target_capacity);
+        u64 target_capacity   = nonstd::roundUpToPowerOfTwo(capacity);
+        u64 max_miss_distance = max_miss_distance_for(target_capacity);
         u64 total_capacity    = target_capacity + max_miss_distance;
         return sizeof(Metadata) + (sizeof(Cell) * total_capacity);
     }
 
-    static inline buffer * initializeBuffer(buffer *const buf) {
+    static inline buffer * initialize_buffer(buffer *const buf) {
         using nonstd::roundDownToPowerOfTwo;
 
         BREAK_IF(buf->type == buffer::type_id::hash_table,
             nonstd::error::reinitialized_memory,
             "buffer corruption detected by type_id; buffer has already been "
-            "correctly initialized as a HashTable.\n"
+            "correctly initialized as a hash table.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
         BREAK_IF(buf->type != buffer::type_id::raw,
@@ -147,19 +145,19 @@ public: /*< ## Class Methods */
         u64 data_region_size     = buf->size - sizeof(Metadata);
         u64 data_region_capacity = data_region_size / sizeof(Cell);
         u64 practical_capacity   = roundDownToPowerOfTwo(data_region_capacity);
-        u8  max_miss_distance    = maxMissDistanceFor(practical_capacity);
+        u8  max_miss_distance    = max_miss_distance_for(practical_capacity);
 
         u64 required_capacity = (practical_capacity + max_miss_distance);
 
         BREAK_IF(buf->size < sizeof(Metadata),
             nonstd::error::insufficient_memory,
-            "This HashTable is being overlaid onto a buffer that is too small "
-            "({} bytes) to fit the HashTable Metadata ({}).\n"
+            "This hash table is being overlaid onto a buffer that is too small "
+            "({} bytes) to fit the hash table Metadata ({}).\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->size, sizeof(Metadata), buf->name, buf);
         BREAK_IF(required_capacity > data_region_capacity,
             nonstd::error::insufficient_memory,
-            "This HashTable has been initialized with a data region that does "
+            "This hash table has been initialized with a data region that does "
             "not have room for overallocation. The data region can store up to "
             "{} cells. The target capacity is {}, and the desired overflow is "
             "{} -- totaling {} cells.\n"
@@ -191,7 +189,7 @@ protected: /*< ## Public Member Variables */
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    HashTable(buffer *const buf) noexcept
+    hash_table(buffer *const buf) noexcept
         : m_buf      ( buf                                       )
         , m_metadata ( reinterpret_cast<Metadata*&>(m_buf->data) )
     {
@@ -204,13 +202,13 @@ public: /*< ## Ctors, Detors, and Assignments */
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
             m_buf->type);
     }
-    HashTable(c_cstr name, u64 min_capacity = default_capacity)
-        : HashTable ( memory::find(name)
-                    ? *memory::find(name)
-                    : initializeBuffer(
-                            memory::allocate(name, precomputeSize(min_capacity))
-                        )
-                    )
+    hash_table(c_cstr name, u64 min_capacity = default_capacity)
+        : hash_table ( memory::find(name)
+                     ? *memory::find(name)
+                     : initialize_buffer(
+                         memory::allocate(name, precompute_size(min_capacity))
+                       )
+                     )
     {
         ASSERT_M(m_buf->type == buffer::type_id::hash_table,
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
@@ -235,31 +233,30 @@ public: /*< ## Public Member Methods */
     inline u64                  size() const noexcept { return m_buf->size; }
     inline c_cstr               name() const noexcept { return m_buf->name; }
 
-    /* ## HashTable Accessors */
-    inline u64 count()           const noexcept { return m_metadata->count; }
-    inline u64 capacity()        const noexcept { return m_metadata->capacity; }
-    inline u8  maxMissDistance() const noexcept { return m_metadata->max_miss_distance; }
+    /* ## Hash Table Accessors */
+    inline u64 count()             const noexcept { return m_metadata->count; }
+    inline u64 capacity()          const noexcept { return m_metadata->capacity; }
+    inline u8  max_miss_distance() const noexcept { return m_metadata->max_miss_distance; }
     // The very last cell can never be written to, so we don't count it here.
-    inline u64 totalCapacity()   const noexcept { return (capacity() + maxMissDistance() - 1); }
-    inline f32 loadFactor()      const noexcept { return (f32)count() / (f32)capacity(); }
+    inline u64 total_capacity()    const noexcept { return (capacity() + max_miss_distance() - 1); }
 
 
     /* Calculate the natural index for the given key */
-    inline u64 naturalIndexFor(T_KEY key) const
+    inline u64 natural_index_for(T_KEY key) const
     noexcept(natural_index_for_is_noexcept) {
         return ( std::hash<T_KEY>{}(key) & (u64)(capacity() - 1) );
     }
 
     /* Get a pointer to the first cell in the table (iterator begin). */
-    inline Cell * _beginCell() const noexcept
+    inline Cell * _begin_cell() const noexcept
     { return m_metadata->map; }
     /* Get a pointer to the "past-the-end" cell in the table (iterator end).
        NB. This is actually a pointer to the last cell, not the past-the-last,
            but because of the over-allocation optimizations in use, we know that
            last cell will never be written to, and therefore does not need to
            be iterated over. */
-    inline Cell * _endCell() const noexcept
-    { return m_metadata->map + totalCapacity(); }
+    inline Cell * _end_cell() const noexcept
+    { return m_metadata->map + total_capacity(); }
 
 
     /* Lookup Operations
@@ -284,7 +281,7 @@ public: /*< ## Public Member Methods */
 
     /* Insert or update the given k/v pair. */
     inline void set(T_KEY key, T_VAL value) {
-        u64    cell_index   = naturalIndexFor(key);
+        u64    cell_index   = natural_index_for(key);
         Cell * current_cell = m_metadata->map + cell_index;
         u8     distance     = 1;
 
@@ -314,7 +311,7 @@ public: /*< ## Public Member Methods */
         //    though I believe that's an impossible scenario) to the
         //    miss-distance of the current search loop.
         while (true) {
-            if (distance > maxMissDistance()) {
+            if (distance > max_miss_distance()) {
                 BREAK_IF(m_metadata->rehash_in_progress,
                     nonstd::error::pebcak,
                     "A resize operation has somehow caused additional "
@@ -335,7 +332,7 @@ public: /*< ## Public Member Methods */
                 return set(key, value);
             }
 
-            if (current_cell->isEmpty()) {
+            if (current_cell->is_empty()) {
                 current_cell->key      = key;
                 current_cell->value    = value;
                 current_cell->distance = distance;
@@ -354,7 +351,7 @@ public: /*< ## Public Member Methods */
         }
     }
 
-    /* Remove the given key from the HashTable.
+    /* Remove the given key from the hash table.
        No records are modified if the key has not been previously written. */
     inline bool erase(T_KEY key) {
         Cell * cell_to_erase = _findCell(key);
@@ -367,7 +364,7 @@ public: /*< ## Public Member Methods */
             // Additionally, because we know we always have an empty cell at the
             // very end of the table, we don't have to worry about the next_cell
             // being invalid, or out of its natural position.
-            while (next_cell->isNotAtNaturalPosition()) {
+            while (next_cell->is_not_at_natural_position()) {
                 std::swap(cell_to_erase->key, next_cell->key);
                 std::swap(cell_to_erase->value, next_cell->value);
 
@@ -389,20 +386,20 @@ public: /*< ## Public Member Methods */
     /* Storage Manipulations
      * --------------------- */
 
-    /* Reset this HashTable to empty. */
+    /* Reset this hash table to empty. */
     inline void drop() noexcept {
-        memset(m_metadata->map, '\0', (totalCapacity() * sizeof(Cell)));
+        memset(m_metadata->map, '\0', (total_capacity() * sizeof(Cell)));
         m_metadata->count = 0;
     }
 
-    /* Resize this HashTable to at least the given capacity (rounded up to the
+    /* Resize this hash table to at least the given capacity (rounded up to the
        nearest power of two).
        If no capacity is given, double the current capacity. */
     inline void resize(u64 new_capacity = 0) {
         if (new_capacity == 0) { new_capacity = this->capacity() * 2; }
         BREAK_IF(new_capacity < capacity(), nonstd::error::unimplemented,
-            "Downsizing HashTables is currently disallowed.");
-        return _resize(HashTable::precomputeSize(new_capacity));
+            "Downsizing hash tables is currently disallowed.");
+        return _resize(hash_table::precompute_size(new_capacity));
     }
 
 
@@ -411,7 +408,7 @@ protected: /*< ## Protected Member Methods */
     /* Find the pointer to the cell associated with the given key, returning
        nullptr if the key does not exist in the table. */
     inline Cell * _findCell(T_KEY key) const noexcept(find_cell_is_noexcept) {
-        u64    cell_index   = naturalIndexFor(key);
+        u64    cell_index   = natural_index_for(key);
         Cell * current_cell = m_metadata->map + cell_index;
         u8     distance     = 1;
 
@@ -431,43 +428,43 @@ protected: /*< ## Protected Member Methods */
     }
 
 
-    /* Resize this HashTable s.t. the backing buffer is exactly `new_size`.  */
+    /* Resize this hash table s.t. the backing buffer is exactly `new_size`.  */
     inline void _resize(u64 new_size) {
         using nonstd::roundDownToPowerOfTwo;
 
         u64 data_region_size      = new_size - sizeof(Metadata);
         u64 new_total_capacity    = data_region_size / sizeof(Cell);
         u64 new_capacity          = roundDownToPowerOfTwo(new_total_capacity);
-        u8  new_max_miss_distance = maxMissDistanceFor(new_capacity);
+        u8  new_max_miss_distance = max_miss_distance_for(new_capacity);
 
 #if defined(DEBUG)
         BREAK_IF(m_buf->size < sizeof(Metadata),
             nonstd::error::insufficient_memory,
-            "buffer HashTable is being resized into a buffer that is too small "
-            "({}) to fit the HashTable Metadata ({}).\n"
+            "buffer hash table is being resized into a buffer that is too "
+            "small ({}) to fit the hash table Metadata ({}).\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             m_buf->size, sizeof(Metadata), m_buf->name, m_buf);
         BREAK_IF(new_capacity < count(), nonstd::error::insufficient_memory,
-            "Resizing a HashTable such that the new capacity ({}) is less than "
-            "the current count ({}). This... is probably not okay. Data should "
-            "be `destroy`d or `drop`d before downsizing?\n"
+            "Resizing a hash table such that the new capacity ({}) is less "
+            "than the current count ({}). This... is probably not okay. Data "
+            "should be `destroy`d or `drop`d before downsizing?\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             new_capacity, count(), m_buf->name, m_buf);
 
         u64 used_capacity = new_capacity + new_max_miss_distance;
         u64 used_size     = sizeof(Metadata) + (sizeof(Cell) * used_capacity);
         BREAK_IF(new_size != used_size, nonstd::error::invalid_memory,
-            "HashTable resize may be leaving data unaccessible;\n"
+            "Hash table resize may be leaving data unaccessible;\n"
             "  requested size  : {}\n"
             "  calculated size : {}\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             new_size, used_size, m_buf->name, m_buf);
 #endif
 
-        // Copy all current data aside to an intermediate `tmp_table` HashTable.
+        // Copy all current data aside to an intermediate `tmp_table` hash_table
         // TODO: REPLACE ME WITH SCRATCH BUFFER USAGE
 
-        // Allocate enough memory to re-create this HashTable in a temporary.
+        // Allocate enough memory to re-create this hash_table in a temporary.
         ptr tmp_memory = n2malloc(m_buf->size);
         BREAK_IF(!tmp_memory,
             (std::error_code { errno, std::system_category() }),
@@ -477,10 +474,10 @@ protected: /*< ## Protected Member Methods */
         buffer tmp_buffer = make_buffer(tmp_memory, m_buf->size);
 
         // Copy all of the current data into the temporary buffer, claim it has
-        // been correctly initialized, and wrap it in a temporaray HashTable.
+        // been correctly initialized, and wrap it in a temporaray hash_table.
         memcpy(tmp_buffer.data, m_buf->data, m_buf->size);
         tmp_buffer.type = buffer::type_id::hash_table;
-        HashTable tmp_table{ &tmp_buffer };
+        hash_table tmp_table{ &tmp_buffer };
 
         // Resize the backing buffer.
         // Note that m_buf's data pointer may be changed as part of this call,
@@ -495,14 +492,14 @@ protected: /*< ## Protected Member Methods */
         m_metadata->max_miss_distance = new_max_miss_distance;
         memset(m_metadata->map, '\0', data_region_size);
 
-        // Copy all data from the `tmp_table` HashTable into `this`.
+        // Copy all data from the `tmp_table` hash_table into `this`.
         // Use `rehash_in_progress` to allow for some edge-case error checks.
         // TODO: `rehash_in_progress` is probably not necessary anymore...
         m_metadata->rehash_in_progress = true;
         for (auto&& item : tmp_table.items()) { set(item.key, item.value); }
         m_metadata->rehash_in_progress = false;
 
-        // Discard temporary memory. The local buffer and HashTable will take
+        // Discard temporary memory. The local buffer and hash_table will take
         // care of themselves as they fall out of scope.
         n2free(tmp_memory);
     }
@@ -539,40 +536,40 @@ public:
 
 private:
     struct KeyIteratorPassthrough {
-        HashTable & table;
+        hash_table & table;
 
         inline KeyIterator begin() const noexcept
-        { return { table, table._beginCell()}; }
+        { return { table, table._begin_cell()}; }
 
         inline KeyIterator end()   const noexcept
-        { return { table, table._endCell()}; }
+        { return { table, table._end_cell()}; }
     };
     struct ValueIteratorPassthrough {
-        HashTable & table;
+        hash_table & table;
 
         inline ValueIterator begin() const noexcept
-        { return { table, table._beginCell()}; }
+        { return { table, table._begin_cell()}; }
 
         inline ValueIterator end()   const noexcept
-        { return { table, table._endCell()}; }
+        { return { table, table._end_cell()}; }
     };
     struct ItemIteratorPassthrough {
-        HashTable & table;
+        hash_table & table;
 
         inline ItemIterator begin() const noexcept
-        { return { table, table._beginCell()}; }
+        { return { table, table._begin_cell()}; }
 
         inline ItemIterator end()   const noexcept
-        { return { table, table._endCell()}; }
+        { return { table, table._end_cell()}; }
     };
     struct CellIteratorPassthrough {
-        HashTable & table;
+        hash_table & table;
 
         inline CellIterator begin() const noexcept
-        { return { table, table._beginCell()}; }
+        { return { table, table._begin_cell()}; }
 
         inline CellIterator end()   const noexcept
-        { return { table, table._endCell()}; }
+        { return { table, table._end_cell()}; }
     };
 
     /* Use the CRTP (Curiously Recurring Template Pattern) to know the type of
@@ -582,24 +579,24 @@ private:
     template<typename ITER_T>
     struct base_iterator {
     protected:
-        HashTable & table;    /*< The HashTable being iterated.           */
-        Cell *      data;     /*< The data currently referenced.          */
-        Cell *      data_end; /*< The pointer past the end of the table.  */
+        hash_table & table;    /*< The hash_table being iterated.         */
+        Cell *       data;     /*< The data currently referenced.         */
+        Cell *       data_end; /*< The pointer past the end of the table. */
 
-        base_iterator(HashTable & _table,
-                      Cell *      _data) noexcept
+        base_iterator(hash_table & _table,
+                      Cell *       _data) noexcept
             : table    ( _table )
             , data     ( _data  )
-            , data_end ( (table._endCell()) )
+            , data_end ( (table._end_cell()) )
         {
             // The first Cell may be invalid. If so, make sure it's not
             // dereferenced. But don't call `next_valid_cell`, because that
             // would always skip the first cell.
-            while( data != data_end && data->isEmpty() ) { data += 1; }
+            while( data != data_end && data->is_empty() ) { data += 1; }
         }
 
         inline void next_valid_cell() noexcept {
-            do { data += 1; } while( data != data_end && data->isEmpty() );
+            do { data += 1; } while( data != data_end && data->is_empty() );
         }
         inline void next_valid_cell(u64 n) noexcept {
             while (data != data_end && n > 0) {
@@ -642,7 +639,7 @@ private:
 
 public:
     struct KeyIterator : public base_iterator<KeyIterator> {
-        KeyIterator(HashTable & _table, Cell * _data) noexcept
+        KeyIterator(hash_table & _table, Cell * _data) noexcept
             : base_iterator<KeyIterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_KEY const& operator*() const {
@@ -651,7 +648,7 @@ public:
     };
 
     struct ValueIterator : public base_iterator<ValueIterator> {
-        ValueIterator(HashTable & _table, Cell * _data) noexcept
+        ValueIterator(hash_table & _table, Cell * _data) noexcept
             : base_iterator<ValueIterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_VAL& operator*() noexcept {
@@ -660,7 +657,7 @@ public:
     };
 
     struct ItemIterator : public base_iterator<ItemIterator> {
-        ItemIterator(HashTable & _table, Cell * _data) noexcept
+        ItemIterator(hash_table & _table, Cell * _data) noexcept
             : base_iterator<ItemIterator>(_table, _data) { }
         /* Dereference -- return the current value. */
         inline T_ITEM operator*() noexcept {
@@ -672,16 +669,16 @@ public:
        empty cells), so we're not going to inherit from the base iterator. */
     struct CellIterator {
     protected:
-        HashTable & table;    /*< The HashTable being iterated.           */
-        Cell *      data;     /*< The data currently referenced.          */
-        Cell *      data_end; /*< The pointer past the end of the table.  */
+        hash_table & table;    /*< The hash_table being iterated.         */
+        Cell *       data;     /*< The data currently referenced.         */
+        Cell *       data_end; /*< The pointer past the end of the table. */
 
     public:
-        CellIterator(HashTable & _table,
+        CellIterator(hash_table & _table,
                       Cell *      _data) noexcept
             : table    ( _table )
             , data     ( _data  )
-            , data_end ( (table._endCell()) ) { }
+            , data_end ( (table._end_cell()) ) { }
 
         inline bool operator==(const CellIterator & other) const noexcept {
             return data == other.data;
