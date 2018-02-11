@@ -29,6 +29,7 @@ enum struct compiler_t {
 #if defined(EMSCRIPTEN)
     constexpr auto os_string = "Web";
     constexpr auto os = operating_system_t::web_emscripten;
+    #define NONSTD_OS_WEB true
 #elif defined(__linux__)
     constexpr auto os_string = "Linux";
     constexpr auto os = operating_system_t::pc_linux;
@@ -62,6 +63,7 @@ enum struct compiler_t {
 #if defined(EMSCRIPTEN)
     constexpr auto compiler_string = "emcc";
     constexpr auto compiler = compiler_t::emcc;
+    #define NONSTD_COMPILER_EMCC true
 #elif defined(__clang__)
     constexpr auto compiler_string = "Clang";
     constexpr auto compiler = compiler_t::clang;
