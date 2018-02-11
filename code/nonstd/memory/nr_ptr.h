@@ -20,26 +20,26 @@ struct nr_ptr {
 private:
     using storage_type = std::remove_const_t<T>;
 
-    Buffer * m_buf;
+    buffer * m_buf;
 
-    inline Buffer * find_or_allocate_buffer(c_cstr buffer_name) {
+    inline buffer * find_or_allocate_buffer(c_cstr buffer_name) {
         auto maybe_buffer = memory::find(buffer_name);
         return maybe_buffer
              ? *maybe_buffer
              : memory::allocate(buffer_name, sizeof(storage_type));
     }
 
-    inline bool buffer_initialization_is_required(Buffer * const buf) {
-        if (buf->type == Buffer::type_id::single_value) { return false; }
+    inline bool buffer_initialization_is_required(buffer * const buf) {
+        if (buf->type == buffer::type_id::single_value) { return false; }
 
-        BREAK_IF(buf->type != Buffer::type_id::raw,
+        BREAK_IF(buf->type != buffer::type_id::raw,
             nonstd::error::invalid_memory,
-            "Buffer corruption detected by type_id; Attempting to initialize a "
-            "previously initialized Buffer. type_id is currently 0x{:X}\n"
+            "buffer corruption detected by type_id; Attempting to initialize a "
+            "previously initialized buffer. type_id is currently 0x{:X}\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->type, buf->name, buf);
 
-        buf->type = Buffer::type_id::single_value;
+        buf->type = buffer::type_id::single_value;
         return true;
     }
 
@@ -52,7 +52,7 @@ public:
     { }
 
     template <typename ... Args>
-    constexpr explicit nr_ptr(Buffer * buf, Args&& ... args) noexcept
+    constexpr explicit nr_ptr(buffer * buf, Args&& ... args) noexcept
         : m_buf ( buf )
     {
         if (buffer_initialization_is_required(m_buf)) {
@@ -78,11 +78,11 @@ public:
     nr_ptr& operator= (nr_ptr &&) = default;
 
 
-    // Return the backing Buffer*.
-    Buffer       * const backing_buffer()       & { return m_buf; }
-    Buffer const * const backing_buffer() const & { return m_buf; }
+    // Return the backing buffer*.
+    buffer       * const backing_buffer()       & { return m_buf; }
+    buffer const * const backing_buffer() const & { return m_buf; }
 
-    // Unset the backing Buffer*.
+    // Unset the backing buffer*.
     nr_ptr& backing_buffer(std::nullptr_t) & {
         m_buf = nullptr;
         return *this;
@@ -91,22 +91,22 @@ public:
         m_buf = nullptr;
         return std::move(*this);
     }
-    // Set the backing Buffer* directly.
-    nr_ptr& backing_buffer(Buffer *const buf) & {
+    // Set the backing buffer* directly.
+    nr_ptr& backing_buffer(buffer *const buf) & {
         m_buf = buf;
         if (buffer_initialization_is_required(m_buf)) {
             new ((void*)m_buf->data) storage_type { };
         }
         return *this;
     }
-    nr_ptr&& backing_buffer(Buffer *const buf) && {
+    nr_ptr&& backing_buffer(buffer *const buf) && {
         m_buf = buf;
         if (buffer_initialization_is_required(m_buf)) {
             new ((void*)m_buf->data) storage_type { };
         }
         return std::move(*this);
     }
-    // Set the backing Buffer* by name.
+    // Set the backing buffer* by name.
     nr_ptr& backing_buffer(c_cstr buffer_name) & {
         m_buf = find_or_allocate_buffer(buffer_name);
         if (buffer_initialization_is_required(m_buf)) {
@@ -152,7 +152,7 @@ inline bool operator!= (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
 }
 template<typename T, typename U>
 inline bool operator<  (nr_ptr<T> const & lhs, nr_ptr<U> const & rhs) noexcept {
-    return std::less<Buffer * const>{}(lhs.backing_buffer(),
+    return std::less<buffer * const>{}(lhs.backing_buffer(),
                                        rhs.backing_buffer());
 }
 template<typename T, typename U>
@@ -186,11 +186,11 @@ inline bool operator!= (std::nullptr_t, nr_ptr<T> const & rhs) noexcept {
 }
 template<typename T>
 inline bool operator<  (nr_ptr<T> const & lhs, std::nullptr_t) noexcept {
-    return std::less<Buffer * const>{}(lhs.backing_buffer(), nullptr);
+    return std::less<buffer * const>{}(lhs.backing_buffer(), nullptr);
 }
 template<typename T>
 inline bool operator<  (std::nullptr_t, nr_ptr<T> const & rhs) noexcept {
-    return std::less<Buffer * const>{}(nullptr, rhs.backing_buffer());
+    return std::less<buffer * const>{}(nullptr, rhs.backing_buffer());
 }
 template<typename T>
 inline bool operator>  (nr_ptr<T> const & lhs, std::nullptr_t) noexcept {

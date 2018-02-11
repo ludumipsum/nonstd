@@ -126,19 +126,19 @@ public: /*< ## Class Methods */
         return sizeof(Metadata) + (sizeof(Cell) * total_capacity);
     }
 
-    static inline Buffer * initializeBuffer(Buffer *const buf) {
+    static inline buffer * initializeBuffer(buffer *const buf) {
         using nonstd::roundDownToPowerOfTwo;
 
-        BREAK_IF(buf->type == Buffer::type_id::hash_table,
+        BREAK_IF(buf->type == buffer::type_id::hash_table,
             nonstd::error::reinitialized_memory,
-            "Buffer corruption detected by type_id; Buffer has already been "
+            "buffer corruption detected by type_id; buffer has already been "
             "correctly initialized as a HashTable.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
-        BREAK_IF(buf->type != Buffer::type_id::raw,
+        BREAK_IF(buf->type != buffer::type_id::raw,
             nonstd::error::invalid_memory,
-            "Buffer corruption detected by type_id; Attempting to initialize a "
-            "previously initialized Buffer. type_id is currently 0x{:X}\n"
+            "buffer corruption detected by type_id; Attempting to initialize a "
+            "previously initialized buffer. type_id is currently 0x{:X}\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->type, buf->name, buf);
 
@@ -153,7 +153,7 @@ public: /*< ## Class Methods */
 
         BREAK_IF(buf->size < sizeof(Metadata),
             nonstd::error::insufficient_memory,
-            "This HashTable is being overlaid onto a Buffer that is too small "
+            "This HashTable is being overlaid onto a buffer that is too small "
             "({} bytes) to fit the HashTable Metadata ({}).\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->size, sizeof(Metadata), buf->name, buf);
@@ -173,7 +173,7 @@ public: /*< ## Class Methods */
         metadata->rehash_in_progress = false;
         memset(metadata->map, '\0', data_region_size);
 
-        buf->type = Buffer::type_id::hash_table;
+        buf->type = buffer::type_id::hash_table;
 
         return buf;
     }
@@ -186,12 +186,12 @@ public: /*< ## Contained-Type Accessors */
 
 
 protected: /*< ## Public Member Variables */
-    Buffer   *const  m_buf;
+    buffer   *const  m_buf;
     Metadata *&      m_metadata;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    HashTable(Buffer *const buf) noexcept
+    HashTable(buffer *const buf) noexcept
         : m_buf      ( buf                                       )
         , m_metadata ( reinterpret_cast<Metadata*&>(m_buf->data) )
     {
@@ -200,7 +200,7 @@ public: /*< ## Ctors, Detors, and Assignments */
         ENFORCE_POD(T_VAL);
         ENFORCE_POD(Cell);
 
-        ASSERT_M(m_buf->type == Buffer::type_id::hash_table,
+        ASSERT_M(m_buf->type == buffer::type_id::hash_table,
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
             m_buf->type);
     }
@@ -212,7 +212,7 @@ public: /*< ## Ctors, Detors, and Assignments */
                         )
                     )
     {
-        ASSERT_M(m_buf->type == Buffer::type_id::hash_table,
+        ASSERT_M(m_buf->type == buffer::type_id::hash_table,
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
             m_buf->type);
 
@@ -229,11 +229,11 @@ private: /*< ## Pseudo Type Traits */
                                                && compare_key_is_noexcept;
 
 public: /*< ## Public Member Methods */
-    /* ## Buffer Accessors */
-    inline Buffer       * const buffer()       noexcept { return m_buf; }
-    inline Buffer const * const buffer() const noexcept { return m_buf; }
-    inline u64                  size()   const noexcept { return m_buf->size; }
-    inline c_cstr               name()   const noexcept { return m_buf->name; }
+    /* ## buffer Accessors */
+    inline buffer       * const buf()        noexcept { return m_buf; }
+    inline buffer const * const buf()  const noexcept { return m_buf; }
+    inline u64                  size() const noexcept { return m_buf->size; }
+    inline c_cstr               name() const noexcept { return m_buf->name; }
 
     /* ## HashTable Accessors */
     inline u64 count()           const noexcept { return m_metadata->count; }
@@ -443,7 +443,7 @@ protected: /*< ## Protected Member Methods */
 #if defined(DEBUG)
         BREAK_IF(m_buf->size < sizeof(Metadata),
             nonstd::error::insufficient_memory,
-            "Buffer HashTable is being resized into a Buffer that is too small "
+            "buffer HashTable is being resized into a buffer that is too small "
             "({}) to fit the HashTable Metadata ({}).\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             m_buf->size, sizeof(Metadata), m_buf->name, m_buf);
@@ -473,13 +473,13 @@ protected: /*< ## Protected Member Methods */
             (std::error_code { errno, std::system_category() }),
             "Failed to `n2malloc` temporary memory. Godspeed.");
 
-        // Wrap a local Buffer around the temporary memory.
-        Buffer tmp_buffer = makeBuffer(tmp_memory, m_buf->size);
+        // Wrap a local buffer around the temporary memory.
+        buffer tmp_buffer = make_buffer(tmp_memory, m_buf->size);
 
         // Copy all of the current data into the temporary buffer, claim it has
         // been correctly initialized, and wrap it in a temporaray HashTable.
         memcpy(tmp_buffer.data, m_buf->data, m_buf->size);
-        tmp_buffer.type = Buffer::type_id::hash_table;
+        tmp_buffer.type = buffer::type_id::hash_table;
         HashTable tmp_table{ &tmp_buffer };
 
         // Resize the backing buffer.
@@ -502,7 +502,7 @@ protected: /*< ## Protected Member Methods */
         for (auto&& item : tmp_table.items()) { set(item.key, item.value); }
         m_metadata->rehash_in_progress = false;
 
-        // Discard temporary memory. The local Buffer and HashTable will take
+        // Discard temporary memory. The local buffer and HashTable will take
         // care of themselves as they fall out of scope.
         n2free(tmp_memory);
     }

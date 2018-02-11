@@ -10,9 +10,9 @@
 namespace nonstd::memory {
 
 /* Create a new memory buffer */
-using  allocate_fn = nonstd::Buffer *const (*)(c_cstr name, u64 size);
+using  allocate_fn = nonstd::buffer *const (*)(c_cstr name, u64 size);
 inline allocate_fn allocate =
-    [](c_cstr name, u64 size) -> nonstd::Buffer *const {
+    [](c_cstr name, u64 size) -> nonstd::buffer *const {
         BREAK(nonstd::error::module_not_started,
             "Attempting to use nonstd::memory::allocate without a memory "
             "backend. Please be sure to set up nonstd::memory function "
@@ -21,9 +21,9 @@ inline allocate_fn allocate =
     };
 
 /* Resize a memory buffer (using `realloc` memory-movement semantics) */
-using  resize_fn = u64 (*)(nonstd::Buffer *const bd, u64 new_size);
+using  resize_fn = u64 (*)(nonstd::buffer *const bd, u64 new_size);
 inline resize_fn resize =
-    [](nonstd::Buffer *const bd, u64 new_size) -> u64 {
+    [](nonstd::buffer *const bd, u64 new_size) -> u64 {
         BREAK(nonstd::error::module_not_started,
             "Attempting to use nonstd::memory::resize without a memory "
             "backend. Please be sure to set up nonstd::memory function "
@@ -32,9 +32,9 @@ inline resize_fn resize =
     };
 
 /* Release a memory buffer (`free`ing the memory stored therein) */
-using  release_fn = void (*)(nonstd::Buffer *const bd);
+using  release_fn = void (*)(nonstd::buffer *const bd);
 inline release_fn release =
-    [](nonstd::Buffer *const bd) -> void {
+    [](nonstd::buffer *const bd) -> void {
         BREAK(nonstd::error::module_not_started,
             "Attempting to use nonstd::memory::release without a memory "
             "backend. Please be sure to set up nonstd::memory function "
@@ -43,9 +43,9 @@ inline release_fn release =
     };
 
 /* Look up a memory buffer by name */
-using  find_fn = nonstd::optional<nonstd::Buffer *const> (*)(c_cstr name);
+using  find_fn = nonstd::optional<nonstd::buffer *const> (*)(c_cstr name);
 inline find_fn find =
-    [](c_cstr name) -> nonstd::optional<nonstd::Buffer *const> {
+    [](c_cstr name) -> nonstd::optional<nonstd::buffer *const> {
         BREAK(nonstd::error::module_not_started,
             "Attempting to use nonstd::memory::find without a memory "
             "backend. Please be sure to set up nonstd::memory function "

@@ -1,9 +1,9 @@
 /** Typed Stream View
  *  =================
- *  Streams present a typed circular buffer over a Buffer. Unlike Rings, this
+ *  Streams present a typed circular buffer over a buffer. Unlike Rings, this
  *  container is aware of both its capacity and its count, and tracks usage
  *  within the metadata block. The read and write heads are also tracked using
- *  the Buffer userdata.uint members. When indexing or iterating, only the used
+ *  the buffer userdata.uint members. When indexing or iterating, only the used
  *  sub-section of a Stream's data will be accessible, so no `\0`-initialized
  *  data will ever be accessible.
  *
@@ -51,17 +51,17 @@ public: /*< ## Class Methods */
     static constexpr u64 precomputeSize(u64 capacity = default_capacity)
     noexcept { return sizeof(Metadata) + (sizeof(T) * n2max(capacity, 1)); }
 
-    static inline Buffer * initializeBuffer(Buffer *const buf) {
-        BREAK_IF(buf->type == Buffer::type_id::stream,
+    static inline buffer * initializeBuffer(buffer *const buf) {
+        BREAK_IF(buf->type == buffer::type_id::stream,
             nonstd::error::reinitialized_memory,
-            "Buffer corruption detected by type_id; Buffer has already been "
+            "buffer corruption detected by type_id; buffer has already been "
             "correctly initialized as an Stream.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
-        BREAK_IF(buf->type != Buffer::type_id::raw,
+        BREAK_IF(buf->type != buffer::type_id::raw,
             nonstd::error::invalid_memory,
-            "Buffer corruption detected by type_id; Attempting to initialize a "
-            "previously initialized Buffer. type_id is currently 0x{:X}\n"
+            "buffer corruption detected by type_id; Attempting to initialize a "
+            "previously initialized buffer. type_id is currently 0x{:X}\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->type, buf->name, buf);
 
@@ -72,7 +72,7 @@ public: /*< ## Class Methods */
 
         BREAK_IF(buf->size < (sizeof(Metadata) + sizeof(T)),
             nonstd::error::insufficient_memory,
-            "This Stream is being overlaid onto a Buffer that is too small "
+            "This Stream is being overlaid onto a buffer that is too small "
             "({} bytes) to fit the Stream Metadata ({} bytes) and at least one "
             "<{}> ({} bytes). Streams _must_ be able to store at least "
             "one element.\n"
@@ -84,26 +84,26 @@ public: /*< ## Class Methods */
         metadata->capacity = capacity;
         memset(metadata->data, '\0', data_region_size);
 
-        buf->type = Buffer::type_id::stream;
+        buf->type = buffer::type_id::stream;
 
         return buf;
     }
 
 
 protected: /*< ## Public Member Variables */
-    Buffer   *const  m_buf;
+    buffer   *const  m_buf;
     Metadata *&      m_metadata;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Stream(Buffer *const buf) noexcept
+    Stream(buffer *const buf) noexcept
         : m_buf      ( buf                                     )
         , m_metadata ( reinterpret_cast<Metadata*&>(buf->data) )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
 
-        ASSERT_M(m_buf->type == Buffer::type_id::stream,
+        ASSERT_M(m_buf->type == buffer::type_id::stream,
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
                 m_buf->type);
     }
@@ -115,7 +115,7 @@ public: /*< ## Ctors, Detors, and Assignments */
                      )
                  )
     {
-        ASSERT_M(m_buf->type == Buffer::type_id::stream,
+        ASSERT_M(m_buf->type == buffer::type_id::stream,
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
             m_buf->type);
 
@@ -124,10 +124,10 @@ public: /*< ## Ctors, Detors, and Assignments */
 
 
 public: /*< ## Public Member Methods */
-    inline Buffer       * const buffer()       noexcept { return m_buf; }
-    inline Buffer const * const buffer() const noexcept { return m_buf; }
-    inline u64                  size()   const noexcept { return m_buf->size; }
-    inline c_cstr               name()   const noexcept { return m_buf->name; }
+    inline buffer       * const buf()        noexcept { return m_buf; }
+    inline buffer const * const buf()  const noexcept { return m_buf; }
+    inline u64                  size() const noexcept { return m_buf->size; }
+    inline c_cstr               name() const noexcept { return m_buf->name; }
 
 
 public: /*< ## Stream Accessors */
@@ -163,7 +163,7 @@ public: /*< ## Stream Accessors */
             throw std::out_of_range {
                 "Stream index access exceeds current count.\n"
                 "Entry (1-indexed) {} / {} ({} maximum).\n"
-                "Buffer ({}) '{}'"_format(
+                "buffer ({}) '{}'"_format(
                 index+1, count(), capacity(), m_buf->name, m_buf)
             };
         }

@@ -45,47 +45,47 @@ public: /*< ## Class Methods */
         return sizeof(T) * n2max(capacity, 1);
     }
 
-    static inline Buffer * initializeBuffer(Buffer *const buf) {
-        BREAK_IF(buf->type == Buffer::type_id::ring,
+    static inline buffer * initializeBuffer(buffer *const buf) {
+        BREAK_IF(buf->type == buffer::type_id::ring,
             nonstd::error::reinitialized_memory,
-            "Buffer corruption detected by type_id; Buffer has already been "
+            "buffer corruption detected by type_id; buffer has already been "
             "correctly initialized as a Ring.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
-        BREAK_IF(buf->type != Buffer::type_id::raw,
+        BREAK_IF(buf->type != buffer::type_id::raw,
             nonstd::error::invalid_memory,
-            "Buffer corruption detected by type_id; Attempting to initialize a "
-            "previously initialized Buffer. type_id is currently 0x{:X}\n"
+            "buffer corruption detected by type_id; Attempting to initialize a "
+            "previously initialized buffer. type_id is currently 0x{:X}\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->type, buf->name, buf);
 
         BREAK_IF(buf->size < sizeof(T),
             nonstd::error::insufficient_memory,
-            "This Ring is being overlaid onto a Buffer that is too small ({} "
+            "This Ring is being overlaid onto a buffer that is too small ({} "
             "bytes) to fit at least one <{}> ({}  bytes). Rings _must_ be able "
             "to store at least one element.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->size, type_name<T>(), sizeof(T),
             buf->name, buf->data);
 
-        buf->type = Buffer::type_id::ring;
+        buf->type = buffer::type_id::ring;
 
         return buf;
     }
 
 
 protected: /*< ## Public Member Variables */
-    Buffer *const m_buf;
+    buffer *const m_buf;
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Ring(Buffer *const buf) noexcept
+    Ring(buffer *const buf) noexcept
         : m_buf    ( buf )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
 
-        ASSERT_M(m_buf->type == Buffer::type_id::ring,
+        ASSERT_M(m_buf->type == buffer::type_id::ring,
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
             m_buf->type);
     }
@@ -97,7 +97,7 @@ public: /*< ## Ctors, Detors, and Assignments */
                    )
                )
     {
-        ASSERT_M(m_buf->type == Buffer::type_id::ring,
+        ASSERT_M(m_buf->type == buffer::type_id::ring,
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
             m_buf->type);
 
@@ -106,11 +106,11 @@ public: /*< ## Ctors, Detors, and Assignments */
 
 
 public: /*< ## Public Member Methods */
-    /* ## Buffer Accessors */
-    inline Buffer       * const buffer()       noexcept { return m_buf; }
-    inline Buffer const * const buffer() const noexcept { return m_buf; }
-    inline u64                  size()   const noexcept { return m_buf->size; }
-    inline c_cstr               name()   const noexcept { return m_buf->name; }
+    /* ## buffer Accessors */
+    inline buffer       * const buf()        noexcept { return m_buf; }
+    inline buffer const * const buf()  const noexcept { return m_buf; }
+    inline u64                  size() const noexcept { return m_buf->size; }
+    inline c_cstr               name() const noexcept { return m_buf->name; }
 
     /* ## HashTable Accessors */
     inline u64       & write_index()       noexcept { return m_buf->userdata1.u_int;  }
