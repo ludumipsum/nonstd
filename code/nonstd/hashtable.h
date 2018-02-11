@@ -126,7 +126,7 @@ public: /*< ## Class Methods */
         return sizeof(Metadata) + (sizeof(Cell) * total_capacity);
     }
 
-    static inline buffer * initializeBuffer(buffer *const buf) {
+    static inline buffer * initialize_buffer(buffer *const buf) {
         using nonstd::roundDownToPowerOfTwo;
 
         BREAK_IF(buf->type == buffer::type_id::hash_table,
@@ -207,7 +207,7 @@ public: /*< ## Ctors, Detors, and Assignments */
     hash_table(c_cstr name, u64 min_capacity = default_capacity)
         : hash_table ( memory::find(name)
                      ? *memory::find(name)
-                     : initializeBuffer(
+                     : initialize_buffer(
                          memory::allocate(name, precomputeSize(min_capacity))
                        )
                      )
