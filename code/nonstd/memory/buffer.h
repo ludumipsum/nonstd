@@ -3,7 +3,7 @@
  *  This low level type is uncommon to use directly in practice. Prefer one of
  *  the typed containers, unless you are absolutely sure this is what you need.
  *
- *  TODO: Hide the type_id enum & Buffer member behind the DEBUG flag, maybe?
+ *  TODO: Hide the type_id enum & buffer member behind the DEBUG flag, maybe?
  *        Currently that won't work because container `initialzeBuffer()`
  *        functions check type_id and skip init calls when the types match.
  */
@@ -20,7 +20,7 @@ namespace nonstd {
  *  -----------------
  *  Lightweight description of a memory region freely usable by any platform,
  *  game, or shared code. Most commonly used as the backing store for one of the
- *  memory containers (Array, HashTable, Ring, etc.), but also used for
+ *  memory containers (array, HashTable, Ring, etc.), but also used for
  *  transferring ownership of / sharing information about transient data regions
  *  (scratch memory space, sub-sections of retained buffers, etc.).
  *
@@ -29,12 +29,12 @@ namespace nonstd {
  *  more conceptually sound to be consider those as part of a hypothetical
  *  buffer:: namespace, but this is the language we've got.
  */
-struct Buffer {
+struct buffer {
 
     /** "Namespace" Types
      *  --------------------------------------------------------------------- */
     /** ### Type ID for "Typed" Memory Containers
-     *  Used to mark a Buffer's memory as initialized to a certain "type" of
+     *  Used to mark a buffer's memory as initialized to a certain "type" of
      *  container. We use hex-words s.t. this can (hopefully) be both a
      *  programmatic and human-readable check.
      *
@@ -58,10 +58,10 @@ struct Buffer {
     /** ### Resize Function Signature
      *  This resize function gets use by and passed into a broad set of
      *  contexts. As such, it's very important we use the function -- or at
-     *  least the right function signature -- everywhere. The Buffer::ResizeFn
+     *  least the right function signature -- everywhere. The buffer::ResizeFn
      *  type defines that signature.
      */
-    using ResizeFn = u64 (*)(Buffer * const, u64);
+    using ResizeFn = u64 (*)(buffer * const, u64);
 
 
     /** "Actual" Buffer Members
@@ -79,9 +79,9 @@ struct Buffer {
     };
 
     /** ### Buffer Members
-     *  Note: The `data` pointer is the first member of the Memory Buffer. This
+     *  Note: The `data` pointer is the first member of the memory buffer. This
      *  allows us to make the mistake of directly casting or dereferencing a
-     *  Buffer and still receive a valid data handle.
+     *  buffer and still receive a valid data handle.
      *  Please use `(ptr)(buf->data)` and not `(ptr)(buf)`, but know that both
      *  will work.
      */
@@ -92,18 +92,18 @@ struct Buffer {
     UserData    userdata2;
     type_id::_t type;
 
-}; ENFORCE_POD(Buffer);
+}; ENFORCE_POD(buffer);
 
 
 /** Make Buffer Helper Function
  *  ---------------------------
  *  Lightweight helper function that allows us to use any data region (ex; those
- *  received from the Scratch Buffer) as though it were a valid Memory Buffer.
- *  Buffers created in this way are not added to the platform's Buffer Map, so
+ *  received from the scratch buffer) as though it were a valid memory buffer.
+ *  Buffers created in this way are not added to the platform's buffer map, so
  *  they never persist between frames.
  */
-inline Buffer makeBuffer(ptr p, u64 size, c_cstr name = "transient_buffer") {
-    return Buffer { p, size, name, { 0 }, { 0 }, Buffer::type_id::raw };
+inline buffer make_buffer(ptr p, u64 size, c_cstr name = "transient_buffer") {
+    return buffer { p, size, name, { 0 }, { 0 }, buffer::type_id::raw };
 }
 
 } /* namespace nonstd */

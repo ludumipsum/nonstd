@@ -51,7 +51,7 @@ inline bool operator!= (nr_lazy<T> const & lhs, nr_lazy<U> const & rhs) noexcept
 }
 template<typename T, typename U>
 inline bool operator<  (nr_lazy<T> const & lhs, nr_lazy<U> const & rhs) noexcept {
-    return std::less<Buffer * const>{}((*lhs).backing_buffer(),
+    return std::less<buffer * const>{}((*lhs).backing_buffer(),
                                        (*rhs).backing_buffer());
 }
 template<typename T, typename U>
@@ -85,11 +85,11 @@ inline bool operator!= (std::nullptr_t, nr_lazy<T> const & rhs) noexcept {
 }
 template<typename T>
 inline bool operator<  (nr_lazy<T> const & lhs, std::nullptr_t) noexcept {
-    return std::less<Buffer * const>{}((*lhs).backing_buffer(), nullptr);
+    return std::less<buffer * const>{}((*lhs).backing_buffer(), nullptr);
 }
 template<typename T>
 inline bool operator<  (std::nullptr_t, nr_lazy<T> const & rhs) noexcept {
-    return std::less<Buffer * const>{}(nullptr, (*rhs).backing_buffer());
+    return std::less<buffer * const>{}(nullptr, (*rhs).backing_buffer());
 }
 template<typename T>
 inline bool operator>  (nr_lazy<T> const & lhs, std::nullptr_t) noexcept {

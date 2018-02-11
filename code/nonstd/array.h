@@ -1,6 +1,6 @@
 /** Array
  *  =====
- *  Arrays present a typed, std::vector-like abstraction over Buffers, allowing
+ *  Arrays present a typed, std::vector-like abstraction over buffers, allowing
  *  their use as iterable containers of a given type.
  *  Note that resizes may be automatically performed on `consume` and `push`
  *  calls, and that bounds-checking on subscript operators will be performed
@@ -18,58 +18,58 @@
 namespace nonstd {
 
 template<typename T>
-class Array {
+class array {
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
-    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity = default_capacity)
     noexcept {
         return sizeof(T) * capacity;
     }
 
-    static inline Buffer * initializeBuffer(Buffer *const buf) {
-        BREAK_IF(buf->type == Buffer::type_id::array,
+    static inline buffer * initialize_buffer(buffer *const buf) {
+        BREAK_IF(buf->type == buffer::type_id::array,
             nonstd::error::reinitialized_memory,
-            "Buffer corruption detected by type_id; Buffer has already been "
-            "correctly initialized as an Array.\n"
+            "buffer corruption detected by type_id; buffer has already been "
+            "correctly initialized as an array.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
-        BREAK_IF(buf->type != Buffer::type_id::raw,
+        BREAK_IF(buf->type != buffer::type_id::raw,
             nonstd::error::invalid_memory,
-            "Buffer corruption detected by type_id; Attempting to initialize a "
-            "previously initialized Buffer. type_id is currently 0x{:X}\n"
+            "buffer corruption detected by type_id; Attempting to initialize a "
+            "previously initialized buffer. type_id is currently 0x{:X}\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->type, buf->name, buf);
 
-        buf->type = Buffer::type_id::array;
+        buf->type = buffer::type_id::array;
 
         return buf;
     }
 
 
 protected: /*< ## Protected Member Variables */
-    Buffer * m_buf;
+    buffer * m_buf;
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Array(Buffer * buf) noexcept
+    array(buffer * buf) noexcept
         : m_buf ( buf )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
         ENFORCE_POD(T);
 
-        ASSERT_M(m_buf->type == Buffer::type_id::array,
+        ASSERT_M(m_buf->type == buffer::type_id::array,
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
             m_buf->type);
     }
-    Array(c_cstr name, u64 min_capacity = default_capacity)
-        : Array ( memory::find(name)
+    array(c_cstr name, u64 min_capacity = default_capacity)
+        : array ( memory::find(name)
                 ? *memory::find(name)
-                : initializeBuffer(
-                        memory::allocate(name, precomputeSize(min_capacity))
+                : initialize_buffer(
+                        memory::allocate(name, precompute_size(min_capacity))
                     )
                 )
     {
-        ASSERT_M(m_buf->type == Buffer::type_id::array,
+        ASSERT_M(m_buf->type == buffer::type_id::array,
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
             m_buf->type);
 
@@ -77,11 +77,11 @@ public: /*< ## Ctors, Detors, and Assignments */
     }
 
 public: /*< ## Public Memebr Methods */
-    /* ## Buffer Accessors */
-    inline Buffer       * const buffer()       noexcept { return m_buf;       }
-    inline Buffer const * const buffer() const noexcept { return m_buf;       }
-    inline u64                  size()   const noexcept { return m_buf->size; }
-    inline c_cstr               name()   const noexcept { return m_buf->name; }
+    /* ## buffer Accessors */
+    inline buffer       * const buf()        noexcept { return m_buf;       }
+    inline buffer const * const buf()  const noexcept { return m_buf;       }
+    inline u64                  size() const noexcept { return m_buf->size; }
+    inline c_cstr               name() const noexcept { return m_buf->name; }
 
     /* ## Array Accessors */
     // Give up the 80 column width for this boilerplate.
@@ -94,7 +94,7 @@ public: /*< ## Public Memebr Methods */
      *  -----------------
      */
 
-    /* Push a value on the back of the Buffer */
+    /* Push a value on the back of the buffer */
     inline T& push(T value) {
         T* mem = consume();
         *mem = value;
@@ -133,7 +133,7 @@ public: /*< ## Public Memebr Methods */
             throw std::out_of_range {
                 "Array index operation exceeds current count.\n"
                 "Entry {} / {} (capacity is {}).\n"
-                "Buffer ({}) '{}'"_format(
+                "buffer ({}) '{}'"_format(
                     index, (count() > 0 ? std::to_string(count()) : "-"),
                     capacity(), m_buf->name, m_buf)
             };
@@ -145,7 +145,7 @@ public: /*< ## Public Memebr Methods */
             throw std::out_of_range {
                 "Array index operation exceeds current count.\n"
                 "Entry {} / {} (capacity is {}).\n"
-                "Buffer ({}) '{}'"_format(
+                "buffer ({}) '{}'"_format(
                     index, (count() > 0 ? std::to_string(count()) : "-"),
                     capacity(), m_buf->name, m_buf)
             };
@@ -159,8 +159,9 @@ public: /*< ## Public Memebr Methods */
     }
 
     /* Erase a range of objects from this Array.
-       This will correctly adjust the mem::Buffer's user data, and correctly
-       shift existing data s.t. the contiguity of data remains consistent. */
+     * This will correctly adjust the buffer's user data, and correctly shift
+     * existing data s.t. the contiguity of data remains consistent.
+     */
     inline void erase(T* range_begin, T* range_end) {
 #if defined(DEBUG)
         bool begins_before_buffer  = range_begin < begin(),
@@ -176,7 +177,7 @@ public: /*< ## Public Memebr Methods */
                 "  range begin : {}\n"
                 "  range end   : {}\n"
                 "  end         : {}\n"
-                "Buffer ({}) '{}'"_format(
+                "buffer ({}) '{}'"_format(
                 begin(), range_begin, range_end, end(), m_buf->name, m_buf)
             };
         }
@@ -192,7 +193,7 @@ public: /*< ## Public Memebr Methods */
     }
 
     inline u64 resize(u64 new_capacity) {
-        auto required_size = Array<T>::precomputeSize(new_capacity);
+        auto required_size = array<T>::precompute_size(new_capacity);
         memory::resize(m_buf, required_size);
         return capacity();
     }
@@ -206,13 +207,13 @@ public: /*< ## Public Memebr Methods */
 };
 
 
-/** Print Overloads for Array<char>
+/** Print Overloads for array<char>
  *  ============================================================================
  */
 
 /** OStream Insertion Operator
  *  -------------------------- */
-inline std::ostream& operator<< (std::ostream & s, Array<char> const & arr) {
+inline std::ostream& operator<< (std::ostream & s, array<char> const & arr) {
     return s.write(&arr[0], arr.count());
 }
 
@@ -220,8 +221,8 @@ inline std::ostream& operator<< (std::ostream & s, Array<char> const & arr) {
  *  ------------------- */
 inline void format_arg(fmt::BasicFormatter<char> & f,
                        c_cstr                    & format_str,
-                       Array<char> const         & arr) {
-    // NB. The Array<char>'s data is not guaranteed to be null terminated, and
+                       array<char> const         & arr) {
+    // NB. The array<char>'s data is not guaranteed to be null terminated, and
     // fmt writers have no way of accepting a specific `count` of chars. One
     // workaround is to use a std::string conversion.
     f.writer().write("{}", std::string(&arr[0], arr.count()));
