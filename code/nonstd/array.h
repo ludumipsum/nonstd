@@ -192,7 +192,7 @@ public: /*< ## Public Memebr Methods */
     }
 
     inline u64 resize(u64 new_capacity) {
-        auto required_size = Array<T>::precomputeSize(new_capacity);
+        auto required_size = array<T>::precomputeSize(new_capacity);
         memory::resize(m_buf, required_size);
         return capacity();
     }
@@ -206,13 +206,13 @@ public: /*< ## Public Memebr Methods */
 };
 
 
-/** Print Overloads for Array<char>
+/** Print Overloads for array<char>
  *  ============================================================================
  */
 
 /** OStream Insertion Operator
  *  -------------------------- */
-inline std::ostream& operator<< (std::ostream & s, Array<char> const & arr) {
+inline std::ostream& operator<< (std::ostream & s, array<char> const & arr) {
     return s.write(&arr[0], arr.count());
 }
 
@@ -220,8 +220,8 @@ inline std::ostream& operator<< (std::ostream & s, Array<char> const & arr) {
  *  ------------------- */
 inline void format_arg(fmt::BasicFormatter<char> & f,
                        c_cstr                    & format_str,
-                       Array<char> const         & arr) {
-    // NB. The Array<char>'s data is not guaranteed to be null terminated, and
+                       array<char> const         & arr) {
+    // NB. The array<char>'s data is not guaranteed to be null terminated, and
     // fmt writers have no way of accepting a specific `count` of chars. One
     // workaround is to use a std::string conversion.
     f.writer().write("{}", std::string(&arr[0], arr.count()));
