@@ -1,12 +1,12 @@
 /** Typed Ring View
  *  ===============
  *  Ring Views present a typed ring-buffer over an entire memory buffer. These
- *  views have no concept of partial-fullness, so iterations over a Ring will
+ *  views have no concept of partial-fullness, so iterations over a ring will
  *  always yield `capacity()` objects. The buffer's data is assumed to be
  *  initialized to `\0`, so "empty" data should be an expected and valid return
- *  for all iterations and subscript operations over Rings.
+ *  for all iterations and subscript operations over rings.
  *
- *  The write head of the Ring will be stored directly in the memory buffer's
+ *  The write head of the ring will be stored directly in the memory buffer's
  *  UserData `d1.u`, and will point to the last object written. For writes, the
  *  write head will be incremented, then the write will be performed. For
  *  iterations and subscripting the zero'th object will always be one index past
@@ -33,10 +33,10 @@
 namespace nonstd {
 
 /* NB. This can only handle 63 bits of addressing, so if you have more than
- *     9.2 Exabytes of data in one Ring, rethink life.
+ *     9.2 Exabytes of data in one ring, rethink life.
  */
 template<typename T>
-class Ring {
+class ring {
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
@@ -49,7 +49,7 @@ public: /*< ## Class Methods */
         BREAK_IF(buf->type == buffer::type_id::ring,
             nonstd::error::reinitialized_memory,
             "buffer corruption detected by type_id; buffer has already been "
-            "correctly initialized as a Ring.\n"
+            "correctly initialized as a ring.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
         BREAK_IF(buf->type != buffer::type_id::raw,
@@ -61,7 +61,7 @@ public: /*< ## Class Methods */
 
         BREAK_IF(buf->size < sizeof(T),
             nonstd::error::insufficient_memory,
-            "This Ring is being overlaid onto a buffer that is too small ({} "
+            "This ring is being overlaid onto a buffer that is too small ({} "
             "bytes) to fit at least one <{}> ({}  bytes). Rings _must_ be able "
             "to store at least one element.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
@@ -79,7 +79,7 @@ protected: /*< ## Public Member Variables */
 
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Ring(buffer *const buf) noexcept
+    ring(buffer *const buf) noexcept
         : m_buf    ( buf )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
@@ -89,8 +89,8 @@ public: /*< ## Ctors, Detors, and Assignments */
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
             m_buf->type);
     }
-    Ring(c_cstr name, u64 min_capacity = default_capacity)
-        : Ring ( memory::find(name)
+    ring(c_cstr name, u64 min_capacity = default_capacity)
+        : ring ( memory::find(name)
                ? *memory::find(name)
                : initializeBuffer(
                        memory::allocate(name, precomputeSize(min_capacity))
@@ -146,7 +146,7 @@ public: /*< ## Public Member Methods */
      *  --------------
      *  These resizes involve moving memory around, so they're a bit tricky
      *  to reason about. As such, we're going to use pictures! Remember that
-     *  there are no empty elements in Rings, so all indexes must be
+     *  there are no empty elements in rings, so all indexes must be
      *  considered when when moving data for the resize. All of our examples
      *  are going to start with,
      *
@@ -166,7 +166,7 @@ public: /*< ## Public Member Methods */
     inline u64 resizeShiftingLeft(u64 new_capacity) {
         using nonstd::make_guard;
 
-        size_t required_size = Ring<T>::precomputeSize(new_capacity);
+        size_t required_size = ring<T>::precomputeSize(new_capacity);
 
         ptr section_a = (ptr)((T*)(m_buf->data) + write_index());
         ptr section_b = m_buf->data;
@@ -269,7 +269,7 @@ public: /*< ## Public Member Methods */
     inline u64 resizeShiftingRight(u64 new_capacity) {
         using nonstd::make_guard;
 
-        size_t required_size = Ring<T>::precomputeSize(new_capacity);
+        size_t required_size = ring<T>::precomputeSize(new_capacity);
 
         ptr section_a = (ptr)((T*)(m_buf->data) + write_index());
         ptr section_b = m_buf->data;
@@ -318,7 +318,7 @@ public: /*< ## Public Member Methods */
                     scratch,
                     size_of_b);
 
-            // Reset the write index to the beginning of the Ring.
+            // Reset the write index to the beginning of the ring.
             write_index() = 0;
 
             // Null the newly allcoated region
@@ -387,7 +387,7 @@ public: /*< ## Public Member Methods */
     }
 
     inline u64 resizeAfterDropping(u64 new_capacity) {
-        size_t required_size = Ring<T>::precomputeSize(new_capacity);
+        size_t required_size = ring<T>::precomputeSize(new_capacity);
         memory::resize(m_buf, required_size);
 
         // This will correctly null the ring's data, and reset the write index.
@@ -406,36 +406,36 @@ public: /*< ## Public Member Methods */
     public:
         typedef std::output_iterator_tag iterator_category;
 
-        Ring& ring;  /*< The ring being iterated.                  */
-        u64   index; /*< The index this iterator is "referencing". */
+        ring& m_ring;  /*< The ring being iterated.                  */
+        u64   m_index; /*< The index this iterator is "referencing". */
 
-        iterator(Ring& ring,
+        iterator(ring& ring,
                  u64   index = 0) noexcept
-            : ring  ( ring  )
-            , index ( index ) { }
+            : m_ring  ( ring  )
+            , m_index ( index ) { }
 
         inline bool operator==(const iterator& other) const noexcept {
-            return &ring == &other.ring && index == other.index;
+            return &m_ring == &other.m_ring && m_index == other.m_index;
         }
         inline bool operator!=(const iterator& other) const noexcept {
-            return &ring != &other.ring || index != other.index;
+            return &m_ring != &other.m_ring || m_index != other.m_index;
         }
 
         /* Pre-increment -- step forward and return `this`. */
         inline iterator& operator++() noexcept {
-            index += 1;
+            m_index += 1;
             return *this;
         }
         /* Post-increment -- return a copy created before stepping forward. */
         inline iterator operator++(int) noexcept {
             iterator copy = *this;
-            index += 1;
+            m_index += 1;
             return copy;
         }
         /* Increment and assign -- step forward by `n` and return `this`.
          * Be sure not to iterate past `end()`. */
         inline iterator& operator+=(u64 n) noexcept {
-            index = n2min((index + n), ring.capacity());
+            m_index = n2min((m_index + n), m_ring.capacity());
             return *this;
         }
         /* Arithmetic increment -- return an incremented copy. */
@@ -446,7 +446,7 @@ public: /*< ## Public Member Methods */
         }
 
         /* Dereference -- return the current value. */
-        inline T& operator*() const noexcept { return ring[index]; }
+        inline T& operator*() const noexcept { return m_ring[m_index]; }
     };
 
 
