@@ -20,7 +20,7 @@ namespace nonstd {
  *  -----------------
  *  Lightweight description of a memory region freely usable by any platform,
  *  game, or shared code. Most commonly used as the backing store for one of the
- *  memory containers (Array, HashTable, Ring, etc.), but also used for
+ *  memory containers (array, HashTable, Ring, etc.), but also used for
  *  transferring ownership of / sharing information about transient data regions
  *  (scratch memory space, sub-sections of retained buffers, etc.).
  *

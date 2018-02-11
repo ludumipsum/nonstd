@@ -18,7 +18,7 @@
 namespace nonstd {
 
 template<typename T>
-class Array {
+class array {
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
@@ -31,7 +31,7 @@ public: /*< ## Class Methods */
         BREAK_IF(buf->type == buffer::type_id::array,
             nonstd::error::reinitialized_memory,
             "buffer corruption detected by type_id; buffer has already been "
-            "correctly initialized as an Array.\n"
+            "correctly initialized as an array.\n"
             "Underlying buffer is named '{}', and it is located at {}.",
             buf->name, buf);
         BREAK_IF(buf->type != buffer::type_id::raw,
@@ -51,7 +51,7 @@ protected: /*< ## Protected Member Variables */
     buffer * m_buf;
 
 public: /*< ## Ctors, Detors, and Assignments */
-    Array(buffer * buf) noexcept
+    array(buffer * buf) noexcept
         : m_buf ( buf )
     {
         /* Ensure that only POD types are used by placing ENFORCE_POD here. */
@@ -61,8 +61,8 @@ public: /*< ## Ctors, Detors, and Assignments */
             "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
             m_buf->type);
     }
-    Array(c_cstr name, u64 min_capacity = default_capacity)
-        : Array ( memory::find(name)
+    array(c_cstr name, u64 min_capacity = default_capacity)
+        : array ( memory::find(name)
                 ? *memory::find(name)
                 : initializeBuffer(
                         memory::allocate(name, precomputeSize(min_capacity))
@@ -159,8 +159,9 @@ public: /*< ## Public Memebr Methods */
     }
 
     /* Erase a range of objects from this Array.
-       This will correctly adjust the buffer's user data, and correctly shift
-       existing data s.t. the contiguity of data remains consistent. */
+     * This will correctly adjust the buffer's user data, and correctly shift
+     * existing data s.t. the contiguity of data remains consistent.
+     */
     inline void erase(T* range_begin, T* range_end) {
 #if defined(DEBUG)
         bool begins_before_buffer  = range_begin < begin(),
