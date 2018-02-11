@@ -40,7 +40,7 @@ class ring {
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
-    static constexpr u64 precomputeSize(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity = default_capacity)
     noexcept {
         return sizeof(T) * n2max(capacity, 1);
     }
@@ -93,7 +93,7 @@ public: /*< ## Ctors, Detors, and Assignments */
         : ring ( memory::find(name)
                ? *memory::find(name)
                : initializeBuffer(
-                       memory::allocate(name, precomputeSize(min_capacity))
+                       memory::allocate(name, precompute_size(min_capacity))
                    )
                )
     {
@@ -166,7 +166,7 @@ public: /*< ## Public Member Methods */
     inline u64 resizeShiftingLeft(u64 new_capacity) {
         using nonstd::make_guard;
 
-        size_t required_size = ring<T>::precomputeSize(new_capacity);
+        size_t required_size = ring<T>::precompute_size(new_capacity);
 
         ptr section_a = (ptr)((T*)(m_buf->data) + write_index());
         ptr section_b = m_buf->data;
@@ -269,7 +269,7 @@ public: /*< ## Public Member Methods */
     inline u64 resizeShiftingRight(u64 new_capacity) {
         using nonstd::make_guard;
 
-        size_t required_size = ring<T>::precomputeSize(new_capacity);
+        size_t required_size = ring<T>::precompute_size(new_capacity);
 
         ptr section_a = (ptr)((T*)(m_buf->data) + write_index());
         ptr section_b = m_buf->data;
@@ -387,7 +387,7 @@ public: /*< ## Public Member Methods */
     }
 
     inline u64 resizeAfterDropping(u64 new_capacity) {
-        size_t required_size = ring<T>::precomputeSize(new_capacity);
+        size_t required_size = ring<T>::precompute_size(new_capacity);
         memory::resize(m_buf, required_size);
 
         // This will correctly null the ring's data, and reset the write index.
