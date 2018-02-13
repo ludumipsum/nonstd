@@ -106,4 +106,18 @@ inline buffer make_buffer(ptr p, u64 size, c_cstr name = "transient_buffer") {
     return buffer { p, size, name, { 0 }, { 0 }, buffer::type_id::raw };
 }
 
+
+/** Print Overloads
+ *  ===============
+ *  `"buffer{ 'buffer/name' }(0x123456789abc)"`
+ */
+inline std::ostream& operator << (std::ostream & s, buffer const * const buf) {
+    return s << "buffer{{ '{}' }}({})"_format(buf->name, buf->data);
+}
+inline void format_arg(fmt::BasicFormatter<char> & f,
+                       char const * & format_str,
+                       buffer const * const buf) {
+    f.writer().write("buffer{{ '{}' }}({})", buf->name, buf->data);
+}
+
 } /* namespace nonstd */
