@@ -20,9 +20,9 @@ namespace nonstd {
 template<typename T>
 class array {
 public: /*< ## Class Methods */
-    static constexpr u64 default_capacity = 64;
+    static constexpr u64 default_capacity = 16;
 
-    static constexpr u64 precompute_size(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity)
     noexcept {
         return sizeof(T) * capacity;
     }
@@ -49,27 +49,41 @@ public: /*< ## Class Methods */
 protected: /*< ## Protected Member Variables */
     buffer * m_buf;
 
+    static inline
+    buffer * find_or_allocate_buffer(c_cstr name,
+                                     u64 capacity = default_capacity)
+    noexcept {
+        using memory::find;
+        using memory::allocate;
+
+        auto maybe_buf = find(name);
+        return maybe_buf
+             ? *maybe_buf
+             : initialize_buffer(allocate(name, precompute_size(capacity)));
+    }
+
+
 public: /*< ## Ctors, Detors, and Assignments */
     array(buffer * buf) noexcept
         : m_buf ( buf )
     {
-        /* Ensure that only POD types are used by placing ENFORCE_POD here. */
+        /* Ensure that only POD types are used in containers.
+         * We place ENFORCE_POD here s.t. it's only checked when the container
+         * constructor is instantiated. This lets us declare containers that
+         * wrap incomplete types, so long as those types are complete prior to
+         * container construction.
+         */
         ENFORCE_POD(T);
 
         ASSERT_M(m_buf->type == buffer::type_id::array,
             "{} has type_id 0x{:X}", m_buf, m_buf->type);
     }
-    array(c_cstr name, u64 min_capacity = default_capacity)
-        : array ( memory::find(name)
-                ? *memory::find(name)
-                : initialize_buffer(
-                        memory::allocate(name, precompute_size(min_capacity))
-                    )
-                )
+    array(c_cstr name) noexcept
+        : array ( find_or_allocate_buffer(name) )
+    { }
+    array(c_cstr name, u64 min_capacity) noexcept
+        : array ( find_or_allocate_buffer(name, min_capacity) )
     {
-        ASSERT_M(m_buf->type == buffer::type_id::array,
-            "{} has type_id 0x{:X}", m_buf, m_buf->type);
-
         if (capacity() < min_capacity) { resize(min_capacity); }
     }
 
