@@ -147,7 +147,7 @@ TEST_CASE("Ring API Demo", "[api][memory][ring]") {
      *  and how much memory that takes up.
      */
     SECTION("Querying Metadata") {
-        auto ring = allocate_ring<f32>("metadata_demo", 10);
+        ring<f32> ring { "metadata_demo", 10 };
 
         auto capacity = ring.capacity();
         auto size_in_bytes = ring.size();
