@@ -30,16 +30,15 @@ public: /*< ## Class Methods */
     static inline buffer * initialize_buffer(buffer *const buf) {
         BREAK_IF(buf->type == buffer::type_id::array,
             nonstd::error::reinitialized_memory,
-            "buffer corruption detected by type_id; buffer has already been "
+            "Buffer corruption detected by type_id; buffer has already been "
             "correctly initialized as an array.\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->name, buf);
+            "Underlying buffer: {}", buf);
         BREAK_IF(buf->type != buffer::type_id::raw,
             nonstd::error::invalid_memory,
-            "buffer corruption detected by type_id; Attempting to initialize a "
-            "previously initialized buffer. type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->type, buf->name, buf);
+            "Buffer corruption detected by type_id; Attempting to initialize a "
+            "previously-initialized buffer. type_id is currently 0x{:X}.\n"
+            "Underlying buffer: {}",
+            buf->type, buf);
 
         buf->type = buffer::type_id::array;
 
@@ -58,8 +57,7 @@ public: /*< ## Ctors, Detors, and Assignments */
         ENFORCE_POD(T);
 
         ASSERT_M(m_buf->type == buffer::type_id::array,
-            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
-            m_buf->type);
+            "{} has type_id 0x{:X}", m_buf, m_buf->type);
     }
     array(c_cstr name, u64 min_capacity = default_capacity)
         : array ( memory::find(name)
@@ -70,8 +68,7 @@ public: /*< ## Ctors, Detors, and Assignments */
                 )
     {
         ASSERT_M(m_buf->type == buffer::type_id::array,
-            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
-            m_buf->type);
+            "{} has type_id 0x{:X}", m_buf, m_buf->type);
 
         if (capacity() < min_capacity) { resize(min_capacity); }
     }
@@ -133,9 +130,9 @@ public: /*< ## Public Memebr Methods */
             throw std::out_of_range {
                 "Array index operation exceeds current count.\n"
                 "Entry {} / {} (capacity is {}).\n"
-                "buffer ({}) '{}'"_format(
+                "{}"_format(
                     index, (count() > 0 ? std::to_string(count()) : "-"),
-                    capacity(), m_buf->name, m_buf)
+                    capacity(), m_buf)
             };
         }
         return *((T*)(m_buf->data) + index);
@@ -145,9 +142,9 @@ public: /*< ## Public Memebr Methods */
             throw std::out_of_range {
                 "Array index operation exceeds current count.\n"
                 "Entry {} / {} (capacity is {}).\n"
-                "buffer ({}) '{}'"_format(
+                "{}"_format(
                     index, (count() > 0 ? std::to_string(count()) : "-"),
-                    capacity(), m_buf->name, m_buf)
+                    capacity(), m_buf)
             };
         }
         return *((T*)(m_buf->data) + index);
@@ -177,8 +174,8 @@ public: /*< ## Public Memebr Methods */
                 "  range begin : {}\n"
                 "  range end   : {}\n"
                 "  end         : {}\n"
-                "buffer ({}) '{}'"_format(
-                begin(), range_begin, range_end, end(), m_buf->name, m_buf)
+                "{}"_format(
+                begin(), range_begin, range_end, end(), m_buf)
             };
         }
 #endif

@@ -34,10 +34,10 @@ private:
 
         BREAK_IF(buf->type != buffer::type_id::raw,
             nonstd::error::invalid_memory,
-            "buffer corruption detected by type_id; Attempting to initialize a "
-            "previously initialized buffer. type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->type, buf->name, buf);
+            "Buffer corruption detected by type_id; Attempting to initialize a "
+            "previously-initialized buffer. type_id is currently 0x{:X}.\n"
+            "Underlying buffer: {}.",
+            buf->type, buf);
 
         buf->type = buffer::type_id::single_value;
         return true;

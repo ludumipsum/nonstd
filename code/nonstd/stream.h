@@ -54,16 +54,15 @@ public: /*< ## Class Methods */
     static inline buffer * initialize_buffer(buffer *const buf) {
         BREAK_IF(buf->type == buffer::type_id::stream,
             nonstd::error::reinitialized_memory,
-            "buffer corruption detected by type_id; buffer has already been "
-            "correctly initialized as an stream.\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->name, buf);
+            "Buffer corruption detected by type_id; buffer has already been "
+            "correctly initialized as a stream.\n"
+            "Underlying buffer: {}.", buf);
         BREAK_IF(buf->type != buffer::type_id::raw,
             nonstd::error::invalid_memory,
-            "buffer corruption detected by type_id; Attempting to initialize a "
-            "previously initialized buffer. type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->type, buf->name, buf);
+            "Buffer corruption detected by type_id; Attempting to initialize a "
+            "previously-initialized buffer. type_id is currently 0x{:X}.\n"
+            "Underlying buffer: {}.",
+            buf->type, buf);
 
         Metadata * metadata = (Metadata *)(buf->data);
 
@@ -76,9 +75,8 @@ public: /*< ## Class Methods */
             "({} bytes) to fit the stream Metadata ({} bytes) and at least one "
             "<{}> ({} bytes). Streams _must_ be able to store at least "
             "one element.\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->size, sizeof(Metadata), type_name<T>(), sizeof(T),
-            buf->name, buf);
+            "Underlying buffer: {}.",
+            buf->size, sizeof(Metadata), type_name<T>(), sizeof(T), buf);
 
         metadata->count    = 0;
         metadata->capacity = capacity;
@@ -104,8 +102,7 @@ public: /*< ## Ctors, Detors, and Assignments */
         ENFORCE_POD(T);
 
         ASSERT_M(m_buf->type == buffer::type_id::stream,
-            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
-                m_buf->type);
+            "{} has type_id 0x{:X}", m_buf, m_buf->type);
     }
     stream(c_cstr name, u64 min_capacity = default_capacity)
         : stream ( memory::find(name)
@@ -116,8 +113,7 @@ public: /*< ## Ctors, Detors, and Assignments */
                  )
     {
         ASSERT_M(m_buf->type == buffer::type_id::stream,
-            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
-            m_buf->type);
+            "{} has type_id 0x{:X}", m_buf, m_buf->type);
 
         if (capacity() < min_capacity) { resize(min_capacity); }
     }
@@ -163,8 +159,8 @@ public: /*< ## Stream Accessors */
             throw std::out_of_range {
                 "Stream index access exceeds current count.\n"
                 "Entry (1-indexed) {} / {} ({} maximum).\n"
-                "buffer ({}) '{}'"_format(
-                index+1, count(), capacity(), m_buf->name, m_buf)
+                "{}"_format(
+                index+1, count(), capacity(), m_buf)
             };
         }
 #endif

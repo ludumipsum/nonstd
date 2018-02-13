@@ -48,25 +48,24 @@ public: /*< ## Class Methods */
     static inline buffer * initialize_buffer(buffer *const buf) {
         BREAK_IF(buf->type == buffer::type_id::ring,
             nonstd::error::reinitialized_memory,
-            "buffer corruption detected by type_id; buffer has already been "
+            "Buffer corruption detected by type_id; buffer has already been "
             "correctly initialized as a ring.\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->name, buf);
+            "Underlying buffer: {}.", buf);
         BREAK_IF(buf->type != buffer::type_id::raw,
             nonstd::error::invalid_memory,
-            "buffer corruption detected by type_id; Attempting to initialize a "
-            "previously initialized buffer. type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->type, buf->name, buf);
+            "Buffer corruption detected by type_id; Attempting to initialize a "
+            "previously-initialized buffer. type_id is currently 0x{:X}.\n"
+            "Underlying buffer: {}.",
+            buf->type, buf);
 
         BREAK_IF(buf->size < sizeof(T),
             nonstd::error::insufficient_memory,
-            "This ring is being overlaid onto a buffer that is too small ({} "
-            "bytes) to fit at least one <{}> ({}  bytes). Rings _must_ be able "
-            "to store at least one element.\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
+            "This ring is being overlaid onto a buffer that is too small "
+            "({} bytes) to fit at least one <{}> ({}  bytes). Rings _must_ be "
+            "able to store at least one element.\n"
+            "Underlying buffer: {}.",
             buf->size, type_name<T>(), sizeof(T),
-            buf->name, buf->data);
+            buf);
 
         buf->type = buffer::type_id::ring;
 
@@ -86,8 +85,7 @@ public: /*< ## Ctors, Detors, and Assignments */
         ENFORCE_POD(T);
 
         ASSERT_M(m_buf->type == buffer::type_id::ring,
-            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
-            m_buf->type);
+            "{} has type_id 0x{:X}", m_buf, m_buf->type);
     }
     ring(c_cstr name, u64 min_capacity = default_capacity)
         : ring ( memory::find(name)
@@ -98,8 +96,7 @@ public: /*< ## Ctors, Detors, and Assignments */
                )
     {
         ASSERT_M(m_buf->type == buffer::type_id::ring,
-            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
-            m_buf->type);
+            "{} has type_id 0x{:X}", m_buf, m_buf->type);
 
         if (capacity() < min_capacity) { resize(min_capacity); }
     }
