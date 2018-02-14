@@ -38,9 +38,9 @@ namespace nonstd {
 template<typename T>
 class ring {
 public: /*< ## Class Methods */
-    static constexpr u64 default_capacity = 64;
+    static constexpr u64 default_capacity = 32;
 
-    static constexpr u64 precompute_size(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity)
     noexcept {
         return sizeof(T) * n2max(capacity, 1);
     }
@@ -48,25 +48,24 @@ public: /*< ## Class Methods */
     static inline buffer * initialize_buffer(buffer *const buf) {
         BREAK_IF(buf->type == buffer::type_id::ring,
             nonstd::error::reinitialized_memory,
-            "buffer corruption detected by type_id; buffer has already been "
+            "Buffer corruption detected by type_id; buffer has already been "
             "correctly initialized as a ring.\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->name, buf);
+            "Underlying buffer: {}.", buf);
         BREAK_IF(buf->type != buffer::type_id::raw,
             nonstd::error::invalid_memory,
-            "buffer corruption detected by type_id; Attempting to initialize a "
-            "previously initialized buffer. type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->type, buf->name, buf);
+            "Buffer corruption detected by type_id; Attempting to initialize a "
+            "previously-initialized buffer. type_id is currently 0x{:X}.\n"
+            "Underlying buffer: {}.",
+            buf->type, buf);
 
         BREAK_IF(buf->size < sizeof(T),
             nonstd::error::insufficient_memory,
-            "This ring is being overlaid onto a buffer that is too small ({} "
-            "bytes) to fit at least one <{}> ({}  bytes). Rings _must_ be able "
-            "to store at least one element.\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
+            "This ring is being overlaid onto a buffer that is too small "
+            "({} bytes) to fit at least one <{}> ({}  bytes). Rings _must_ be "
+            "able to store at least one element.\n"
+            "Underlying buffer: {}.",
             buf->size, type_name<T>(), sizeof(T),
-            buf->name, buf->data);
+            buf);
 
         buf->type = buffer::type_id::ring;
 
@@ -77,30 +76,41 @@ public: /*< ## Class Methods */
 protected: /*< ## Public Member Variables */
     buffer *const m_buf;
 
+    static inline
+    buffer * find_or_allocate_buffer(c_cstr name,
+                                     u64 capacity = default_capacity)
+    noexcept {
+        using memory::find;
+        using memory::allocate;
+
+        auto maybe_buf = find(name);
+        return maybe_buf
+             ? *maybe_buf
+             : initialize_buffer(allocate(name, precompute_size(capacity)));
+    }
+
 
 public: /*< ## Ctors, Detors, and Assignments */
     ring(buffer *const buf) noexcept
         : m_buf ( buf )
     {
-        /* Ensure that only POD types are used by placing ENFORCE_POD here. */
+        /* Ensure that only POD types are used in containers.
+         * We place ENFORCE_POD here s.t. it's only checked when the container
+         * constructor is instantiated. This lets us declare containers that
+         * wrap incomplete types, so long as those types are complete prior to
+         * container construction.
+         */
         ENFORCE_POD(T);
 
         ASSERT_M(m_buf->type == buffer::type_id::ring,
-            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
-            m_buf->type);
+            "{} has type_id 0x{:X}", m_buf, m_buf->type);
     }
-    ring(c_cstr name, u64 min_capacity = default_capacity)
-        : ring ( memory::find(name)
-               ? *memory::find(name)
-               : initialize_buffer(
-                       memory::allocate(name, precompute_size(min_capacity))
-                   )
-               )
+    ring(c_cstr name) noexcept
+        : ring ( find_or_allocate_buffer(name) )
+    { }
+    ring(c_cstr name, u64 min_capacity) noexcept
+        : ring ( find_or_allocate_buffer(name, min_capacity) )
     {
-        ASSERT_M(m_buf->type == buffer::type_id::ring,
-            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
-            m_buf->type);
-
         if (capacity() < min_capacity) { resize(min_capacity); }
     }
 

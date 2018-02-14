@@ -110,11 +110,12 @@ protected: /*< ## Inner-Types */
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
-    static constexpr u8 max_miss_distance_for(u64 capacity) noexcept {
+    static constexpr u8 max_miss_distance_for(u64 capacity)
+    noexcept {
         return n2max(log2(capacity), 1);
     }
 
-    static constexpr u64 precompute_size(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity)
     noexcept {
         // Round the requested capacity up to the nearest power-of-two, and then
         // tack on additional cells enough to handle the maximum miss distance.
@@ -129,16 +130,15 @@ public: /*< ## Class Methods */
 
         BREAK_IF(buf->type == buffer::type_id::hash_table,
             nonstd::error::reinitialized_memory,
-            "buffer corruption detected by type_id; buffer has already been "
+            "Buffer corruption detected by type_id; buffer has already been "
             "correctly initialized as a hash table.\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->name, buf);
+            "Underlying buffer: {}.", buf);
         BREAK_IF(buf->type != buffer::type_id::raw,
             nonstd::error::invalid_memory,
-            "buffer corruption detected by type_id; Attempting to initialize a "
-            "previously initialized buffer. type_id is currently 0x{:X}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->type, buf->name, buf);
+            "Buffer corruption detected by type_id; Attempting to initialize a "
+            "previously-initialized buffer. type_id is currently 0x{:X}.\n"
+            "Underlying buffer: {}.",
+            buf->type, buf);
 
         Metadata * metadata = (Metadata *)(buf->data);
 
@@ -146,24 +146,24 @@ public: /*< ## Class Methods */
         u64 data_region_capacity = data_region_size / sizeof(Cell);
         u64 practical_capacity   = roundDownToPowerOfTwo(data_region_capacity);
         u8  max_miss_distance    = max_miss_distance_for(practical_capacity);
-
         u64 required_capacity = (practical_capacity + max_miss_distance);
 
         BREAK_IF(buf->size < sizeof(Metadata),
             nonstd::error::insufficient_memory,
             "This hash table is being overlaid onto a buffer that is too small "
-            "({} bytes) to fit the hash table Metadata ({}).\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            buf->size, sizeof(Metadata), buf->name, buf);
+            "({} bytes) to fit the hash table Metadata ({} bytes).\n"
+            "Underlying buffer: {}.",
+            buf->size, sizeof(Metadata), buf);
         BREAK_IF(required_capacity > data_region_capacity,
             nonstd::error::insufficient_memory,
             "This hash table has been initialized with a data region that does "
             "not have room for overallocation. The data region can store up to "
             "{} cells. The target capacity is {}, and the desired overflow is "
             "{} -- totaling {} cells.\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            data_region_capacity, practical_capacity, max_miss_distance,
-            required_capacity, buf->name, buf);
+            "Underlying buffer: {}.",
+            data_region_capacity,
+            practical_capacity, max_miss_distance, required_capacity,
+            buf);
 
         metadata->count              = 0;
         metadata->capacity           = practical_capacity;
@@ -187,33 +187,44 @@ protected: /*< ## Public Member Variables */
     buffer   *const  m_buf;
     Metadata *&      m_metadata;
 
+    static inline
+    buffer * find_or_allocate_buffer(c_cstr name,
+                                     u64 capacity = default_capacity)
+    noexcept {
+        using memory::find;
+        using memory::allocate;
+
+        auto maybe_buf = find(name);
+        return maybe_buf
+             ? *maybe_buf
+             : initialize_buffer(allocate(name, precompute_size(capacity)));
+    }
+
 
 public: /*< ## Ctors, Detors, and Assignments */
     hash_table(buffer *const buf) noexcept
         : m_buf      ( buf                                       )
         , m_metadata ( reinterpret_cast<Metadata*&>(m_buf->data) )
     {
-        /* Ensure that only POD types are used by placing ENFORCE_POD here. */
+        /* Ensure that only POD types are used in containers.
+         * We place ENFORCE_POD here s.t. it's only checked when the container
+         * constructor is instantiated. This lets us declare containers that
+         * wrap incomplete types, so long as those types are complete prior to
+         * container construction.
+         */
         ENFORCE_POD(T_KEY);
         ENFORCE_POD(T_VAL);
         ENFORCE_POD(Cell);
 
         ASSERT_M(m_buf->type == buffer::type_id::hash_table,
-            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
-            m_buf->type);
+            "{} has type_id 0x{:X}", m_buf, m_buf->type);
     }
-    hash_table(c_cstr name, u64 min_capacity = default_capacity)
-        : hash_table ( memory::find(name)
-                     ? *memory::find(name)
-                     : initialize_buffer(
-                         memory::allocate(name, precompute_size(min_capacity))
-                       )
-                     )
+    hash_table(c_cstr name) noexcept
+        : hash_table ( find_or_allocate_buffer(name) )
+    { }
+    hash_table(c_cstr name, u64 min_capacity) noexcept
+        : hash_table ( find_or_allocate_buffer(name, min_capacity) )
     {
-        ASSERT_M(m_buf->type == buffer::type_id::hash_table,
-            "buffer ({}) '{}' has type_id 0x{:X}", m_buf, m_buf->name,
-            m_buf->type);
-
         if (capacity() < min_capacity) { resize(min_capacity); }
     }
 
@@ -325,8 +336,7 @@ public: /*< ## Public Member Methods */
                     "_completely impossible_.\n"
                     "Unless you're resizing downward? I think... this might be "
                     "possible in that case... Maybe?\n"
-                    "Underlying buffer is named '{}', and it is located at {}.",
-                    m_buf->name, m_buf);
+                    "Underlying buffer: {}.", m_buf);
 
                 resize();
                 return set(key, value);
@@ -442,14 +452,15 @@ protected: /*< ## Protected Member Methods */
             nonstd::error::insufficient_memory,
             "buffer hash table is being resized into a buffer that is too "
             "small ({}) to fit the hash table Metadata ({}).\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            m_buf->size, sizeof(Metadata), m_buf->name, m_buf);
-        BREAK_IF(new_capacity < count(), nonstd::error::insufficient_memory,
+            "Underlying buffer: {}.",
+            m_buf->size, sizeof(Metadata), m_buf);
+        BREAK_IF(new_capacity < count(),
+            nonstd::error::insufficient_memory,
             "Resizing a hash table such that the new capacity ({}) is less "
             "than the current count ({}). This... is probably not okay. Data "
             "should be `destroy`d or `drop`d before downsizing?\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            new_capacity, count(), m_buf->name, m_buf);
+            "Underlying buffer: {}.",
+            new_capacity, count(), m_buf);
 
         u64 used_capacity = new_capacity + new_max_miss_distance;
         u64 used_size     = sizeof(Metadata) + (sizeof(Cell) * used_capacity);
@@ -457,8 +468,8 @@ protected: /*< ## Protected Member Methods */
             "Hash table resize may be leaving data unaccessible;\n"
             "  requested size  : {}\n"
             "  calculated size : {}\n"
-            "Underlying buffer is named '{}', and it is located at {}.",
-            new_size, used_size, m_buf->name, m_buf);
+            "Underlying buffer: {}.",
+            new_size, used_size, m_buf);
 #endif
 
         // Copy all current data aside to an intermediate `tmp_table` hash_table
