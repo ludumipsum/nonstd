@@ -110,11 +110,12 @@ protected: /*< ## Inner-Types */
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
-    static constexpr u8 max_miss_distance_for(u64 capacity) noexcept {
+    static constexpr u8 max_miss_distance_for(u64 capacity)
+    noexcept {
         return n2max(log2(capacity), 1);
     }
 
-    static constexpr u64 precompute_size(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity)
     noexcept {
         // Round the requested capacity up to the nearest power-of-two, and then
         // tack on additional cells enough to handle the maximum miss distance.
@@ -186,13 +187,31 @@ protected: /*< ## Public Member Variables */
     buffer   *const  m_buf;
     Metadata *&      m_metadata;
 
+    static inline
+    buffer * find_or_allocate_buffer(c_cstr name,
+                                     u64 capacity = default_capacity)
+    noexcept {
+        using memory::find;
+        using memory::allocate;
+
+        auto maybe_buf = find(name);
+        return maybe_buf
+             ? *maybe_buf
+             : initialize_buffer(allocate(name, precompute_size(capacity)));
+    }
+
 
 public: /*< ## Ctors, Detors, and Assignments */
     hash_table(buffer *const buf) noexcept
         : m_buf      ( buf                                       )
         , m_metadata ( reinterpret_cast<Metadata*&>(m_buf->data) )
     {
-        /* Ensure that only POD types are used by placing ENFORCE_POD here. */
+        /* Ensure that only POD types are used in containers.
+         * We place ENFORCE_POD here s.t. it's only checked when the container
+         * constructor is instantiated. This lets us declare containers that
+         * wrap incomplete types, so long as those types are complete prior to
+         * container construction.
+         */
         ENFORCE_POD(T_KEY);
         ENFORCE_POD(T_VAL);
         ENFORCE_POD(Cell);
@@ -200,17 +219,12 @@ public: /*< ## Ctors, Detors, and Assignments */
         ASSERT_M(m_buf->type == buffer::type_id::hash_table,
             "{} has type_id 0x{:X}", m_buf, m_buf->type);
     }
-    hash_table(c_cstr name, u64 min_capacity = default_capacity)
-        : hash_table ( memory::find(name)
-                     ? *memory::find(name)
-                     : initialize_buffer(
-                         memory::allocate(name, precompute_size(min_capacity))
-                       )
-                     )
+    hash_table(c_cstr name) noexcept
+        : hash_table ( find_or_allocate_buffer(name) )
+    { }
+    hash_table(c_cstr name, u64 min_capacity) noexcept
+        : hash_table ( find_or_allocate_buffer(name, min_capacity) )
     {
-        ASSERT_M(m_buf->type == buffer::type_id::hash_table,
-            "{} has type_id 0x{:X}", m_buf, m_buf->type);
-
         if (capacity() < min_capacity) { resize(min_capacity); }
     }
 

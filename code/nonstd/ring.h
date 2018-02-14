@@ -38,9 +38,9 @@ namespace nonstd {
 template<typename T>
 class ring {
 public: /*< ## Class Methods */
-    static constexpr u64 default_capacity = 64;
+    static constexpr u64 default_capacity = 32;
 
-    static constexpr u64 precompute_size(u64 capacity = default_capacity)
+    static constexpr u64 precompute_size(u64 capacity)
     noexcept {
         return sizeof(T) * n2max(capacity, 1);
     }
@@ -76,28 +76,41 @@ public: /*< ## Class Methods */
 protected: /*< ## Public Member Variables */
     buffer *const m_buf;
 
+    static inline
+    buffer * find_or_allocate_buffer(c_cstr name,
+                                     u64 capacity = default_capacity)
+    noexcept {
+        using memory::find;
+        using memory::allocate;
+
+        auto maybe_buf = find(name);
+        return maybe_buf
+             ? *maybe_buf
+             : initialize_buffer(allocate(name, precompute_size(capacity)));
+    }
+
 
 public: /*< ## Ctors, Detors, and Assignments */
     ring(buffer *const buf) noexcept
         : m_buf ( buf )
     {
-        /* Ensure that only POD types are used by placing ENFORCE_POD here. */
+        /* Ensure that only POD types are used in containers.
+         * We place ENFORCE_POD here s.t. it's only checked when the container
+         * constructor is instantiated. This lets us declare containers that
+         * wrap incomplete types, so long as those types are complete prior to
+         * container construction.
+         */
         ENFORCE_POD(T);
 
         ASSERT_M(m_buf->type == buffer::type_id::ring,
             "{} has type_id 0x{:X}", m_buf, m_buf->type);
     }
-    ring(c_cstr name, u64 min_capacity = default_capacity)
-        : ring ( memory::find(name)
-               ? *memory::find(name)
-               : initialize_buffer(
-                       memory::allocate(name, precompute_size(min_capacity))
-                   )
-               )
+    ring(c_cstr name) noexcept
+        : ring ( find_or_allocate_buffer(name) )
+    { }
+    ring(c_cstr name, u64 min_capacity) noexcept
+        : ring ( find_or_allocate_buffer(name, min_capacity) )
     {
-        ASSERT_M(m_buf->type == buffer::type_id::ring,
-            "{} has type_id 0x{:X}", m_buf, m_buf->type);
-
         if (capacity() < min_capacity) { resize(min_capacity); }
     }
 

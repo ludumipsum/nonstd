@@ -48,8 +48,10 @@ protected: /*< ## Inner-Types */
 public: /*< ## Class Methods */
     static constexpr u64 default_capacity = 64;
 
-    static constexpr u64 precompute_size(u64 capacity = default_capacity)
-    noexcept { return sizeof(Metadata) + (sizeof(T) * n2max(capacity, 1)); }
+    static constexpr u64 precompute_size(u64 capacity)
+    noexcept {
+        return sizeof(Metadata) + (sizeof(T) * n2max(capacity, 1));
+    }
 
     static inline buffer * initialize_buffer(buffer *const buf) {
         BREAK_IF(buf->type == buffer::type_id::stream,
@@ -92,6 +94,19 @@ protected: /*< ## Public Member Variables */
     buffer   *const  m_buf;
     Metadata *&      m_metadata;
 
+    static inline
+    buffer * find_or_allocate_buffer(c_cstr name,
+                                     u64 capacity = default_capacity)
+    noexcept {
+        using memory::find;
+        using memory::allocate;
+
+        auto maybe_buf = find(name);
+        return maybe_buf
+             ? *maybe_buf
+             : initialize_buffer(allocate(name, precompute_size(capacity)));
+    }
+
 
 public: /*< ## Ctors, Detors, and Assignments */
     stream(buffer *const buf) noexcept
@@ -104,17 +119,12 @@ public: /*< ## Ctors, Detors, and Assignments */
         ASSERT_M(m_buf->type == buffer::type_id::stream,
             "{} has type_id 0x{:X}", m_buf, m_buf->type);
     }
-    stream(c_cstr name, u64 min_capacity = default_capacity)
-        : stream ( memory::find(name)
-                 ? *memory::find(name)
-                 : initialize_buffer(
-                         memory::allocate(name, precompute_size(min_capacity))
-                     )
-                 )
+    stream(c_cstr name)
+        : stream ( find_or_allocate_buffer(name) )
+    { }
+    stream(c_cstr name, u64 min_capacity)
+        : stream ( find_or_allocate_buffer(name, min_capacity) )
     {
-        ASSERT_M(m_buf->type == buffer::type_id::stream,
-            "{} has type_id 0x{:X}", m_buf, m_buf->type);
-
         if (capacity() < min_capacity) { resize(min_capacity); }
     }
 
