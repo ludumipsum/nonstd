@@ -112,12 +112,12 @@ inline buffer make_buffer(ptr p, u64 size, c_cstr name = "transient_buffer") {
  *  `"buffer{ 'buffer/name' }(0x123456789abc)"`
  */
 inline std::ostream& operator << (std::ostream & s, buffer const * const buf) {
-    return s << "buffer{{ '{}' }}({})"_format(buf->name, buf->data);
+    return s << "buffer{{'{}'}}"_format(buf->name);
 }
 inline void format_arg(fmt::BasicFormatter<char> & f,
                        char const * & format_str,
                        buffer const * const buf) {
-    f.writer().write("buffer{{ '{}' }}({})", buf->name, buf->data);
+    f.writer().write("buffer{{'{}'}}", buf->name);
 }
 
 } /* namespace nonstd */
