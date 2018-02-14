@@ -20,8 +20,6 @@ namespace test_array {
 using nonstd::range;
 using nonstd::buffer;
 using nonstd::array;
-using memory::find_array;
-using memory::allocate_array;
 
 /* Compound POD datatype used to test non-builtin-type Rings */
 struct CompoundType {
@@ -63,15 +61,28 @@ TEST_CASE("Array API Demo", "[api][memory][array]") {
      *  of simplicity).
      */
     SECTION("Creating Arrays") {
-        // In the simplest case, we just allocate an array directly.
-        auto created_array = allocate_array<f32>("test_data", 5);
-        // And in subsequent uses, we'll want to grab that array again.
-        auto maybe_array = find_array<f32>("test_data");
         // If we want convenience over precision, we can directly construct
-        // arrays from from just a buffer name. If the named buffer has already
-        // been allocated, it will be used. Otherwise, it will be allocated
-        // using whatever defaults are necessary.
-        array<f32> simple_array{ "test_data" };
+        // arrays from from just a buffer name. In this case, the capacity will
+        // be defaulted.
+        array<f32> simple_array{ "simple_array" };
+        REQUIRE(simple_array.capacity() == array<f32>::default_capacity);
+        // This form will only initialize a buffer if one doesn't already exist.
+        array<f32> simple_array_2{ "simple_array" };
+        REQUIRE(simple_array.buf() == simple_array_2.buf());
+
+        // We can also specify a target capacity for our array.
+        array<f32> sized_array{ "sized_array", 4 };
+        REQUIRE(sized_array.capacity() == 4);
+
+        // We can also use the memory:: functions to directly allocate.
+        auto created_array = memory::allocate_array<f32>("test_data", 5);
+        // And in subsequent uses, we'll want to grab that array again.
+        auto maybe_array = memory::find_array<f32>("test_data");
+
+        // Note that if we "re-construct" an array with a capacity greater than
+        // it's current size, that will trigger a resize;
+        array<f32> sized_array_2{ sized_array.name(), 8 };
+        REQUIRE((sized_array_2.capacity() == 8 && sized_array.capacity() == 8));
 
         // You can also do the buffer initialization by hand. All containers
         // provide a ::precompute_size static method and a ::initialize_buffer
@@ -100,7 +111,7 @@ TEST_CASE("Array API Demo", "[api][memory][array]") {
     SECTION("Inserting and Reading Data") {
         // We're just going to play with sequential numbers here, so let's start
         // with an array of, say, 60 u32s.
-        auto numbers = allocate_array<u32>("demo", 60);
+        array<u32> numbers { "demo", 60 };
 
         // We can also pretend we have some external system we're pulling from.
         auto getNext = []() -> u32 {
