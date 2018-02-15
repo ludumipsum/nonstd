@@ -18,8 +18,9 @@
  */
 #pragma once
 
+#include <thirdparty/fmt.h>
 #include <system_error>
-#include <nonstd/nonstd.h>
+#include "primitive_types.h"
 
 
 /** nonstd:: Error Codes
