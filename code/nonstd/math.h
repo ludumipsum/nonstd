@@ -1,12 +1,13 @@
 /** Math Utilities
  *  ==============
- *  A small library of commonly used math functions. Stuff like interpolators
- *  and rescalers.
+ *  A small library of commonly used math functions. Stuff like interpolators,
+ *  rescalers, and power-of-two manipulations.
  */
 
 #pragma once
 
 #include <nonstd/nonstd.h>
+#include <nonstd/error.h>
 #include <nonstd/type_traits_ext.h>
 
 
@@ -41,17 +42,17 @@ constexpr inline T rescale(T value,
  *  I (Drew) and RapidCheck's author (emil-e) have been working on.
  */
 template<typename T> inline
-constexpr T maskLowestBits(u16 nbits) noexcept {
-      using UT = std::make_unsigned_t<T>;
-      // There are two pieces of undefined behavior we're avoiding here,
-      //   1. Shifting past the width of a type (ex `<< 32` against an `i32`)
-      //   2. Shifting a negative operand (which `~0` is for all signed types)
-      // First we branch to avoid shifting the past the width of the type, then
-      // (assuming we are shifting, and aren't just returning `~0`) we cast `~0`
-      // to an explicitly unsigned type before performing the shift.
-      return (nbits != (sizeof(UT) * 8)) ?
-             ~T(UT(~UT(0)) << nbits)     :
-             ~T(0);
+constexpr T mask_lowest_bits(i32 nbits) noexcept {
+    using UT = std::make_unsigned_t<T>;
+    // There are two pieces of undefined behavior we're avoiding here,
+    //   1. Shifting past the width of a type (ex `<< 32` against an `i32`)
+    //   2. Shifting a negative operand (which `~0` is for all signed types)
+    // First we branch to avoid shifting the past the width of the type, then
+    // (assuming we are shifting, and aren't just returning `~0`) we cast `~0`
+    // to an explicitly unsigned type before performing the shift.
+    return nbits < (sizeof(UT) * 8)
+         ? ~T(UT(~0) << nbits)
+         : ~0;
 }
 
 
@@ -64,16 +65,52 @@ constexpr T maskLowestBits(u16 nbits) noexcept {
 /** Is Power Of Two?
  *  ----------------
  */
-template<typename T> inline
-constexpr bool isPowerOfTwo(T num) noexcept {
+template<typename T>
+constexpr auto is_power_of_two(T num) noexcept -> /* bool */
+std::enable_if_t<std::is_integral_v<T>, bool> {
+    ASSERT(num >= 0);
     return (num && !(num & (num - 1)));
 }
+template<typename T>
+constexpr auto is_power_of_two(T num) noexcept -> /* bool */
+std::enable_if_t<std::is_enum_v<T>, bool> {
+    auto n = static_cast<std::underlying_type_t<T>>(num);
+    return is_power_of_two(n);
+}
 
-/** Powers of Two
- *  -------------
- *  TODO: Consider making these template specializations based on the size of T.
+/** Rounding to a Power of Two
+ *  --------------------------
  */
-constexpr u32 roundUpToPowerOfTwo(u32 num) noexcept {
+template<typename T>
+constexpr auto ceil_power_of_two(T num) noexcept -> /* T */
+std::enable_if_t<std::is_integral_v<T> && sizeof(T) == 1, T> {
+    ASSERT(num >= 0);
+    if (num == 0) return 1;
+    num -= 1;
+    num |= num >> 1;
+    num |= num >> 2;
+    num |= num >> 4;
+    num += 1;
+    return num;
+}
+template<typename T>
+constexpr auto ceil_power_of_two(T num) noexcept -> /* T */
+std::enable_if_t<std::is_integral_v<T> && sizeof(T) == 2, T> {
+    ASSERT(num >= 0);
+    if (num == 0) return 1;
+    num -= 1;
+    num |= num >> 1;
+    num |= num >> 2;
+    num |= num >> 4;
+    num |= num >> 8;
+    num += 1;
+    return num;
+}
+template<typename T>
+constexpr auto ceil_power_of_two(T num) noexcept -> /* T */
+std::enable_if_t<std::is_integral_v<T> && sizeof(T) == 4, T> {
+    ASSERT(num >= 0);
+    if (num == 0) return 1;
     num -= 1;
     num |= num >> 1;
     num |= num >> 2;
@@ -83,8 +120,11 @@ constexpr u32 roundUpToPowerOfTwo(u32 num) noexcept {
     num += 1;
     return num;
 }
-
-constexpr u64 roundUpToPowerOfTwo(u64 num) noexcept {
+template<typename T>
+constexpr auto ceil_power_of_two(T num) noexcept -> /* T */
+std::enable_if_t<std::is_integral_v<T> && sizeof(T) == 8, T> {
+    ASSERT(num >= 0);
+    if (num == 0) return 1;
     num -= 1;
     num |= num >> 1;
     num |= num >> 2;
@@ -97,7 +137,29 @@ constexpr u64 roundUpToPowerOfTwo(u64 num) noexcept {
 }
 
 
-constexpr u32 roundDownToPowerOfTwo(u32 num) noexcept {
+template<typename T>
+constexpr auto floor_power_of_two(T num) noexcept -> /* T */
+std::enable_if_t<std::is_integral_v<T> && sizeof(T) == 1, T> {
+    ASSERT(num >= 0);
+    num |= (num >> 1);
+    num |= (num >> 2);
+    num |= (num >> 4);
+    return num - (num >> 1);
+}
+template<typename T>
+constexpr auto floor_power_of_two(T num) noexcept -> /* T */
+std::enable_if_t<std::is_integral_v<T> && sizeof(T) == 2, T> {
+    ASSERT(num >= 0);
+    num |= (num >> 1);
+    num |= (num >> 2);
+    num |= (num >> 4);
+    num |= (num >> 8);
+    return num - (num >> 1);
+}
+template<typename T>
+constexpr auto floor_power_of_two(T num) noexcept -> /* T */
+std::enable_if_t<std::is_integral_v<T> && sizeof(T) == 4, T> {
+    ASSERT(num >= 0);
     num |= (num >> 1);
     num |= (num >> 2);
     num |= (num >> 4);
@@ -105,8 +167,10 @@ constexpr u32 roundDownToPowerOfTwo(u32 num) noexcept {
     num |= (num >> 16);
     return num - (num >> 1);
 }
-
-constexpr u64 roundDownToPowerOfTwo(u64 num) noexcept {
+template<typename T>
+constexpr auto floor_power_of_two(T num) noexcept -> /* T */
+std::enable_if_t<std::is_integral_v<T> && sizeof(T) == 8, T> {
+    ASSERT(num >= 0);
     num |= (num >> 1);
     num |= (num >> 2);
     num |= (num >> 4);
