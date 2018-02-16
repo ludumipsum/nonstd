@@ -118,14 +118,14 @@ public: /*< ## Class Methods */
     noexcept {
         // Round the requested capacity up to the nearest power-of-two, and then
         // tack on additional cells enough to handle the maximum miss distance.
-        u64 target_capacity   = nonstd::roundUpToPowerOfTwo(capacity);
+        u64 target_capacity   = nonstd::ceil_power_of_two(capacity);
         u64 max_miss_distance = max_miss_distance_for(target_capacity);
         u64 total_capacity    = target_capacity + max_miss_distance;
         return sizeof(Metadata) + (sizeof(Cell) * total_capacity);
     }
 
     static inline buffer * initialize_buffer(buffer *const buf) {
-        using nonstd::roundDownToPowerOfTwo;
+        using nonstd::floor_power_of_two;
 
         BREAK_IF(buf->type == buffer::type_id::hash_table,
             nonstd::error::reinitialized_memory,
@@ -143,7 +143,7 @@ public: /*< ## Class Methods */
 
         u64 data_region_size     = buf->size - sizeof(Metadata);
         u64 data_region_capacity = data_region_size / sizeof(Cell);
-        u64 practical_capacity   = roundDownToPowerOfTwo(data_region_capacity);
+        u64 practical_capacity   = floor_power_of_two(data_region_capacity);
         u8  max_miss_distance    = max_miss_distance_for(practical_capacity);
         u64 required_capacity = (practical_capacity + max_miss_distance);
 
@@ -439,11 +439,11 @@ protected: /*< ## Protected Member Methods */
 
     /* Resize this hash table s.t. the backing buffer is exactly `new_size`.  */
     inline void _resize(u64 new_size) {
-        using nonstd::roundDownToPowerOfTwo;
+        using nonstd::floor_power_of_two;
 
         u64 data_region_size      = new_size - sizeof(Metadata);
         u64 new_total_capacity    = data_region_size / sizeof(Cell);
-        u64 new_capacity          = roundDownToPowerOfTwo(new_total_capacity);
+        u64 new_capacity          = floor_power_of_two(new_total_capacity);
         u8  new_max_miss_distance = max_miss_distance_for(new_capacity);
 
 #if defined(DEBUG)
