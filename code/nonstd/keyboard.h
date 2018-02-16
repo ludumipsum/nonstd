@@ -1,30 +1,30 @@
 /** Typesafe Keyboard Input
  *  =======================
  *  Keyboards are hard. Input is hard, generally speaking, and natural languages
- *  are _really_ hard, and keyboards are this wonderful mix of the two. Oh, also
- *  defining and enforcing standards can be a trick, and all of this work is
- *  contingent on keyboard inputput being correctly standardized, so... All of
- *  that to say, this is more complex than it should be, may be quite brittle.
- *  There definitely be dragons here.
+ *  are _really_ hard; keyboards are this wonderful mix of the two. Oh, also
+ *  defining and enforcing standards can be a trick, but -- of course -- this
+ *  work is contingent on keyboard inputput being correctly standardized...
+ *  All of that is to say, this is more complex than it would appear at a
+ *  glance, and may be quite brittle.
  *
- *  The two core problems this set of files is trying solve are 1) platform
- *  independent keyboard input, and 2) language agnostic keyboard input.
- *  Platform agnostic is simple, it just requires a translation at the platform
- *  layer to some common interface. Language agnostic is more interesting,
- *  though; consider the ubiquitous WASD movement keys. If you don't want
- *  players on French AZERTY keyboards to have to learn some massively bizare
- *  muscle memory, their default should be ZQSD. Lucky for us, we're not the
- *  only ones who are interested in these goals.
+ *  The two core problems this file -- and those in the keyboard/ directory --
+ *  are trying solve are 1) platform independent keyboard input, and 2) language
+ *  agnostic keyboard input. Platform agnostic is simple, it just requires a
+ *  translation at the platform layer to some common interface. Language
+ *  agnostic is more interesting, though; consider the ubiquitous WASD movement
+ *  keys. If you don't want players on French AZERTY keyboards to have to learn
+ *  some massively bizare muscle memory, their default should be ZQSD. Lucky for
+ *  us, we're not the only ones who are interested in these goals.
  *
  *  The USB Human Interface Device specifications lay out a way to generate and
  *  interpret keyboard input in a language agnostic manner; the scancodes
  *  specified are based on the relative location of the key on the keyboard, not
- *  what's printed on the cap or where the keyboard was manufactured. (Note that
+ *  what's printed on the cap or where the keyboard was manufactured. Note that
  *  the specification tacitly assumes a QWERTY layout when discussing
  *  alphabetical keys. The German QWERTZ keyboard is explicitly told to send the
  *  scancode for "Y" when "Z" is pressed, because the scancode for "Y" is
  *  actually the scancode for "the sixth key from the left on the top row." It
- *  works out, though, I promise.)
+ *  works out, though, I promise.
  *
  *  The below `enum class` was built using the values specified by the USB HID
  *  Usage Tables v1.12 (http://www.usb.org/developers/hidpage/Hut1_12v2.pdf),
@@ -36,13 +36,13 @@
  *
  *  A maskable `enum class modifier` is provided in keyboard/modifier.h as a
  *  helper type, and does not correspond to any HID scancodes. Use the
- *  `keyboard::scancode_to_modifier` helper function to translate between
+ *  `keyboard::modifier_from_scancode` helper function to translate between
  *  scancodes and modifiers.
  *
  *  The `struct keyboard::qwerty` is what most will want to use when using
  *  keyboard input in a program; it's values are pulled from the HID scancodes,
  *  but are guaranteed to correspond to the common English-Language keycaps.
- *  Human-friendly strings can be extracted with the `scancode_as_qwerty`.
+ *  Human-friendly strings can be extracted with `qwerty::to_cstr(code)`.
  *
  *  The other reason to use the keyboard::qwerty abstraction is so we can expand
  *  into a keyboard::qwertz, keyboard::azerty, etc.
