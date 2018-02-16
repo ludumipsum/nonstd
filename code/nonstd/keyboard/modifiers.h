@@ -37,7 +37,7 @@ enum class modifier : u16 {
     gui   = left_gui   | right_gui,
     fn = 1 << 8,
     caps_lock     = 1 << 9,
-    number_lock   = 1 << 10,
+    num_lock      = 1 << 10,
     scroll_lock   = 1 << 11,
     function_lock = 1 << 12,
     all = 0xffff,
@@ -49,16 +49,24 @@ GENERATE_OPERATOR_OVERLOADS_FOR_ENUM_CLASS(modifier);
 inline constexpr keyboard::modifier
 modifier_from_scancode(keyboard::scancode code)
 noexcept {
+    using keyboard::scancode;
+
     switch (code) {
-    case keyboard::scancode::left_ctrl:   { return modifier::left_ctrl;   }
-    case keyboard::scancode::left_shift:  { return modifier::left_shift;  }
-    case keyboard::scancode::left_alt:    { return modifier::left_alt;    }
-    case keyboard::scancode::left_gui:    { return modifier::left_gui;    }
-    case keyboard::scancode::right_ctrl:  { return modifier::right_ctrl;  }
-    case keyboard::scancode::right_shift: { return modifier::right_shift; }
-    case keyboard::scancode::right_alt:   { return modifier::right_alt;   }
-    case keyboard::scancode::right_gui:   { return modifier::right_gui;   }
-    default:                              { return modifier::none;        }
+    case scancode::left_ctrl:           { return modifier::left_ctrl;   }
+    case scancode::left_shift:          { return modifier::left_shift;  }
+    case scancode::left_alt:            { return modifier::left_alt;    }
+    case scancode::left_gui:            { return modifier::left_gui;    }
+    case scancode::right_ctrl:          { return modifier::right_ctrl;  }
+    case scancode::right_shift:         { return modifier::right_shift; }
+    case scancode::right_alt:           { return modifier::right_alt;   }
+    case scancode::right_gui:           { return modifier::right_gui;   }
+    case scancode::caps_lock:           /* fallthrough */
+    case scancode::locking_caps_lock:   { return modifier::caps_lock;   }
+    case scancode::numpad_num_lock:     /* fallthrough */
+    case scancode::locking_num_lock:    { return modifier::num_lock;    }
+    case scancode::scroll_lock:         /* fallthrough */
+    case scancode::locking_scroll_lock: { return modifier::scroll_lock; }
+    default:                            { return modifier::none;        }
     } /* switch (code) */
 }
 
@@ -83,7 +91,7 @@ namespace detail {
         { modifier::right_gui,     "Right " GUI_KEY_NAME },
         { modifier::fn,            "Fn"                  },
         { modifier::caps_lock,     "Caps Lock"           },
-        { modifier::number_lock,   "Number Lock"         },
+        { modifier::num_lock,      "Num Lock"            },
         { modifier::scroll_lock,   "Scroll Lock"         },
         { modifier::function_lock, "Function Lock"       },
     };
@@ -149,8 +157,8 @@ namespace detail {
         if (is_any((modifiers & keyboard::modifier::caps_lock))) {
             mod_list.push_back(_get_modifier_name(modifier::caps_lock));
         }
-        if (is_any((modifiers & keyboard::modifier::number_lock))) {
-            mod_list.push_back(_get_modifier_name(modifier::number_lock));
+        if (is_any((modifiers & keyboard::modifier::num_lock))) {
+            mod_list.push_back(_get_modifier_name(modifier::num_lock));
         }
         if (is_any((modifiers & keyboard::modifier::scroll_lock))) {
             mod_list.push_back(_get_modifier_name(modifier::scroll_lock));

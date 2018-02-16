@@ -208,6 +208,11 @@ enum class scancode : u8 {
     volume_up = 128,
     volume_down = 129,
 
+    // legacy; don't expect to see these
+    locking_caps_lock = 130,
+    locking_scroll_lock = 131,
+    locking_num_lock = 132,
+
     numpad_comma = 133,
     numpad_equals_as400 = 134,
 
