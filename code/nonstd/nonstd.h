@@ -42,6 +42,7 @@
  *  ================
  */
 #include "core/disallow_copy_and_assign.h"
+#include "core/error.h"
 #include "core/homogenize.h"
 #include "core/math.h"
 #include "core/primitive_types.h"

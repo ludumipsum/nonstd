@@ -4,7 +4,6 @@
 
 #include <nonstd/nonstd.h>
 #include <nonstd/cx_math.h>
-#include <nonstd/error.h>
 #include <nonstd/type_traits_ext.h>
 
 

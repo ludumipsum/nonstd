@@ -9,7 +9,8 @@
 
 #include <iterator>
 #include <type_traits>
-#include <nonstd/nonstd.h>
+#include "primitive_types.h"
+#include "math.h"
 
 
 namespace nonstd {
