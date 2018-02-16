@@ -3,6 +3,7 @@
 #include <nonstd/nonstd.h>
 #include <nonstd/enum_class_operators.h>
 #include <nonstd/keyboard.h>
+#include <nonstd/math.h>
 
 
 // The USB HID tables list the nonstandard modifier key (Apple, ⌘, Windows,
@@ -91,33 +92,86 @@ namespace detail {
      * Iterate over the keyboard_modifier_map looking for a matching modifier
      * value; return the corresponding human-readable name.
      *
-     * TODO: This currently only works iff one modifier bit is set. This may be
-     * insufficient, surprising, and/or bad.
      * TODO: We probably want to abstract this to part of a runtime process that
      * checks what layout is in use, then translates scancodes accordingly.
      * Relying on hardcoded transformations sounds like a recipe for bad.
      */
-    inline constexpr c_cstr _get_modifier_name(
-            modifier const modifier,
-            keyboard_modifier_name_mapping const * map =
-                &keyboard_modifier_name_map[0])
+    inline constexpr
+    c_cstr _get_modifier_name(modifier const modifier,
+                              keyboard_modifier_name_mapping const * map =
+                                  &keyboard_modifier_name_map[0])
     noexcept {
+        // This function _only_ works on a single modifier which -- knowing that
+        // keyboard::modifier modles a bitfield -- means the underlying value of
+        // the given modifier will always be a power of two.
+        ASSERT(nonstd::is_power_of_two(modifier));
         return map != nullptr
              ? ( modifier == map->mod
                ? map->name
                : _get_modifier_name(modifier, map+1) )
              : nullptr;
     }
+
+    inline
+    std::string _get_modifier_list(modifier const modifiers,
+                                   keyboard_modifier_name_mapping const * map =
+                                       &keyboard_modifier_name_map[0])
+    noexcept {
+        std::vector<c_cstr> mod_list;
+
+        if (is_any((modifiers & keyboard::modifier::left_shift))) {
+            mod_list.push_back(_get_modifier_name(modifier::left_shift));
+        }
+        if (is_any((modifiers & keyboard::modifier::left_ctrl))) {
+            mod_list.push_back(_get_modifier_name(modifier::left_ctrl));
+        }
+        if (is_any((modifiers & keyboard::modifier::left_alt))) {
+            mod_list.push_back(_get_modifier_name(modifier::left_alt));
+        }
+        if (is_any((modifiers & keyboard::modifier::left_gui))) {
+            mod_list.push_back(_get_modifier_name(modifier::left_gui));
+        }
+        if (is_any((modifiers & keyboard::modifier::right_shift))) {
+            mod_list.push_back(_get_modifier_name(modifier::right_shift));
+        }
+        if (is_any((modifiers & keyboard::modifier::right_ctrl))) {
+            mod_list.push_back(_get_modifier_name(modifier::right_ctrl));
+        }
+        if (is_any((modifiers & keyboard::modifier::right_alt))) {
+            mod_list.push_back(_get_modifier_name(modifier::right_alt));
+        }
+        if (is_any((modifiers & keyboard::modifier::right_gui))) {
+            mod_list.push_back(_get_modifier_name(modifier::right_gui));
+        }
+        if (is_any((modifiers & keyboard::modifier::fn))) {
+            mod_list.push_back(_get_modifier_name(modifier::fn));
+        }
+        if (is_any((modifiers & keyboard::modifier::caps_lock))) {
+            mod_list.push_back(_get_modifier_name(modifier::caps_lock));
+        }
+        if (is_any((modifiers & keyboard::modifier::number_lock))) {
+            mod_list.push_back(_get_modifier_name(modifier::number_lock));
+        }
+        if (is_any((modifiers & keyboard::modifier::scroll_lock))) {
+            mod_list.push_back(_get_modifier_name(modifier::scroll_lock));
+        }
+        if (is_any((modifiers & keyboard::modifier::function_lock))) {
+            mod_list.push_back(_get_modifier_name(modifier::function_lock));
+        }
+
+        return fmt::format("{}", fmt::join(mod_list, " + "));
+    }
+
 } /* namespace detail */
 
 inline void format_arg(fmt::BasicFormatter<char> & f,
                        c_cstr                    & format_str,
                        modifier const            & modifier) {
-    f.writer().write( detail::_get_modifier_name(modifier) );
+    f.writer().write( detail::_get_modifier_list(modifier) );
 }
 inline std::ostream & operator<< (std::ostream   & stream,
                                   modifier const & modifier) {
-    return stream << detail::_get_modifier_name(modifier);
+    return stream << detail::_get_modifier_list(modifier);
 }
 
 } /* namespace keyboard */
