@@ -75,7 +75,6 @@
 #include <nonstd/math.h>
 #include <nonstd/memory.h>
 #include <nonstd/optional.h>
-#include <nonstd/type_traits_ext.h>
 #include <nonstd/utility_ext.h>
 
 

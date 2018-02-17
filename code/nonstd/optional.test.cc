@@ -18,8 +18,8 @@
 #include <testrunner/testrunner.h>
 
 #include <utility>
+#include <nonstd/nonstd.h>
 #include <nonstd/utility_ext.h>
-#include <nonstd/type_traits_ext.h>
 
 
 namespace nonstd_test {

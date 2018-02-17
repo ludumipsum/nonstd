@@ -11,7 +11,6 @@
 
 #include <nonstd/nonstd.h>
 #include <nonstd/memory.h>
-#include <nonstd/type_traits_ext.h>
 
 
 namespace nonstd {
