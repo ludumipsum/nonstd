@@ -23,6 +23,14 @@ constexpr bool have_same_type(L&& l, R&& r) noexcept {
     return ::std::is_same_v<L, R>;
 }
 
+/** have_same_decayed_type
+ *  Check if the decayed types of the left and right arguments are identical
+ */
+template <typename L, typename R>
+constexpr bool have_same_decayed_type(L&& l, R&& r) noexcept {
+    return ::std::is_same_v<std::decay_t<L>, std::decay_t<R>>;
+}
+
 
 /** is_reference_wrapper
  *  Shorthand check for whether or not a type argument is an STL
