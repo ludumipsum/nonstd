@@ -48,7 +48,6 @@
 #include "core/primitive_types.h"
 #include "core/range.h"
 #include "core/require_linkage.h"
-#include "core/slice.h"
 #include "core/stacktrace.h"
 #include "core/symbol_stringifier.h"
 #include "core/unused.h"
