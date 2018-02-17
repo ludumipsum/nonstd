@@ -14,7 +14,7 @@ namespace enumerate {
 
 TEST_CASE("Enumerate API Demo", "[nonstd][api][range]") {
     SECTION("gives you sequential numbers with an iterand") {
-        std::array<i16, 10> arr = {0};
+        std::array<i16, 10> arr = {};
         auto iteration = 0;
         for (auto const& [i, value] : nonstd::enumerate(arr)) {
             REQUIRE(i == iteration++);
@@ -43,6 +43,19 @@ TEST_CASE("Enumerate API Demo", "[nonstd][api][range]") {
             REQUIRE(value == *(arr + i));
             REQUIRE(&value == &(arr[i]));
             REQUIRE(&value == arr + i);
+        }
+    }
+
+    SECTION("transparently assigns") {
+        i16 arr[16] = {0};
+        for (auto const& [i, value] : nonstd::enumerate(arr)) {
+            REQUIRE(value == 0);
+            value = i;
+            REQUIRE(value == i);
+        }
+
+        for (auto const& [i, value] : nonstd::enumerate(arr)) {
+            REQUIRE(value == i);
         }
     }
 }
