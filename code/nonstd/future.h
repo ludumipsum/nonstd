@@ -17,7 +17,6 @@
 
 #include <nonstd/nonstd.h>
 #include <nonstd/optional.h>
-#include <nonstd/type_traits_ext.h>
 #include <chrono>
 #include <future>
 

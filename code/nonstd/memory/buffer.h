@@ -11,7 +11,6 @@
 #pragma once
 
 #include <nonstd/nonstd.h>
-#include <nonstd/type_traits_ext.h>
 
 
 namespace nonstd {

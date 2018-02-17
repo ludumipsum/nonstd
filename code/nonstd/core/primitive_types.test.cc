@@ -6,9 +6,10 @@
  */
 
 #include <nonstd/core/primitive_types.h>
+
+#include <nonstd/core/type_traits_ext.h>
 #include <testrunner/testrunner.h>
 
-#include <nonstd/type_traits_ext.h>
 
 
 /** Basic Types

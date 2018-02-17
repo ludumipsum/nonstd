@@ -24,6 +24,18 @@ constexpr bool have_same_type(L&& l, R&& r) noexcept {
 }
 
 
+/** is_reference_wrapper
+ *  Shorthand check for whether or not a type argument is an STL
+ *  reference_wrapper (a utility class used to hold references kinda like
+ *  pointers when manipulating containers / contained objects).
+ */
+template <typename T>
+struct is_reference_wrapper : std::false_type {};
+template <typename T>
+struct is_reference_wrapper<std::reference_wrapper<T>> : std::true_type {};
+template <typename T>
+inline constexpr bool is_reference_wrapper_v = is_reference_wrapper<T>::value;
+
 /** remove_cvref
  *  If the type `T` is a reference type, provides the member type `type` which
  *  is the type referred to by `T` with its topmost cv-qualifiers removed.

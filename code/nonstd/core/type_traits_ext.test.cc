@@ -8,7 +8,7 @@
  *  and reading, but that came at the cost of some ~95 column lines.
  */
 
-#include <nonstd/type_traits_ext.h>
+#include <nonstd/core/type_traits_ext.h>
 #include <testrunner/testrunner.h>
 
 #include <nonstd/nonstd.h>
@@ -17,9 +17,10 @@
 namespace nonstd_test {
 namespace type_macros {
 
-using nonstd::remove_cvref_t;
-using nonstd::is_swappable_v;
 using nonstd::have_same_type;
+using nonstd::is_reference_wrapper_v;
+using nonstd::is_swappable_v;
+using nonstd::remove_cvref_t;
 using std::is_same_v;
 
 // Dead simple helper structs
@@ -43,6 +44,14 @@ T identityFunction(T x) { return x; }
 
 
 TEST_CASE("Extended Type Traits", "[nonstd][types]") {
+
+    SECTION("is_reference_wrapper should detect reference_wrapper") {
+        i32 my_i32 = 451;
+        std::reference_wrapper<i32> rwi = my_i32;
+        REQUIRE(is_reference_wrapper_v<decltype(rwi)>);
+        REQUIRE_FALSE(is_reference_wrapper_v<i32&>);
+        REQUIRE_FALSE(is_reference_wrapper_v<decltype(my_i32)>);
+    }
 
     SECTION("remove_cvref should work correctly") {
         REQUIRE(is_same_v<int, remove_cvref_t<int>>);

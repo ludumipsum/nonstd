@@ -10,8 +10,8 @@
 #pragma once
 
 #include <thirdparty/fmt.h>
-#include <system_error>
 #include "primitive_types.h"
+#include "type_traits_ext.h"
 
 #include <functional>
 #include <type_traits>
@@ -20,12 +20,6 @@ namespace nonstd {
 
 namespace detail {
 using std::iterator_traits;
-
-template <typename T>
-struct is_reference_wrapper : std::false_type {};
-
-template <typename T>
-struct is_reference_wrapper<std::reference_wrapper<T>> : std::true_type {};
 
 template <typename Container, typename Iterator, typename Value>
 struct enumerate_t {

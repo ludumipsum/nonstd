@@ -7,7 +7,6 @@
 
 #include <nonstd/nonstd.h>
 #include <nonstd/angle.h>
-#include <nonstd/type_traits_ext.h>
 
 
 namespace nonstd {

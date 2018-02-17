@@ -72,7 +72,6 @@
 #include <nonstd/optional_storage.h>
 #include <nonstd/special_member_filters.h>
 #include <nonstd/type_name.h>
-#include <nonstd/type_traits_ext.h>
 #include <nonstd/utility_ext.h>
 #include <nonstd/valid_expression_tester.h>
 
