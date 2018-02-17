@@ -310,4 +310,15 @@ enum class scancode : u8 {
     _last = std::numeric_limits<std::underlying_type_t<scancode>>::max(),
 };
 
+
+inline void format_arg(fmt::BasicFormatter<char> & f,
+                       c_cstr                    & format_str,
+                       scancode const            & code) {
+    f.writer().write("{:d}", static_cast<i32>(code));
+}
+inline std::ostream & operator<< (std::ostream   & stream,
+                                  scancode const & code) {
+    return stream << static_cast<i32>(code);
+}
+
 } /* namespace keyboard */
