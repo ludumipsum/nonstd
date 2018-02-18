@@ -98,10 +98,10 @@ struct range_t {
         return ret;
     }
     template <typename ValueType, size_t Length>
-    inline operator std::array<ValueType, Length>&& () {
+    inline operator std::array<ValueType, Length> () {
         std::array<ValueType, Length> ret { };
         fill(ret);
-        return std::move(ret);
+        return ret;
     }
 
     // Redefining the template parameter is useless _except_ for the part where
