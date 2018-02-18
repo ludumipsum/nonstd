@@ -40,10 +40,30 @@ enum class modifier : u16 {
     num_lock      = 1 << 10,
     scroll_lock   = 1 << 11,
     function_lock = 1 << 12,
+    locked_modifiers = caps_lock | num_lock | scroll_lock | function_lock,
     all = 0xffff,
 };
 GENERATE_OPERATOR_OVERLOADS_FOR_ENUM_CLASS(modifier);
 
+constexpr bool is_modifier(keyboard::scancode code) {
+    if (   code == keyboard::scancode::left_ctrl
+        || code == keyboard::scancode::left_shift
+        || code == keyboard::scancode::left_alt
+        || code == keyboard::scancode::left_gui
+        || code == keyboard::scancode::right_ctrl
+        || code == keyboard::scancode::right_shift
+        || code == keyboard::scancode::right_alt
+        || code == keyboard::scancode::right_gui
+        || code == keyboard::scancode::caps_lock
+        || code == keyboard::scancode::scroll_lock
+        || code == keyboard::scancode::numpad_num_lock
+        || code == keyboard::scancode::locking_caps_lock
+        || code == keyboard::scancode::locking_scroll_lock
+        || code == keyboard::scancode::locking_num_lock) {
+        return true;
+    }
+    return false;
+}
 
 /** Convert a keyboard scancode to its corresponding modifier mask. */
 inline constexpr keyboard::modifier
