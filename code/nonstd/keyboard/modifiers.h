@@ -110,7 +110,7 @@ namespace detail {
                                   &keyboard_modifier_name_map[0])
     noexcept {
         // This function _only_ works on a single modifier which -- knowing that
-        // keyboard::modifier modles a bitfield -- means the underlying value of
+        // keyboard::modifier models a bitfield -- means the underlying value of
         // the given modifier will always be a power of two.
         ASSERT(nonstd::is_power_of_two(modifier));
         return map != nullptr
