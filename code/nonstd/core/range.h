@@ -9,31 +9,34 @@
 
 #include <iterator>
 #include <type_traits>
-#include "primitive_types.h"
+#include <vector>
+
+#include "error.h"
 #include "math.h"
+#include "primitive_types.h"
 
 
 namespace nonstd {
 
 // Forward declaration
-template <typename T> struct Range;
+template <typename T> struct range_t;
 
 /** `nonstd::range` Free Functions
  *   =============================
  */
 template<typename T>
-constexpr Range<T> range(T begin, T end, T step = 1) {
-    return Range<T>{ begin, end, step };
+constexpr range_t<T> range(T begin, T end, T step = 1) {
+    return range_t<T>{ begin, end, step };
 }
 
 template<typename T>
-constexpr Range<T> range(T end) {
-    return Range<T>{ 0, end, 1 };
+constexpr range_t<T> range(T end) {
+    return range_t<T>{ 0, end, 1 };
 }
 
 
 template <typename T>
-struct Range {
+struct range_t {
     static_assert(std::is_arithmetic_v<T>,
         "nonstd::range is currently only safe with arithmetic types. I'm not "
         "saying it won't work for the type given, but you should test it. "
@@ -45,7 +48,7 @@ struct Range {
     iterator<T> start;
     iterator<T> stop;
 
-    constexpr Range(T begin, T end, T step = 1) noexcept
+    constexpr range_t(T begin, T end, T step = 1) noexcept
         : start { begin, end, step }
         , stop  { end,   end, step }
     { }
@@ -53,6 +56,53 @@ struct Range {
     constexpr iterator<T> begin() const noexcept { return start; }
     constexpr iterator<T> end()   const noexcept { return stop; }
 
+    /** container fill utilities
+     *  ------------------------
+     *  It's sometimes handy to have a vector or array that's prefilled with a
+     *  sequential run of numbers, like those from a range.
+     */
+    template <typename IterableType>
+    inline IterableType& fill(IterableType& iterable) {
+        auto range_it = std::begin(*this);
+        for (auto& element : iterable) {
+            if(range_it == this->end()) {
+                break;
+            }
+            element = *range_it;
+            ++ range_it;
+        }
+        return iterable;
+    }
+
+    /** container fill-to-vector utilities
+     *  ----------------------------------
+     *  Same as the above, but specialized for vectors in particular.
+     */
+    template <typename ValueType>
+    inline std::vector<ValueType>& fill(std::vector<ValueType>& vector) {
+        for (auto const& element : *this) {
+            vector.push_back(element);
+        }
+        return vector;
+    }
+
+    /** container implicit cast initializers
+     *  ------------------------------------
+     *  Call-through to fill for implicit casts. This permits assignment
+     *  initialization for containers.
+     */
+    template <typename ValueType>
+    inline operator std::vector<ValueType>() {
+        std::vector<ValueType> ret { };
+        fill(ret);
+        return ret;
+    }
+    template <typename ValueType, size_t Length>
+    inline operator std::array<ValueType, Length> () {
+        std::array<ValueType, Length> ret { };
+        fill(ret);
+        return ret;
+    }
 
     // Redefining the template parameter is useless _except_ for the part where
     // it un-breaks an inscrutable MSVC error.
