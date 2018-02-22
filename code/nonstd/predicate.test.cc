@@ -99,4 +99,80 @@ TEST_CASE("Predicate API Demo", "[nonstd][predicate][api]") {
     }
 }
 
+
+TEST_CASE("Composed Predicates", "[nonstd][predicate][api]") {
+    SECTION("should respect boolean logic") {
+        predicate_t<bool> identity { [](bool b) { return b;  } };
+
+        REQUIRE( identity(true)  == true);
+        REQUIRE( identity(false) == false);
+
+        REQUIRE(!identity(true)  == false);
+        REQUIRE(!identity(false) == true);
+
+        REQUIRE(( identity ==  identity)(true) == true);
+        REQUIRE((!identity ==  identity)(true) == false);
+        REQUIRE(( identity == !identity)(true) == false);
+        REQUIRE((!identity == !identity)(true) == true);
+
+        REQUIRE(( identity ==  identity)(false) == true);
+        REQUIRE((!identity ==  identity)(false) == false);
+        REQUIRE(( identity == !identity)(false) == false);
+        REQUIRE((!identity == !identity)(false) == true);
+
+        REQUIRE(( identity !=  identity)(true) == false);
+        REQUIRE((!identity !=  identity)(true) == true);
+        REQUIRE(( identity != !identity)(true) == true);
+        REQUIRE((!identity != !identity)(true) == false);
+
+        REQUIRE(( identity !=  identity)(false) == false);
+        REQUIRE((!identity !=  identity)(false) == true);
+        REQUIRE(( identity != !identity)(false) == true);
+        REQUIRE((!identity != !identity)(false) == false);
+
+        REQUIRE(( identity &&  identity)(true) == true);
+        REQUIRE((!identity &&  identity)(true) == false);
+        REQUIRE(( identity && !identity)(true) == false);
+        REQUIRE((!identity && !identity)(true) == false);
+
+        REQUIRE(( identity &&  identity)(false) == false);
+        REQUIRE((!identity &&  identity)(false) == false);
+        REQUIRE(( identity && !identity)(false) == false);
+        REQUIRE((!identity && !identity)(false) == true);
+
+        REQUIRE(( identity ||  identity)(true) == true);
+        REQUIRE((!identity ||  identity)(true) == true);
+        REQUIRE(( identity || !identity)(true) == true);
+        REQUIRE((!identity || !identity)(true) == false);
+
+        REQUIRE(( identity ||  identity)(false) == false);
+        REQUIRE((!identity ||  identity)(false) == true);
+        REQUIRE(( identity || !identity)(false) == true);
+        REQUIRE((!identity || !identity)(false) == true);
+    }
+
+    SECTION("should be able to blend const and non-const parameters") {
+        predicate_t<int> pred_a { [](int         i) { return i == 1; } };
+        predicate_t<int> pred_b { [](int const   i) { return i == 1; } };
+        predicate_t<int> pred_c { [](int const & i) { return i == 1; } };
+
+        auto aa = pred_a && pred_a; REQUIRE(aa(1));
+        auto ab = pred_a && pred_b; REQUIRE(ab(1));
+        auto ac = pred_a && pred_c; REQUIRE(ac(1));
+
+        auto ba = pred_b && pred_a; REQUIRE(ba(1));
+        auto bb = pred_b && pred_b; REQUIRE(bb(1));
+        auto bc = pred_b && pred_c; REQUIRE(bc(1));
+
+        auto ca = pred_c && pred_a; REQUIRE(ca(1));
+        auto cb = pred_c && pred_b; REQUIRE(cb(1));
+        auto cc = pred_c && pred_c; REQUIRE(cc(1));
+
+        // Some cv + ref qualifier combinations simply won't work;
+        //     predicate_t<int> foo { [](int& i) { return i == 1; } };
+        // Trying to bind a lambda that expects an `int&` to a predicate -- that
+        // will test against `int const &`s -- would drop the `const` qualifier.
+    }
+}
+
 } /* namespace nonstd_test::predicate */
