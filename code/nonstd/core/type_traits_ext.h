@@ -123,6 +123,33 @@ struct is_nothrow_swappable
 template <typename T>
 inline constexpr bool is_nothrow_swappable_v = is_nothrow_swappable<T>::value;
 
+/** first_argument_t
+ *  ----------------
+ *  Fetch the type of the first argument of a given callable type. Note that
+ *  this will likely not work for function objects that have multiple
+ *  `operator()` overloads.
+ *
+ *  Hat tip to Martin Boisvert on the CppLang slack, and
+ *  stackoverflow.com/questions/37430898 for helping with this initial solution.
+ *
+ *  TODO: This feels like the start of a whole nonstd::function_traits feature
+ *        set. Think about how to expand to `nth_argument_t`?
+ */
+namespace detail::first_argument_t_ {
+
+    template <typename Fn, typename Return, typename First, typename... Rest>
+    First helper(Return (Fn::*)(First, Rest...));
+
+    template <typename Fn, typename Return, typename First, typename... Rest>
+    First helper(Return (Fn::*)(First, Rest...) const);
+
+} /* namespace detail::first_argument_t_ */
+
+template <typename Fn>
+using first_argument_t = decltype(
+    detail::first_argument_t_::helper(&Fn::operator()) );
+
+
 } /* namespace nonstd */
 
 
