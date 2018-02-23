@@ -4,6 +4,7 @@
 #include <nonstd/predicate.h>
 #include <testrunner/testrunner.h>
 
+#include <nonstd/optional.h>
 
 namespace nonstd_test::predicate {
 
@@ -34,12 +35,34 @@ TEST_CASE("Predicate API Demo", "[nonstd][predicate][api]") {
         predicate_t<int> is_eq_3  { [](int i) { return i == 3; } };
         // ... instances of function objects,
         predicate_t<int> is_lt_5  { is_less_than_t{5} };
-        // ... or even simple functions.
+        // ... or even free functions.
         predicate_t<int> is_gt_10 { greater_than_10 };
 
         REQUIRE(is_eq_3(3));   REQUIRE_FALSE(is_eq_3(-3));
         REQUIRE(is_lt_5(4));   REQUIRE_FALSE(is_lt_5(5));
         REQUIRE(is_gt_10(11)); REQUIRE_FALSE(is_gt_10(10));
+
+
+        // For more complex tests, or classes of tests that vary only in input
+        // parameters, we can derive from a predicate's `interface_t`, and
+        // instances of that class will be convertible into predicate objects.
+
+        struct is_eq_concept : predicate_t<int>::interface_t {
+            int j;
+            // Because ::interface_t has virtual functions, types derived from
+            // it are ineligible for aggregate initialization; they need a ctor.
+            is_eq_concept(int j)
+                : j ( j )
+            { }
+            bool operator() (int const & i) const { return i == j; }
+        };
+
+        auto is_eq_3_concept = is_eq_concept { 3 };
+        REQUIRE(!std::is_same_v<predicate_t<int>, decltype(is_eq_3_concept)>);
+
+        auto is_neq_3 = !is_eq_3_concept;
+        REQUIRE(std::is_same_v<predicate_t<int>, decltype(is_neq_3)>);
+        REQUIRE(is_neq_3(-3)); REQUIRE_FALSE(is_neq_3(3));
     }
 
     SECTION("Composing Predicates") {
@@ -47,10 +70,22 @@ TEST_CASE("Predicate API Demo", "[nonstd][predicate][api]") {
         predicate_t<int> is_gt_3 { [](int i) { return i > 3; } };
         predicate_t<int> is_lt_5 { [](int i) { return i < 5; } };
 
-        // We can compose more;
+        // ... we can compose more.
         auto is_eq_4 = is_gt_3 && is_lt_5;
 
         REQUIRE(is_eq_4(4)); REQUIRE_FALSE(is_eq_4(-4));
+
+
+        // The same can be done using interface_t-derived types,
+        struct is_eq_concept : predicate_t<int>::interface_t {
+            int j;
+            is_eq_concept(int j) : j ( j ) { }
+            bool operator() (int const & i) const { return i == j; }
+        };
+
+        auto is_4_or_5 = is_eq_concept { 4 } || is_eq_concept { 5 };
+        REQUIRE_FALSE(is_4_or_5(3)); REQUIRE(is_4_or_5(4));
+        REQUIRE(is_4_or_5(5)); REQUIRE_FALSE(is_4_or_5(6));
     }
 
     SECTION("Composing Composed Predicates") {
@@ -100,7 +135,7 @@ TEST_CASE("Predicate API Demo", "[nonstd][predicate][api]") {
 }
 
 
-TEST_CASE("Composed Predicates", "[nonstd][predicate][api]") {
+TEST_CASE("Composable Predicates", "[nonstd][predicate][api]") {
     SECTION("should respect boolean logic") {
         predicate_t<bool> identity { [](bool b) { return b;  } };
 
@@ -151,7 +186,7 @@ TEST_CASE("Composed Predicates", "[nonstd][predicate][api]") {
         REQUIRE((!identity || !identity)(false) == true);
     }
 
-    SECTION("should be able to blend const and non-const parameters") {
+    SECTION("should correctly use cv- and ref-qualified parameters") {
         predicate_t<int> pred_a { [](int         i) { return i == 1; } };
         predicate_t<int> pred_b { [](int const   i) { return i == 1; } };
         predicate_t<int> pred_c { [](int const & i) { return i == 1; } };
@@ -169,9 +204,45 @@ TEST_CASE("Composed Predicates", "[nonstd][predicate][api]") {
         auto cc = pred_c && pred_c; REQUIRE(cc(1));
 
         // Some cv + ref qualifier combinations simply won't work;
+        //
         //     predicate_t<int> foo { [](int& i) { return i == 1; } };
+        //
         // Trying to bind a lambda that expects an `int&` to a predicate -- that
         // will test against `int const &`s -- would drop the `const` qualifier.
+
+        // TODO: If we start testing for expected compilation failures, the
+        // above is a prefect example.
+    }
+
+    SECTION("should be constructible from `interface_t`-derived classes") {
+        struct is_eq_concept : predicate_t<int>::interface_t {
+            int j;
+            is_eq_concept(int j) : j ( j ) { }
+            bool operator() (int const & i) const { return i == j; }
+        };
+
+        // NB. I confirmed that the correct ctor was being called in this case
+        // by adding prints to ctors. Additional verification would be nice.
+        predicate_t<int> eq_2 { is_eq_concept { 2 } };
+        predicate_t<int> eq_3 { is_eq_concept { 3 } };
+        REQUIRE(eq_2(2));
+        REQUIRE(eq_3(3));
+
+    }
+
+    SECTION("should be composible with `interface_t`-derived classes") {
+        struct is_eq_concept : predicate_t<int>::interface_t {
+            int j;
+            is_eq_concept(int j) : j ( j ) { }
+            bool operator() (int const & i) const { return i == j; }
+        };
+        predicate_t<int> eq_3 { [](int const & i) { return i == 3; } };
+
+        auto eq_3_or_5 = eq_3 || is_eq_concept { 5 };
+
+        REQUIRE(eq_3_or_5(3));
+        REQUIRE_FALSE(eq_3_or_5(4));
+        REQUIRE(eq_3_or_5(5));
     }
 }
 
