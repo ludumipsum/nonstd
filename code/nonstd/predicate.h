@@ -59,7 +59,7 @@ namespace nonstd {
  *  This interface is encoded in the `predicate_t<T>::interface_t` pure-virtual,
  *  which is the key to this class's type erasure. If the given callable is not
  *  already derived from the interface type, a new class will be instantiated
- *  (from the `generalized_wrapper_t` class template) to store the given
+ *  (from the `predicate_passthrough_t` class template) to store the given
  *  callable as a member. (Types derived from `interface_t` receive special
  *  treatment; see below.) No mater the inheritance tree of the callable, each
  *  `predicate_t` will maintain a `shared_ptr<interface_t>` as a member that
@@ -74,7 +74,7 @@ namespace nonstd {
  *
  *  For those following along at home, this is an instance of the concept-model
  *  idiom as described by Sean Parent. The `interface_t` is the abstract
- *  `concept` of this implementation, and the `generalized_wrapper_t` is the
+ *  `concept` of this implementation, and the `predicate_passthrough_t` is the
  *  idiom's canonical, templatized `model`. If you want to learn more about the
  *  idiom, Parent's CppCon 2017 "Better Code: Runtime Polymorphism" talk is the
  *  place to look;
@@ -120,38 +120,39 @@ public:
 
         /** Boolean-Logic, Free-Function, Operator Overload Templates
          *  ---------------------------------------------------------
-         *  Compose any two (or one) subclass(es) of `interface_t` into a new
-         *  predicate object, copying the given instance(s) as necessary.
+         *  Compose any two (or one) subclasses (or subclass) of `interface_t`
+         *  into a new predicate object, copying the given instances (or
+         *  instance) as necessary.
          */
 
         template < typename U, typename V
                  , typename std::enable_if_t< is_base_of_v<U> && is_base_of_v<V>
                                             , int > = 0 >
         friend predicate_t operator == (U const & lhs, V const & rhs) {
-            return predicate_t { equal_to_impl_t { lhs, rhs } };
+            return equal_to_predicate_t { lhs, rhs };
         }
         template < typename U, typename V
                  , typename std::enable_if_t< is_base_of_v<U> && is_base_of_v<V>
                                             , int > = 0 >
         friend predicate_t operator != (U const & lhs, V const & rhs) {
-            return predicate_t { not_equal_to_impl_t { lhs, rhs } };
+            return not_equal_to_predicate_t { lhs, rhs };
         }
         template < typename U, typename V
                  , typename std::enable_if_t< is_base_of_v<U> && is_base_of_v<V>
                                             , int > = 0 >
         friend predicate_t operator && (U const & lhs, V const & rhs) {
-            return predicate_t { logical_and_impl_t { lhs, rhs } };
+            return logical_and_predicate_t { lhs, rhs };
         }
         template < typename U, typename V
                  , typename std::enable_if_t< is_base_of_v<U> && is_base_of_v<V>
                                             , int > = 0 >
         friend predicate_t operator || (U const & lhs, V const & rhs) {
-            return predicate_t { logical_or_impl_t { lhs, rhs } };
+            return logical_or_predicate_t { lhs, rhs };
         }
         template < typename U
                  , typename std::enable_if_t<is_base_of_v<U>, int> = 0 >
         friend predicate_t operator ! (U const & rhs) {
-            return predicate_t { logical_not_impl_t { rhs } };
+            return logical_not_predicate_t { rhs };
         }
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         // Carry on.
@@ -174,7 +175,8 @@ public:
      *  if the given callable isn't able to fulfil the correct interface.
      *
      *  NB. If `U` is convertible to `predicate_t`, we should use the (implicit)
-     *  copy constructor, rather than a new of the `generalized_wrapper_t`.
+     *  copy constructor, rather than inatantiating and consstructing a new
+     *  `predicate_passthrough_t`.
      */
     template < typename U
              , typename std::enable_if_t< !interface_is_base_of_v<U> &&
@@ -182,7 +184,7 @@ public:
                                         , int> = 0 >
     predicate_t(U callable)
         : m_predicate_fn (
-            std::make_shared<generalized_wrapper_t<U>>(std::move(callable))
+            std::make_shared<predicate_passthrough_t<U>>(std::move(callable))
         )
     { }
 
@@ -198,18 +200,26 @@ public:
     bool operator() (T const & obj) const { return (*m_predicate_fn)(obj); }
 
 private:
-    /** Generalized Wrapper
-     *  -------------------
-     *  As this class uses the concept-model idiom, we need to provide it with
-     *  one or more models that implement the given concept. In the general
-     *  case, we will wrap the given object, function, or lambda in a new
-     *  template-generated class, and pass `operator()` calls through to the
-     *  wrapped object.
+    /** Passthrough Predicate Function Objects
+     *  --------------------------------------
+     *  The `predicate_passthrough_t` template is what it claims to be; a
+     *  template for passthrough types that only exist to store and pass calls
+     *  through to the callable provided as its template argument. Unless the
+     *  callabe used to initialize the given `predicate_t` is derived from
+     *  `interface_t`, this template will be instantiatied and stored in the
+     *  `predicate_t`'s shared's pointer.
+     *
+     *  Attempting to intantiate this teamplate using an object that cannot be
+     *  called using an `operator()` overload identical to `interface_t`'s will,
+     *  correctly, result in a compilation error.
+     *
+     *  In terms of the concept-model idiom, this is the canonical model that
+     *  will be instantiated for any callable that fulfils the concepts.
      */
     template <typename U>
-    struct generalized_wrapper_t final : public interface_t {
+    struct predicate_passthrough_t final : public interface_t {
         U m_test;
-        generalized_wrapper_t(U x)
+        predicate_passthrough_t(U x)
             : m_test ( std::move(x) )
         { }
         bool operator() (T const & obj) const override {
@@ -217,28 +227,29 @@ private:
         }
     };
 
-    /** Compositional Wrappers
-     *  ----------------------
+    /** Compositional Predicate Function Objects
+     *  ----------------------------------------
      *  Knowing that a primary usecase for predicates is to compose them with
-     *  one another, we can build specialized models for the expected
-     *  compositions. All of these types store `shared_ptr<interface_t>`s rather
-     *  than complete predicates which lets us skip allocations if a compose-ee
-     *  is already on the heap.
+     *  one another, we can build specialized function objects for the expected
+     *  compositions. All of the below classes store type-erased
+     *  `shared_ptr<interface_t>`s, rather than complete `predicate_t` objects.
+     *  This lets us skip allocations if a compose-ee is already on the heap.
      *
      *  NB. We take `predicate_t`s as arguments --- not `interface_t`s, or
-     *  shared pointers to anything. This guarantees that the pointed-to
-     *  `interface_t`s have already been correctly allocated by one of the
+     *  shared pointers to anything -- to guarantee that the pointed-to
+     *  `interface_t`s have already been correctly heap-allocated by one of the
      *  `predicate_t` constructors.
      */
 
-    /** Specialized Model for `==`
-     *  --------------------------
+    /** Specialized Callable for `==`
+     *  ------------------------------
      */
-    struct equal_to_impl_t final : public interface_t {
+    struct equal_to_predicate_t final : public interface_t {
         std::shared_ptr<interface_t> m_lhs;
         std::shared_ptr<interface_t> m_rhs;
 
-        equal_to_impl_t(predicate_t const & lhs, predicate_t const & rhs)
+        equal_to_predicate_t(predicate_t const & lhs,
+                             predicate_t const & rhs)
             : m_lhs ( lhs.m_predicate_fn )
             , m_rhs ( rhs.m_predicate_fn )
         { }
@@ -247,14 +258,15 @@ private:
         }
     };
 
-    /** Specialized Model for `!=`
-     *  -------------------------
+    /** Specialized Callable for `!=`
+     *  -----------------------------
      */
-    struct not_equal_to_impl_t final : public interface_t {
+    struct not_equal_to_predicate_t final : public interface_t {
         std::shared_ptr<interface_t> m_lhs;
         std::shared_ptr<interface_t> m_rhs;
 
-        not_equal_to_impl_t(predicate_t const & lhs, predicate_t const & rhs)
+        not_equal_to_predicate_t(predicate_t const & lhs,
+                                 predicate_t const & rhs)
             : m_lhs ( lhs.m_predicate_fn )
             , m_rhs ( rhs.m_predicate_fn )
         { }
@@ -263,14 +275,15 @@ private:
         }
     };
 
-    /** Specialized Model for `&&`
-     *  -------------------------
+    /** Specialized Callable for `&&`
+     *  -----------------------------
      */
-    struct logical_and_impl_t final : public interface_t {
+    struct logical_and_predicate_t final : public interface_t {
         std::shared_ptr<interface_t> m_lhs;
         std::shared_ptr<interface_t> m_rhs;
 
-        logical_and_impl_t(predicate_t const & lhs, predicate_t const & rhs)
+        logical_and_predicate_t(predicate_t const & lhs,
+                                predicate_t const & rhs)
             : m_lhs ( lhs.m_predicate_fn )
             , m_rhs ( rhs.m_predicate_fn )
         { }
@@ -279,14 +292,15 @@ private:
         }
     };
 
-    /** Specialized Model for `||`
-     *  -------------------------
+    /** Specialized Callable for `||`
+     *  -----------------------------
      */
-    struct logical_or_impl_t final : public interface_t {
+    struct logical_or_predicate_t final : public interface_t {
         std::shared_ptr<interface_t> m_lhs;
         std::shared_ptr<interface_t> m_rhs;
 
-        logical_or_impl_t(predicate_t const & lhs, predicate_t const & rhs)
+        logical_or_predicate_t(predicate_t const & lhs,
+                               predicate_t const & rhs)
             : m_lhs ( lhs.m_predicate_fn )
             , m_rhs ( rhs.m_predicate_fn )
         { }
@@ -295,13 +309,13 @@ private:
         }
     };
 
-    /** Specialized Model for `!`
-     *  -------------------------
+    /** Specialized Callable for `!`
+     *  ----------------------------
      */
-    struct logical_not_impl_t final : public interface_t {
+    struct logical_not_predicate_t final : public interface_t {
         std::shared_ptr<interface_t> m_rhs;
 
-        logical_not_impl_t(predicate_t const & rhs)
+        logical_not_predicate_t(predicate_t const & rhs)
             : m_rhs ( rhs.m_predicate_fn )
         { }
         bool operator() (T const & obj) const override {
@@ -311,39 +325,39 @@ private:
 
 
 public:
-    /** Boolean-Logic, Free-Function, Operator Overloads
-     *  ================================================
+    /** Boolean-Logic Free-Function Operator Overloads
+     *  ==============================================
      *  Friend, free-function, operator overloads to allow for composition via
      *  logical operators. Each of these will take two `predicate_t`s by
-     *  reference, create a copy of the salient state on the heap, and return a
-     *  new `predicate_t`.
+     *  reference, create copies or claim references to the salient state as
+     *  necessary, and return a new `predicate_t`.
      *
-     *  It sure would be nice to define or even declare these above the private
-     *  section above, buuuut c'est la C.
+     *  It sure would be nice to declare thse above the `provate:` section
+     *  above, and define them out-of-line, buuuut c'est la C.
      */
     friend
     predicate_t operator == (predicate_t const & lhs, predicate_t const & rhs) {
-        return predicate_t { equal_to_impl_t { lhs, rhs } };
+        return predicate_t { equal_to_predicate_t { lhs, rhs } };
     }
     friend
     predicate_t operator != (predicate_t const & lhs, predicate_t const & rhs) {
-        return predicate_t { not_equal_to_impl_t { lhs, rhs } };
+        return predicate_t { not_equal_to_predicate_t { lhs, rhs } };
     }
     friend
     predicate_t operator && (predicate_t const & lhs, predicate_t const & rhs) {
-        return predicate_t { logical_and_impl_t { lhs, rhs } };
+        return predicate_t { logical_and_predicate_t { lhs, rhs } };
     }
     friend
     predicate_t operator || (predicate_t const & lhs, predicate_t const & rhs) {
-        return predicate_t { logical_or_impl_t { lhs, rhs } };
+        return predicate_t { logical_or_predicate_t { lhs, rhs } };
     }
     friend predicate_t operator !  (predicate_t const & rhs) {
-        return predicate_t { logical_not_impl_t { rhs } };
+        return predicate_t { logical_not_predicate_t { rhs } };
     }
 
 
-    /** Boolean-Logic, Free-Function, Operator Overload Templates
-     *  =========================================================
+    /** Boolean-Logic Free-Function Operator Overload Templates
+     *  =======================================================
      *  Friend, free-function, operator overload templates to allow for
      *  composition between `predicate_t`s and any instance derived from
      *  `interface_t`.
@@ -353,9 +367,9 @@ public:
      *
      *     template <typename U, [SFINAE]>
      *     friend predicate_t operator == (predicate_t const & lhs,
-     *                                     U const & rhs) {
+     *                                     U           const & rhs) {
      *         return predicate_t {
-     *             equal_to_impl_t {
+     *             equal_to_predicate_t {
      *                 lhs,
      *                 predicate_t { rhs }
      *             }
@@ -365,45 +379,45 @@ public:
     template < typename U
              , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
     friend predicate_t operator == (predicate_t const & lhs, U const & rhs) {
-        return equal_to_impl_t { lhs, rhs };
+        return equal_to_predicate_t { lhs, rhs };
     }
     template < typename U
              , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
     friend predicate_t operator == (U const & lhs, predicate_t const & rhs) {
-        return equal_to_impl_t { lhs, rhs };
+        return equal_to_predicate_t { lhs, rhs };
     }
 
     template < typename U
              , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
     friend predicate_t operator != (predicate_t const & lhs, U const & rhs) {
-        return not_equal_to_impl_t { lhs, rhs };
+        return not_equal_to_predicate_t { lhs, rhs };
     }
     template < typename U
              , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
     friend predicate_t operator != (U const & lhs, predicate_t const & rhs) {
-        return not_equal_to_impl_t { lhs, rhs };
+        return not_equal_to_predicate_t { lhs, rhs };
     }
 
     template < typename U
              , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
     friend predicate_t operator && (predicate_t const & lhs, U const & rhs) {
-        return logical_and_impl_t { lhs, rhs };
+        return logical_and_predicate_t { lhs, rhs };
     }
     template < typename U
              , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
     friend predicate_t operator && (U const & lhs, predicate_t const & rhs) {
-        return logical_and_impl_t { lhs, rhs };
+        return logical_and_predicate_t { lhs, rhs };
     }
 
     template < typename U
              , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
     friend predicate_t operator || (predicate_t const & lhs, U const & rhs) {
-        return logical_or_impl_t { lhs, rhs };
+        return logical_or_predicate_t { lhs, rhs };
     }
     template < typename U
              , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
     friend predicate_t operator || (U const & lhs, predicate_t const & rhs) {
-        return logical_or_impl_t { lhs, rhs };
+        return logical_or_predicate_t { lhs, rhs };
     }
 };
 
