@@ -6,6 +6,7 @@
 #pragma once
 
 #include <type_traits>
+#include <chrono>
 #include <utility>
 
 
@@ -115,7 +116,6 @@ struct is_swappable
 template <typename T>
 inline constexpr bool is_swappable_v = is_swappable<T>::value;
 
-
 template <typename T>
 struct is_nothrow_swappable
     : public detail::is_swappable_::nothrow_t<T>
@@ -149,6 +149,38 @@ template <typename Fn>
 using first_argument_t = decltype(
     detail::first_argument_t_::helper(&Fn::operator()) );
 
+
+namespace chrono {
+
+/** is_duration
+ *  -----------
+ *  Helper trait to check if the given `T` is a std::chrono::duration.
+ *  Lifted from XcodeDefault.xctoolchain/usr/include/c++/v1/chrono
+ */
+template <typename T>
+struct is_duration
+    : std::false_type { };
+
+template <typename Rep, typename Period>
+struct is_duration<std::chrono::duration<Rep, Period>>
+    : std::true_type { };
+
+template <typename Rep, typename Period>
+struct is_duration<std::chrono::duration<Rep, Period> const>
+    : std::true_type { };
+
+template <typename Rep, typename Period>
+struct is_duration<std::chrono::duration<Rep, Period> volatile>
+    : std::true_type { };
+
+template <typename Rep, typename Period>
+struct is_duration<std::chrono::duration<Rep, Period> const volatile>
+    : std::true_type { };
+
+template <typename T>
+inline constexpr bool is_duration_v = is_duration<T>::value;
+
+} /* namespace chrono */
 
 } /* namespace nonstd */
 
