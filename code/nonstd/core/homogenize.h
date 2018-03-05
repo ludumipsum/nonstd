@@ -48,7 +48,7 @@ enum struct compiler_t {
         constexpr auto os = operating_system_t::pc_macos;
         #define NONSTD_OS_MACOS true
     #endif
-#elif defined(_WIN64)
+#elif defined(_WIN64) || defined(_WIN32)
     constexpr auto os_string = "Windows";
     constexpr auto os = operating_system_t::pc_windows;
     #define NONSTD_OS_WINDOWS true
