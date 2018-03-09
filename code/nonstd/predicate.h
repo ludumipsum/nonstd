@@ -113,11 +113,6 @@ public:
         // I'm left using a number of private implementation details before
         // they've been declared. This is gross, and I am sorry.
 
-        /** Helper trait to make friend declarations easier to write. */
-        template <typename U>
-        static inline constexpr
-        bool is_parent_of_v = std::is_base_of_v<interface_t, U>;
-
         /** Boolean-Logic, Free-Function, Operator Overload Templates
          *  ---------------------------------------------------------
          *  Compose any two (or one) subclasses (or subclass) of `interface_t`
@@ -128,35 +123,43 @@ public:
         template <typename U, typename V>
         friend auto operator== (U const & lhs, V const & rhs)
         -> /* predicate_t */
-        std::enable_if_t<is_parent_of_v<U> && is_parent_of_v<V>, predicate_t> {
+        std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                          && std::is_base_of_v<interface_t, V>
+                        , predicate_t> {
             return equal_to_predicate_t { lhs, rhs };
         }
 
         template <typename U, typename V>
         friend auto operator!= (U const & lhs, V const & rhs)
         -> /* predicate_t */
-        std::enable_if_t<is_parent_of_v<U> && is_parent_of_v<V>, predicate_t> {
+        std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                          && std::is_base_of_v<interface_t, V>
+                        , predicate_t> {
             return not_equal_to_predicate_t { lhs, rhs };
         }
 
         template <typename U, typename V>
         friend auto operator&& (U const & lhs, V const & rhs)
         -> /* predicate_t */
-        std::enable_if_t<is_parent_of_v<U> && is_parent_of_v<V>, predicate_t> {
+        std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                          && std::is_base_of_v<interface_t, V>
+                        , predicate_t> {
             return logical_and_predicate_t { lhs, rhs };
         }
 
         template <typename U, typename V>
         friend auto operator|| (U const & lhs, V const & rhs)
         -> /* predicate_t */
-        std::enable_if_t<is_parent_of_v<U> && is_parent_of_v<V>, predicate_t> {
+        std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                          && std::is_base_of_v<interface_t, V>
+                        , predicate_t> {
             return logical_or_predicate_t { lhs, rhs };
         }
 
         template <typename U>
         friend auto operator! (U const & rhs)
         -> /* predicate_t */
-        std::enable_if_t<is_parent_of_v<U>, predicate_t> {
+        std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t> {
             return logical_not_predicate_t { rhs };
         }
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -178,35 +181,35 @@ public:
     template <typename U, typename V>
     friend auto operator== (U const & lhs, V const & rhs)
     -> /* predicate_t */
-    std::enable_if_t<    interface_t::is_parent_of_v<U>
-                      && interface_t::is_parent_of_v<V>
+    std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                      && std::is_base_of_v<interface_t, V>
                     , predicate_t>;
 
     template <typename U, typename V>
     friend auto operator!= (U const & lhs, V const & rhs)
     -> /* predicate_t */
-    std::enable_if_t<    interface_t::is_parent_of_v<U>
-                      && interface_t::is_parent_of_v<V>
+    std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                      && std::is_base_of_v<interface_t, V>
                     , predicate_t>;
 
     template <typename U, typename V>
     friend auto operator&& (U const & lhs, V const & rhs)
     -> /* predicate_t */
-    std::enable_if_t<    interface_t::is_parent_of_v<U>
-                      && interface_t::is_parent_of_v<V>
+    std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                      && std::is_base_of_v<interface_t, V>
                     , predicate_t>;
 
     template <typename U, typename V>
     friend auto operator|| (U const & lhs, V const & rhs)
     -> /* predicate_t */
-    std::enable_if_t<    interface_t::is_parent_of_v<U>
-                      && interface_t::is_parent_of_v<V>
+    std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                      && std::is_base_of_v<interface_t, V>
                     , predicate_t>;
 
     template <typename U>
     friend auto operator!  (U const & rhs)
     -> /* predicate_t */
-    std::enable_if_t<interface_t::is_parent_of_v<U>, predicate_t>;
+    std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t>;
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // Okay, we're actually done now.
 
