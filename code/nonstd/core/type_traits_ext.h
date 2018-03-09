@@ -162,7 +162,7 @@ namespace ratio {
     template <typename T>
     struct is_ratio : std::false_type {};
 
-    template <std::intmax_t Num, std::intmax_t Den>
+    template <intmax_t Num, intmax_t Den>
     struct is_ratio<std::ratio<Num, Den> > : std::true_type  {};
 
     template <typename T>
@@ -175,7 +175,7 @@ namespace ratio {
      */
     template <typename T> struct invert { };
 
-    template <std::intmax_t Num, std::intmax_t Den>
+    template <intmax_t Num, intmax_t Den>
     struct invert<std::ratio<Num, Den>> {
         using type = std::ratio<Den, Num>;
     };
