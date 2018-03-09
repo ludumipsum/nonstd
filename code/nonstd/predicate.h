@@ -44,6 +44,29 @@
 #include <iostream>
 
 
+// Apple LLVM version 9.0.0 (clang-900.0.39.2) Deficiency Workaround
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Apple Clang is a bit behind C++17, and not all std:: tools can be implemented
+// as polyfills. One such example is `std::is_invocable_r`, which uses compiler
+// exclusive checks to verify that a given type is callable with some arguments,
+// and that it will return a specific type. MSVC needs this trait so it can use
+// SFINAE to disambiguate one of the `predicate_t` constructors. Apple Clang, as
+// you may have guessed, has not implemented this trait yet. As luck would have
+// it, GCC and Clang don't _need_ that trait for disambiguation.
+// The below is a terrible, no good, very bad shim that allows the two compilers
+// to build and use predicates.
+// IT SHOULD BE REMOVED AS SOON AS APPLE UPDATES TO A MODERN VERSION OF CLANG
+namespace nonstd {
+#if defined(NONSTD_OS_MACOS) || defined(NONSTD_OS_IOS)
+    template <typename Fn, typename ... Args>
+    inline constexpr bool is_invocable_r_v = true;
+#else
+    using std::is_invocable_r_v;
+#endif
+} /* namespace nonstd */
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
 namespace nonstd {
 
 /** Logical Predicate Object
@@ -231,7 +254,7 @@ public:
         typename U,
         typename std::enable_if_t<    !std::is_base_of_v<interface_t, U>
                                    && !std::is_convertible_v<U, predicate_t>
-                                   &&  std::is_invocable_r_v<bool, U, T const &>
+                                   &&  nonstd::is_invocable_r_v<bool, U, T const &>
                                  , int> = 0>
     predicate_t(U callable)
         : m_predicate_fn (
