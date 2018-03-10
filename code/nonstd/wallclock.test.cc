@@ -24,6 +24,7 @@ namespace test {
 namespace wallclock {
 
 using nonstd::wallclock;
+using namespace nonstd::literals::chrono_literals;
 
 TEST_CASE("System timer", "[time][standalone]") {
     SECTION("returns a nonzero u64") {
