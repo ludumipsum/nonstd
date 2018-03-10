@@ -6,7 +6,7 @@
 #pragma once
 
 #include <type_traits>
-#include <chrono>
+#include <ratio>
 #include <utility>
 
 
@@ -150,37 +150,74 @@ using first_argument_t = decltype(
     detail::first_argument_t_::helper(&Fn::operator()) );
 
 
-namespace chrono {
-
-/** is_duration
- *  -----------
- *  Helper trait to check if the given `T` is a std::chrono::duration.
- *  Lifted from XcodeDefault.xctoolchain/usr/include/c++/v1/chrono
+/** std::ratio Extensions
+ *  ---------------------
  */
-template <typename T>
-struct is_duration
-    : std::false_type { };
+namespace ratio {
+    /** is_ratio
+     *  --------
+     *  Helper trait to check if the given `T` is a std::ratio.
+     *  Inspired by XcodeDefault.xctoolchain/usr/include/c++/v1/ratio
+     */
+    template <typename T>
+    struct is_ratio : std::false_type {};
 
-template <typename Rep, typename Period>
-struct is_duration<std::chrono::duration<Rep, Period>>
-    : std::true_type { };
+    template <intmax_t Num, intmax_t Den>
+    struct is_ratio<std::ratio<Num, Den> > : std::true_type  {};
 
-template <typename Rep, typename Period>
-struct is_duration<std::chrono::duration<Rep, Period> const>
-    : std::true_type { };
+    template <typename T>
+    inline constexpr bool is_ratio_v = is_ratio<T>::value;
 
-template <typename Rep, typename Period>
-struct is_duration<std::chrono::duration<Rep, Period> volatile>
-    : std::true_type { };
 
-template <typename Rep, typename Period>
-struct is_duration<std::chrono::duration<Rep, Period> const volatile>
-    : std::true_type { };
+    /** invert_t
+     *  --------
+     *  Helper trait that inverts the given std::ratio.
+     */
+    template <typename T> struct invert { };
 
-template <typename T>
-inline constexpr bool is_duration_v = is_duration<T>::value;
+    template <intmax_t Num, intmax_t Den>
+    struct invert<std::ratio<Num, Den>> {
+        using type = std::ratio<Den, Num>;
+    };
 
-} /* namespace chrono */
+    template <typename T>
+    using invert_t = typename invert<T>::type;
+
+
+    /** Greatest Common Divisor
+     *  -----------------------
+     *  Find the greatest common divisor of a two `std::ratio`s by finding the
+     *  greatest common divisor of the two numerators, and the least common
+     *  multiple of the two denominators.
+     */
+    template <typename X, typename Y>
+    struct greatest_common_divisor { };
+
+    template <intmax_t Num1, intmax_t Den1, intmax_t Num2, intmax_t Den2>
+    struct greatest_common_divisor< std::ratio<Num1, Den1>
+                                  , std::ratio<Num2, Den2> > {
+    private:
+        // Greatest Common Divisor
+        static constexpr intmax_t gcd(intmax_t x, intmax_t y) {
+            if (x == 0 && y == 0) { return 1; }
+            if (y == 0)           { return x; }
+            return gcd(y, x % y);
+        }
+        // Least Common Multiple
+        static constexpr intmax_t lcm(intmax_t x, intmax_t y) {
+            return x / gcd(x, y) * y;
+        }
+    public:
+        using type = typename std::ratio< gcd(Num1, Num2)
+                                        , lcm(Den1, Den2) >::type;
+    };
+
+    template <typename X, typename Y>
+    using greatest_common_divisor_t
+        = typename greatest_common_divisor<X, Y>::type;
+
+} /* namespace ratio */
+
 
 } /* namespace nonstd */
 

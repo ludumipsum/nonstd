@@ -16,8 +16,8 @@
 #pragma once
 
 #include <nonstd/nonstd.h>
+#include <nonstd/chrono.h>
 #include <nonstd/optional.h>
-#include <chrono>
 #include <future>
 
 
