@@ -44,12 +44,35 @@
 #include <iostream>
 
 
+// Apple LLVM version 9.0.0 (clang-900.0.39.2) Deficiency Workaround
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Apple Clang is a bit behind C++17, and not all std:: tools can be implemented
+// as polyfills. One such example is `std::is_invocable_r`, which uses compiler
+// exclusive checks to verify that a given type is callable with some arguments,
+// and that it will return a specific type. MSVC needs this trait so it can use
+// SFINAE to disambiguate one of the `predicate_t` constructors. Apple Clang, as
+// you may have guessed, has not implemented this trait yet. As luck would have
+// it, GCC and Clang don't _need_ that trait for disambiguation.
+// The below is a terrible, no good, very bad shim that allows the two compilers
+// to build and use predicates.
+// IT SHOULD BE REMOVED AS SOON AS APPLE UPDATES TO A MODERN VERSION OF CLANG
+namespace nonstd {
+#if defined(NONSTD_OS_MACOS) || defined(NONSTD_OS_IOS)
+    template <typename Fn, typename ... Args>
+    inline constexpr bool is_invocable_r_v = true;
+#else
+    using std::is_invocable_r_v;
+#endif
+} /* namespace nonstd */
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
 namespace nonstd {
 
 /** Logical Predicate Object
  *  ========================
  *  A `predicate_t` object can be initialized by providing an instance of any
- *  callable object -- typically a lambda or a function object, but a free
+ *  callable object -- typically a lambda or a function-object, but a free
  *  function also works -- so long as that object fulfills the interface
  *  `bool operator() (T const &) const`. ex;
  *
@@ -70,7 +93,7 @@ namespace nonstd {
  *  reason about e.g. 'predicates that test the value of `int`s'
  *  (`predicate_t<int>`s) without needing to worry about how the specific test
  *  is implemented, from what base class the tests are derived, or the lifetime
- *  of the function object that will perform the test.
+ *  of the function-object that will perform the test.
  *
  *  For those following along at home, this is an instance of the concept-model
  *  idiom as described by Sean Parent. The `interface_t` is the abstract
@@ -113,11 +136,6 @@ public:
         // I'm left using a number of private implementation details before
         // they've been declared. This is gross, and I am sorry.
 
-        /** Helper trait; true if this interface is a parent of `U`. */
-        template <typename U>
-        static inline constexpr
-        bool is_base_of_v = std::is_base_of_v<interface_t, U>;
-
         /** Boolean-Logic, Free-Function, Operator Overload Templates
          *  ---------------------------------------------------------
          *  Compose any two (or one) subclasses (or subclass) of `interface_t`
@@ -125,63 +143,119 @@ public:
          *  instance) as necessary.
          */
 
-        template < typename U, typename V
-                 , typename std::enable_if_t< is_base_of_v<U> && is_base_of_v<V>
-                                            , int > = 0 >
-        friend predicate_t operator == (U const & lhs, V const & rhs) {
+        template <typename U, typename V>
+        friend auto operator== (U const & lhs, V const & rhs)
+        -> /* predicate_t */
+        std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                          && std::is_base_of_v<interface_t, V>
+                        , predicate_t> {
             return equal_to_predicate_t { lhs, rhs };
         }
-        template < typename U, typename V
-                 , typename std::enable_if_t< is_base_of_v<U> && is_base_of_v<V>
-                                            , int > = 0 >
-        friend predicate_t operator != (U const & lhs, V const & rhs) {
+
+        template <typename U, typename V>
+        friend auto operator!= (U const & lhs, V const & rhs)
+        -> /* predicate_t */
+        std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                          && std::is_base_of_v<interface_t, V>
+                        , predicate_t> {
             return not_equal_to_predicate_t { lhs, rhs };
         }
-        template < typename U, typename V
-                 , typename std::enable_if_t< is_base_of_v<U> && is_base_of_v<V>
-                                            , int > = 0 >
-        friend predicate_t operator && (U const & lhs, V const & rhs) {
+
+        template <typename U, typename V>
+        friend auto operator&& (U const & lhs, V const & rhs)
+        -> /* predicate_t */
+        std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                          && std::is_base_of_v<interface_t, V>
+                        , predicate_t> {
             return logical_and_predicate_t { lhs, rhs };
         }
-        template < typename U, typename V
-                 , typename std::enable_if_t< is_base_of_v<U> && is_base_of_v<V>
-                                            , int > = 0 >
-        friend predicate_t operator || (U const & lhs, V const & rhs) {
+
+        template <typename U, typename V>
+        friend auto operator|| (U const & lhs, V const & rhs)
+        -> /* predicate_t */
+        std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                          && std::is_base_of_v<interface_t, V>
+                        , predicate_t> {
             return logical_or_predicate_t { lhs, rhs };
         }
-        template < typename U
-                 , typename std::enable_if_t<is_base_of_v<U>, int> = 0 >
-        friend predicate_t operator ! (U const & rhs) {
+
+        template <typename U>
+        friend auto operator! (U const & rhs)
+        -> /* predicate_t */
+        std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t> {
             return logical_not_predicate_t { rhs };
         }
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         // Carry on.
     };
 
-private:
-    /** Helper trait; true if this predicate's interface is a parent of `U`. */
-    // NB. We don't use `interface_t::is_base_of_v` because that becomes a
-    //     dependent template name in this class's template paramenters, and I
-    //     don't want to deal with that.
-    template <typename U>
-    static inline constexpr
-    bool interface_is_base_of_v = std::is_base_of_v<interface_t, U>;
+    // Actually, no wait
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // MSCV and GCC/Clang disagree on the default friendliness of these friend
+    // operator templates --- inner-class friend-function templates are not
+    // friends of the outer class in MSVC. As such, we need to explicitly define
+    // these as friends to the `predicate_t`.
+    // Note, we still need to define them in `interface_t` to make sure ADL
+    // works correctly.
+    // Also note, we need to use the _exact_ same signature as the functions
+    // above, template parameters -- and their default arguments -- included.
+    // That last piece means we have to perform SFINAE in the return type, since
+    // we can't redefine default template arguments.
+    template <typename U, typename V>
+    friend auto operator== (U const & lhs, V const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                      && std::is_base_of_v<interface_t, V>
+                    , predicate_t>;
 
-    // Heap-allocated, type-erased predicate function object.
+    template <typename U, typename V>
+    friend auto operator!= (U const & lhs, V const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                      && std::is_base_of_v<interface_t, V>
+                    , predicate_t>;
+
+    template <typename U, typename V>
+    friend auto operator&& (U const & lhs, V const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                      && std::is_base_of_v<interface_t, V>
+                    , predicate_t>;
+
+    template <typename U, typename V>
+    friend auto operator|| (U const & lhs, V const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<    std::is_base_of_v<interface_t, U>
+                      && std::is_base_of_v<interface_t, V>
+                    , predicate_t>;
+
+    template <typename U>
+    friend auto operator!  (U const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t>;
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Okay, we're actually done now.
+
+
+private:
+    // Heap-allocated, type-erased predicate function-object.
     std::shared_ptr<interface_t> m_predicate_fn;
 
+
 public:
-    /** Construct a generalized `predicate_t`. The program will fail to compile
-     *  if the given callable isn't able to fulfil the correct interface.
+    /** Construct a generalized `predicate_t` from a callable (`U`), if that
+     *  callable able to fulfil the correct interface.
      *
      *  NB. If `U` is convertible to `predicate_t`, we should use the (implicit)
-     *  copy constructor, rather than inatantiating and consstructing a new
-     *  `predicate_passthrough_t`.
+     *  copy or move constructor rather than instantiating and constructing a
+     *  new `predicate_passthrough_t`.
      */
-    template < typename U
-             , typename std::enable_if_t< !interface_is_base_of_v<U> &&
-                                          !std::is_convertible_v<U, predicate_t>
-                                        , int> = 0 >
+    template <
+        typename U,
+        typename std::enable_if_t<    !std::is_base_of_v<interface_t, U>
+                                   && !std::is_convertible_v<U, predicate_t>
+                                   &&  nonstd::is_invocable_r_v<bool, U, T const &>
+                                 , int> = 0>
     predicate_t(U callable)
         : m_predicate_fn (
             std::make_shared<predicate_passthrough_t<U>>(std::move(callable))
@@ -190,8 +264,10 @@ public:
 
     /** Construct a predicate with the given `interface_t`-derived object. */
     //TODO: Consider if it's acceptable to require that `U` be move ctor'able.
-    template < typename U
-             , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 1 >
+    template <
+        typename U,
+        typename std::enable_if_t< std::is_base_of_v<interface_t, U>
+                                 , int> = 1 >
     predicate_t(U interface)
         : m_predicate_fn ( std::make_shared<U>(std::move(interface)) )
     { }
@@ -199,8 +275,9 @@ public:
     /** Compare the given object with this predicate's test. */
     bool operator() (T const & obj) const { return (*m_predicate_fn)(obj); }
 
+
 private:
-    /** Passthrough Predicate Function Objects
+    /** Passthrough Predicate Function-Objects
      *  --------------------------------------
      *  The `predicate_passthrough_t` template is what it claims to be; a
      *  template for passthrough types that only exist to store and pass calls
@@ -227,10 +304,10 @@ private:
         }
     };
 
-    /** Compositional Predicate Function Objects
+    /** Compositional Predicate Function-Objects
      *  ----------------------------------------
      *  Knowing that a primary usecase for predicates is to compose them with
-     *  one another, we can build specialized function objects for the expected
+     *  one another, we can build specialized function-objects for the expected
      *  compositions. All of the below classes store type-erased
      *  `shared_ptr<interface_t>`s, rather than complete `predicate_t` objects.
      *  This lets us skip allocations if a compose-ee is already on the heap.
@@ -336,22 +413,22 @@ public:
      *  above, and define them out-of-line, buuuut c'est la C.
      */
     friend
-    predicate_t operator == (predicate_t const & lhs, predicate_t const & rhs) {
+    predicate_t operator== (predicate_t const & lhs, predicate_t const & rhs) {
         return predicate_t { equal_to_predicate_t { lhs, rhs } };
     }
     friend
-    predicate_t operator != (predicate_t const & lhs, predicate_t const & rhs) {
+    predicate_t operator!= (predicate_t const & lhs, predicate_t const & rhs) {
         return predicate_t { not_equal_to_predicate_t { lhs, rhs } };
     }
     friend
-    predicate_t operator && (predicate_t const & lhs, predicate_t const & rhs) {
+    predicate_t operator&& (predicate_t const & lhs, predicate_t const & rhs) {
         return predicate_t { logical_and_predicate_t { lhs, rhs } };
     }
     friend
-    predicate_t operator || (predicate_t const & lhs, predicate_t const & rhs) {
+    predicate_t operator|| (predicate_t const & lhs, predicate_t const & rhs) {
         return predicate_t { logical_or_predicate_t { lhs, rhs } };
     }
-    friend predicate_t operator !  (predicate_t const & rhs) {
+    friend predicate_t operator!  (predicate_t const & rhs) {
         return predicate_t { logical_not_predicate_t { rhs } };
     }
 
@@ -363,60 +440,75 @@ public:
      *  `interface_t`.
      *
      *  NB. These functions are written for brevity, and so rely on a number of
-     *  implicit conversions. Fully expanded the first of these would look like,
+     *  implicit conversions. Fully expanded, and sans SFINAE, the first of
+     *  these would look like,
      *
-     *     template <typename U, [SFINAE]>
-     *     friend predicate_t operator == (predicate_t const & lhs,
-     *                                     U           const & rhs) {
-     *         return predicate_t {
-     *             equal_to_predicate_t {
-     *                 lhs,
-     *                 predicate_t { rhs }
-     *             }
-     *         };
-     *     }
+     *  template <typename U>
+     *  friend predicate_t operator== (predicate_t const & lhs, U const & rhs) {
+     *      return predicate_t {
+     *          equal_to_predicate_t {
+     *              lhs,
+     *              predicate_t { rhs }
+     *          }
+     *      };
+     *  }
      */
-    template < typename U
-             , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
-    friend predicate_t operator == (predicate_t const & lhs, U const & rhs) {
+    template <typename U>
+    friend auto operator== (predicate_t const & lhs, U const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t> {
         return equal_to_predicate_t { lhs, rhs };
     }
-    template < typename U
-             , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
-    friend predicate_t operator == (U const & lhs, predicate_t const & rhs) {
+    template <typename U>
+    friend auto operator== (U const & lhs, predicate_t const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t>
+    {
         return equal_to_predicate_t { lhs, rhs };
     }
 
-    template < typename U
-             , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
-    friend predicate_t operator != (predicate_t const & lhs, U const & rhs) {
+    template <typename U>
+    friend auto operator!= (predicate_t const & lhs, U const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t>
+    {
         return not_equal_to_predicate_t { lhs, rhs };
     }
-    template < typename U
-             , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
-    friend predicate_t operator != (U const & lhs, predicate_t const & rhs) {
+    template <typename U>
+    friend auto operator!= (U const & lhs, predicate_t const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t>
+    {
         return not_equal_to_predicate_t { lhs, rhs };
     }
 
-    template < typename U
-             , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
-    friend predicate_t operator && (predicate_t const & lhs, U const & rhs) {
+    template <typename U>
+    friend auto operator&& (predicate_t const & lhs, U const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t>
+    {
         return logical_and_predicate_t { lhs, rhs };
     }
-    template < typename U
-             , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
-    friend predicate_t operator && (U const & lhs, predicate_t const & rhs) {
+    template <typename U>
+    friend auto operator&& (U const & lhs, predicate_t const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t>
+    {
         return logical_and_predicate_t { lhs, rhs };
     }
 
-    template < typename U
-             , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
-    friend predicate_t operator || (predicate_t const & lhs, U const & rhs) {
+    template <typename U>
+    friend auto operator|| (predicate_t const & lhs, U const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t>
+    {
         return logical_or_predicate_t { lhs, rhs };
     }
-    template < typename U
-             , typename std::enable_if_t<interface_is_base_of_v<U>, int> = 0 >
-    friend predicate_t operator || (U const & lhs, predicate_t const & rhs) {
+    template <typename U>
+    friend auto operator|| (U const & lhs, predicate_t const & rhs)
+    -> /* predicate_t */
+    std::enable_if_t<std::is_base_of_v<interface_t, U>, predicate_t>
+    {
         return logical_or_predicate_t { lhs, rhs };
     }
 };
