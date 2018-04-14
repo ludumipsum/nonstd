@@ -1,15 +1,13 @@
 # Targets listing for nonstd
 
-tfe_target(
+tfe_autotarget(
     NAME nonstd-windows
-    INCLUDE ..
     HEADERS windows.h
 )
 
 # TODO: Pull core out to a separate library
-tfe_target(
+tfe_autotarget(
     NAME nonstd
-    INCLUDE ..
     HEADERS
         # TODO: Fix the header list too
         nonstd.h
