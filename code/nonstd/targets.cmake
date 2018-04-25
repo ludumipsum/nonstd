@@ -1,25 +1,6 @@
 # Targets listing for nonstd
 
 tfe_autotarget(
-    NAME core
-    HEADERS
-        core/disallow_copy_and_assign.h
-        core/enumerate.h
-        core/error.h
-        core/homogenize.h
-        core/math.h
-        core/primitive_types.h
-        core/range.h
-        core/require_linkage.h
-        core/stacktrace.h
-        core/symbol_stringifier.h
-        core/type_traits_ext.h
-        core/unused.h
-    DEPENDS
-        fmt::fmt
-)
-
-tfe_autotarget(
     NAME keyboard
     HEADERS
         keyboard.h
@@ -86,12 +67,141 @@ tfe_autotarget(
         value_category.h
         wallclock.h
     DEPENDS
-        nonstd::core
+        nonstd::core::core
         nonstd::keyboard
         nonstd::memory
         nonstd::utility_ext
         nonstd::windows
+        thirdparty::boost::preprocessor
+        thirdparty::fmt
+)
 
-        # TODO: Fix thirdparty deps
-        Boost::boost fmt::fmt
+tfe_autotarget(
+    TEST NAME angle
+    SOURCES angle.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME array
+    SOURCES array.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME color
+    SOURCES color.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME cx_math
+    SOURCES cx_math.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME cx
+    SOURCES cx.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME hash_table
+    SOURCES hash_table.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME lazy
+    SOURCES lazy.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME optional_storage
+    SOURCES optional_storage.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME optional
+    SOURCES optional.test.cc
+    HEADERS optional.test.compare_overloads.inl
+            optional.test.disabled_special_members.inl
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME predicate
+    SOURCES predicate.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME ring
+    SOURCES ring.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME scope_guard
+    SOURCES scope_guard.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME special_member_filters
+    SOURCES special_member_filters.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME stream
+    SOURCES stream.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME valid_expression_tester
+    SOURCES valid_expression_tester.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
+)
+
+tfe_autotarget(
+    TEST NAME wallclock
+    SOURCES wallclock.test.cc
+    DEPENDS
+        nonstd::nonstd
+        testrunner::testrunner
 )
