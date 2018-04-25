@@ -72,9 +72,8 @@ tfe_autotarget(
         nonstd::memory
         nonstd::utility_ext
         nonstd::windows
-
-        # TODO: Fix thirdparty deps
-        Boost::boost fmt::fmt
+        thirdparty::boost::preprocessor
+        thirdparty::fmt
 )
 
 tfe_autotarget(

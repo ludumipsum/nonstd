@@ -21,7 +21,7 @@ tfe_autotarget(
     TEST NAME enumerate
     SOURCES enumerate.test.cc
     DEPENDS
-        nonstd::nonstd
+        nonstd::core::core
         testrunner::testrunner
 )
 
@@ -29,7 +29,7 @@ tfe_autotarget(
     TEST NAME primitive_types
     SOURCES primitive_types.test.cc
     DEPENDS
-        nonstd::nonstd
+        nonstd::core::core
         testrunner::testrunner
 )
 
@@ -37,7 +37,7 @@ tfe_autotarget(
     TEST NAME range
     SOURCES range.test.cc
     DEPENDS
-        nonstd::nonstd
+        nonstd::core::core
         testrunner::testrunner
 )
 
@@ -45,6 +45,6 @@ tfe_autotarget(
     TEST NAME type_traits_ext
     SOURCES type_traits_ext.test.cc
     DEPENDS
-        nonstd::nonstd
+        nonstd::core::core
         testrunner::testrunner
 )
