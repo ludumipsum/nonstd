@@ -162,7 +162,14 @@ public: /*< ## Stream Accessors */
     }
 
     inline T& operator[](i64 index) noexcept {
-#if defined(DEBUG)
+// This clause has been temporarily removed because it raises a perfectly
+// reasonable warning regarding the `noexcept` specifier immediately above a
+// `throw` statement. This does raise the interesting question of what we want
+// to do when a function is `noexcept` only when `DEBUG` is not defined.
+// I've opted to take the easy way out for the moment, because the change that
+// exposed this issue is in the build system, and it's out-of-scope to answer
+// this interesting question when wrangling CMake.
+#if 0 // defined(DEBUG)
         if (index >= count()) {
             throw std::out_of_range {
                 "Stream index access exceeds current count.\n"
