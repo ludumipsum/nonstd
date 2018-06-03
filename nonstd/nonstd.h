@@ -46,6 +46,7 @@
 #include "core/error.h"
 #include "core/homogenize.h"
 #include "core/math.h"
+#include "core/mem.h"
 #include "core/primitive_types.h"
 #include "core/range.h"
 #include "core/require_linkage.h"
