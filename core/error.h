@@ -18,8 +18,8 @@
  */
 #pragma once
 
-#include <thirdparty/fmt.h>
 #include <system_error>
+#include <thirdparty/fmt.h>
 #include "primitive_types.h"
 
 

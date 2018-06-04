@@ -6,12 +6,13 @@
 #include <nonstd/core/range.h>
 #include <testrunner/testrunner.h>
 
+#include <array>
+#include <vector>
+
 #include <nonstd/core/enumerate.h>
 #include <nonstd/core/type_traits_ext.h>
 #include <nonstd/type_name.h>
 
-#include <array>
-#include <vector>
 
 namespace nonstd_test {
 namespace iterator {

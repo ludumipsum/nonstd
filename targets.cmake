@@ -4,14 +4,8 @@ tfe_autotarget(
     NAME nonstd
     HEADERS nonstd.h
     DEPENDS
-        nonstd::core::core
-        nonstd::core::mem
-        nonstd::core::enumerate
-        nonstd::core::error
-        nonstd::core::range
-        nonstd::core::stacktrace
+        nonstd::core
         thirdparty::fmt
-        thirdparty::boost::preprocessor
 )
 
 tfe_autotarget(

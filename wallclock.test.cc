@@ -16,7 +16,7 @@
  *  but that would be problematic for us if it turned out wrong.
  */
 
-#include "nonstd/wallclock.h"
+#include <nonstd/wallclock.h>
 #include <testrunner/testrunner.h>
 
 
