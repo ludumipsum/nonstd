@@ -10,9 +10,6 @@
 // Our whole sighandler/trace system only works on POSIX hosts
 #if defined(NONSTD_OS_MACOS) || defined(NONSTD_OS_LINUX)
 
-#include "homogenize.h"
-#include "primitive_types.h"
-
 #include <cctype>
 #include <csignal>
 #include <cstdio>
@@ -23,6 +20,9 @@
 #include <dlfcn.h>
 #include <execinfo.h>
 #include <unistd.h>
+
+#include "homogenize.h"
+#include "primitive_types.h"
 
 
 namespace nonstd {

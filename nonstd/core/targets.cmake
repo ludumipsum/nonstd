@@ -1,3 +1,14 @@
+# nonstd::core
+tfe_autotarget(
+    DEPENDS
+        nonstd::core::core
+        nonstd::core::mem
+        nonstd::core::enumerate
+        nonstd::core::error
+        nonstd::core::range
+        nonstd::core::stacktrace
+)
+
 tfe_autotarget(
     NAME core
     HEADERS

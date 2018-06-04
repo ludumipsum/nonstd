@@ -38,10 +38,11 @@
 
 #pragma once
 
-#include <nonstd/nonstd.h>
-#include <nonstd/utility_ext.h>
 #include <functional>
 #include <iostream>
+
+#include <nonstd/nonstd.h>
+#include <nonstd/utility_ext.h>
 
 
 // Apple LLVM version 9.0.0 (clang-900.0.39.2) Deficiency Workaround
