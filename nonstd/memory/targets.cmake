@@ -37,16 +37,16 @@ tfe_autotarget(
 )
 
 
-tfe_autotarget(
-    TEST NAME nr_lazy.test
+n2_platform_test(
+    NAME nr_lazy.test
     SOURCES nr_lazy.test.cc
     DEPENDS
         nonstd::memory::nr_lazy
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME nr_ptr.test
+n2_platform_test(
+    NAME nr_ptr.test
     SOURCES nr_ptr.test.cc
     DEPENDS
         nonstd::memory::nr_ptr
