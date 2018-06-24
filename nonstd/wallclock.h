@@ -4,9 +4,10 @@
  */
 #pragma once
 
+#include <thread>
+
 #include <nonstd/nonstd.h>
 #include <nonstd/chrono.h>
-#include <thread>
 
 
 namespace nonstd {

@@ -21,15 +21,6 @@
  *  =======================================
  */
 
-/** Boot Preprocessor
- *  -----------------
- *  For files inside the nonstd/ library, it will still be best to include
- *  exactly the file needed (ex; <boost/preprocessor/seq.hpp>) to help manage
- *  which boost_pp headers are used, where. The thirdparty/boost/preprocessor.h
- *  header will aggregate those.
- */
-#include <thirdparty/boost/preprocessor.h>
-
 /** {fmt} Printing Library
  *  ----------------------
  *  Printing is hard, but it's slightly less hard with {fmt}. Expect that it's

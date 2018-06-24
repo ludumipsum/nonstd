@@ -1,3 +1,14 @@
+# nonstd::core
+tfe_autotarget(
+    DEPENDS
+        nonstd::core::core
+        nonstd::core::mem
+        nonstd::core::enumerate
+        nonstd::core::error
+        nonstd::core::range
+        nonstd::core::stacktrace
+)
+
 tfe_autotarget(
     NAME core
     HEADERS
@@ -55,31 +66,31 @@ tfe_autotarget(
 
 
 
-tfe_autotarget(
-    TEST NAME primitive_types.test
+n2_platform_test(
+    NAME primitive_types.test
     SOURCES primitive_types.test.cc
     DEPENDS
         nonstd::core::core
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME type_traits_ext.test
+n2_platform_test(
+    NAME type_traits_ext.test
     SOURCES type_traits_ext.test.cc
     DEPENDS
         nonstd::core::core
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME enumerate.test
+n2_platform_test(
+    NAME enumerate.test
     SOURCES enumerate.test.cc
     DEPENDS
         nonstd::core::enumerate
         testrunner::testrunner
 )
-tfe_autotarget(
-    TEST NAME range.test
+n2_platform_test(
+    NAME range.test
     SOURCES range.test.cc
     DEPENDS
         nonstd::core::range

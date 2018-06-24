@@ -9,12 +9,13 @@
  */
 #pragma once
 
-#include <thirdparty/fmt.h>
-#include "primitive_types.h"
-#include "type_traits_ext.h"
-
 #include <functional>
 #include <type_traits>
+
+#include <thirdparty/fmt.h>
+
+#include "primitive_types.h"
+#include "type_traits_ext.h"
 
 namespace nonstd {
 

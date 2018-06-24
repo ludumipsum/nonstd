@@ -1,8 +1,8 @@
 #pragma once
 
-#include <nonstd/nonstd.h>
 #include <ratio>
 #include <chrono>
+#include <nonstd/nonstd.h>
 
 // A note on function-local type aliases;
 // The C++ standard specifies some function-local types aliases when dealing

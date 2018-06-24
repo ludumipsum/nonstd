@@ -9,8 +9,8 @@
  */
 #pragma once
 
-#include <nonstd/nonstd.h>
 #include <type_traits>
+#include <nonstd/nonstd.h>
 
 
 namespace nonstd {
