@@ -25,8 +25,8 @@ tfe_autotarget(
 )
 
 
-tfe_autotarget(
-    TEST NAME compare.test
+n2_platform_test(
+    NAME compare.test
     SOURCES compare.test.cc
     DEPENDS
         nonstd::utility_ext::compare
