@@ -92,13 +92,13 @@
 
 #pragma once
 
+#include <type_traits>
+#include <utility>
+
 #include <boost/preprocessor/seq.hpp>
 #include <boost/preprocessor/seq/enum.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/preprocessor/variadic/to_seq.hpp>
-
-#include <type_traits>
-#include <utility>
 
 
 /* BOOST_PP_ redefinitions; For Great Readability. */

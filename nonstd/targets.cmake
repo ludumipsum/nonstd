@@ -4,14 +4,8 @@ tfe_autotarget(
     NAME nonstd
     HEADERS nonstd.h
     DEPENDS
-        nonstd::core::core
-        nonstd::core::mem
-        nonstd::core::enumerate
-        nonstd::core::error
-        nonstd::core::range
-        nonstd::core::stacktrace
+        nonstd::core
         thirdparty::fmt
-        thirdparty::boost::preprocessor
 )
 
 tfe_autotarget(
@@ -226,79 +220,79 @@ tfe_autotarget(
 
 # Tests for nonstd
 # ================
-tfe_autotarget(
-    TEST NAME angle.test
+n2_platform_test(
+    NAME angle.test
     SOURCES angle.test.cc
     DEPENDS
         nonstd::angle
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME array.test
+n2_platform_test(
+    NAME array.test
     SOURCES array.test.cc
     DEPENDS
         nonstd::array
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME color.test
+n2_platform_test(
+    NAME color.test
     SOURCES color.test.cc
     DEPENDS
         nonstd::color
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME cx_math.test
+n2_platform_test(
+    NAME cx_math.test
     SOURCES cx_math.test.cc
     DEPENDS
         nonstd::cx_math
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME cx.test
+n2_platform_test(
+    NAME cx.test
     SOURCES cx.test.cc
     DEPENDS
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME hash_table.test
+n2_platform_test(
+    NAME hash_table.test
     SOURCES hash_table.test.cc
     DEPENDS
         nonstd::hash_table
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME lazy.test
+n2_platform_test(
+    NAME lazy.test
     SOURCES lazy.test.cc
     DEPENDS
         nonstd::lazy
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME math.test
+n2_platform_test(
+    NAME math.test
     SOURCES math.test.cc
     DEPENDS
         nonstd::math
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME optional_storage.test
+n2_platform_test(
+    NAME optional_storage.test
     SOURCES optional_storage.test.cc
     DEPENDS
         nonstd::optional_storage
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME optional.test
+n2_platform_test(
+    NAME optional.test
     SOURCES optional.test.cc
     HEADERS optional.test.compare_overloads.inl
             optional.test.disabled_special_members.inl
@@ -307,56 +301,56 @@ tfe_autotarget(
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME predicate.test
+n2_platform_test(
+    NAME predicate.test
     SOURCES predicate.test.cc
     DEPENDS
         nonstd::predicate
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME ring.test
+n2_platform_test(
+    NAME ring.test
     SOURCES ring.test.cc
     DEPENDS
         nonstd::ring
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME scope_guard.test
+n2_platform_test(
+    NAME scope_guard.test
     SOURCES scope_guard.test.cc
     DEPENDS
         nonstd::scope_guard
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME special_member_filters.test
+n2_platform_test(
+    NAME special_member_filters.test
     SOURCES special_member_filters.test.cc
     DEPENDS
         nonstd::special_member_filters
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME stream.test
+n2_platform_test(
+    NAME stream.test
     SOURCES stream.test.cc
     DEPENDS
         nonstd::stream
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME valid_expression_tester.test
+n2_platform_test(
+    NAME valid_expression_tester.test
     SOURCES valid_expression_tester.test.cc
     DEPENDS
         nonstd::valid_expression_tester
         testrunner::testrunner
 )
 
-tfe_autotarget(
-    TEST NAME wallclock.test
+n2_platform_test(
+    NAME wallclock.test
     SOURCES wallclock.test.cc
     DEPENDS
         nonstd::wallclock
