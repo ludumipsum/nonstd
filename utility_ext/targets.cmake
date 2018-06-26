@@ -1,4 +1,4 @@
-tfe_autotarget(
+pm_autotarget(
     NAME types
     HEADERS
         any_t.h
@@ -6,7 +6,7 @@ tfe_autotarget(
         void_t.h
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME helpers
     HEADERS
         nop.h
@@ -16,7 +16,7 @@ tfe_autotarget(
         nonstd::nonstd
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME compare
     HEADERS
         compare.h

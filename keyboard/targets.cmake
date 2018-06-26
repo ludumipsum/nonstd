@@ -1,4 +1,4 @@
-tfe_autotarget(
+pm_autotarget(
     NAME modifiers
     HEADERS
         modifiers.h
@@ -9,7 +9,7 @@ tfe_autotarget(
         nonstd::math
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME qwerty
     HEADERS
         qwerty.h
