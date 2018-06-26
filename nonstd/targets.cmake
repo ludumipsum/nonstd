@@ -1,6 +1,6 @@
 # Targets listing for nonstd
 # ==========================
-tfe_autotarget(
+pm_autotarget(
     NAME nonstd
     HEADERS nonstd.h
     DEPENDS
@@ -8,7 +8,7 @@ tfe_autotarget(
         thirdparty::fmt
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME angle
     HEADERS angle.h
     DEPENDS
@@ -16,7 +16,7 @@ tfe_autotarget(
         nonstd::cx_math
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME array
     HEADERS array.h
     DEPENDS
@@ -24,14 +24,14 @@ tfe_autotarget(
         nonstd::memory
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME chrono
     HEADERS chrono.h
     DEPENDS
         nonstd::nonstd
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME color
     HEADERS color.h
     DEPENDS
@@ -39,26 +39,26 @@ tfe_autotarget(
         nonstd::angle
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME cx_math
     HEADERS cx_math.h
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME enum_class_operators
     HEADERS enum_class_operators.h
     DEPENDS
         nonstd::nonstd
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME four_char_code
     HEADERS four_char_code.h
     DEPENDS
         nonstd::nonstd
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME future
     HEADERS future.h
     DEPENDS
@@ -67,14 +67,14 @@ tfe_autotarget(
         nonstd::optional
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME hash
     HEADERS hash.h
     DEPENDS
         nonstd::nonstd
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME hash_table
     HEADERS hash_table.h
     DEPENDS
@@ -85,14 +85,14 @@ tfe_autotarget(
         nonstd::utility_ext
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME keyboard
     HEADERS keyboard.h
     DEPENDS
         nonstd::nonstd
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME lazy
     HEADERS lazy.h
     DEPENDS
@@ -100,14 +100,14 @@ tfe_autotarget(
         nonstd::optional_storage
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME math
     HEADERS math.h
     DEPENDS
         nonstd::nonstd
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME memory
     HEADERS memory.h
     DEPENDS
@@ -118,7 +118,7 @@ tfe_autotarget(
         nonstd::memory::nr_ptr
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME optional
     HEADERS optional.h
     DEPENDS
@@ -130,14 +130,14 @@ tfe_autotarget(
         nonstd::valid_expression_tester
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME optional_storage
     HEADERS optional_storage.h
     DEPENDS
         nonstd::utility_ext
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME predicate
     HEADERS predicate.h
     DEPENDS
@@ -145,7 +145,7 @@ tfe_autotarget(
         nonstd::utility_ext
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME ring
     HEADERS ring.h
     DEPENDS
@@ -154,17 +154,17 @@ tfe_autotarget(
         nonstd::scope_guard
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME scope_guard
     HEADERS scope_guard.h
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME special_member_filters
     HEADERS special_member_filters.h
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME stream
     HEADERS stream.h
     DEPENDS
@@ -172,14 +172,14 @@ tfe_autotarget(
         nonstd::memory
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME type_name
     HEADERS type_name.h
     DEPENDS
         nonstd::nonstd
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME utility_ext
     HEADERS utility_ext.h
     DEPENDS
@@ -188,21 +188,21 @@ tfe_autotarget(
         nonstd::utility_ext::compare
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME valid_expression_tester
     HEADERS valid_expression_tester.h
     DEPENDS
         thirdparty::boost::preprocessor
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME value_category
     HEADERS value_category.h
     DEPENDS
         nonstd::nonstd
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME wallclock
     HEADERS wallclock.h
     DEPENDS
@@ -210,7 +210,7 @@ tfe_autotarget(
         nonstd::chrono
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME window
     HEADERS window.h
     DEPENDS
