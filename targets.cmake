@@ -211,8 +211,8 @@ pm_autotarget(
 )
 
 pm_autotarget(
-    NAME window
-    HEADERS window.h
+    NAME windows
+    HEADERS windows.h
     DEPENDS
         nonstd::nonstd
 )
