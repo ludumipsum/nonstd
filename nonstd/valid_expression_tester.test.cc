@@ -4,7 +4,7 @@
  */
 
 #include <nonstd/valid_expression_tester.h>
-#include <testrunner/testrunner.h>
+#include <platform/testrunner/testrunner.h>
 
 #include <string>
 

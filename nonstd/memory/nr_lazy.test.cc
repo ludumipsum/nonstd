@@ -1,9 +1,9 @@
 #include <nonstd/memory/nr_lazy.h>
-#include <testrunner/testrunner.h>
+#include <platform/testrunner/testrunner.h>
 
 #include <nonstd/nonstd.h>
 #include <nonstd/memory.h>
-#include <testrunner/helpers/construction_counter.h>
+#include <platform/testrunner/helpers/construction_counter.h>
 #include <platform/memory/memory.h>
 
 
