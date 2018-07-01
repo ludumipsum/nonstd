@@ -4,7 +4,7 @@
 #include <nonstd/nonstd.h>
 #include <nonstd/memory.h>
 #include <testrunner/helpers/construction_counter.h>
-#include <memory/memory.h>
+#include <platform/memory/memory.h>
 
 
 namespace nonstd_test::nr_lazy {

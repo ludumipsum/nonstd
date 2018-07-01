@@ -12,7 +12,7 @@
 #include <testrunner/testrunner.h>
 
 #include <nonstd/nonstd.h>
-#include <memory/memory.h>
+#include <platform/memory/memory.h>
 
 
 namespace test_ring {

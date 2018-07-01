@@ -3,7 +3,7 @@
 
 #include <nonstd/nonstd.h>
 #include <nonstd/memory.h>
-#include <memory/memory.h>
+#include <platform/memory/memory.h>
 
 
 namespace test_buffered_value {
