@@ -2,7 +2,7 @@
  *  =================================
  */
 #include <nonstd/predicate.h>
-#include <testrunner/testrunner.h>
+#include <platform/testrunner/testrunner.h>
 
 #include <nonstd/optional.h>
 
