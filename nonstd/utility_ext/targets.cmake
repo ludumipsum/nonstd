@@ -30,5 +30,5 @@ n2_platform_test(
     SOURCES compare.test.cc
     DEPENDS
         nonstd::utility_ext::compare
-        testrunner::testrunner
+        platform::testrunner
 )
