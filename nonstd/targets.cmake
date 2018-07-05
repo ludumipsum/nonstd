@@ -225,7 +225,7 @@ n2_platform_test(
     SOURCES angle.test.cc
     DEPENDS
         nonstd::angle
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -233,7 +233,7 @@ n2_platform_test(
     SOURCES array.test.cc
     DEPENDS
         nonstd::array
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -241,7 +241,7 @@ n2_platform_test(
     SOURCES color.test.cc
     DEPENDS
         nonstd::color
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -249,14 +249,14 @@ n2_platform_test(
     SOURCES cx_math.test.cc
     DEPENDS
         nonstd::cx_math
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
     NAME cx.test
     SOURCES cx.test.cc
     DEPENDS
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -264,7 +264,7 @@ n2_platform_test(
     SOURCES hash_table.test.cc
     DEPENDS
         nonstd::hash_table
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -272,7 +272,7 @@ n2_platform_test(
     SOURCES lazy.test.cc
     DEPENDS
         nonstd::lazy
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -280,7 +280,7 @@ n2_platform_test(
     SOURCES math.test.cc
     DEPENDS
         nonstd::math
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -288,7 +288,7 @@ n2_platform_test(
     SOURCES optional_storage.test.cc
     DEPENDS
         nonstd::optional_storage
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -298,7 +298,7 @@ n2_platform_test(
             optional.test.disabled_special_members.inl
     DEPENDS
         nonstd::optional
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -306,7 +306,7 @@ n2_platform_test(
     SOURCES predicate.test.cc
     DEPENDS
         nonstd::predicate
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -314,7 +314,7 @@ n2_platform_test(
     SOURCES ring.test.cc
     DEPENDS
         nonstd::ring
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -322,7 +322,7 @@ n2_platform_test(
     SOURCES scope_guard.test.cc
     DEPENDS
         nonstd::scope_guard
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -330,7 +330,7 @@ n2_platform_test(
     SOURCES special_member_filters.test.cc
     DEPENDS
         nonstd::special_member_filters
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -338,7 +338,7 @@ n2_platform_test(
     SOURCES stream.test.cc
     DEPENDS
         nonstd::stream
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -346,7 +346,7 @@ n2_platform_test(
     SOURCES valid_expression_tester.test.cc
     DEPENDS
         nonstd::valid_expression_tester
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -354,5 +354,5 @@ n2_platform_test(
     SOURCES wallclock.test.cc
     DEPENDS
         nonstd::wallclock
-        testrunner::testrunner
+        platform::testrunner
 )

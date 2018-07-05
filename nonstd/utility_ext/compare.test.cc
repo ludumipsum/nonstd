@@ -7,7 +7,7 @@
 //TOOD: Move all optional tests into the optional test suite.
 
 #include <nonstd/utility_ext/compare.h>
-#include <testrunner/testrunner.h>
+#include <platform/testrunner/testrunner.h>
 
 
 namespace nonstd_test {
