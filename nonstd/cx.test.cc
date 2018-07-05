@@ -4,7 +4,7 @@
  * conditionals correctly.
  */
 
-#include <testrunner/testrunner.h>
+#include <platform/testrunner/testrunner.h>
 
 
 namespace nonstd_test {

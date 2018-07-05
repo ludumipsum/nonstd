@@ -71,7 +71,7 @@ n2_platform_test(
     SOURCES primitive_types.test.cc
     DEPENDS
         nonstd::core::core
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -79,7 +79,7 @@ n2_platform_test(
     SOURCES type_traits_ext.test.cc
     DEPENDS
         nonstd::core::core
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -87,12 +87,12 @@ n2_platform_test(
     SOURCES enumerate.test.cc
     DEPENDS
         nonstd::core::enumerate
-        testrunner::testrunner
+        platform::testrunner
 )
 n2_platform_test(
     NAME range.test
     SOURCES range.test.cc
     DEPENDS
         nonstd::core::range
-        testrunner::testrunner
+        platform::testrunner
 )
