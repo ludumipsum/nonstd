@@ -4,7 +4,7 @@
  */
 
 #include <nonstd/math.h>
-#include <testrunner/testrunner.h>
+#include <platform/testrunner/testrunner.h>
 
 
 namespace nonstd_test {
