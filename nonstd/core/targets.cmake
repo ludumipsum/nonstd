@@ -1,5 +1,5 @@
 # nonstd::core
-tfe_autotarget(
+pm_autotarget(
     DEPENDS
         nonstd::core::core
         nonstd::core::mem
@@ -9,7 +9,7 @@ tfe_autotarget(
         nonstd::core::stacktrace
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME core
     HEADERS
         disallow_copy_and_assign.h
@@ -22,7 +22,7 @@ tfe_autotarget(
         unused.h
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME mem
     HEADERS
         mem.h
@@ -30,7 +30,7 @@ tfe_autotarget(
         nonstd::core::core
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME enumerate
     HEADERS
         enumerate.h
@@ -38,7 +38,7 @@ tfe_autotarget(
         nonstd::core::core
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME error
     HEADERS
         error.h
@@ -47,7 +47,7 @@ tfe_autotarget(
         thirdparty::fmt
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME range
     HEADERS
         range.h
@@ -56,7 +56,7 @@ tfe_autotarget(
         nonstd::core::core
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME stacktrace
     HEADERS
         stacktrace.h
@@ -71,7 +71,7 @@ n2_platform_test(
     SOURCES primitive_types.test.cc
     DEPENDS
         nonstd::core::core
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -79,7 +79,7 @@ n2_platform_test(
     SOURCES type_traits_ext.test.cc
     DEPENDS
         nonstd::core::core
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -87,12 +87,12 @@ n2_platform_test(
     SOURCES enumerate.test.cc
     DEPENDS
         nonstd::core::enumerate
-        testrunner::testrunner
+        platform::testrunner
 )
 n2_platform_test(
     NAME range.test
     SOURCES range.test.cc
     DEPENDS
         nonstd::core::range
-        testrunner::testrunner
+        platform::testrunner
 )

@@ -1,4 +1,4 @@
-tfe_autotarget(
+pm_autotarget(
     NAME buffer
     HEADERS
         buffer.h
@@ -6,7 +6,7 @@ tfe_autotarget(
         nonstd::nonstd
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME core_functions
     HEADERS
         core_functions.h
@@ -15,7 +15,7 @@ tfe_autotarget(
         nonstd::optional
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME nr_lazy
     HEADERS
         nr_lazy.h
@@ -25,7 +25,7 @@ tfe_autotarget(
         nonstd::lazy
 )
 
-tfe_autotarget(
+pm_autotarget(
     NAME nr_ptr
     HEADERS
         nr_ptr.h
@@ -42,7 +42,7 @@ n2_platform_test(
     SOURCES nr_lazy.test.cc
     DEPENDS
         nonstd::memory::nr_lazy
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -50,6 +50,6 @@ n2_platform_test(
     SOURCES nr_ptr.test.cc
     DEPENDS
         nonstd::memory::nr_ptr
-        testrunner::testrunner
+        platform::testrunner
 )
 
