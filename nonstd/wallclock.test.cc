@@ -17,7 +17,7 @@
  */
 
 #include <nonstd/wallclock.h>
-#include <testrunner/testrunner.h>
+#include <platform/testrunner/testrunner.h>
 
 
 namespace test {
