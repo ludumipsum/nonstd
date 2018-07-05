@@ -6,7 +6,7 @@
  */
 
 #include <nonstd/core/primitive_types.h>
-#include <testrunner/testrunner.h>
+#include <platform/testrunner/testrunner.h>
 
 #include <nonstd/core/type_traits_ext.h>
 
