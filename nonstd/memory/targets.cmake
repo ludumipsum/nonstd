@@ -42,7 +42,7 @@ n2_platform_test(
     SOURCES nr_lazy.test.cc
     DEPENDS
         nonstd::memory::nr_lazy
-        testrunner::testrunner
+        platform::testrunner
 )
 
 n2_platform_test(
@@ -50,6 +50,6 @@ n2_platform_test(
     SOURCES nr_ptr.test.cc
     DEPENDS
         nonstd::memory::nr_ptr
-        testrunner::testrunner
+        platform::testrunner
 )
 
