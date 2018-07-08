@@ -439,12 +439,16 @@ static constexpr double trunc(Integral x) {
 template <typename FloatingPoint,
           enable_int_if_floating_point_t<FloatingPoint> = 0>
 static constexpr FloatingPoint fmod(FloatingPoint x, FloatingPoint y) {
+    // Use at least double precision for this calculation.
+    using PromotedType = detail::arithmetic_promoted_t<FloatingPoint, double>;
+    PromotedType xp = static_cast<PromotedType>(x);
+    PromotedType yp = static_cast<PromotedType>(y);
     return isnan(x) ? NAN
          : isnan(y) ? NAN
          : isinf(x) ? NAN
          : isinf(y) ? x
          : y == 0   ? NAN
-         : x - trunc(x/y)*y;
+         : xp - trunc(xp/yp)*yp;
 }
 template <typename Arithmetic1, typename Arithmetic2,
           enable_int_if_arithmetic_t<Arithmetic1> = 0,
