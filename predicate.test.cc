@@ -145,45 +145,45 @@ TEST_CASE("Composable Predicates", "[nonstd][predicate][api]") {
         REQUIRE(!identity(true)  == false);
         REQUIRE(!identity(false) == true);
 
-        REQUIRE(( identity ==  identity)(true) == true);
-        REQUIRE((!identity ==  identity)(true) == false);
-        REQUIRE(( identity == !identity)(true) == false);
-        REQUIRE((!identity == !identity)(true) == true);
+        REQUIRE((  identity  ==  identity)(true) == true);
+        REQUIRE(((!identity) ==  identity)(true) == false);
+        REQUIRE((  identity  == !identity)(true) == false);
+        REQUIRE(((!identity) == !identity)(true) == true);
 
-        REQUIRE(( identity ==  identity)(false) == true);
-        REQUIRE((!identity ==  identity)(false) == false);
-        REQUIRE(( identity == !identity)(false) == false);
-        REQUIRE((!identity == !identity)(false) == true);
+        REQUIRE((  identity  ==  identity)(false) == true);
+        REQUIRE(((!identity) ==  identity)(false) == false);
+        REQUIRE((  identity  == !identity)(false) == false);
+        REQUIRE(((!identity) == !identity)(false) == true);
 
-        REQUIRE(( identity !=  identity)(true) == false);
-        REQUIRE((!identity !=  identity)(true) == true);
-        REQUIRE(( identity != !identity)(true) == true);
-        REQUIRE((!identity != !identity)(true) == false);
+        REQUIRE((  identity  !=  identity)(true) == false);
+        REQUIRE(((!identity) !=  identity)(true) == true);
+        REQUIRE((  identity  != !identity)(true) == true);
+        REQUIRE(((!identity) != !identity)(true) == false);
 
-        REQUIRE(( identity !=  identity)(false) == false);
-        REQUIRE((!identity !=  identity)(false) == true);
-        REQUIRE(( identity != !identity)(false) == true);
-        REQUIRE((!identity != !identity)(false) == false);
+        REQUIRE((  identity  !=  identity)(false) == false);
+        REQUIRE(((!identity) !=  identity)(false) == true);
+        REQUIRE((  identity  != !identity)(false) == true);
+        REQUIRE(((!identity) != !identity)(false) == false);
 
-        REQUIRE(( identity &&  identity)(true) == true);
-        REQUIRE((!identity &&  identity)(true) == false);
-        REQUIRE(( identity && !identity)(true) == false);
-        REQUIRE((!identity && !identity)(true) == false);
+        REQUIRE((  identity  &&  identity)(true) == true);
+        REQUIRE(((!identity) &&  identity)(true) == false);
+        REQUIRE((  identity  && !identity)(true) == false);
+        REQUIRE(((!identity) && !identity)(true) == false);
 
-        REQUIRE(( identity &&  identity)(false) == false);
-        REQUIRE((!identity &&  identity)(false) == false);
-        REQUIRE(( identity && !identity)(false) == false);
-        REQUIRE((!identity && !identity)(false) == true);
+        REQUIRE((  identity  &&  identity)(false) == false);
+        REQUIRE(((!identity) &&  identity)(false) == false);
+        REQUIRE((  identity  && !identity)(false) == false);
+        REQUIRE(((!identity) && !identity)(false) == true);
 
-        REQUIRE(( identity ||  identity)(true) == true);
-        REQUIRE((!identity ||  identity)(true) == true);
-        REQUIRE(( identity || !identity)(true) == true);
-        REQUIRE((!identity || !identity)(true) == false);
+        REQUIRE((  identity  ||  identity)(true) == true);
+        REQUIRE(((!identity) ||  identity)(true) == true);
+        REQUIRE((  identity  || !identity)(true) == true);
+        REQUIRE(((!identity) || !identity)(true) == false);
 
-        REQUIRE(( identity ||  identity)(false) == false);
-        REQUIRE((!identity ||  identity)(false) == true);
-        REQUIRE(( identity || !identity)(false) == true);
-        REQUIRE((!identity || !identity)(false) == true);
+        REQUIRE((  identity  ||  identity)(false) == false);
+        REQUIRE(((!identity) ||  identity)(false) == true);
+        REQUIRE((  identity  || !identity)(false) == true);
+        REQUIRE(((!identity) || !identity)(false) == true);
     }
 
     SECTION("should correctly use cv- and ref-qualified parameters") {
