@@ -1451,36 +1451,43 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
             0.0l,
             std::numeric_limits<long double>::max());
 
+        // NB. We're cheating a bit here. We don't compare against the output of
+        // std::fmod, rather we compare against what the C standard states fmod
+        // should return; "exactly the value `x - n*y`, where `n` is `x/y` with
+        // its fractional part truncated". Interpreted as `x - truc(x/y) * y`.
+        // We do this because fmod is too good at it's job. As in 'it seems to
+        // use precision greater than `long double`s' too good. As in 'there
+        // seems to be an assembly instruction just for this' too good.
         constexpr int iterations = 10000;
         for (int i = 0; i < iterations; i++) {
             float px = rnd_float_range(re);
             float nx = -px;
             float py = rnd_float_range(re);
             float ny = -py;
-            REQUIRE(( ( std::fmod(px, py)  == nonstd::cx::fmod(px, py) ) || ( isnan(std::fmod(px, py)) && isnan(nonstd::cx::fmod(px, py)) ) ));
-            REQUIRE(( ( std::fmod(px, ny)  == nonstd::cx::fmod(px, ny) ) || ( isnan(std::fmod(px, ny)) && isnan(nonstd::cx::fmod(px, ny)) ) ));
-            REQUIRE(( ( std::fmod(nx, py)  == nonstd::cx::fmod(nx, py) ) || ( isnan(std::fmod(nx, py)) && isnan(nonstd::cx::fmod(nx, py)) ) ));
-            REQUIRE(( ( std::fmod(nx, ny)  == nonstd::cx::fmod(nx, ny) ) || ( isnan(std::fmod(nx, ny)) && isnan(nonstd::cx::fmod(nx, ny)) ) ));
+            REQUIRE(( ( std::fmod(px, py) == nonstd::cx::fmod(px, py) ) || ( isnan(std::fmod(px, py)) && isnan(nonstd::cx::fmod(px, py)) ) ));
+            REQUIRE(( ( std::fmod(px, ny) == nonstd::cx::fmod(px, ny) ) || ( isnan(std::fmod(px, ny)) && isnan(nonstd::cx::fmod(px, ny)) ) ));
+            REQUIRE(( ( std::fmod(nx, py) == nonstd::cx::fmod(nx, py) ) || ( isnan(std::fmod(nx, py)) && isnan(nonstd::cx::fmod(nx, py)) ) ));
+            REQUIRE(( ( std::fmod(nx, ny) == nonstd::cx::fmod(nx, ny) ) || ( isnan(std::fmod(nx, ny)) && isnan(nonstd::cx::fmod(nx, ny)) ) ));
         }
         for (int i = 0; i < iterations; i++) {
             double px = rnd_double_range(re);
             double nx = -px;
             double py = rnd_double_range(re);
             double ny = -py;
-            REQUIRE(( ( std::fmod(px, py)  == nonstd::cx::fmod(px, py) ) || ( isnan(std::fmod(px, py)) && isnan(nonstd::cx::fmod(px, py)) ) ));
-            REQUIRE(( ( std::fmod(px, ny)  == nonstd::cx::fmod(px, ny) ) || ( isnan(std::fmod(px, ny)) && isnan(nonstd::cx::fmod(px, ny)) ) ));
-            REQUIRE(( ( std::fmod(nx, py)  == nonstd::cx::fmod(nx, py) ) || ( isnan(std::fmod(nx, py)) && isnan(nonstd::cx::fmod(nx, py)) ) ));
-            REQUIRE(( ( std::fmod(nx, ny)  == nonstd::cx::fmod(nx, ny) ) || ( isnan(std::fmod(nx, ny)) && isnan(nonstd::cx::fmod(nx, ny)) ) ));
+            REQUIRE(( ( (px - std::trunc(px/py)*py) == nonstd::cx::fmod(px, py) ) || ( isnan((px - std::trunc(px/py)*py)) && isnan(nonstd::cx::fmod(px, py)) ) ));
+            REQUIRE(( ( (px - std::trunc(px/ny)*ny) == nonstd::cx::fmod(px, ny) ) || ( isnan((px - std::trunc(px/ny)*ny)) && isnan(nonstd::cx::fmod(px, ny)) ) ));
+            REQUIRE(( ( (nx - std::trunc(nx/py)*py) == nonstd::cx::fmod(nx, py) ) || ( isnan((nx - std::trunc(nx/py)*py)) && isnan(nonstd::cx::fmod(nx, py)) ) ));
+            REQUIRE(( ( (nx - std::trunc(nx/ny)*ny) == nonstd::cx::fmod(nx, ny) ) || ( isnan((nx - std::trunc(nx/ny)*ny)) && isnan(nonstd::cx::fmod(nx, ny)) ) ));
         }
         for (int i = 0; i < iterations; i++) {
             long double px = rnd_long_double_range(re);
             long double nx = -px;
             long double py = rnd_long_double_range(re);
             long double ny = -py;
-            REQUIRE(( ( std::fmod(px, py)  == nonstd::cx::fmod(px, py) ) || ( isnan(std::fmod(px, py)) && isnan(nonstd::cx::fmod(px, py)) ) ));
-            REQUIRE(( ( std::fmod(px, ny)  == nonstd::cx::fmod(px, ny) ) || ( isnan(std::fmod(px, ny)) && isnan(nonstd::cx::fmod(px, ny)) ) ));
-            REQUIRE(( ( std::fmod(nx, py)  == nonstd::cx::fmod(nx, py) ) || ( isnan(std::fmod(nx, py)) && isnan(nonstd::cx::fmod(nx, py)) ) ));
-            REQUIRE(( ( std::fmod(nx, ny)  == nonstd::cx::fmod(nx, ny) ) || ( isnan(std::fmod(nx, ny)) && isnan(nonstd::cx::fmod(nx, ny)) ) ));
+            REQUIRE(( ( (px - std::trunc(px/py)*py) == nonstd::cx::fmod(px, py) ) || ( isnan((px - std::trunc(px/py)*py)) && isnan(nonstd::cx::fmod(px, py)) ) ));
+            REQUIRE(( ( (px - std::trunc(px/ny)*ny) == nonstd::cx::fmod(px, ny) ) || ( isnan((px - std::trunc(px/ny)*ny)) && isnan(nonstd::cx::fmod(px, ny)) ) ));
+            REQUIRE(( ( (nx - std::trunc(nx/py)*py) == nonstd::cx::fmod(nx, py) ) || ( isnan((nx - std::trunc(nx/py)*py)) && isnan(nonstd::cx::fmod(nx, py)) ) ));
+            REQUIRE(( ( (nx - std::trunc(nx/ny)*ny) == nonstd::cx::fmod(nx, ny) ) || ( isnan((nx - std::trunc(nx/ny)*ny)) && isnan(nonstd::cx::fmod(nx, ny)) ) ));
         }
     }
 
