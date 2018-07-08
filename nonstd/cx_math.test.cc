@@ -7,6 +7,7 @@
 #include <platform/testrunner/testrunner.h>
 
 #include <random>
+#include <cmath>
 
 
 namespace nonstd_test {
@@ -31,116 +32,116 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
     // destination isn't wide enough to contain. The three obviously impossible
     // assignments in this set are the three that are commented out. We leave
     // them in, because it makes codemod easier.
-    constexpr f32 f32__positive               =  1.5f;                                      UNUSED(f32__positive);
-    constexpr f32 f32__zero                   =  0.0f;                                      UNUSED(f32__zero);
-    constexpr f32 f32__negative               = -1.5f;                                      UNUSED(f32__negative);
-    constexpr f32 f32__f32_p_smallest         =  std::numeric_limits<f32>::min();           UNUSED(f32__f32_p_smallest);
-    constexpr f32 f32__f32_n_smallest         = -std::numeric_limits<f32>::min();           UNUSED(f32__f32_n_smallest);
-    constexpr f32 f32__f32_p_largest          =  std::numeric_limits<f32>::max();           UNUSED(f32__f32_p_largest);
-    constexpr f32 f32__f32_n_largest          = -std::numeric_limits<f32>::max();           UNUSED(f32__f32_n_largest);
-    constexpr f32 f32__f64_p_smallest         =  std::numeric_limits<f64>::min();           UNUSED(f32__f64_p_smallest);
-    constexpr f32 f32__f64_n_smallest         = -std::numeric_limits<f64>::min();           UNUSED(f32__f64_n_smallest);
-//  constexpr f32 f32__f64_p_largest          =  std::numeric_limits<f64>::max();           UNUSED(f32__f64_p_largest);
-//  constexpr f32 f32__f64_n_largest          = -std::numeric_limits<f64>::max();           UNUSED(f32__f64_n_largest);
-    constexpr f32 f32__f_long_p_smallest      =  std::numeric_limits<f_long>::min();        UNUSED(f32__f_long_p_smallest);
-    constexpr f32 f32__f_long_n_smallest      = -std::numeric_limits<f_long>::min();        UNUSED(f32__f_long_n_smallest);
-//  constexpr f32 f32__f_long_p_largest       =  std::numeric_limits<f_long>::max();        UNUSED(f32__f_long_p_largest);
-//  constexpr f32 f32__f_long_n_largest       = -std::numeric_limits<f_long>::max();        UNUSED(f32__f_long_n_largest);
-    constexpr f32 f32__f32_nan                =  std::numeric_limits<f32>::quiet_NaN();     UNUSED(f32__f32_nan);
-    constexpr f32 f32__f64_nan                =  std::numeric_limits<f64>::quiet_NaN();     UNUSED(f32__f64_nan);
-    constexpr f32 f32__f_long_nan             =  std::numeric_limits<f_long>::quiet_NaN();  UNUSED(f32__f_long_nan);
-    constexpr f32 f32__f32_p_inf              =  std::numeric_limits<f32>::infinity();      UNUSED(f32__f32_p_inf);
-    constexpr f32 f32__f32_n_inf              = -std::numeric_limits<f32>::infinity();      UNUSED(f32__f32_n_inf);
-    constexpr f32 f32__f64_p_inf              =  std::numeric_limits<f64>::infinity();      UNUSED(f32__f64_p_inf);
-    constexpr f32 f32__f64_n_inf              = -std::numeric_limits<f64>::infinity();      UNUSED(f32__f64_n_inf);
-    constexpr f32 f32__f_long_p_inf           =  std::numeric_limits<f_long>::infinity();   UNUSED(f32__f_long_p_inf);
-    constexpr f32 f32__f_long_n_inf           = -std::numeric_limits<f_long>::infinity();   UNUSED(f32__f_long_n_inf);
-              f32 f32__f32_less_p_smallest    =  std::numeric_limits<f32>::min() / 2.0f;    UNUSED(f32__f32_less_p_smallest);
-              f32 f32__f32_less_n_smallest    = -std::numeric_limits<f32>::min() / 2.0f;    UNUSED(f32__f32_less_n_smallest);
-              f32 f32__f32_more_p_largest     =  std::numeric_limits<f32>::max() * 2.0f;    UNUSED(f32__f32_more_p_largest);
-              f32 f32__f32_more_n_largest     = -std::numeric_limits<f32>::max() * 2.0f;    UNUSED(f32__f32_more_n_largest);
-              f32 f32__f64_less_p_smallest    =  std::numeric_limits<f64>::min() / 2.0f;    UNUSED(f32__f64_less_p_smallest);
-              f32 f32__f64_less_n_smallest    = -std::numeric_limits<f64>::min() / 2.0f;    UNUSED(f32__f64_less_n_smallest);
-              f32 f32__f64_more_p_largest     =  std::numeric_limits<f64>::max() * 2.0f;    UNUSED(f32__f64_more_p_largest);
-              f32 f32__f64_more_n_largest     = -std::numeric_limits<f64>::max() * 2.0f;    UNUSED(f32__f64_more_n_largest);
-              f32 f32__f_long_less_p_smallest =  std::numeric_limits<f_long>::min() / 2.0f; UNUSED(f32__f_long_less_p_smallest);
-              f32 f32__f_long_less_n_smallest = -std::numeric_limits<f_long>::min() / 2.0f; UNUSED(f32__f_long_less_n_smallest);
-              f32 f32__f_long_more_p_largest  =  std::numeric_limits<f_long>::max() * 2.0f; UNUSED(f32__f_long_more_p_largest);
-              f32 f32__f_long_more_n_largest  = -std::numeric_limits<f_long>::max() * 2.0f; UNUSED(f32__f_long_more_n_largest);
+    constexpr f32 f32__positive                     =  1.5f;                                         UNUSED(f32__positive);
+    constexpr f32 f32__zero                         =  0.0f;                                         UNUSED(f32__zero);
+    constexpr f32 f32__negative                     = -1.5f;                                         UNUSED(f32__negative);
+    constexpr f32 f32__f32_smallest_p               =  std::numeric_limits<f32>::min();              UNUSED(f32__f32_smallest_p);
+    constexpr f32 f32__f32_smallest_n               = -std::numeric_limits<f32>::min();              UNUSED(f32__f32_smallest_n);
+    constexpr f32 f32__f32_highest                  =  std::numeric_limits<f32>::max();              UNUSED(f32__f32_highest);
+    constexpr f32 f32__f32_lowest                   =  std::numeric_limits<f32>::lowest();           UNUSED(f32__f32_lowest);
+    constexpr f32 f32__f64_smallest_p               =  std::numeric_limits<f64>::min();              UNUSED(f32__f64_smallest_p);
+    constexpr f32 f32__f64_smallest_n               = -std::numeric_limits<f64>::min();              UNUSED(f32__f64_smallest_n);
+//  constexpr f32 f32__f64_highest                  =  std::numeric_limits<f64>::max();              UNUSED(f32__f64_highest);
+//  constexpr f32 f32__f64_lowest                   =  std::numeric_limits<f64>::lowest();           UNUSED(f32__f64_lowest);
+    constexpr f32 f32__f_long_smallest_p            =  std::numeric_limits<f_long>::min();           UNUSED(f32__f_long_smallest_p);
+    constexpr f32 f32__f_long_smallest_n            = -std::numeric_limits<f_long>::min();           UNUSED(f32__f_long_smallest_n);
+//  constexpr f32 f32__f_long_highest               =  std::numeric_limits<f_long>::max();           UNUSED(f32__f_long_highest);
+//  constexpr f32 f32__f_long_lowest                =  std::numeric_limits<f_long>::lowest();        UNUSED(f32__f_long_lowest);
+    constexpr f32 f32__f32_nan                      =  std::numeric_limits<f32>::quiet_NaN();        UNUSED(f32__f32_nan);
+    constexpr f32 f32__f64_nan                      =  std::numeric_limits<f64>::quiet_NaN();        UNUSED(f32__f64_nan);
+    constexpr f32 f32__f_long_nan                   =  std::numeric_limits<f_long>::quiet_NaN();     UNUSED(f32__f_long_nan);
+    constexpr f32 f32__f32_p_inf                    =  std::numeric_limits<f32>::infinity();         UNUSED(f32__f32_p_inf);
+    constexpr f32 f32__f32_n_inf                    = -std::numeric_limits<f32>::infinity();         UNUSED(f32__f32_n_inf);
+    constexpr f32 f32__f64_p_inf                    =  std::numeric_limits<f64>::infinity();         UNUSED(f32__f64_p_inf);
+    constexpr f32 f32__f64_n_inf                    = -std::numeric_limits<f64>::infinity();         UNUSED(f32__f64_n_inf);
+    constexpr f32 f32__f_long_p_inf                 =  std::numeric_limits<f_long>::infinity();      UNUSED(f32__f_long_p_inf);
+    constexpr f32 f32__f_long_n_inf                 = -std::numeric_limits<f_long>::infinity();      UNUSED(f32__f_long_n_inf);
+              f32 f32__f32_less_smallest_p          =  std::numeric_limits<f32>::min() / 2.0f;       UNUSED(f32__f32_less_smallest_p);
+              f32 f32__f32_less_smallest_n          = -std::numeric_limits<f32>::min() / 2.0f;       UNUSED(f32__f32_less_smallest_n);
+              f32 f32__f32_more_highest             =  std::numeric_limits<f32>::max() * 2.0f;       UNUSED(f32__f32_more_highest);
+              f32 f32__f32_more_lowest              =  std::numeric_limits<f32>::lowest() * 2.0f;    UNUSED(f32__f32_more_lowest);
+              f32 f32__f64_less_smallest_p          =  std::numeric_limits<f64>::min() / 2.0f;       UNUSED(f32__f64_less_smallest_p);
+              f32 f32__f64_less_smallest_n          = -std::numeric_limits<f64>::min() / 2.0f;       UNUSED(f32__f64_less_smallest_n);
+              f32 f32__f64_more_highest             =  std::numeric_limits<f64>::max() * 2.0f;       UNUSED(f32__f64_more_highest);
+              f32 f32__f64_more_lowest              =  std::numeric_limits<f64>::lowest() * 2.0f;    UNUSED(f32__f64_more_lowest);
+              f32 f32__f_long_less_smallest_p       =  std::numeric_limits<f_long>::min() / 2.0f;    UNUSED(f32__f_long_less_smallest_p);
+              f32 f32__f_long_less_smallest_n       = -std::numeric_limits<f_long>::min() / 2.0f;    UNUSED(f32__f_long_less_smallest_n);
+              f32 f32__f_long_more_highest          =  std::numeric_limits<f_long>::max() * 2.0f;    UNUSED(f32__f_long_more_highest);
+              f32 f32__f_long_more_lowest           =  std::numeric_limits<f_long>::lowest() * 2.0f; UNUSED(f32__f_long_more_lowest);
 
-    constexpr f64 f64__positive               =  1.5;                                      UNUSED(f64__positive);
-    constexpr f64 f64__zero                   =  0.0;                                      UNUSED(f64__zero);
-    constexpr f64 f64__negative               = -1.5;                                      UNUSED(f64__negative);
-    constexpr f64 f64__f32_p_smallest         =  std::numeric_limits<f32>::min();          UNUSED(f64__f32_p_smallest);
-    constexpr f64 f64__f32_n_smallest         = -std::numeric_limits<f32>::min();          UNUSED(f64__f32_n_smallest);
-    constexpr f64 f64__f32_p_largest          =  std::numeric_limits<f32>::max();          UNUSED(f64__f32_p_largest);
-    constexpr f64 f64__f32_n_largest          = -std::numeric_limits<f32>::max();          UNUSED(f64__f32_n_largest);
-    constexpr f64 f64__f64_p_smallest         =  std::numeric_limits<f64>::min();          UNUSED(f64__f64_p_smallest);
-    constexpr f64 f64__f64_n_smallest         = -std::numeric_limits<f64>::min();          UNUSED(f64__f64_n_smallest);
-    constexpr f64 f64__f64_p_largest          =  std::numeric_limits<f64>::max();          UNUSED(f64__f64_p_largest);
-    constexpr f64 f64__f64_n_largest          = -std::numeric_limits<f64>::max();          UNUSED(f64__f64_n_largest);
-    constexpr f64 f64__f_long_p_smallest      =  std::numeric_limits<f_long>::min();       UNUSED(f64__f_long_p_smallest);
-    constexpr f64 f64__f_long_n_smallest      = -std::numeric_limits<f_long>::min();       UNUSED(f64__f_long_n_smallest);
-//  constexpr f64 f64__f_long_p_largest       =  std::numeric_limits<f_long>::max();       UNUSED(f64__f_long_p_largest);
-//  constexpr f64 f64__f_long_n_largest       = -std::numeric_limits<f_long>::max();       UNUSED(f64__f_long_n_largest);
-    constexpr f64 f64__f32_nan                =  std::numeric_limits<f32>::quiet_NaN();    UNUSED(f64__f32_nan);
-    constexpr f64 f64__f64_nan                =  std::numeric_limits<f64>::quiet_NaN();    UNUSED(f64__f64_nan);
-    constexpr f64 f64__f_long_nan             =  std::numeric_limits<f_long>::quiet_NaN(); UNUSED(f64__f_long_nan);
-    constexpr f64 f64__f32_p_inf              =  std::numeric_limits<f32>::infinity();     UNUSED(f64__f32_p_inf);
-    constexpr f64 f64__f32_n_inf              = -std::numeric_limits<f32>::infinity();     UNUSED(f64__f32_n_inf);
-    constexpr f64 f64__f64_p_inf              =  std::numeric_limits<f64>::infinity();     UNUSED(f64__f64_p_inf);
-    constexpr f64 f64__f64_n_inf              = -std::numeric_limits<f64>::infinity();     UNUSED(f64__f64_n_inf);
-    constexpr f64 f64__f_long_p_inf           =  std::numeric_limits<f_long>::infinity();  UNUSED(f64__f_long_p_inf);
-    constexpr f64 f64__f_long_n_inf           = -std::numeric_limits<f_long>::infinity();  UNUSED(f64__f_long_n_inf);
-              f64 f64__f32_less_p_smallest    =  std::numeric_limits<f32>::min() / 2.0;    UNUSED(f64__f32_less_p_smallest);
-              f64 f64__f32_less_n_smallest    = -std::numeric_limits<f32>::min() / 2.0;    UNUSED(f64__f32_less_n_smallest);
-              f64 f64__f32_more_p_largest     =  std::numeric_limits<f32>::max() * 2.0;    UNUSED(f64__f32_more_p_largest);
-              f64 f64__f32_more_n_largest     = -std::numeric_limits<f32>::max() * 2.0;    UNUSED(f64__f32_more_n_largest);
-              f64 f64__f64_less_p_smallest    =  std::numeric_limits<f64>::min() / 2.0;    UNUSED(f64__f64_less_p_smallest);
-              f64 f64__f64_less_n_smallest    = -std::numeric_limits<f64>::min() / 2.0;    UNUSED(f64__f64_less_n_smallest);
-              f64 f64__f64_more_p_largest     =  std::numeric_limits<f64>::max() * 2.0;    UNUSED(f64__f64_more_p_largest);
-              f64 f64__f64_more_n_largest     = -std::numeric_limits<f64>::max() * 2.0;    UNUSED(f64__f64_more_n_largest);
-              f64 f64__f_long_less_p_smallest =  std::numeric_limits<f_long>::min() / 2.0; UNUSED(f64__f_long_less_p_smallest);
-              f64 f64__f_long_less_n_smallest = -std::numeric_limits<f_long>::min() / 2.0; UNUSED(f64__f_long_less_n_smallest);
-              f64 f64__f_long_more_p_largest  =  std::numeric_limits<f_long>::max() * 2.0; UNUSED(f64__f_long_more_p_largest);
-              f64 f64__f_long_more_n_largest  = -std::numeric_limits<f_long>::max() * 2.0; UNUSED(f64__f_long_more_n_largest);
+    constexpr f64 f64__positive                     =  1.5;                                         UNUSED(f64__positive);
+    constexpr f64 f64__zero                         =  0.0;                                         UNUSED(f64__zero);
+    constexpr f64 f64__negative                     = -1.5;                                         UNUSED(f64__negative);
+    constexpr f64 f64__f32_smallest_p               =  std::numeric_limits<f32>::min();             UNUSED(f64__f32_smallest_p);
+    constexpr f64 f64__f32_smallest_n               = -std::numeric_limits<f32>::min();             UNUSED(f64__f32_smallest_n);
+    constexpr f64 f64__f32_highest                  =  std::numeric_limits<f32>::max();             UNUSED(f64__f32_highest);
+    constexpr f64 f64__f32_lowest                   =  std::numeric_limits<f32>::lowest();          UNUSED(f64__f32_lowest);
+    constexpr f64 f64__f64_smallest_p               =  std::numeric_limits<f64>::min();             UNUSED(f64__f64_smallest_p);
+    constexpr f64 f64__f64_smallest_n               = -std::numeric_limits<f64>::min();             UNUSED(f64__f64_smallest_n);
+    constexpr f64 f64__f64_highest                  =  std::numeric_limits<f64>::max();             UNUSED(f64__f64_highest);
+    constexpr f64 f64__f64_lowest                   =  std::numeric_limits<f64>::lowest();          UNUSED(f64__f64_lowest);
+    constexpr f64 f64__f_long_smallest_p            =  std::numeric_limits<f_long>::min();          UNUSED(f64__f_long_smallest_p);
+    constexpr f64 f64__f_long_smallest_n            = -std::numeric_limits<f_long>::min();          UNUSED(f64__f_long_smallest_n);
+//  constexpr f64 f64__f_long_highest               =  std::numeric_limits<f_long>::max();          UNUSED(f64__f_long_highest);
+//  constexpr f64 f64__f_long_lowest                =  std::numeric_limits<f_long>::lowest();       UNUSED(f64__f_long_lowest);
+    constexpr f64 f64__f32_nan                      =  std::numeric_limits<f32>::quiet_NaN();       UNUSED(f64__f32_nan);
+    constexpr f64 f64__f64_nan                      =  std::numeric_limits<f64>::quiet_NaN();       UNUSED(f64__f64_nan);
+    constexpr f64 f64__f_long_nan                   =  std::numeric_limits<f_long>::quiet_NaN();    UNUSED(f64__f_long_nan);
+    constexpr f64 f64__f32_p_inf                    =  std::numeric_limits<f32>::infinity();        UNUSED(f64__f32_p_inf);
+    constexpr f64 f64__f32_n_inf                    = -std::numeric_limits<f32>::infinity();        UNUSED(f64__f32_n_inf);
+    constexpr f64 f64__f64_p_inf                    =  std::numeric_limits<f64>::infinity();        UNUSED(f64__f64_p_inf);
+    constexpr f64 f64__f64_n_inf                    = -std::numeric_limits<f64>::infinity();        UNUSED(f64__f64_n_inf);
+    constexpr f64 f64__f_long_p_inf                 =  std::numeric_limits<f_long>::infinity();     UNUSED(f64__f_long_p_inf);
+    constexpr f64 f64__f_long_n_inf                 = -std::numeric_limits<f_long>::infinity();     UNUSED(f64__f_long_n_inf);
+              f64 f64__f32_less_smallest_p          =  std::numeric_limits<f32>::min() / 2.0;       UNUSED(f64__f32_less_smallest_p);
+              f64 f64__f32_less_smallest_n          = -std::numeric_limits<f32>::min() / 2.0;       UNUSED(f64__f32_less_smallest_n);
+              f64 f64__f32_more_highest             =  std::numeric_limits<f32>::max() * 2.0;       UNUSED(f64__f32_more_highest);
+              f64 f64__f32_more_lowest              =  std::numeric_limits<f32>::lowest() * 2.0;    UNUSED(f64__f32_more_lowest);
+              f64 f64__f64_less_smallest_p          =  std::numeric_limits<f64>::min() / 2.0;       UNUSED(f64__f64_less_smallest_p);
+              f64 f64__f64_less_smallest_n          = -std::numeric_limits<f64>::min() / 2.0;       UNUSED(f64__f64_less_smallest_n);
+              f64 f64__f64_more_highest             =  std::numeric_limits<f64>::max() * 2.0;       UNUSED(f64__f64_more_highest);
+              f64 f64__f64_more_lowest              =  std::numeric_limits<f64>::lowest() * 2.0;    UNUSED(f64__f64_more_lowest);
+              f64 f64__f_long_less_smallest_p       =  std::numeric_limits<f_long>::min() / 2.0;    UNUSED(f64__f_long_less_smallest_p);
+              f64 f64__f_long_less_smallest_n       = -std::numeric_limits<f_long>::min() / 2.0;    UNUSED(f64__f_long_less_smallest_n);
+              f64 f64__f_long_more_highest          =  std::numeric_limits<f_long>::max() * 2.0;    UNUSED(f64__f_long_more_highest);
+              f64 f64__f_long_more_lowest           =  std::numeric_limits<f_long>::lowest() * 2.0; UNUSED(f64__f_long_more_lowest);
 
-    constexpr f_long f_long__positive               =  1.5l;                                      UNUSED(f_long__positive);
-    constexpr f_long f_long__zero                   =  0.0l;                                      UNUSED(f_long__zero);
-    constexpr f_long f_long__negative               = -1.5l;                                      UNUSED(f_long__negative);
-    constexpr f_long f_long__f32_p_smallest         =  std::numeric_limits<f32>::min();           UNUSED(f_long__f32_p_smallest);
-    constexpr f_long f_long__f32_n_smallest         = -std::numeric_limits<f32>::min();           UNUSED(f_long__f32_n_smallest);
-    constexpr f_long f_long__f32_p_largest          =  std::numeric_limits<f32>::max();           UNUSED(f_long__f32_p_largest);
-    constexpr f_long f_long__f32_n_largest          = -std::numeric_limits<f32>::max();           UNUSED(f_long__f32_n_largest);
-    constexpr f_long f_long__f64_p_smallest         =  std::numeric_limits<f64>::min();           UNUSED(f_long__f64_p_smallest);
-    constexpr f_long f_long__f64_n_smallest         = -std::numeric_limits<f64>::min();           UNUSED(f_long__f64_n_smallest);
-    constexpr f_long f_long__f64_p_largest          =  std::numeric_limits<f64>::max();           UNUSED(f_long__f64_p_largest);
-    constexpr f_long f_long__f64_n_largest          = -std::numeric_limits<f64>::max();           UNUSED(f_long__f64_n_largest);
-    constexpr f_long f_long__f_long_p_smallest      =  std::numeric_limits<f_long>::min();        UNUSED(f_long__f_long_p_smallest);
-    constexpr f_long f_long__f_long_n_smallest      = -std::numeric_limits<f_long>::min();        UNUSED(f_long__f_long_n_smallest);
-    constexpr f_long f_long__f_long_p_largest       =  std::numeric_limits<f_long>::max();        UNUSED(f_long__f_long_p_largest);
-    constexpr f_long f_long__f_long_n_largest       = -std::numeric_limits<f_long>::max();        UNUSED(f_long__f_long_n_largest);
-    constexpr f_long f_long__f32_nan                =  std::numeric_limits<f32>::quiet_NaN();     UNUSED(f_long__f32_nan);
-    constexpr f_long f_long__f64_nan                =  std::numeric_limits<f64>::quiet_NaN();     UNUSED(f_long__f64_nan);
-    constexpr f_long f_long__f_long_nan             =  std::numeric_limits<f_long>::quiet_NaN();  UNUSED(f_long__f_long_nan);
-    constexpr f_long f_long__f32_p_inf              =  std::numeric_limits<f32>::infinity();      UNUSED(f_long__f32_p_inf);
-    constexpr f_long f_long__f32_n_inf              = -std::numeric_limits<f32>::infinity();      UNUSED(f_long__f32_n_inf);
-    constexpr f_long f_long__f64_p_inf              =  std::numeric_limits<f64>::infinity();      UNUSED(f_long__f64_p_inf);
-    constexpr f_long f_long__f64_n_inf              = -std::numeric_limits<f64>::infinity();      UNUSED(f_long__f64_n_inf);
-    constexpr f_long f_long__f_long_p_inf           =  std::numeric_limits<f_long>::infinity();   UNUSED(f_long__f_long_p_inf);
-    constexpr f_long f_long__f_long_n_inf           = -std::numeric_limits<f_long>::infinity();   UNUSED(f_long__f_long_n_inf);
-              f_long f_long__f32_less_p_smallest    =  std::numeric_limits<f32>::min() / 2.0l;    UNUSED(f_long__f32_less_p_smallest);
-              f_long f_long__f32_less_n_smallest    = -std::numeric_limits<f32>::min() / 2.0l;    UNUSED(f_long__f32_less_n_smallest);
-              f_long f_long__f32_more_p_largest     =  std::numeric_limits<f32>::max() * 2.0l;    UNUSED(f_long__f32_more_p_largest);
-              f_long f_long__f32_more_n_largest     = -std::numeric_limits<f32>::max() * 2.0l;    UNUSED(f_long__f32_more_n_largest);
-              f_long f_long__f64_less_p_smallest    =  std::numeric_limits<f64>::min() / 2.0l;    UNUSED(f_long__f64_less_p_smallest);
-              f_long f_long__f64_less_n_smallest    = -std::numeric_limits<f64>::min() / 2.0l;    UNUSED(f_long__f64_less_n_smallest);
-              f_long f_long__f64_more_p_largest     =  std::numeric_limits<f64>::max() * 2.0l;    UNUSED(f_long__f64_more_p_largest);
-              f_long f_long__f64_more_n_largest     = -std::numeric_limits<f64>::max() * 2.0l;    UNUSED(f_long__f64_more_n_largest);
-              f_long f_long__f_long_less_p_smallest =  std::numeric_limits<f_long>::min() / 2.0l; UNUSED(f_long__f_long_less_p_smallest);
-              f_long f_long__f_long_less_n_smallest = -std::numeric_limits<f_long>::min() / 2.0l; UNUSED(f_long__f_long_less_n_smallest);
-              f_long f_long__f_long_more_p_largest  =  std::numeric_limits<f_long>::max() * 2.0l; UNUSED(f_long__f_long_more_p_largest);
-              f_long f_long__f_long_more_n_largest  = -std::numeric_limits<f_long>::max() * 2.0l; UNUSED(f_long__f_long_more_n_largest);
+    constexpr f_long f_long__positive               =  1.5l;                                         UNUSED(f_long__positive);
+    constexpr f_long f_long__zero                   =  0.0l;                                         UNUSED(f_long__zero);
+    constexpr f_long f_long__negative               = -1.5l;                                         UNUSED(f_long__negative);
+    constexpr f_long f_long__f32_smallest_p         =  std::numeric_limits<f32>::min();              UNUSED(f_long__f32_smallest_p);
+    constexpr f_long f_long__f32_smallest_n         = -std::numeric_limits<f32>::min();              UNUSED(f_long__f32_smallest_n);
+    constexpr f_long f_long__f32_highest            =  std::numeric_limits<f32>::max();              UNUSED(f_long__f32_highest);
+    constexpr f_long f_long__f32_lowest             =  std::numeric_limits<f32>::lowest();           UNUSED(f_long__f32_lowest);
+    constexpr f_long f_long__f64_smallest_p         =  std::numeric_limits<f64>::min();              UNUSED(f_long__f64_smallest_p);
+    constexpr f_long f_long__f64_smallest_n         = -std::numeric_limits<f64>::min();              UNUSED(f_long__f64_smallest_n);
+    constexpr f_long f_long__f64_highest            =  std::numeric_limits<f64>::max();              UNUSED(f_long__f64_highest);
+    constexpr f_long f_long__f64_lowest             =  std::numeric_limits<f64>::lowest();           UNUSED(f_long__f64_lowest);
+    constexpr f_long f_long__f_long_smallest_p      =  std::numeric_limits<f_long>::min();           UNUSED(f_long__f_long_smallest_p);
+    constexpr f_long f_long__f_long_smallest_n      = -std::numeric_limits<f_long>::min();           UNUSED(f_long__f_long_smallest_n);
+    constexpr f_long f_long__f_long_highest         =  std::numeric_limits<f_long>::max();           UNUSED(f_long__f_long_highest);
+    constexpr f_long f_long__f_long_lowest          =  std::numeric_limits<f_long>::lowest();        UNUSED(f_long__f_long_lowest);
+    constexpr f_long f_long__f32_nan                =  std::numeric_limits<f32>::quiet_NaN();        UNUSED(f_long__f32_nan);
+    constexpr f_long f_long__f64_nan                =  std::numeric_limits<f64>::quiet_NaN();        UNUSED(f_long__f64_nan);
+    constexpr f_long f_long__f_long_nan             =  std::numeric_limits<f_long>::quiet_NaN();     UNUSED(f_long__f_long_nan);
+    constexpr f_long f_long__f32_p_inf              =  std::numeric_limits<f32>::infinity();         UNUSED(f_long__f32_p_inf);
+    constexpr f_long f_long__f32_n_inf              = -std::numeric_limits<f32>::infinity();         UNUSED(f_long__f32_n_inf);
+    constexpr f_long f_long__f64_p_inf              =  std::numeric_limits<f64>::infinity();         UNUSED(f_long__f64_p_inf);
+    constexpr f_long f_long__f64_n_inf              = -std::numeric_limits<f64>::infinity();         UNUSED(f_long__f64_n_inf);
+    constexpr f_long f_long__f_long_p_inf           =  std::numeric_limits<f_long>::infinity();      UNUSED(f_long__f_long_p_inf);
+    constexpr f_long f_long__f_long_n_inf           = -std::numeric_limits<f_long>::infinity();      UNUSED(f_long__f_long_n_inf);
+              f_long f_long__f32_less_smallest_p    =  std::numeric_limits<f32>::min() / 2.0l;       UNUSED(f_long__f32_less_smallest_p);
+              f_long f_long__f32_less_smallest_n    = -std::numeric_limits<f32>::min() / 2.0l;       UNUSED(f_long__f32_less_smallest_n);
+              f_long f_long__f32_more_highest       =  std::numeric_limits<f32>::max() * 2.0l;       UNUSED(f_long__f32_more_highest);
+              f_long f_long__f32_more_lowest        =  std::numeric_limits<f32>::lowest() * 2.0l;    UNUSED(f_long__f32_more_lowest);
+              f_long f_long__f64_less_smallest_p    =  std::numeric_limits<f64>::min() / 2.0l;       UNUSED(f_long__f64_less_smallest_p);
+              f_long f_long__f64_less_smallest_n    = -std::numeric_limits<f64>::min() / 2.0l;       UNUSED(f_long__f64_less_smallest_n);
+              f_long f_long__f64_more_highest       =  std::numeric_limits<f64>::max() * 2.0l;       UNUSED(f_long__f64_more_highest);
+              f_long f_long__f64_more_lowest        =  std::numeric_limits<f64>::lowest() * 2.0l;    UNUSED(f_long__f64_more_lowest);
+              f_long f_long__f_long_less_smallest_p =  std::numeric_limits<f_long>::min() / 2.0l;    UNUSED(f_long__f_long_less_smallest_p);
+              f_long f_long__f_long_less_smallest_n = -std::numeric_limits<f_long>::min() / 2.0l;    UNUSED(f_long__f_long_less_smallest_n);
+              f_long f_long__f_long_more_highest    =  std::numeric_limits<f_long>::max() * 2.0l;    UNUSED(f_long__f_long_more_highest);
+              f_long f_long__f_long_more_lowest     =  std::numeric_limits<f_long>::lowest() * 2.0l; UNUSED(f_long__f_long_more_lowest);
 
     // You thought we were done? There are Integral overloads for the functions
     // we want to test, too.
@@ -158,8 +159,8 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
 
         // On platforms where f64 and f_long are identical, the smallest numbers
         // representable will be identical.
-        bool f64_and_f_long_are_identical = (sizeof(f64__f64_p_smallest) ==
-                                             sizeof(f_long__f_long_p_smallest));
+        bool f64_and_f_long_are_identical = (sizeof(f64__f64_smallest_p) ==
+                                             sizeof(f_long__f_long_smallest_p));
 
         f64 a = 0.2;
         f64 b = 1 / std::sqrt(5) / std::sqrt(5);
@@ -179,8 +180,8 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE((f64__f64_n_inf       == f64__f64_p_inf)       == false);
         REQUIRE((f_long__f_long_n_inf == f_long__f_long_p_inf) == false);
 
-        REQUIRE((f32__f32_p_smallest == f64__f64_p_smallest)       == false);
-        REQUIRE((f64__f64_p_smallest == f_long__f_long_p_smallest) == f64_and_f_long_are_identical);
+        REQUIRE((f32__f32_smallest_p == f64__f64_smallest_p)       == false);
+        REQUIRE((f64__f64_smallest_p == f_long__f_long_smallest_p) == f64_and_f_long_are_identical);
 
 
         // Now let's make sure we match.
@@ -196,8 +197,8 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(nonstd::cx::f_eq_ulp(f64__f64_n_inf,       f64__f64_p_inf)       == false);
         REQUIRE(nonstd::cx::f_eq_ulp(f_long__f_long_n_inf, f_long__f_long_p_inf) == false);
 
-        REQUIRE(nonstd::cx::f_eq_ulp(f32__f32_p_smallest, f64__f64_p_smallest)       == false);
-        REQUIRE(nonstd::cx::f_eq_ulp(f64__f64_p_smallest, f_long__f_long_p_smallest) == f64_and_f_long_are_identical);
+        REQUIRE(nonstd::cx::f_eq_ulp(f32__f32_smallest_p, f64__f64_smallest_p)       == false);
+        REQUIRE(nonstd::cx::f_eq_ulp(f64__f64_smallest_p, f_long__f_long_smallest_p) == f64_and_f_long_are_identical);
     }
 
     SECTION("f_eq_eps") {
@@ -205,8 +206,8 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
 
         // On platforms where f64 and f_long are identical, the smallest numbers
         // representable will be identical.
-        bool f64_and_f_long_are_identical = (sizeof(f64__f64_p_smallest) ==
-                                             sizeof(f_long__f_long_p_smallest));
+        bool f64_and_f_long_are_identical = (sizeof(f64__f64_smallest_p) ==
+                                             sizeof(f_long__f_long_smallest_p));
 
         f64 a = 0.2;
         f64 b = 1 / std::sqrt(5) / std::sqrt(5);
@@ -227,8 +228,8 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE((f64__f64_n_inf       == f64__f64_p_inf)       == false);
         REQUIRE((f_long__f_long_n_inf == f_long__f_long_p_inf) == false);
 
-        REQUIRE((f32__f32_p_smallest == f64__f64_p_smallest)       == false);
-        REQUIRE((f64__f64_p_smallest == f_long__f_long_p_smallest) == f64_and_f_long_are_identical);
+        REQUIRE((f32__f32_smallest_p == f64__f64_smallest_p)       == false);
+        REQUIRE((f64__f64_smallest_p == f_long__f_long_smallest_p) == f64_and_f_long_are_identical);
 
 
         // Now let's make sure we match (mostly).
@@ -246,102 +247,102 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
 
         // Note: This will always paper over the differences between the
         //       smallest representable numbers.
-        REQUIRE(nonstd::cx::f_eq_eps(f32__f32_p_smallest, f64__f64_p_smallest)       == true);
-        REQUIRE(nonstd::cx::f_eq_eps(f64__f64_p_smallest, f_long__f_long_p_smallest) == true);
+        REQUIRE(nonstd::cx::f_eq_eps(f32__f32_smallest_p, f64__f64_smallest_p)       == true);
+        REQUIRE(nonstd::cx::f_eq_eps(f64__f64_smallest_p, f_long__f_long_smallest_p) == true);
     }
 
     SECTION("isinf") {
         constexpr auto calls_to_isinf_are_constexpr = nonstd::cx::isinf(f32__positive);
 
-        REQUIRE( std::isinf(f32__positive)               == nonstd::cx::isinf(f32__positive)               );
-        REQUIRE( std::isinf(f32__zero)                   == nonstd::cx::isinf(f32__zero)                   );
-        REQUIRE( std::isinf(f32__negative)               == nonstd::cx::isinf(f32__negative)               );
-        REQUIRE( std::isinf(f32__f32_p_smallest)         == nonstd::cx::isinf(f32__f32_p_smallest)         );
-        REQUIRE( std::isinf(f32__f32_n_smallest)         == nonstd::cx::isinf(f32__f32_n_smallest)         );
-        REQUIRE( std::isinf(f32__f32_p_largest)          == nonstd::cx::isinf(f32__f32_p_largest)          );
-        REQUIRE( std::isinf(f32__f32_n_largest)          == nonstd::cx::isinf(f32__f32_n_largest)          );
-        REQUIRE( std::isinf(f32__f64_p_smallest)         == nonstd::cx::isinf(f32__f64_p_smallest)         );
-        REQUIRE( std::isinf(f32__f64_n_smallest)         == nonstd::cx::isinf(f32__f64_n_smallest)         );
-    //  REQUIRE( std::isinf(f32__f64_p_largest)          == nonstd::cx::isinf(f32__f64_p_largest)          );
-    //  REQUIRE( std::isinf(f32__f64_n_largest)          == nonstd::cx::isinf(f32__f64_n_largest)          );
-        REQUIRE( std::isinf(f32__f_long_p_smallest)      == nonstd::cx::isinf(f32__f_long_p_smallest)      );
-        REQUIRE( std::isinf(f32__f_long_n_smallest)      == nonstd::cx::isinf(f32__f_long_n_smallest)      );
-    //  REQUIRE( std::isinf(f32__f_long_p_largest)       == nonstd::cx::isinf(f32__f_long_p_largest)       );
-    //  REQUIRE( std::isinf(f32__f_long_n_largest)       == nonstd::cx::isinf(f32__f_long_n_largest)       );
-        REQUIRE( std::isinf(f32__f32_nan)                == nonstd::cx::isinf(f32__f32_nan)                );
-        REQUIRE( std::isinf(f32__f64_nan)                == nonstd::cx::isinf(f32__f64_nan)                );
-        REQUIRE( std::isinf(f32__f_long_nan)             == nonstd::cx::isinf(f32__f_long_nan)             );
-        REQUIRE( std::isinf(f32__f32_p_inf)              == nonstd::cx::isinf(f32__f32_p_inf)              );
-        REQUIRE( std::isinf(f32__f32_n_inf)              == nonstd::cx::isinf(f32__f32_n_inf)              );
-        REQUIRE( std::isinf(f32__f64_p_inf)              == nonstd::cx::isinf(f32__f64_p_inf)              );
-        REQUIRE( std::isinf(f32__f64_n_inf)              == nonstd::cx::isinf(f32__f64_n_inf)              );
-        REQUIRE( std::isinf(f32__f_long_p_inf)           == nonstd::cx::isinf(f32__f_long_p_inf)           );
-        REQUIRE( std::isinf(f32__f_long_n_inf)           == nonstd::cx::isinf(f32__f_long_n_inf)           );
-        REQUIRE( std::isinf(f32__f32_less_p_smallest)    == nonstd::cx::isinf(f32__f32_less_p_smallest)    );
-        REQUIRE( std::isinf(f32__f32_less_n_smallest)    == nonstd::cx::isinf(f32__f32_less_n_smallest)    );
-        REQUIRE( std::isinf(f32__f32_more_p_largest)     == nonstd::cx::isinf(f32__f32_more_p_largest)     );
-        REQUIRE( std::isinf(f32__f32_more_n_largest)     == nonstd::cx::isinf(f32__f32_more_n_largest)     );
-        REQUIRE( std::isinf(f32__f64_less_p_smallest)    == nonstd::cx::isinf(f32__f64_less_p_smallest)    );
-        REQUIRE( std::isinf(f32__f64_less_n_smallest)    == nonstd::cx::isinf(f32__f64_less_n_smallest)    );
-        REQUIRE( std::isinf(f32__f64_more_p_largest)     == nonstd::cx::isinf(f32__f64_more_p_largest)     );
-        REQUIRE( std::isinf(f32__f64_more_n_largest)     == nonstd::cx::isinf(f32__f64_more_n_largest)     );
-        REQUIRE( std::isinf(f32__f_long_less_p_smallest) == nonstd::cx::isinf(f32__f_long_less_p_smallest) );
-        REQUIRE( std::isinf(f32__f_long_less_n_smallest) == nonstd::cx::isinf(f32__f_long_less_n_smallest) );
-        REQUIRE( std::isinf(f32__f_long_more_p_largest)  == nonstd::cx::isinf(f32__f_long_more_p_largest)  );
-        REQUIRE( std::isinf(f32__f_long_more_n_largest)  == nonstd::cx::isinf(f32__f_long_more_n_largest)  );
+        REQUIRE( std::isinf(f32__positive)                  == nonstd::cx::isinf(f32__positive)               );
+        REQUIRE( std::isinf(f32__zero)                      == nonstd::cx::isinf(f32__zero)                   );
+        REQUIRE( std::isinf(f32__negative)                  == nonstd::cx::isinf(f32__negative)               );
+        REQUIRE( std::isinf(f32__f32_smallest_p)            == nonstd::cx::isinf(f32__f32_smallest_p)         );
+        REQUIRE( std::isinf(f32__f32_smallest_n)            == nonstd::cx::isinf(f32__f32_smallest_n)         );
+        REQUIRE( std::isinf(f32__f32_highest)               == nonstd::cx::isinf(f32__f32_highest)            );
+        REQUIRE( std::isinf(f32__f32_lowest)                == nonstd::cx::isinf(f32__f32_lowest)             );
+        REQUIRE( std::isinf(f32__f64_smallest_p)            == nonstd::cx::isinf(f32__f64_smallest_p)         );
+        REQUIRE( std::isinf(f32__f64_smallest_n)            == nonstd::cx::isinf(f32__f64_smallest_n)         );
+    //  REQUIRE( std::isinf(f32__f64_highest)               == nonstd::cx::isinf(f32__f64_highest)            );
+    //  REQUIRE( std::isinf(f32__f64_lowest)                == nonstd::cx::isinf(f32__f64_lowest)             );
+        REQUIRE( std::isinf(f32__f_long_smallest_p)         == nonstd::cx::isinf(f32__f_long_smallest_p)      );
+        REQUIRE( std::isinf(f32__f_long_smallest_n)         == nonstd::cx::isinf(f32__f_long_smallest_n)      );
+    //  REQUIRE( std::isinf(f32__f_long_highest)            == nonstd::cx::isinf(f32__f_long_highest)         );
+    //  REQUIRE( std::isinf(f32__f_long_lowest)             == nonstd::cx::isinf(f32__f_long_lowest)          );
+        REQUIRE( std::isinf(f32__f32_nan)                   == nonstd::cx::isinf(f32__f32_nan)                );
+        REQUIRE( std::isinf(f32__f64_nan)                   == nonstd::cx::isinf(f32__f64_nan)                );
+        REQUIRE( std::isinf(f32__f_long_nan)                == nonstd::cx::isinf(f32__f_long_nan)             );
+        REQUIRE( std::isinf(f32__f32_p_inf)                 == nonstd::cx::isinf(f32__f32_p_inf)              );
+        REQUIRE( std::isinf(f32__f32_n_inf)                 == nonstd::cx::isinf(f32__f32_n_inf)              );
+        REQUIRE( std::isinf(f32__f64_p_inf)                 == nonstd::cx::isinf(f32__f64_p_inf)              );
+        REQUIRE( std::isinf(f32__f64_n_inf)                 == nonstd::cx::isinf(f32__f64_n_inf)              );
+        REQUIRE( std::isinf(f32__f_long_p_inf)              == nonstd::cx::isinf(f32__f_long_p_inf)           );
+        REQUIRE( std::isinf(f32__f_long_n_inf)              == nonstd::cx::isinf(f32__f_long_n_inf)           );
+        REQUIRE( std::isinf(f32__f32_less_smallest_p)       == nonstd::cx::isinf(f32__f32_less_smallest_p)    );
+        REQUIRE( std::isinf(f32__f32_less_smallest_n)       == nonstd::cx::isinf(f32__f32_less_smallest_n)    );
+        REQUIRE( std::isinf(f32__f32_more_highest)          == nonstd::cx::isinf(f32__f32_more_highest)       );
+        REQUIRE( std::isinf(f32__f32_more_lowest)           == nonstd::cx::isinf(f32__f32_more_lowest)        );
+        REQUIRE( std::isinf(f32__f64_less_smallest_p)       == nonstd::cx::isinf(f32__f64_less_smallest_p)    );
+        REQUIRE( std::isinf(f32__f64_less_smallest_n)       == nonstd::cx::isinf(f32__f64_less_smallest_n)    );
+        REQUIRE( std::isinf(f32__f64_more_highest)          == nonstd::cx::isinf(f32__f64_more_highest)       );
+        REQUIRE( std::isinf(f32__f64_more_lowest)           == nonstd::cx::isinf(f32__f64_more_lowest)        );
+        REQUIRE( std::isinf(f32__f_long_less_smallest_p)    == nonstd::cx::isinf(f32__f_long_less_smallest_p) );
+        REQUIRE( std::isinf(f32__f_long_less_smallest_n)    == nonstd::cx::isinf(f32__f_long_less_smallest_n) );
+        REQUIRE( std::isinf(f32__f_long_more_highest)       == nonstd::cx::isinf(f32__f_long_more_highest)    );
+        REQUIRE( std::isinf(f32__f_long_more_lowest)        == nonstd::cx::isinf(f32__f_long_more_lowest)     );
 
-        REQUIRE( std::isinf(f64__positive)               == nonstd::cx::isinf(f64__positive)               );
-        REQUIRE( std::isinf(f64__zero)                   == nonstd::cx::isinf(f64__zero)                   );
-        REQUIRE( std::isinf(f64__negative)               == nonstd::cx::isinf(f64__negative)               );
-        REQUIRE( std::isinf(f64__f32_p_smallest)         == nonstd::cx::isinf(f64__f32_p_smallest)         );
-        REQUIRE( std::isinf(f64__f32_n_smallest)         == nonstd::cx::isinf(f64__f32_n_smallest)         );
-        REQUIRE( std::isinf(f64__f32_p_largest)          == nonstd::cx::isinf(f64__f32_p_largest)          );
-        REQUIRE( std::isinf(f64__f32_n_largest)          == nonstd::cx::isinf(f64__f32_n_largest)          );
-        REQUIRE( std::isinf(f64__f64_p_smallest)         == nonstd::cx::isinf(f64__f64_p_smallest)         );
-        REQUIRE( std::isinf(f64__f64_n_smallest)         == nonstd::cx::isinf(f64__f64_n_smallest)         );
-        REQUIRE( std::isinf(f64__f64_p_largest)          == nonstd::cx::isinf(f64__f64_p_largest)          );
-        REQUIRE( std::isinf(f64__f64_n_largest)          == nonstd::cx::isinf(f64__f64_n_largest)          );
-        REQUIRE( std::isinf(f64__f_long_p_smallest)      == nonstd::cx::isinf(f64__f_long_p_smallest)      );
-        REQUIRE( std::isinf(f64__f_long_n_smallest)      == nonstd::cx::isinf(f64__f_long_n_smallest)      );
-    //  REQUIRE( std::isinf(f64__f_long_p_largest)       == nonstd::cx::isinf(f64__f_long_p_largest)       );
-    //  REQUIRE( std::isinf(f64__f_long_n_largest)       == nonstd::cx::isinf(f64__f_long_n_largest)       );
-        REQUIRE( std::isinf(f64__f32_nan)                == nonstd::cx::isinf(f64__f32_nan)                );
-        REQUIRE( std::isinf(f64__f64_nan)                == nonstd::cx::isinf(f64__f64_nan)                );
-        REQUIRE( std::isinf(f64__f_long_nan)             == nonstd::cx::isinf(f64__f_long_nan)             );
-        REQUIRE( std::isinf(f64__f32_p_inf)              == nonstd::cx::isinf(f64__f32_p_inf)              );
-        REQUIRE( std::isinf(f64__f32_n_inf)              == nonstd::cx::isinf(f64__f32_n_inf)              );
-        REQUIRE( std::isinf(f64__f64_p_inf)              == nonstd::cx::isinf(f64__f64_p_inf)              );
-        REQUIRE( std::isinf(f64__f64_n_inf)              == nonstd::cx::isinf(f64__f64_n_inf)              );
-        REQUIRE( std::isinf(f64__f_long_p_inf)           == nonstd::cx::isinf(f64__f_long_p_inf)           );
-        REQUIRE( std::isinf(f64__f_long_n_inf)           == nonstd::cx::isinf(f64__f_long_n_inf)           );
-        REQUIRE( std::isinf(f64__f32_less_p_smallest)    == nonstd::cx::isinf(f64__f32_less_p_smallest)    );
-        REQUIRE( std::isinf(f64__f32_less_n_smallest)    == nonstd::cx::isinf(f64__f32_less_n_smallest)    );
-        REQUIRE( std::isinf(f64__f32_more_p_largest)     == nonstd::cx::isinf(f64__f32_more_p_largest)     );
-        REQUIRE( std::isinf(f64__f32_more_n_largest)     == nonstd::cx::isinf(f64__f32_more_n_largest)     );
-        REQUIRE( std::isinf(f64__f64_less_p_smallest)    == nonstd::cx::isinf(f64__f64_less_p_smallest)    );
-        REQUIRE( std::isinf(f64__f64_less_n_smallest)    == nonstd::cx::isinf(f64__f64_less_n_smallest)    );
-        REQUIRE( std::isinf(f64__f64_more_p_largest)     == nonstd::cx::isinf(f64__f64_more_p_largest)     );
-        REQUIRE( std::isinf(f64__f64_more_n_largest)     == nonstd::cx::isinf(f64__f64_more_n_largest)     );
-        REQUIRE( std::isinf(f64__f_long_less_p_smallest) == nonstd::cx::isinf(f64__f_long_less_p_smallest) );
-        REQUIRE( std::isinf(f64__f_long_less_n_smallest) == nonstd::cx::isinf(f64__f_long_less_n_smallest) );
-        REQUIRE( std::isinf(f64__f_long_more_p_largest)  == nonstd::cx::isinf(f64__f_long_more_p_largest)  );
-        REQUIRE( std::isinf(f64__f_long_more_n_largest)  == nonstd::cx::isinf(f64__f_long_more_n_largest)  );
+        REQUIRE( std::isinf(f64__positive)                  == nonstd::cx::isinf(f64__positive)               );
+        REQUIRE( std::isinf(f64__zero)                      == nonstd::cx::isinf(f64__zero)                   );
+        REQUIRE( std::isinf(f64__negative)                  == nonstd::cx::isinf(f64__negative)               );
+        REQUIRE( std::isinf(f64__f32_smallest_p)            == nonstd::cx::isinf(f64__f32_smallest_p)         );
+        REQUIRE( std::isinf(f64__f32_smallest_n)            == nonstd::cx::isinf(f64__f32_smallest_n)         );
+        REQUIRE( std::isinf(f64__f32_highest)               == nonstd::cx::isinf(f64__f32_highest)            );
+        REQUIRE( std::isinf(f64__f32_lowest)                == nonstd::cx::isinf(f64__f32_lowest)             );
+        REQUIRE( std::isinf(f64__f64_smallest_p)            == nonstd::cx::isinf(f64__f64_smallest_p)         );
+        REQUIRE( std::isinf(f64__f64_smallest_n)            == nonstd::cx::isinf(f64__f64_smallest_n)         );
+        REQUIRE( std::isinf(f64__f64_highest)               == nonstd::cx::isinf(f64__f64_highest)            );
+        REQUIRE( std::isinf(f64__f64_lowest)                == nonstd::cx::isinf(f64__f64_lowest)             );
+        REQUIRE( std::isinf(f64__f_long_smallest_p)         == nonstd::cx::isinf(f64__f_long_smallest_p)      );
+        REQUIRE( std::isinf(f64__f_long_smallest_n)         == nonstd::cx::isinf(f64__f_long_smallest_n)      );
+    //  REQUIRE( std::isinf(f64__f_long_highest)            == nonstd::cx::isinf(f64__f_long_highest)         );
+    //  REQUIRE( std::isinf(f64__f_long_lowest)             == nonstd::cx::isinf(f64__f_long_lowest)          );
+        REQUIRE( std::isinf(f64__f32_nan)                   == nonstd::cx::isinf(f64__f32_nan)                );
+        REQUIRE( std::isinf(f64__f64_nan)                   == nonstd::cx::isinf(f64__f64_nan)                );
+        REQUIRE( std::isinf(f64__f_long_nan)                == nonstd::cx::isinf(f64__f_long_nan)             );
+        REQUIRE( std::isinf(f64__f32_p_inf)                 == nonstd::cx::isinf(f64__f32_p_inf)              );
+        REQUIRE( std::isinf(f64__f32_n_inf)                 == nonstd::cx::isinf(f64__f32_n_inf)              );
+        REQUIRE( std::isinf(f64__f64_p_inf)                 == nonstd::cx::isinf(f64__f64_p_inf)              );
+        REQUIRE( std::isinf(f64__f64_n_inf)                 == nonstd::cx::isinf(f64__f64_n_inf)              );
+        REQUIRE( std::isinf(f64__f_long_p_inf)              == nonstd::cx::isinf(f64__f_long_p_inf)           );
+        REQUIRE( std::isinf(f64__f_long_n_inf)              == nonstd::cx::isinf(f64__f_long_n_inf)           );
+        REQUIRE( std::isinf(f64__f32_less_smallest_p)       == nonstd::cx::isinf(f64__f32_less_smallest_p)    );
+        REQUIRE( std::isinf(f64__f32_less_smallest_n)       == nonstd::cx::isinf(f64__f32_less_smallest_n)    );
+        REQUIRE( std::isinf(f64__f32_more_highest)          == nonstd::cx::isinf(f64__f32_more_highest)       );
+        REQUIRE( std::isinf(f64__f32_more_lowest)           == nonstd::cx::isinf(f64__f32_more_lowest)        );
+        REQUIRE( std::isinf(f64__f64_less_smallest_p)       == nonstd::cx::isinf(f64__f64_less_smallest_p)    );
+        REQUIRE( std::isinf(f64__f64_less_smallest_n)       == nonstd::cx::isinf(f64__f64_less_smallest_n)    );
+        REQUIRE( std::isinf(f64__f64_more_highest)          == nonstd::cx::isinf(f64__f64_more_highest)       );
+        REQUIRE( std::isinf(f64__f64_more_lowest)           == nonstd::cx::isinf(f64__f64_more_lowest)        );
+        REQUIRE( std::isinf(f64__f_long_less_smallest_p)    == nonstd::cx::isinf(f64__f_long_less_smallest_p) );
+        REQUIRE( std::isinf(f64__f_long_less_smallest_n)    == nonstd::cx::isinf(f64__f_long_less_smallest_n) );
+        REQUIRE( std::isinf(f64__f_long_more_highest)       == nonstd::cx::isinf(f64__f_long_more_highest)    );
+        REQUIRE( std::isinf(f64__f_long_more_lowest)        == nonstd::cx::isinf(f64__f_long_more_lowest)     );
 
         REQUIRE( std::isinf(f_long__positive)               == nonstd::cx::isinf(f_long__positive)               );
         REQUIRE( std::isinf(f_long__zero)                   == nonstd::cx::isinf(f_long__zero)                   );
         REQUIRE( std::isinf(f_long__negative)               == nonstd::cx::isinf(f_long__negative)               );
-        REQUIRE( std::isinf(f_long__f32_p_smallest)         == nonstd::cx::isinf(f_long__f32_p_smallest)         );
-        REQUIRE( std::isinf(f_long__f32_n_smallest)         == nonstd::cx::isinf(f_long__f32_n_smallest)         );
-        REQUIRE( std::isinf(f_long__f32_p_largest)          == nonstd::cx::isinf(f_long__f32_p_largest)          );
-        REQUIRE( std::isinf(f_long__f32_n_largest)          == nonstd::cx::isinf(f_long__f32_n_largest)          );
-        REQUIRE( std::isinf(f_long__f64_p_smallest)         == nonstd::cx::isinf(f_long__f64_p_smallest)         );
-        REQUIRE( std::isinf(f_long__f64_n_smallest)         == nonstd::cx::isinf(f_long__f64_n_smallest)         );
-        REQUIRE( std::isinf(f_long__f64_p_largest)          == nonstd::cx::isinf(f_long__f64_p_largest)          );
-        REQUIRE( std::isinf(f_long__f64_n_largest)          == nonstd::cx::isinf(f_long__f64_n_largest)          );
-        REQUIRE( std::isinf(f_long__f_long_p_smallest)      == nonstd::cx::isinf(f_long__f_long_p_smallest)      );
-        REQUIRE( std::isinf(f_long__f_long_n_smallest)      == nonstd::cx::isinf(f_long__f_long_n_smallest)      );
-        REQUIRE( std::isinf(f_long__f_long_p_largest)       == nonstd::cx::isinf(f_long__f_long_p_largest)       );
-        REQUIRE( std::isinf(f_long__f_long_n_largest)       == nonstd::cx::isinf(f_long__f_long_n_largest)       );
+        REQUIRE( std::isinf(f_long__f32_smallest_p)         == nonstd::cx::isinf(f_long__f32_smallest_p)         );
+        REQUIRE( std::isinf(f_long__f32_smallest_n)         == nonstd::cx::isinf(f_long__f32_smallest_n)         );
+        REQUIRE( std::isinf(f_long__f32_highest)            == nonstd::cx::isinf(f_long__f32_highest)            );
+        REQUIRE( std::isinf(f_long__f32_lowest)             == nonstd::cx::isinf(f_long__f32_lowest)             );
+        REQUIRE( std::isinf(f_long__f64_smallest_p)         == nonstd::cx::isinf(f_long__f64_smallest_p)         );
+        REQUIRE( std::isinf(f_long__f64_smallest_n)         == nonstd::cx::isinf(f_long__f64_smallest_n)         );
+        REQUIRE( std::isinf(f_long__f64_highest)            == nonstd::cx::isinf(f_long__f64_highest)            );
+        REQUIRE( std::isinf(f_long__f64_lowest)             == nonstd::cx::isinf(f_long__f64_lowest)             );
+        REQUIRE( std::isinf(f_long__f_long_smallest_p)      == nonstd::cx::isinf(f_long__f_long_smallest_p)      );
+        REQUIRE( std::isinf(f_long__f_long_smallest_n)      == nonstd::cx::isinf(f_long__f_long_smallest_n)      );
+        REQUIRE( std::isinf(f_long__f_long_highest)         == nonstd::cx::isinf(f_long__f_long_highest)         );
+        REQUIRE( std::isinf(f_long__f_long_lowest)          == nonstd::cx::isinf(f_long__f_long_lowest)          );
         REQUIRE( std::isinf(f_long__f32_nan)                == nonstd::cx::isinf(f_long__f32_nan)                );
         REQUIRE( std::isinf(f_long__f64_nan)                == nonstd::cx::isinf(f_long__f64_nan)                );
         REQUIRE( std::isinf(f_long__f_long_nan)             == nonstd::cx::isinf(f_long__f_long_nan)             );
@@ -351,18 +352,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE( std::isinf(f_long__f64_n_inf)              == nonstd::cx::isinf(f_long__f64_n_inf)              );
         REQUIRE( std::isinf(f_long__f_long_p_inf)           == nonstd::cx::isinf(f_long__f_long_p_inf)           );
         REQUIRE( std::isinf(f_long__f_long_n_inf)           == nonstd::cx::isinf(f_long__f_long_n_inf)           );
-        REQUIRE( std::isinf(f_long__f32_less_p_smallest)    == nonstd::cx::isinf(f_long__f32_less_p_smallest)    );
-        REQUIRE( std::isinf(f_long__f32_less_n_smallest)    == nonstd::cx::isinf(f_long__f32_less_n_smallest)    );
-        REQUIRE( std::isinf(f_long__f32_more_p_largest)     == nonstd::cx::isinf(f_long__f32_more_p_largest)     );
-        REQUIRE( std::isinf(f_long__f32_more_n_largest)     == nonstd::cx::isinf(f_long__f32_more_n_largest)     );
-        REQUIRE( std::isinf(f_long__f64_less_p_smallest)    == nonstd::cx::isinf(f_long__f64_less_p_smallest)    );
-        REQUIRE( std::isinf(f_long__f64_less_n_smallest)    == nonstd::cx::isinf(f_long__f64_less_n_smallest)    );
-        REQUIRE( std::isinf(f_long__f64_more_p_largest)     == nonstd::cx::isinf(f_long__f64_more_p_largest)     );
-        REQUIRE( std::isinf(f_long__f64_more_n_largest)     == nonstd::cx::isinf(f_long__f64_more_n_largest)     );
-        REQUIRE( std::isinf(f_long__f_long_less_p_smallest) == nonstd::cx::isinf(f_long__f_long_less_p_smallest) );
-        REQUIRE( std::isinf(f_long__f_long_less_n_smallest) == nonstd::cx::isinf(f_long__f_long_less_n_smallest) );
-        REQUIRE( std::isinf(f_long__f_long_more_p_largest)  == nonstd::cx::isinf(f_long__f_long_more_p_largest)  );
-        REQUIRE( std::isinf(f_long__f_long_more_n_largest)  == nonstd::cx::isinf(f_long__f_long_more_n_largest)  );
+        REQUIRE( std::isinf(f_long__f32_less_smallest_p)    == nonstd::cx::isinf(f_long__f32_less_smallest_p)    );
+        REQUIRE( std::isinf(f_long__f32_less_smallest_n)    == nonstd::cx::isinf(f_long__f32_less_smallest_n)    );
+        REQUIRE( std::isinf(f_long__f32_more_highest)       == nonstd::cx::isinf(f_long__f32_more_highest)       );
+        REQUIRE( std::isinf(f_long__f32_more_lowest)        == nonstd::cx::isinf(f_long__f32_more_lowest)        );
+        REQUIRE( std::isinf(f_long__f64_less_smallest_p)    == nonstd::cx::isinf(f_long__f64_less_smallest_p)    );
+        REQUIRE( std::isinf(f_long__f64_less_smallest_n)    == nonstd::cx::isinf(f_long__f64_less_smallest_n)    );
+        REQUIRE( std::isinf(f_long__f64_more_highest)       == nonstd::cx::isinf(f_long__f64_more_highest)       );
+        REQUIRE( std::isinf(f_long__f64_more_lowest)        == nonstd::cx::isinf(f_long__f64_more_lowest)        );
+        REQUIRE( std::isinf(f_long__f_long_less_smallest_p) == nonstd::cx::isinf(f_long__f_long_less_smallest_p) );
+        REQUIRE( std::isinf(f_long__f_long_less_smallest_n) == nonstd::cx::isinf(f_long__f_long_less_smallest_n) );
+        REQUIRE( std::isinf(f_long__f_long_more_highest)    == nonstd::cx::isinf(f_long__f_long_more_highest)    );
+        REQUIRE( std::isinf(f_long__f_long_more_lowest)     == nonstd::cx::isinf(f_long__f_long_more_lowest)     );
 
 #if !defined(NONSTD_COMPILER_MSVC)
         // MSVC fails on these std::isinf calls with an 'ambiguous overload'
@@ -384,18 +385,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE( std::isnan(f32__positive)               == nonstd::cx::isnan(f32__positive)               );
         REQUIRE( std::isnan(f32__zero)                   == nonstd::cx::isnan(f32__zero)                   );
         REQUIRE( std::isnan(f32__negative)               == nonstd::cx::isnan(f32__negative)               );
-        REQUIRE( std::isnan(f32__f32_p_smallest)         == nonstd::cx::isnan(f32__f32_p_smallest)         );
-        REQUIRE( std::isnan(f32__f32_n_smallest)         == nonstd::cx::isnan(f32__f32_n_smallest)         );
-        REQUIRE( std::isnan(f32__f32_p_largest)          == nonstd::cx::isnan(f32__f32_p_largest)          );
-        REQUIRE( std::isnan(f32__f32_n_largest)          == nonstd::cx::isnan(f32__f32_n_largest)          );
-        REQUIRE( std::isnan(f32__f64_p_smallest)         == nonstd::cx::isnan(f32__f64_p_smallest)         );
-        REQUIRE( std::isnan(f32__f64_n_smallest)         == nonstd::cx::isnan(f32__f64_n_smallest)         );
-    //  REQUIRE( std::isnan(f32__f64_p_largest)          == nonstd::cx::isnan(f32__f64_p_largest)          );
-    //  REQUIRE( std::isnan(f32__f64_n_largest)          == nonstd::cx::isnan(f32__f64_n_largest)          );
-        REQUIRE( std::isnan(f32__f_long_p_smallest)      == nonstd::cx::isnan(f32__f_long_p_smallest)      );
-        REQUIRE( std::isnan(f32__f_long_n_smallest)      == nonstd::cx::isnan(f32__f_long_n_smallest)      );
-    //  REQUIRE( std::isnan(f32__f_long_p_largest)       == nonstd::cx::isnan(f32__f_long_p_largest)       );
-    //  REQUIRE( std::isnan(f32__f_long_n_largest)       == nonstd::cx::isnan(f32__f_long_n_largest)       );
+        REQUIRE( std::isnan(f32__f32_smallest_p)         == nonstd::cx::isnan(f32__f32_smallest_p)         );
+        REQUIRE( std::isnan(f32__f32_smallest_n)         == nonstd::cx::isnan(f32__f32_smallest_n)         );
+        REQUIRE( std::isnan(f32__f32_highest)            == nonstd::cx::isnan(f32__f32_highest)            );
+        REQUIRE( std::isnan(f32__f32_lowest)             == nonstd::cx::isnan(f32__f32_lowest)             );
+        REQUIRE( std::isnan(f32__f64_smallest_p)         == nonstd::cx::isnan(f32__f64_smallest_p)         );
+        REQUIRE( std::isnan(f32__f64_smallest_n)         == nonstd::cx::isnan(f32__f64_smallest_n)         );
+    //  REQUIRE( std::isnan(f32__f64_highest)            == nonstd::cx::isnan(f32__f64_highest)            );
+    //  REQUIRE( std::isnan(f32__f64_lowest)             == nonstd::cx::isnan(f32__f64_lowest)             );
+        REQUIRE( std::isnan(f32__f_long_smallest_p)      == nonstd::cx::isnan(f32__f_long_smallest_p)      );
+        REQUIRE( std::isnan(f32__f_long_smallest_n)      == nonstd::cx::isnan(f32__f_long_smallest_n)      );
+    //  REQUIRE( std::isnan(f32__f_long_highest)         == nonstd::cx::isnan(f32__f_long_highest)         );
+    //  REQUIRE( std::isnan(f32__f_long_lowest)          == nonstd::cx::isnan(f32__f_long_lowest)          );
         REQUIRE( std::isnan(f32__f32_nan)                == nonstd::cx::isnan(f32__f32_nan)                );
         REQUIRE( std::isnan(f32__f64_nan)                == nonstd::cx::isnan(f32__f64_nan)                );
         REQUIRE( std::isnan(f32__f_long_nan)             == nonstd::cx::isnan(f32__f_long_nan)             );
@@ -405,34 +406,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE( std::isnan(f32__f64_n_inf)              == nonstd::cx::isnan(f32__f64_n_inf)              );
         REQUIRE( std::isnan(f32__f_long_p_inf)           == nonstd::cx::isnan(f32__f_long_p_inf)           );
         REQUIRE( std::isnan(f32__f_long_n_inf)           == nonstd::cx::isnan(f32__f_long_n_inf)           );
-        REQUIRE( std::isnan(f32__f32_less_p_smallest)    == nonstd::cx::isnan(f32__f32_less_p_smallest)    );
-        REQUIRE( std::isnan(f32__f32_less_n_smallest)    == nonstd::cx::isnan(f32__f32_less_n_smallest)    );
-        REQUIRE( std::isnan(f32__f32_more_p_largest)     == nonstd::cx::isnan(f32__f32_more_p_largest)     );
-        REQUIRE( std::isnan(f32__f32_more_n_largest)     == nonstd::cx::isnan(f32__f32_more_n_largest)     );
-        REQUIRE( std::isnan(f32__f64_less_p_smallest)    == nonstd::cx::isnan(f32__f64_less_p_smallest)    );
-        REQUIRE( std::isnan(f32__f64_less_n_smallest)    == nonstd::cx::isnan(f32__f64_less_n_smallest)    );
-        REQUIRE( std::isnan(f32__f64_more_p_largest)     == nonstd::cx::isnan(f32__f64_more_p_largest)     );
-        REQUIRE( std::isnan(f32__f64_more_n_largest)     == nonstd::cx::isnan(f32__f64_more_n_largest)     );
-        REQUIRE( std::isnan(f32__f_long_less_p_smallest) == nonstd::cx::isnan(f32__f_long_less_p_smallest) );
-        REQUIRE( std::isnan(f32__f_long_less_n_smallest) == nonstd::cx::isnan(f32__f_long_less_n_smallest) );
-        REQUIRE( std::isnan(f32__f_long_more_p_largest)  == nonstd::cx::isnan(f32__f_long_more_p_largest)  );
-        REQUIRE( std::isnan(f32__f_long_more_n_largest)  == nonstd::cx::isnan(f32__f_long_more_n_largest)  );
+        REQUIRE( std::isnan(f32__f32_less_smallest_p)    == nonstd::cx::isnan(f32__f32_less_smallest_p)    );
+        REQUIRE( std::isnan(f32__f32_less_smallest_n)    == nonstd::cx::isnan(f32__f32_less_smallest_n)    );
+        REQUIRE( std::isnan(f32__f32_more_highest)       == nonstd::cx::isnan(f32__f32_more_highest)       );
+        REQUIRE( std::isnan(f32__f32_more_lowest)        == nonstd::cx::isnan(f32__f32_more_lowest)        );
+        REQUIRE( std::isnan(f32__f64_less_smallest_p)    == nonstd::cx::isnan(f32__f64_less_smallest_p)    );
+        REQUIRE( std::isnan(f32__f64_less_smallest_n)    == nonstd::cx::isnan(f32__f64_less_smallest_n)    );
+        REQUIRE( std::isnan(f32__f64_more_highest)       == nonstd::cx::isnan(f32__f64_more_highest)       );
+        REQUIRE( std::isnan(f32__f64_more_lowest)        == nonstd::cx::isnan(f32__f64_more_lowest)        );
+        REQUIRE( std::isnan(f32__f_long_less_smallest_p) == nonstd::cx::isnan(f32__f_long_less_smallest_p) );
+        REQUIRE( std::isnan(f32__f_long_less_smallest_n) == nonstd::cx::isnan(f32__f_long_less_smallest_n) );
+        REQUIRE( std::isnan(f32__f_long_more_highest)    == nonstd::cx::isnan(f32__f_long_more_highest)    );
+        REQUIRE( std::isnan(f32__f_long_more_lowest)     == nonstd::cx::isnan(f32__f_long_more_lowest)     );
 
         REQUIRE( std::isnan(f64__positive)               == nonstd::cx::isnan(f64__positive)               );
         REQUIRE( std::isnan(f64__zero)                   == nonstd::cx::isnan(f64__zero)                   );
         REQUIRE( std::isnan(f64__negative)               == nonstd::cx::isnan(f64__negative)               );
-        REQUIRE( std::isnan(f64__f32_p_smallest)         == nonstd::cx::isnan(f64__f32_p_smallest)         );
-        REQUIRE( std::isnan(f64__f32_n_smallest)         == nonstd::cx::isnan(f64__f32_n_smallest)         );
-        REQUIRE( std::isnan(f64__f32_p_largest)          == nonstd::cx::isnan(f64__f32_p_largest)          );
-        REQUIRE( std::isnan(f64__f32_n_largest)          == nonstd::cx::isnan(f64__f32_n_largest)          );
-        REQUIRE( std::isnan(f64__f64_p_smallest)         == nonstd::cx::isnan(f64__f64_p_smallest)         );
-        REQUIRE( std::isnan(f64__f64_n_smallest)         == nonstd::cx::isnan(f64__f64_n_smallest)         );
-        REQUIRE( std::isnan(f64__f64_p_largest)          == nonstd::cx::isnan(f64__f64_p_largest)          );
-        REQUIRE( std::isnan(f64__f64_n_largest)          == nonstd::cx::isnan(f64__f64_n_largest)          );
-        REQUIRE( std::isnan(f64__f_long_p_smallest)      == nonstd::cx::isnan(f64__f_long_p_smallest)      );
-        REQUIRE( std::isnan(f64__f_long_n_smallest)      == nonstd::cx::isnan(f64__f_long_n_smallest)      );
-    //  REQUIRE( std::isnan(f64__f_long_p_largest)       == nonstd::cx::isnan(f64__f_long_p_largest)       );
-    //  REQUIRE( std::isnan(f64__f_long_n_largest)       == nonstd::cx::isnan(f64__f_long_n_largest)       );
+        REQUIRE( std::isnan(f64__f32_smallest_p)         == nonstd::cx::isnan(f64__f32_smallest_p)         );
+        REQUIRE( std::isnan(f64__f32_smallest_n)         == nonstd::cx::isnan(f64__f32_smallest_n)         );
+        REQUIRE( std::isnan(f64__f32_highest)            == nonstd::cx::isnan(f64__f32_highest)            );
+        REQUIRE( std::isnan(f64__f32_lowest)             == nonstd::cx::isnan(f64__f32_lowest)             );
+        REQUIRE( std::isnan(f64__f64_smallest_p)         == nonstd::cx::isnan(f64__f64_smallest_p)         );
+        REQUIRE( std::isnan(f64__f64_smallest_n)         == nonstd::cx::isnan(f64__f64_smallest_n)         );
+        REQUIRE( std::isnan(f64__f64_highest)            == nonstd::cx::isnan(f64__f64_highest)            );
+        REQUIRE( std::isnan(f64__f64_lowest)             == nonstd::cx::isnan(f64__f64_lowest)             );
+        REQUIRE( std::isnan(f64__f_long_smallest_p)      == nonstd::cx::isnan(f64__f_long_smallest_p)      );
+        REQUIRE( std::isnan(f64__f_long_smallest_n)      == nonstd::cx::isnan(f64__f_long_smallest_n)      );
+    //  REQUIRE( std::isnan(f64__f_long_highest)         == nonstd::cx::isnan(f64__f_long_highest)         );
+    //  REQUIRE( std::isnan(f64__f_long_lowest)          == nonstd::cx::isnan(f64__f_long_lowest)          );
         REQUIRE( std::isnan(f64__f32_nan)                == nonstd::cx::isnan(f64__f32_nan)                );
         REQUIRE( std::isnan(f64__f64_nan)                == nonstd::cx::isnan(f64__f64_nan)                );
         REQUIRE( std::isnan(f64__f_long_nan)             == nonstd::cx::isnan(f64__f_long_nan)             );
@@ -442,34 +443,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE( std::isnan(f64__f64_n_inf)              == nonstd::cx::isnan(f64__f64_n_inf)              );
         REQUIRE( std::isnan(f64__f_long_p_inf)           == nonstd::cx::isnan(f64__f_long_p_inf)           );
         REQUIRE( std::isnan(f64__f_long_n_inf)           == nonstd::cx::isnan(f64__f_long_n_inf)           );
-        REQUIRE( std::isnan(f64__f32_less_p_smallest)    == nonstd::cx::isnan(f64__f32_less_p_smallest)    );
-        REQUIRE( std::isnan(f64__f32_less_n_smallest)    == nonstd::cx::isnan(f64__f32_less_n_smallest)    );
-        REQUIRE( std::isnan(f64__f32_more_p_largest)     == nonstd::cx::isnan(f64__f32_more_p_largest)     );
-        REQUIRE( std::isnan(f64__f32_more_n_largest)     == nonstd::cx::isnan(f64__f32_more_n_largest)     );
-        REQUIRE( std::isnan(f64__f64_less_p_smallest)    == nonstd::cx::isnan(f64__f64_less_p_smallest)    );
-        REQUIRE( std::isnan(f64__f64_less_n_smallest)    == nonstd::cx::isnan(f64__f64_less_n_smallest)    );
-        REQUIRE( std::isnan(f64__f64_more_p_largest)     == nonstd::cx::isnan(f64__f64_more_p_largest)     );
-        REQUIRE( std::isnan(f64__f64_more_n_largest)     == nonstd::cx::isnan(f64__f64_more_n_largest)     );
-        REQUIRE( std::isnan(f64__f_long_less_p_smallest) == nonstd::cx::isnan(f64__f_long_less_p_smallest) );
-        REQUIRE( std::isnan(f64__f_long_less_n_smallest) == nonstd::cx::isnan(f64__f_long_less_n_smallest) );
-        REQUIRE( std::isnan(f64__f_long_more_p_largest)  == nonstd::cx::isnan(f64__f_long_more_p_largest)  );
-        REQUIRE( std::isnan(f64__f_long_more_n_largest)  == nonstd::cx::isnan(f64__f_long_more_n_largest)  );
+        REQUIRE( std::isnan(f64__f32_less_smallest_p)    == nonstd::cx::isnan(f64__f32_less_smallest_p)    );
+        REQUIRE( std::isnan(f64__f32_less_smallest_n)    == nonstd::cx::isnan(f64__f32_less_smallest_n)    );
+        REQUIRE( std::isnan(f64__f32_more_highest)       == nonstd::cx::isnan(f64__f32_more_highest)       );
+        REQUIRE( std::isnan(f64__f32_more_lowest)        == nonstd::cx::isnan(f64__f32_more_lowest)        );
+        REQUIRE( std::isnan(f64__f64_less_smallest_p)    == nonstd::cx::isnan(f64__f64_less_smallest_p)    );
+        REQUIRE( std::isnan(f64__f64_less_smallest_n)    == nonstd::cx::isnan(f64__f64_less_smallest_n)    );
+        REQUIRE( std::isnan(f64__f64_more_highest)       == nonstd::cx::isnan(f64__f64_more_highest)       );
+        REQUIRE( std::isnan(f64__f64_more_lowest)        == nonstd::cx::isnan(f64__f64_more_lowest)        );
+        REQUIRE( std::isnan(f64__f_long_less_smallest_p) == nonstd::cx::isnan(f64__f_long_less_smallest_p) );
+        REQUIRE( std::isnan(f64__f_long_less_smallest_n) == nonstd::cx::isnan(f64__f_long_less_smallest_n) );
+        REQUIRE( std::isnan(f64__f_long_more_highest)    == nonstd::cx::isnan(f64__f_long_more_highest)    );
+        REQUIRE( std::isnan(f64__f_long_more_lowest)    == nonstd::cx::isnan(f64__f_long_more_lowest)      );
 
         REQUIRE( std::isnan(f_long__positive)               == nonstd::cx::isnan(f_long__positive)               );
         REQUIRE( std::isnan(f_long__zero)                   == nonstd::cx::isnan(f_long__zero)                   );
         REQUIRE( std::isnan(f_long__negative)               == nonstd::cx::isnan(f_long__negative)               );
-        REQUIRE( std::isnan(f_long__f32_p_smallest)         == nonstd::cx::isnan(f_long__f32_p_smallest)         );
-        REQUIRE( std::isnan(f_long__f32_n_smallest)         == nonstd::cx::isnan(f_long__f32_n_smallest)         );
-        REQUIRE( std::isnan(f_long__f32_p_largest)          == nonstd::cx::isnan(f_long__f32_p_largest)          );
-        REQUIRE( std::isnan(f_long__f32_n_largest)          == nonstd::cx::isnan(f_long__f32_n_largest)          );
-        REQUIRE( std::isnan(f_long__f64_p_smallest)         == nonstd::cx::isnan(f_long__f64_p_smallest)         );
-        REQUIRE( std::isnan(f_long__f64_n_smallest)         == nonstd::cx::isnan(f_long__f64_n_smallest)         );
-        REQUIRE( std::isnan(f_long__f64_p_largest)          == nonstd::cx::isnan(f_long__f64_p_largest)          );
-        REQUIRE( std::isnan(f_long__f64_n_largest)          == nonstd::cx::isnan(f_long__f64_n_largest)          );
-        REQUIRE( std::isnan(f_long__f_long_p_smallest)      == nonstd::cx::isnan(f_long__f_long_p_smallest)      );
-        REQUIRE( std::isnan(f_long__f_long_n_smallest)      == nonstd::cx::isnan(f_long__f_long_n_smallest)      );
-        REQUIRE( std::isnan(f_long__f_long_p_largest)       == nonstd::cx::isnan(f_long__f_long_p_largest)       );
-        REQUIRE( std::isnan(f_long__f_long_n_largest)       == nonstd::cx::isnan(f_long__f_long_n_largest)       );
+        REQUIRE( std::isnan(f_long__f32_smallest_p)         == nonstd::cx::isnan(f_long__f32_smallest_p)         );
+        REQUIRE( std::isnan(f_long__f32_smallest_n)         == nonstd::cx::isnan(f_long__f32_smallest_n)         );
+        REQUIRE( std::isnan(f_long__f32_highest)            == nonstd::cx::isnan(f_long__f32_highest)            );
+        REQUIRE( std::isnan(f_long__f32_lowest)             == nonstd::cx::isnan(f_long__f32_lowest)             );
+        REQUIRE( std::isnan(f_long__f64_smallest_p)         == nonstd::cx::isnan(f_long__f64_smallest_p)         );
+        REQUIRE( std::isnan(f_long__f64_smallest_n)         == nonstd::cx::isnan(f_long__f64_smallest_n)         );
+        REQUIRE( std::isnan(f_long__f64_highest)            == nonstd::cx::isnan(f_long__f64_highest)            );
+        REQUIRE( std::isnan(f_long__f64_lowest)             == nonstd::cx::isnan(f_long__f64_lowest)             );
+        REQUIRE( std::isnan(f_long__f_long_smallest_p)      == nonstd::cx::isnan(f_long__f_long_smallest_p)      );
+        REQUIRE( std::isnan(f_long__f_long_smallest_n)      == nonstd::cx::isnan(f_long__f_long_smallest_n)      );
+        REQUIRE( std::isnan(f_long__f_long_highest)         == nonstd::cx::isnan(f_long__f_long_highest)         );
+        REQUIRE( std::isnan(f_long__f_long_lowest)          == nonstd::cx::isnan(f_long__f_long_lowest)          );
         REQUIRE( std::isnan(f_long__f32_nan)                == nonstd::cx::isnan(f_long__f32_nan)                );
         REQUIRE( std::isnan(f_long__f64_nan)                == nonstd::cx::isnan(f_long__f64_nan)                );
         REQUIRE( std::isnan(f_long__f_long_nan)             == nonstd::cx::isnan(f_long__f_long_nan)             );
@@ -479,18 +480,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE( std::isnan(f_long__f64_n_inf)              == nonstd::cx::isnan(f_long__f64_n_inf)              );
         REQUIRE( std::isnan(f_long__f_long_p_inf)           == nonstd::cx::isnan(f_long__f_long_p_inf)           );
         REQUIRE( std::isnan(f_long__f_long_n_inf)           == nonstd::cx::isnan(f_long__f_long_n_inf)           );
-        REQUIRE( std::isnan(f_long__f32_less_p_smallest)    == nonstd::cx::isnan(f_long__f32_less_p_smallest)    );
-        REQUIRE( std::isnan(f_long__f32_less_n_smallest)    == nonstd::cx::isnan(f_long__f32_less_n_smallest)    );
-        REQUIRE( std::isnan(f_long__f32_more_p_largest)     == nonstd::cx::isnan(f_long__f32_more_p_largest)     );
-        REQUIRE( std::isnan(f_long__f32_more_n_largest)     == nonstd::cx::isnan(f_long__f32_more_n_largest)     );
-        REQUIRE( std::isnan(f_long__f64_less_p_smallest)    == nonstd::cx::isnan(f_long__f64_less_p_smallest)    );
-        REQUIRE( std::isnan(f_long__f64_less_n_smallest)    == nonstd::cx::isnan(f_long__f64_less_n_smallest)    );
-        REQUIRE( std::isnan(f_long__f64_more_p_largest)     == nonstd::cx::isnan(f_long__f64_more_p_largest)     );
-        REQUIRE( std::isnan(f_long__f64_more_n_largest)     == nonstd::cx::isnan(f_long__f64_more_n_largest)     );
-        REQUIRE( std::isnan(f_long__f_long_less_p_smallest) == nonstd::cx::isnan(f_long__f_long_less_p_smallest) );
-        REQUIRE( std::isnan(f_long__f_long_less_n_smallest) == nonstd::cx::isnan(f_long__f_long_less_n_smallest) );
-        REQUIRE( std::isnan(f_long__f_long_more_p_largest)  == nonstd::cx::isnan(f_long__f_long_more_p_largest)  );
-        REQUIRE( std::isnan(f_long__f_long_more_n_largest)  == nonstd::cx::isnan(f_long__f_long_more_n_largest)  );
+        REQUIRE( std::isnan(f_long__f32_less_smallest_p)    == nonstd::cx::isnan(f_long__f32_less_smallest_p)    );
+        REQUIRE( std::isnan(f_long__f32_less_smallest_n)    == nonstd::cx::isnan(f_long__f32_less_smallest_n)    );
+        REQUIRE( std::isnan(f_long__f32_more_highest)       == nonstd::cx::isnan(f_long__f32_more_highest)       );
+        REQUIRE( std::isnan(f_long__f32_more_lowest)        == nonstd::cx::isnan(f_long__f32_more_lowest)        );
+        REQUIRE( std::isnan(f_long__f64_less_smallest_p)    == nonstd::cx::isnan(f_long__f64_less_smallest_p)    );
+        REQUIRE( std::isnan(f_long__f64_less_smallest_n)    == nonstd::cx::isnan(f_long__f64_less_smallest_n)    );
+        REQUIRE( std::isnan(f_long__f64_more_highest)       == nonstd::cx::isnan(f_long__f64_more_highest)       );
+        REQUIRE( std::isnan(f_long__f64_more_lowest)        == nonstd::cx::isnan(f_long__f64_more_lowest)        );
+        REQUIRE( std::isnan(f_long__f_long_less_smallest_p) == nonstd::cx::isnan(f_long__f_long_less_smallest_p) );
+        REQUIRE( std::isnan(f_long__f_long_less_smallest_n) == nonstd::cx::isnan(f_long__f_long_less_smallest_n) );
+        REQUIRE( std::isnan(f_long__f_long_more_highest)    == nonstd::cx::isnan(f_long__f_long_more_highest)    );
+        REQUIRE( std::isnan(f_long__f_long_more_lowest)     == nonstd::cx::isnan(f_long__f_long_more_lowest)     );
 
 #if !defined(NONSTD_COMPILER_MSVC)
         // MSVC fails on these std::isnan calls with an 'ambiguous overload'
@@ -513,18 +514,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::abs(f32__positive)               == nonstd::cx::abs(f32__positive) )               || ( isnan(std::abs(f32__positive))               && isnan(nonstd::cx::abs(f32__positive)) )               ));
         REQUIRE(( ( std::abs(f32__zero)                   == nonstd::cx::abs(f32__zero) )                   || ( isnan(std::abs(f32__zero))                   && isnan(nonstd::cx::abs(f32__zero)) )                   ));
         REQUIRE(( ( std::abs(f32__negative)               == nonstd::cx::abs(f32__negative) )               || ( isnan(std::abs(f32__negative))               && isnan(nonstd::cx::abs(f32__negative)) )               ));
-        REQUIRE(( ( std::abs(f32__f32_p_smallest)         == nonstd::cx::abs(f32__f32_p_smallest) )         || ( isnan(std::abs(f32__f32_p_smallest))         && isnan(nonstd::cx::abs(f32__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::abs(f32__f32_n_smallest)         == nonstd::cx::abs(f32__f32_n_smallest) )         || ( isnan(std::abs(f32__f32_n_smallest))         && isnan(nonstd::cx::abs(f32__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::abs(f32__f32_p_largest)          == nonstd::cx::abs(f32__f32_p_largest) )          || ( isnan(std::abs(f32__f32_p_largest))          && isnan(nonstd::cx::abs(f32__f32_p_largest)) )          ));
-        REQUIRE(( ( std::abs(f32__f32_n_largest)          == nonstd::cx::abs(f32__f32_n_largest) )          || ( isnan(std::abs(f32__f32_n_largest))          && isnan(nonstd::cx::abs(f32__f32_n_largest)) )          ));
-        REQUIRE(( ( std::abs(f32__f64_p_smallest)         == nonstd::cx::abs(f32__f64_p_smallest) )         || ( isnan(std::abs(f32__f64_p_smallest))         && isnan(nonstd::cx::abs(f32__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::abs(f32__f64_n_smallest)         == nonstd::cx::abs(f32__f64_n_smallest) )         || ( isnan(std::abs(f32__f64_n_smallest))         && isnan(nonstd::cx::abs(f32__f64_n_smallest)) )         ));
-    //  REQUIRE(( ( std::abs(f32__f64_p_largest)          == nonstd::cx::abs(f32__f64_p_largest) )          || ( isnan(std::abs(f32__f64_p_largest))          && isnan(nonstd::cx::abs(f32__f64_p_largest)) )          ));
-    //  REQUIRE(( ( std::abs(f32__f64_n_largest)          == nonstd::cx::abs(f32__f64_n_largest) )          || ( isnan(std::abs(f32__f64_n_largest))          && isnan(nonstd::cx::abs(f32__f64_n_largest)) )          ));
-        REQUIRE(( ( std::abs(f32__f_long_p_smallest)      == nonstd::cx::abs(f32__f_long_p_smallest) )      || ( isnan(std::abs(f32__f_long_p_smallest))      && isnan(nonstd::cx::abs(f32__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::abs(f32__f_long_n_smallest)      == nonstd::cx::abs(f32__f_long_n_smallest) )      || ( isnan(std::abs(f32__f_long_n_smallest))      && isnan(nonstd::cx::abs(f32__f_long_n_smallest)) )      ));
-    //  REQUIRE(( ( std::abs(f32__f_long_p_largest)       == nonstd::cx::abs(f32__f_long_p_largest) )       || ( isnan(std::abs(f32__f_long_p_largest))       && isnan(nonstd::cx::abs(f32__f_long_p_largest)) )       ));
-    //  REQUIRE(( ( std::abs(f32__f_long_n_largest)       == nonstd::cx::abs(f32__f_long_n_largest) )       || ( isnan(std::abs(f32__f_long_n_largest))       && isnan(nonstd::cx::abs(f32__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::abs(f32__f32_smallest_p)         == nonstd::cx::abs(f32__f32_smallest_p) )         || ( isnan(std::abs(f32__f32_smallest_p))         && isnan(nonstd::cx::abs(f32__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::abs(f32__f32_smallest_n)         == nonstd::cx::abs(f32__f32_smallest_n) )         || ( isnan(std::abs(f32__f32_smallest_n))         && isnan(nonstd::cx::abs(f32__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::abs(f32__f32_highest)            == nonstd::cx::abs(f32__f32_highest) )            || ( isnan(std::abs(f32__f32_highest))            && isnan(nonstd::cx::abs(f32__f32_highest)) )            ));
+        REQUIRE(( ( std::abs(f32__f32_lowest)             == nonstd::cx::abs(f32__f32_lowest) )             || ( isnan(std::abs(f32__f32_lowest))             && isnan(nonstd::cx::abs(f32__f32_lowest)) )             ));
+        REQUIRE(( ( std::abs(f32__f64_smallest_p)         == nonstd::cx::abs(f32__f64_smallest_p) )         || ( isnan(std::abs(f32__f64_smallest_p))         && isnan(nonstd::cx::abs(f32__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::abs(f32__f64_smallest_n)         == nonstd::cx::abs(f32__f64_smallest_n) )         || ( isnan(std::abs(f32__f64_smallest_n))         && isnan(nonstd::cx::abs(f32__f64_smallest_n)) )         ));
+    //  REQUIRE(( ( std::abs(f32__f64_highest)            == nonstd::cx::abs(f32__f64_highest) )            || ( isnan(std::abs(f32__f64_highest))            && isnan(nonstd::cx::abs(f32__f64_highest)) )            ));
+    //  REQUIRE(( ( std::abs(f32__f64_lowest)             == nonstd::cx::abs(f32__f64_lowest) )             || ( isnan(std::abs(f32__f64_lowest))             && isnan(nonstd::cx::abs(f32__f64_lowest)) )             ));
+        REQUIRE(( ( std::abs(f32__f_long_smallest_p)      == nonstd::cx::abs(f32__f_long_smallest_p) )      || ( isnan(std::abs(f32__f_long_smallest_p))      && isnan(nonstd::cx::abs(f32__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::abs(f32__f_long_smallest_n)      == nonstd::cx::abs(f32__f_long_smallest_n) )      || ( isnan(std::abs(f32__f_long_smallest_n))      && isnan(nonstd::cx::abs(f32__f_long_smallest_n)) )      ));
+    //  REQUIRE(( ( std::abs(f32__f_long_highest)         == nonstd::cx::abs(f32__f_long_highest) )         || ( isnan(std::abs(f32__f_long_highest))         && isnan(nonstd::cx::abs(f32__f_long_highest)) )         ));
+    //  REQUIRE(( ( std::abs(f32__f_long_lowest)          == nonstd::cx::abs(f32__f_long_lowest) )          || ( isnan(std::abs(f32__f_long_lowest))          && isnan(nonstd::cx::abs(f32__f_long_lowest)) )          ));
         REQUIRE(( ( std::abs(f32__f32_nan)                == nonstd::cx::abs(f32__f32_nan) )                || ( isnan(std::abs(f32__f32_nan))                && isnan(nonstd::cx::abs(f32__f32_nan)) )                ));
         REQUIRE(( ( std::abs(f32__f64_nan)                == nonstd::cx::abs(f32__f64_nan) )                || ( isnan(std::abs(f32__f64_nan))                && isnan(nonstd::cx::abs(f32__f64_nan)) )                ));
         REQUIRE(( ( std::abs(f32__f_long_nan)             == nonstd::cx::abs(f32__f_long_nan) )             || ( isnan(std::abs(f32__f_long_nan))             && isnan(nonstd::cx::abs(f32__f_long_nan)) )             ));
@@ -534,34 +535,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::abs(f32__f64_n_inf)              == nonstd::cx::abs(f32__f64_n_inf) )              || ( isnan(std::abs(f32__f64_n_inf))              && isnan(nonstd::cx::abs(f32__f64_n_inf)) )              ));
         REQUIRE(( ( std::abs(f32__f_long_p_inf)           == nonstd::cx::abs(f32__f_long_p_inf) )           || ( isnan(std::abs(f32__f_long_p_inf))           && isnan(nonstd::cx::abs(f32__f_long_p_inf)) )           ));
         REQUIRE(( ( std::abs(f32__f_long_n_inf)           == nonstd::cx::abs(f32__f_long_n_inf) )           || ( isnan(std::abs(f32__f_long_n_inf))           && isnan(nonstd::cx::abs(f32__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::abs(f32__f32_less_p_smallest)    == nonstd::cx::abs(f32__f32_less_p_smallest) )    || ( isnan(std::abs(f32__f32_less_p_smallest))    && isnan(nonstd::cx::abs(f32__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::abs(f32__f32_less_n_smallest)    == nonstd::cx::abs(f32__f32_less_n_smallest) )    || ( isnan(std::abs(f32__f32_less_n_smallest))    && isnan(nonstd::cx::abs(f32__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::abs(f32__f32_more_p_largest)     == nonstd::cx::abs(f32__f32_more_p_largest) )     || ( isnan(std::abs(f32__f32_more_p_largest))     && isnan(nonstd::cx::abs(f32__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::abs(f32__f32_more_n_largest)     == nonstd::cx::abs(f32__f32_more_n_largest) )     || ( isnan(std::abs(f32__f32_more_n_largest))     && isnan(nonstd::cx::abs(f32__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::abs(f32__f64_less_p_smallest)    == nonstd::cx::abs(f32__f64_less_p_smallest) )    || ( isnan(std::abs(f32__f64_less_p_smallest))    && isnan(nonstd::cx::abs(f32__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::abs(f32__f64_less_n_smallest)    == nonstd::cx::abs(f32__f64_less_n_smallest) )    || ( isnan(std::abs(f32__f64_less_n_smallest))    && isnan(nonstd::cx::abs(f32__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::abs(f32__f64_more_p_largest)     == nonstd::cx::abs(f32__f64_more_p_largest) )     || ( isnan(std::abs(f32__f64_more_p_largest))     && isnan(nonstd::cx::abs(f32__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::abs(f32__f64_more_n_largest)     == nonstd::cx::abs(f32__f64_more_n_largest) )     || ( isnan(std::abs(f32__f64_more_n_largest))     && isnan(nonstd::cx::abs(f32__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::abs(f32__f_long_less_p_smallest) == nonstd::cx::abs(f32__f_long_less_p_smallest) ) || ( isnan(std::abs(f32__f_long_less_p_smallest)) && isnan(nonstd::cx::abs(f32__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::abs(f32__f_long_less_n_smallest) == nonstd::cx::abs(f32__f_long_less_n_smallest) ) || ( isnan(std::abs(f32__f_long_less_n_smallest)) && isnan(nonstd::cx::abs(f32__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::abs(f32__f_long_more_p_largest)  == nonstd::cx::abs(f32__f_long_more_p_largest) )  || ( isnan(std::abs(f32__f_long_more_p_largest))  && isnan(nonstd::cx::abs(f32__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::abs(f32__f_long_more_n_largest)  == nonstd::cx::abs(f32__f_long_more_n_largest) )  || ( isnan(std::abs(f32__f_long_more_n_largest))  && isnan(nonstd::cx::abs(f32__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::abs(f32__f32_less_smallest_p)    == nonstd::cx::abs(f32__f32_less_smallest_p) )    || ( isnan(std::abs(f32__f32_less_smallest_p))    && isnan(nonstd::cx::abs(f32__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::abs(f32__f32_less_smallest_n)    == nonstd::cx::abs(f32__f32_less_smallest_n) )    || ( isnan(std::abs(f32__f32_less_smallest_n))    && isnan(nonstd::cx::abs(f32__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::abs(f32__f32_more_highest)       == nonstd::cx::abs(f32__f32_more_highest) )       || ( isnan(std::abs(f32__f32_more_highest))       && isnan(nonstd::cx::abs(f32__f32_more_highest)) )       ));
+        REQUIRE(( ( std::abs(f32__f32_more_lowest)        == nonstd::cx::abs(f32__f32_more_lowest) )        || ( isnan(std::abs(f32__f32_more_lowest))        && isnan(nonstd::cx::abs(f32__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::abs(f32__f64_less_smallest_p)    == nonstd::cx::abs(f32__f64_less_smallest_p) )    || ( isnan(std::abs(f32__f64_less_smallest_p))    && isnan(nonstd::cx::abs(f32__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::abs(f32__f64_less_smallest_n)    == nonstd::cx::abs(f32__f64_less_smallest_n) )    || ( isnan(std::abs(f32__f64_less_smallest_n))    && isnan(nonstd::cx::abs(f32__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::abs(f32__f64_more_highest)       == nonstd::cx::abs(f32__f64_more_highest) )       || ( isnan(std::abs(f32__f64_more_highest))       && isnan(nonstd::cx::abs(f32__f64_more_highest)) )       ));
+        REQUIRE(( ( std::abs(f32__f64_more_lowest)        == nonstd::cx::abs(f32__f64_more_lowest) )        || ( isnan(std::abs(f32__f64_more_lowest))        && isnan(nonstd::cx::abs(f32__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::abs(f32__f_long_less_smallest_p) == nonstd::cx::abs(f32__f_long_less_smallest_p) ) || ( isnan(std::abs(f32__f_long_less_smallest_p)) && isnan(nonstd::cx::abs(f32__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::abs(f32__f_long_less_smallest_n) == nonstd::cx::abs(f32__f_long_less_smallest_n) ) || ( isnan(std::abs(f32__f_long_less_smallest_n)) && isnan(nonstd::cx::abs(f32__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::abs(f32__f_long_more_highest)    == nonstd::cx::abs(f32__f_long_more_highest) )    || ( isnan(std::abs(f32__f_long_more_highest))    && isnan(nonstd::cx::abs(f32__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::abs(f32__f_long_more_lowest)     == nonstd::cx::abs(f32__f_long_more_lowest) )     || ( isnan(std::abs(f32__f_long_more_lowest))     && isnan(nonstd::cx::abs(f32__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::abs(f64__positive)               == nonstd::cx::abs(f64__positive) )               || ( isnan(std::abs(f64__positive))               && isnan(nonstd::cx::abs(f64__positive)) )               ));
         REQUIRE(( ( std::abs(f64__zero)                   == nonstd::cx::abs(f64__zero) )                   || ( isnan(std::abs(f64__zero))                   && isnan(nonstd::cx::abs(f64__zero)) )                   ));
         REQUIRE(( ( std::abs(f64__negative)               == nonstd::cx::abs(f64__negative) )               || ( isnan(std::abs(f64__negative))               && isnan(nonstd::cx::abs(f64__negative)) )               ));
-        REQUIRE(( ( std::abs(f64__f32_p_smallest)         == nonstd::cx::abs(f64__f32_p_smallest) )         || ( isnan(std::abs(f64__f32_p_smallest))         && isnan(nonstd::cx::abs(f64__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::abs(f64__f32_n_smallest)         == nonstd::cx::abs(f64__f32_n_smallest) )         || ( isnan(std::abs(f64__f32_n_smallest))         && isnan(nonstd::cx::abs(f64__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::abs(f64__f32_p_largest)          == nonstd::cx::abs(f64__f32_p_largest) )          || ( isnan(std::abs(f64__f32_p_largest))          && isnan(nonstd::cx::abs(f64__f32_p_largest)) )          ));
-        REQUIRE(( ( std::abs(f64__f32_n_largest)          == nonstd::cx::abs(f64__f32_n_largest) )          || ( isnan(std::abs(f64__f32_n_largest))          && isnan(nonstd::cx::abs(f64__f32_n_largest)) )          ));
-        REQUIRE(( ( std::abs(f64__f64_p_smallest)         == nonstd::cx::abs(f64__f64_p_smallest) )         || ( isnan(std::abs(f64__f64_p_smallest))         && isnan(nonstd::cx::abs(f64__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::abs(f64__f64_n_smallest)         == nonstd::cx::abs(f64__f64_n_smallest) )         || ( isnan(std::abs(f64__f64_n_smallest))         && isnan(nonstd::cx::abs(f64__f64_n_smallest)) )         ));
-        REQUIRE(( ( std::abs(f64__f64_p_largest)          == nonstd::cx::abs(f64__f64_p_largest) )          || ( isnan(std::abs(f64__f64_p_largest))          && isnan(nonstd::cx::abs(f64__f64_p_largest)) )          ));
-        REQUIRE(( ( std::abs(f64__f64_n_largest)          == nonstd::cx::abs(f64__f64_n_largest) )          || ( isnan(std::abs(f64__f64_n_largest))          && isnan(nonstd::cx::abs(f64__f64_n_largest)) )          ));
-        REQUIRE(( ( std::abs(f64__f_long_p_smallest)      == nonstd::cx::abs(f64__f_long_p_smallest) )      || ( isnan(std::abs(f64__f_long_p_smallest))      && isnan(nonstd::cx::abs(f64__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::abs(f64__f_long_n_smallest)      == nonstd::cx::abs(f64__f_long_n_smallest) )      || ( isnan(std::abs(f64__f_long_n_smallest))      && isnan(nonstd::cx::abs(f64__f_long_n_smallest)) )      ));
-    //  REQUIRE(( ( std::abs(f64__f_long_p_largest)       == nonstd::cx::abs(f64__f_long_p_largest) )       || ( isnan(std::abs(f64__f_long_p_largest))       && isnan(nonstd::cx::abs(f64__f_long_p_largest)) )       ));
-    //  REQUIRE(( ( std::abs(f64__f_long_n_largest)       == nonstd::cx::abs(f64__f_long_n_largest) )       || ( isnan(std::abs(f64__f_long_n_largest))       && isnan(nonstd::cx::abs(f64__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::abs(f64__f32_smallest_p)         == nonstd::cx::abs(f64__f32_smallest_p) )         || ( isnan(std::abs(f64__f32_smallest_p))         && isnan(nonstd::cx::abs(f64__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::abs(f64__f32_smallest_n)         == nonstd::cx::abs(f64__f32_smallest_n) )         || ( isnan(std::abs(f64__f32_smallest_n))         && isnan(nonstd::cx::abs(f64__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::abs(f64__f32_highest)            == nonstd::cx::abs(f64__f32_highest) )            || ( isnan(std::abs(f64__f32_highest))            && isnan(nonstd::cx::abs(f64__f32_highest)) )            ));
+        REQUIRE(( ( std::abs(f64__f32_lowest)             == nonstd::cx::abs(f64__f32_lowest) )             || ( isnan(std::abs(f64__f32_lowest))             && isnan(nonstd::cx::abs(f64__f32_lowest)) )             ));
+        REQUIRE(( ( std::abs(f64__f64_smallest_p)         == nonstd::cx::abs(f64__f64_smallest_p) )         || ( isnan(std::abs(f64__f64_smallest_p))         && isnan(nonstd::cx::abs(f64__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::abs(f64__f64_smallest_n)         == nonstd::cx::abs(f64__f64_smallest_n) )         || ( isnan(std::abs(f64__f64_smallest_n))         && isnan(nonstd::cx::abs(f64__f64_smallest_n)) )         ));
+        REQUIRE(( ( std::abs(f64__f64_highest)            == nonstd::cx::abs(f64__f64_highest) )            || ( isnan(std::abs(f64__f64_highest))            && isnan(nonstd::cx::abs(f64__f64_highest)) )            ));
+        REQUIRE(( ( std::abs(f64__f64_lowest)             == nonstd::cx::abs(f64__f64_lowest) )             || ( isnan(std::abs(f64__f64_lowest))             && isnan(nonstd::cx::abs(f64__f64_lowest)) )             ));
+        REQUIRE(( ( std::abs(f64__f_long_smallest_p)      == nonstd::cx::abs(f64__f_long_smallest_p) )      || ( isnan(std::abs(f64__f_long_smallest_p))      && isnan(nonstd::cx::abs(f64__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::abs(f64__f_long_smallest_n)      == nonstd::cx::abs(f64__f_long_smallest_n) )      || ( isnan(std::abs(f64__f_long_smallest_n))      && isnan(nonstd::cx::abs(f64__f_long_smallest_n)) )      ));
+    //  REQUIRE(( ( std::abs(f64__f_long_highest)         == nonstd::cx::abs(f64__f_long_highest) )         || ( isnan(std::abs(f64__f_long_highest))         && isnan(nonstd::cx::abs(f64__f_long_highest)) )         ));
+    //  REQUIRE(( ( std::abs(f64__f_long_lowest)          == nonstd::cx::abs(f64__f_long_lowest) )          || ( isnan(std::abs(f64__f_long_lowest))          && isnan(nonstd::cx::abs(f64__f_long_lowest)) )          ));
         REQUIRE(( ( std::abs(f64__f32_nan)                == nonstd::cx::abs(f64__f32_nan) )                || ( isnan(std::abs(f64__f32_nan))                && isnan(nonstd::cx::abs(f64__f32_nan)) )                ));
         REQUIRE(( ( std::abs(f64__f64_nan)                == nonstd::cx::abs(f64__f64_nan) )                || ( isnan(std::abs(f64__f64_nan))                && isnan(nonstd::cx::abs(f64__f64_nan)) )                ));
         REQUIRE(( ( std::abs(f64__f_long_nan)             == nonstd::cx::abs(f64__f_long_nan) )             || ( isnan(std::abs(f64__f_long_nan))             && isnan(nonstd::cx::abs(f64__f_long_nan)) )             ));
@@ -571,34 +572,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::abs(f64__f64_n_inf)              == nonstd::cx::abs(f64__f64_n_inf) )              || ( isnan(std::abs(f64__f64_n_inf))              && isnan(nonstd::cx::abs(f64__f64_n_inf)) )              ));
         REQUIRE(( ( std::abs(f64__f_long_p_inf)           == nonstd::cx::abs(f64__f_long_p_inf) )           || ( isnan(std::abs(f64__f_long_p_inf))           && isnan(nonstd::cx::abs(f64__f_long_p_inf)) )           ));
         REQUIRE(( ( std::abs(f64__f_long_n_inf)           == nonstd::cx::abs(f64__f_long_n_inf) )           || ( isnan(std::abs(f64__f_long_n_inf))           && isnan(nonstd::cx::abs(f64__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::abs(f64__f32_less_p_smallest)    == nonstd::cx::abs(f64__f32_less_p_smallest) )    || ( isnan(std::abs(f64__f32_less_p_smallest))    && isnan(nonstd::cx::abs(f64__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::abs(f64__f32_less_n_smallest)    == nonstd::cx::abs(f64__f32_less_n_smallest) )    || ( isnan(std::abs(f64__f32_less_n_smallest))    && isnan(nonstd::cx::abs(f64__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::abs(f64__f32_more_p_largest)     == nonstd::cx::abs(f64__f32_more_p_largest) )     || ( isnan(std::abs(f64__f32_more_p_largest))     && isnan(nonstd::cx::abs(f64__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::abs(f64__f32_more_n_largest)     == nonstd::cx::abs(f64__f32_more_n_largest) )     || ( isnan(std::abs(f64__f32_more_n_largest))     && isnan(nonstd::cx::abs(f64__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::abs(f64__f64_less_p_smallest)    == nonstd::cx::abs(f64__f64_less_p_smallest) )    || ( isnan(std::abs(f64__f64_less_p_smallest))    && isnan(nonstd::cx::abs(f64__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::abs(f64__f64_less_n_smallest)    == nonstd::cx::abs(f64__f64_less_n_smallest) )    || ( isnan(std::abs(f64__f64_less_n_smallest))    && isnan(nonstd::cx::abs(f64__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::abs(f64__f64_more_p_largest)     == nonstd::cx::abs(f64__f64_more_p_largest) )     || ( isnan(std::abs(f64__f64_more_p_largest))     && isnan(nonstd::cx::abs(f64__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::abs(f64__f64_more_n_largest)     == nonstd::cx::abs(f64__f64_more_n_largest) )     || ( isnan(std::abs(f64__f64_more_n_largest))     && isnan(nonstd::cx::abs(f64__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::abs(f64__f_long_less_p_smallest) == nonstd::cx::abs(f64__f_long_less_p_smallest) ) || ( isnan(std::abs(f64__f_long_less_p_smallest)) && isnan(nonstd::cx::abs(f64__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::abs(f64__f_long_less_n_smallest) == nonstd::cx::abs(f64__f_long_less_n_smallest) ) || ( isnan(std::abs(f64__f_long_less_n_smallest)) && isnan(nonstd::cx::abs(f64__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::abs(f64__f_long_more_p_largest)  == nonstd::cx::abs(f64__f_long_more_p_largest) )  || ( isnan(std::abs(f64__f_long_more_p_largest))  && isnan(nonstd::cx::abs(f64__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::abs(f64__f_long_more_n_largest)  == nonstd::cx::abs(f64__f_long_more_n_largest) )  || ( isnan(std::abs(f64__f_long_more_n_largest))  && isnan(nonstd::cx::abs(f64__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::abs(f64__f32_less_smallest_p)    == nonstd::cx::abs(f64__f32_less_smallest_p) )    || ( isnan(std::abs(f64__f32_less_smallest_p))    && isnan(nonstd::cx::abs(f64__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::abs(f64__f32_less_smallest_n)    == nonstd::cx::abs(f64__f32_less_smallest_n) )    || ( isnan(std::abs(f64__f32_less_smallest_n))    && isnan(nonstd::cx::abs(f64__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::abs(f64__f32_more_highest)       == nonstd::cx::abs(f64__f32_more_highest) )       || ( isnan(std::abs(f64__f32_more_highest))       && isnan(nonstd::cx::abs(f64__f32_more_highest)) )       ));
+        REQUIRE(( ( std::abs(f64__f32_more_lowest)        == nonstd::cx::abs(f64__f32_more_lowest) )        || ( isnan(std::abs(f64__f32_more_lowest))        && isnan(nonstd::cx::abs(f64__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::abs(f64__f64_less_smallest_p)    == nonstd::cx::abs(f64__f64_less_smallest_p) )    || ( isnan(std::abs(f64__f64_less_smallest_p))    && isnan(nonstd::cx::abs(f64__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::abs(f64__f64_less_smallest_n)    == nonstd::cx::abs(f64__f64_less_smallest_n) )    || ( isnan(std::abs(f64__f64_less_smallest_n))    && isnan(nonstd::cx::abs(f64__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::abs(f64__f64_more_highest)       == nonstd::cx::abs(f64__f64_more_highest) )       || ( isnan(std::abs(f64__f64_more_highest))       && isnan(nonstd::cx::abs(f64__f64_more_highest)) )       ));
+        REQUIRE(( ( std::abs(f64__f64_more_lowest)        == nonstd::cx::abs(f64__f64_more_lowest) )        || ( isnan(std::abs(f64__f64_more_lowest))        && isnan(nonstd::cx::abs(f64__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::abs(f64__f_long_less_smallest_p) == nonstd::cx::abs(f64__f_long_less_smallest_p) ) || ( isnan(std::abs(f64__f_long_less_smallest_p)) && isnan(nonstd::cx::abs(f64__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::abs(f64__f_long_less_smallest_n) == nonstd::cx::abs(f64__f_long_less_smallest_n) ) || ( isnan(std::abs(f64__f_long_less_smallest_n)) && isnan(nonstd::cx::abs(f64__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::abs(f64__f_long_more_highest)    == nonstd::cx::abs(f64__f_long_more_highest) )    || ( isnan(std::abs(f64__f_long_more_highest))    && isnan(nonstd::cx::abs(f64__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::abs(f64__f_long_more_lowest)     == nonstd::cx::abs(f64__f_long_more_lowest) )     || ( isnan(std::abs(f64__f_long_more_lowest))     && isnan(nonstd::cx::abs(f64__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::abs(f_long__positive)               == nonstd::cx::abs(f_long__positive) )               || ( isnan(std::abs(f_long__positive))               && isnan(nonstd::cx::abs(f_long__positive)) )               ));
         REQUIRE(( ( std::abs(f_long__zero)                   == nonstd::cx::abs(f_long__zero) )                   || ( isnan(std::abs(f_long__zero))                   && isnan(nonstd::cx::abs(f_long__zero)) )                   ));
         REQUIRE(( ( std::abs(f_long__negative)               == nonstd::cx::abs(f_long__negative) )               || ( isnan(std::abs(f_long__negative))               && isnan(nonstd::cx::abs(f_long__negative)) )               ));
-        REQUIRE(( ( std::abs(f_long__f32_p_smallest)         == nonstd::cx::abs(f_long__f32_p_smallest) )         || ( isnan(std::abs(f_long__f32_p_smallest))         && isnan(nonstd::cx::abs(f_long__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::abs(f_long__f32_n_smallest)         == nonstd::cx::abs(f_long__f32_n_smallest) )         || ( isnan(std::abs(f_long__f32_n_smallest))         && isnan(nonstd::cx::abs(f_long__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::abs(f_long__f32_p_largest)          == nonstd::cx::abs(f_long__f32_p_largest) )          || ( isnan(std::abs(f_long__f32_p_largest))          && isnan(nonstd::cx::abs(f_long__f32_p_largest)) )          ));
-        REQUIRE(( ( std::abs(f_long__f32_n_largest)          == nonstd::cx::abs(f_long__f32_n_largest) )          || ( isnan(std::abs(f_long__f32_n_largest))          && isnan(nonstd::cx::abs(f_long__f32_n_largest)) )          ));
-        REQUIRE(( ( std::abs(f_long__f64_p_smallest)         == nonstd::cx::abs(f_long__f64_p_smallest) )         || ( isnan(std::abs(f_long__f64_p_smallest))         && isnan(nonstd::cx::abs(f_long__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::abs(f_long__f64_n_smallest)         == nonstd::cx::abs(f_long__f64_n_smallest) )         || ( isnan(std::abs(f_long__f64_n_smallest))         && isnan(nonstd::cx::abs(f_long__f64_n_smallest)) )         ));
-        REQUIRE(( ( std::abs(f_long__f64_p_largest)          == nonstd::cx::abs(f_long__f64_p_largest) )          || ( isnan(std::abs(f_long__f64_p_largest))          && isnan(nonstd::cx::abs(f_long__f64_p_largest)) )          ));
-        REQUIRE(( ( std::abs(f_long__f64_n_largest)          == nonstd::cx::abs(f_long__f64_n_largest) )          || ( isnan(std::abs(f_long__f64_n_largest))          && isnan(nonstd::cx::abs(f_long__f64_n_largest)) )          ));
-        REQUIRE(( ( std::abs(f_long__f_long_p_smallest)      == nonstd::cx::abs(f_long__f_long_p_smallest) )      || ( isnan(std::abs(f_long__f_long_p_smallest))      && isnan(nonstd::cx::abs(f_long__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::abs(f_long__f_long_n_smallest)      == nonstd::cx::abs(f_long__f_long_n_smallest) )      || ( isnan(std::abs(f_long__f_long_n_smallest))      && isnan(nonstd::cx::abs(f_long__f_long_n_smallest)) )      ));
-        REQUIRE(( ( std::abs(f_long__f_long_p_largest)       == nonstd::cx::abs(f_long__f_long_p_largest) )       || ( isnan(std::abs(f_long__f_long_p_largest))       && isnan(nonstd::cx::abs(f_long__f_long_p_largest)) )       ));
-        REQUIRE(( ( std::abs(f_long__f_long_n_largest)       == nonstd::cx::abs(f_long__f_long_n_largest) )       || ( isnan(std::abs(f_long__f_long_n_largest))       && isnan(nonstd::cx::abs(f_long__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::abs(f_long__f32_smallest_p)         == nonstd::cx::abs(f_long__f32_smallest_p) )         || ( isnan(std::abs(f_long__f32_smallest_p))         && isnan(nonstd::cx::abs(f_long__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::abs(f_long__f32_smallest_n)         == nonstd::cx::abs(f_long__f32_smallest_n) )         || ( isnan(std::abs(f_long__f32_smallest_n))         && isnan(nonstd::cx::abs(f_long__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::abs(f_long__f32_highest)            == nonstd::cx::abs(f_long__f32_highest) )            || ( isnan(std::abs(f_long__f32_highest))            && isnan(nonstd::cx::abs(f_long__f32_highest)) )            ));
+        REQUIRE(( ( std::abs(f_long__f32_lowest)             == nonstd::cx::abs(f_long__f32_lowest) )             || ( isnan(std::abs(f_long__f32_lowest))             && isnan(nonstd::cx::abs(f_long__f32_lowest)) )             ));
+        REQUIRE(( ( std::abs(f_long__f64_smallest_p)         == nonstd::cx::abs(f_long__f64_smallest_p) )         || ( isnan(std::abs(f_long__f64_smallest_p))         && isnan(nonstd::cx::abs(f_long__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::abs(f_long__f64_smallest_n)         == nonstd::cx::abs(f_long__f64_smallest_n) )         || ( isnan(std::abs(f_long__f64_smallest_n))         && isnan(nonstd::cx::abs(f_long__f64_smallest_n)) )         ));
+        REQUIRE(( ( std::abs(f_long__f64_highest)            == nonstd::cx::abs(f_long__f64_highest) )            || ( isnan(std::abs(f_long__f64_highest))            && isnan(nonstd::cx::abs(f_long__f64_highest)) )            ));
+        REQUIRE(( ( std::abs(f_long__f64_lowest)             == nonstd::cx::abs(f_long__f64_lowest) )             || ( isnan(std::abs(f_long__f64_lowest))             && isnan(nonstd::cx::abs(f_long__f64_lowest)) )             ));
+        REQUIRE(( ( std::abs(f_long__f_long_smallest_p)      == nonstd::cx::abs(f_long__f_long_smallest_p) )      || ( isnan(std::abs(f_long__f_long_smallest_p))      && isnan(nonstd::cx::abs(f_long__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::abs(f_long__f_long_smallest_n)      == nonstd::cx::abs(f_long__f_long_smallest_n) )      || ( isnan(std::abs(f_long__f_long_smallest_n))      && isnan(nonstd::cx::abs(f_long__f_long_smallest_n)) )      ));
+        REQUIRE(( ( std::abs(f_long__f_long_highest)         == nonstd::cx::abs(f_long__f_long_highest) )         || ( isnan(std::abs(f_long__f_long_highest))         && isnan(nonstd::cx::abs(f_long__f_long_highest)) )         ));
+        REQUIRE(( ( std::abs(f_long__f_long_lowest)          == nonstd::cx::abs(f_long__f_long_lowest) )          || ( isnan(std::abs(f_long__f_long_lowest))          && isnan(nonstd::cx::abs(f_long__f_long_lowest)) )          ));
         REQUIRE(( ( std::abs(f_long__f32_nan)                == nonstd::cx::abs(f_long__f32_nan) )                || ( isnan(std::abs(f_long__f32_nan))                && isnan(nonstd::cx::abs(f_long__f32_nan)) )                ));
         REQUIRE(( ( std::abs(f_long__f64_nan)                == nonstd::cx::abs(f_long__f64_nan) )                || ( isnan(std::abs(f_long__f64_nan))                && isnan(nonstd::cx::abs(f_long__f64_nan)) )                ));
         REQUIRE(( ( std::abs(f_long__f_long_nan)             == nonstd::cx::abs(f_long__f_long_nan) )             || ( isnan(std::abs(f_long__f_long_nan))             && isnan(nonstd::cx::abs(f_long__f_long_nan)) )             ));
@@ -608,18 +609,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::abs(f_long__f64_n_inf)              == nonstd::cx::abs(f_long__f64_n_inf) )              || ( isnan(std::abs(f_long__f64_n_inf))              && isnan(nonstd::cx::abs(f_long__f64_n_inf)) )              ));
         REQUIRE(( ( std::abs(f_long__f_long_p_inf)           == nonstd::cx::abs(f_long__f_long_p_inf) )           || ( isnan(std::abs(f_long__f_long_p_inf))           && isnan(nonstd::cx::abs(f_long__f_long_p_inf)) )           ));
         REQUIRE(( ( std::abs(f_long__f_long_n_inf)           == nonstd::cx::abs(f_long__f_long_n_inf) )           || ( isnan(std::abs(f_long__f_long_n_inf))           && isnan(nonstd::cx::abs(f_long__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::abs(f_long__f32_less_p_smallest)    == nonstd::cx::abs(f_long__f32_less_p_smallest) )    || ( isnan(std::abs(f_long__f32_less_p_smallest))    && isnan(nonstd::cx::abs(f_long__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::abs(f_long__f32_less_n_smallest)    == nonstd::cx::abs(f_long__f32_less_n_smallest) )    || ( isnan(std::abs(f_long__f32_less_n_smallest))    && isnan(nonstd::cx::abs(f_long__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::abs(f_long__f32_more_p_largest)     == nonstd::cx::abs(f_long__f32_more_p_largest) )     || ( isnan(std::abs(f_long__f32_more_p_largest))     && isnan(nonstd::cx::abs(f_long__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::abs(f_long__f32_more_n_largest)     == nonstd::cx::abs(f_long__f32_more_n_largest) )     || ( isnan(std::abs(f_long__f32_more_n_largest))     && isnan(nonstd::cx::abs(f_long__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::abs(f_long__f64_less_p_smallest)    == nonstd::cx::abs(f_long__f64_less_p_smallest) )    || ( isnan(std::abs(f_long__f64_less_p_smallest))    && isnan(nonstd::cx::abs(f_long__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::abs(f_long__f64_less_n_smallest)    == nonstd::cx::abs(f_long__f64_less_n_smallest) )    || ( isnan(std::abs(f_long__f64_less_n_smallest))    && isnan(nonstd::cx::abs(f_long__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::abs(f_long__f64_more_p_largest)     == nonstd::cx::abs(f_long__f64_more_p_largest) )     || ( isnan(std::abs(f_long__f64_more_p_largest))     && isnan(nonstd::cx::abs(f_long__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::abs(f_long__f64_more_n_largest)     == nonstd::cx::abs(f_long__f64_more_n_largest) )     || ( isnan(std::abs(f_long__f64_more_n_largest))     && isnan(nonstd::cx::abs(f_long__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::abs(f_long__f_long_less_p_smallest) == nonstd::cx::abs(f_long__f_long_less_p_smallest) ) || ( isnan(std::abs(f_long__f_long_less_p_smallest)) && isnan(nonstd::cx::abs(f_long__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::abs(f_long__f_long_less_n_smallest) == nonstd::cx::abs(f_long__f_long_less_n_smallest) ) || ( isnan(std::abs(f_long__f_long_less_n_smallest)) && isnan(nonstd::cx::abs(f_long__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::abs(f_long__f_long_more_p_largest)  == nonstd::cx::abs(f_long__f_long_more_p_largest) )  || ( isnan(std::abs(f_long__f_long_more_p_largest))  && isnan(nonstd::cx::abs(f_long__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::abs(f_long__f_long_more_n_largest)  == nonstd::cx::abs(f_long__f_long_more_n_largest) )  || ( isnan(std::abs(f_long__f_long_more_n_largest))  && isnan(nonstd::cx::abs(f_long__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::abs(f_long__f32_less_smallest_p)    == nonstd::cx::abs(f_long__f32_less_smallest_p) )    || ( isnan(std::abs(f_long__f32_less_smallest_p))    && isnan(nonstd::cx::abs(f_long__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::abs(f_long__f32_less_smallest_n)    == nonstd::cx::abs(f_long__f32_less_smallest_n) )    || ( isnan(std::abs(f_long__f32_less_smallest_n))    && isnan(nonstd::cx::abs(f_long__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::abs(f_long__f32_more_highest)       == nonstd::cx::abs(f_long__f32_more_highest) )       || ( isnan(std::abs(f_long__f32_more_highest))       && isnan(nonstd::cx::abs(f_long__f32_more_highest)) )       ));
+        REQUIRE(( ( std::abs(f_long__f32_more_lowest)        == nonstd::cx::abs(f_long__f32_more_lowest) )        || ( isnan(std::abs(f_long__f32_more_lowest))        && isnan(nonstd::cx::abs(f_long__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::abs(f_long__f64_less_smallest_p)    == nonstd::cx::abs(f_long__f64_less_smallest_p) )    || ( isnan(std::abs(f_long__f64_less_smallest_p))    && isnan(nonstd::cx::abs(f_long__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::abs(f_long__f64_less_smallest_n)    == nonstd::cx::abs(f_long__f64_less_smallest_n) )    || ( isnan(std::abs(f_long__f64_less_smallest_n))    && isnan(nonstd::cx::abs(f_long__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::abs(f_long__f64_more_highest)       == nonstd::cx::abs(f_long__f64_more_highest) )       || ( isnan(std::abs(f_long__f64_more_highest))       && isnan(nonstd::cx::abs(f_long__f64_more_highest)) )       ));
+        REQUIRE(( ( std::abs(f_long__f64_more_lowest)        == nonstd::cx::abs(f_long__f64_more_lowest) )        || ( isnan(std::abs(f_long__f64_more_lowest))        && isnan(nonstd::cx::abs(f_long__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::abs(f_long__f_long_less_smallest_p) == nonstd::cx::abs(f_long__f_long_less_smallest_p) ) || ( isnan(std::abs(f_long__f_long_less_smallest_p)) && isnan(nonstd::cx::abs(f_long__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::abs(f_long__f_long_less_smallest_n) == nonstd::cx::abs(f_long__f_long_less_smallest_n) ) || ( isnan(std::abs(f_long__f_long_less_smallest_n)) && isnan(nonstd::cx::abs(f_long__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::abs(f_long__f_long_more_highest)    == nonstd::cx::abs(f_long__f_long_more_highest) )    || ( isnan(std::abs(f_long__f_long_more_highest))    && isnan(nonstd::cx::abs(f_long__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::abs(f_long__f_long_more_lowest)     == nonstd::cx::abs(f_long__f_long_more_lowest) )     || ( isnan(std::abs(f_long__f_long_more_lowest))     && isnan(nonstd::cx::abs(f_long__f_long_more_lowest)) )     ));
 
         // std::abs doesn't have Integral overloads. so these functions wind up
         // not compiling with ambiguous overload errors.
@@ -641,18 +642,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::fabs(f32__positive)               == nonstd::cx::fabs(f32__positive) )               || ( isnan(std::fabs(f32__positive))               && isnan(nonstd::cx::fabs(f32__positive)) )               ));
         REQUIRE(( ( std::fabs(f32__zero)                   == nonstd::cx::fabs(f32__zero) )                   || ( isnan(std::fabs(f32__zero))                   && isnan(nonstd::cx::fabs(f32__zero)) )                   ));
         REQUIRE(( ( std::fabs(f32__negative)               == nonstd::cx::fabs(f32__negative) )               || ( isnan(std::fabs(f32__negative))               && isnan(nonstd::cx::fabs(f32__negative)) )               ));
-        REQUIRE(( ( std::fabs(f32__f32_p_smallest)         == nonstd::cx::fabs(f32__f32_p_smallest) )         || ( isnan(std::fabs(f32__f32_p_smallest))         && isnan(nonstd::cx::fabs(f32__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::fabs(f32__f32_n_smallest)         == nonstd::cx::fabs(f32__f32_n_smallest) )         || ( isnan(std::fabs(f32__f32_n_smallest))         && isnan(nonstd::cx::fabs(f32__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::fabs(f32__f32_p_largest)          == nonstd::cx::fabs(f32__f32_p_largest) )          || ( isnan(std::fabs(f32__f32_p_largest))          && isnan(nonstd::cx::fabs(f32__f32_p_largest)) )          ));
-        REQUIRE(( ( std::fabs(f32__f32_n_largest)          == nonstd::cx::fabs(f32__f32_n_largest) )          || ( isnan(std::fabs(f32__f32_n_largest))          && isnan(nonstd::cx::fabs(f32__f32_n_largest)) )          ));
-        REQUIRE(( ( std::fabs(f32__f64_p_smallest)         == nonstd::cx::fabs(f32__f64_p_smallest) )         || ( isnan(std::fabs(f32__f64_p_smallest))         && isnan(nonstd::cx::fabs(f32__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::fabs(f32__f64_n_smallest)         == nonstd::cx::fabs(f32__f64_n_smallest) )         || ( isnan(std::fabs(f32__f64_n_smallest))         && isnan(nonstd::cx::fabs(f32__f64_n_smallest)) )         ));
-    //  REQUIRE(( ( std::fabs(f32__f64_p_largest)          == nonstd::cx::fabs(f32__f64_p_largest) )          || ( isnan(std::fabs(f32__f64_p_largest))          && isnan(nonstd::cx::fabs(f32__f64_p_largest)) )          ));
-    //  REQUIRE(( ( std::fabs(f32__f64_n_largest)          == nonstd::cx::fabs(f32__f64_n_largest) )          || ( isnan(std::fabs(f32__f64_n_largest))          && isnan(nonstd::cx::fabs(f32__f64_n_largest)) )          ));
-        REQUIRE(( ( std::fabs(f32__f_long_p_smallest)      == nonstd::cx::fabs(f32__f_long_p_smallest) )      || ( isnan(std::fabs(f32__f_long_p_smallest))      && isnan(nonstd::cx::fabs(f32__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::fabs(f32__f_long_n_smallest)      == nonstd::cx::fabs(f32__f_long_n_smallest) )      || ( isnan(std::fabs(f32__f_long_n_smallest))      && isnan(nonstd::cx::fabs(f32__f_long_n_smallest)) )      ));
-    //  REQUIRE(( ( std::fabs(f32__f_long_p_largest)       == nonstd::cx::fabs(f32__f_long_p_largest) )       || ( isnan(std::fabs(f32__f_long_p_largest))       && isnan(nonstd::cx::fabs(f32__f_long_p_largest)) )       ));
-    //  REQUIRE(( ( std::fabs(f32__f_long_n_largest)       == nonstd::cx::fabs(f32__f_long_n_largest) )       || ( isnan(std::fabs(f32__f_long_n_largest))       && isnan(nonstd::cx::fabs(f32__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::fabs(f32__f32_smallest_p)         == nonstd::cx::fabs(f32__f32_smallest_p) )         || ( isnan(std::fabs(f32__f32_smallest_p))         && isnan(nonstd::cx::fabs(f32__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::fabs(f32__f32_smallest_n)         == nonstd::cx::fabs(f32__f32_smallest_n) )         || ( isnan(std::fabs(f32__f32_smallest_n))         && isnan(nonstd::cx::fabs(f32__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::fabs(f32__f32_highest)            == nonstd::cx::fabs(f32__f32_highest) )            || ( isnan(std::fabs(f32__f32_highest))            && isnan(nonstd::cx::fabs(f32__f32_highest)) )            ));
+        REQUIRE(( ( std::fabs(f32__f32_lowest)             == nonstd::cx::fabs(f32__f32_lowest) )             || ( isnan(std::fabs(f32__f32_lowest))             && isnan(nonstd::cx::fabs(f32__f32_lowest)) )             ));
+        REQUIRE(( ( std::fabs(f32__f64_smallest_p)         == nonstd::cx::fabs(f32__f64_smallest_p) )         || ( isnan(std::fabs(f32__f64_smallest_p))         && isnan(nonstd::cx::fabs(f32__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::fabs(f32__f64_smallest_n)         == nonstd::cx::fabs(f32__f64_smallest_n) )         || ( isnan(std::fabs(f32__f64_smallest_n))         && isnan(nonstd::cx::fabs(f32__f64_smallest_n)) )         ));
+    //  REQUIRE(( ( std::fabs(f32__f64_highest)            == nonstd::cx::fabs(f32__f64_highest) )            || ( isnan(std::fabs(f32__f64_highest))            && isnan(nonstd::cx::fabs(f32__f64_highest)) )            ));
+    //  REQUIRE(( ( std::fabs(f32__f64_lowest)             == nonstd::cx::fabs(f32__f64_lowest) )             || ( isnan(std::fabs(f32__f64_lowest))             && isnan(nonstd::cx::fabs(f32__f64_lowest)) )             ));
+        REQUIRE(( ( std::fabs(f32__f_long_smallest_p)      == nonstd::cx::fabs(f32__f_long_smallest_p) )      || ( isnan(std::fabs(f32__f_long_smallest_p))      && isnan(nonstd::cx::fabs(f32__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::fabs(f32__f_long_smallest_n)      == nonstd::cx::fabs(f32__f_long_smallest_n) )      || ( isnan(std::fabs(f32__f_long_smallest_n))      && isnan(nonstd::cx::fabs(f32__f_long_smallest_n)) )      ));
+    //  REQUIRE(( ( std::fabs(f32__f_long_highest)         == nonstd::cx::fabs(f32__f_long_highest) )         || ( isnan(std::fabs(f32__f_long_highest))         && isnan(nonstd::cx::fabs(f32__f_long_highest)) )         ));
+    //  REQUIRE(( ( std::fabs(f32__f_long_lowest)          == nonstd::cx::fabs(f32__f_long_lowest) )          || ( isnan(std::fabs(f32__f_long_lowest))          && isnan(nonstd::cx::fabs(f32__f_long_lowest)) )          ));
         REQUIRE(( ( std::fabs(f32__f32_nan)                == nonstd::cx::fabs(f32__f32_nan) )                || ( isnan(std::fabs(f32__f32_nan))                && isnan(nonstd::cx::fabs(f32__f32_nan)) )                ));
         REQUIRE(( ( std::fabs(f32__f64_nan)                == nonstd::cx::fabs(f32__f64_nan) )                || ( isnan(std::fabs(f32__f64_nan))                && isnan(nonstd::cx::fabs(f32__f64_nan)) )                ));
         REQUIRE(( ( std::fabs(f32__f_long_nan)             == nonstd::cx::fabs(f32__f_long_nan) )             || ( isnan(std::fabs(f32__f_long_nan))             && isnan(nonstd::cx::fabs(f32__f_long_nan)) )             ));
@@ -662,34 +663,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::fabs(f32__f64_n_inf)              == nonstd::cx::fabs(f32__f64_n_inf) )              || ( isnan(std::fabs(f32__f64_n_inf))              && isnan(nonstd::cx::fabs(f32__f64_n_inf)) )              ));
         REQUIRE(( ( std::fabs(f32__f_long_p_inf)           == nonstd::cx::fabs(f32__f_long_p_inf) )           || ( isnan(std::fabs(f32__f_long_p_inf))           && isnan(nonstd::cx::fabs(f32__f_long_p_inf)) )           ));
         REQUIRE(( ( std::fabs(f32__f_long_n_inf)           == nonstd::cx::fabs(f32__f_long_n_inf) )           || ( isnan(std::fabs(f32__f_long_n_inf))           && isnan(nonstd::cx::fabs(f32__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::fabs(f32__f32_less_p_smallest)    == nonstd::cx::fabs(f32__f32_less_p_smallest) )    || ( isnan(std::fabs(f32__f32_less_p_smallest))    && isnan(nonstd::cx::fabs(f32__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f32__f32_less_n_smallest)    == nonstd::cx::fabs(f32__f32_less_n_smallest) )    || ( isnan(std::fabs(f32__f32_less_n_smallest))    && isnan(nonstd::cx::fabs(f32__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f32__f32_more_p_largest)     == nonstd::cx::fabs(f32__f32_more_p_largest) )     || ( isnan(std::fabs(f32__f32_more_p_largest))     && isnan(nonstd::cx::fabs(f32__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::fabs(f32__f32_more_n_largest)     == nonstd::cx::fabs(f32__f32_more_n_largest) )     || ( isnan(std::fabs(f32__f32_more_n_largest))     && isnan(nonstd::cx::fabs(f32__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::fabs(f32__f64_less_p_smallest)    == nonstd::cx::fabs(f32__f64_less_p_smallest) )    || ( isnan(std::fabs(f32__f64_less_p_smallest))    && isnan(nonstd::cx::fabs(f32__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f32__f64_less_n_smallest)    == nonstd::cx::fabs(f32__f64_less_n_smallest) )    || ( isnan(std::fabs(f32__f64_less_n_smallest))    && isnan(nonstd::cx::fabs(f32__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f32__f64_more_p_largest)     == nonstd::cx::fabs(f32__f64_more_p_largest) )     || ( isnan(std::fabs(f32__f64_more_p_largest))     && isnan(nonstd::cx::fabs(f32__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::fabs(f32__f64_more_n_largest)     == nonstd::cx::fabs(f32__f64_more_n_largest) )     || ( isnan(std::fabs(f32__f64_more_n_largest))     && isnan(nonstd::cx::fabs(f32__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::fabs(f32__f_long_less_p_smallest) == nonstd::cx::fabs(f32__f_long_less_p_smallest) ) || ( isnan(std::fabs(f32__f_long_less_p_smallest)) && isnan(nonstd::cx::fabs(f32__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::fabs(f32__f_long_less_n_smallest) == nonstd::cx::fabs(f32__f_long_less_n_smallest) ) || ( isnan(std::fabs(f32__f_long_less_n_smallest)) && isnan(nonstd::cx::fabs(f32__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::fabs(f32__f_long_more_p_largest)  == nonstd::cx::fabs(f32__f_long_more_p_largest) )  || ( isnan(std::fabs(f32__f_long_more_p_largest))  && isnan(nonstd::cx::fabs(f32__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::fabs(f32__f_long_more_n_largest)  == nonstd::cx::fabs(f32__f_long_more_n_largest) )  || ( isnan(std::fabs(f32__f_long_more_n_largest))  && isnan(nonstd::cx::fabs(f32__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::fabs(f32__f32_less_smallest_p)    == nonstd::cx::fabs(f32__f32_less_smallest_p) )    || ( isnan(std::fabs(f32__f32_less_smallest_p))    && isnan(nonstd::cx::fabs(f32__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::fabs(f32__f32_less_smallest_n)    == nonstd::cx::fabs(f32__f32_less_smallest_n) )    || ( isnan(std::fabs(f32__f32_less_smallest_n))    && isnan(nonstd::cx::fabs(f32__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::fabs(f32__f32_more_highest)       == nonstd::cx::fabs(f32__f32_more_highest) )       || ( isnan(std::fabs(f32__f32_more_highest))       && isnan(nonstd::cx::fabs(f32__f32_more_highest)) )       ));
+        REQUIRE(( ( std::fabs(f32__f32_more_lowest)        == nonstd::cx::fabs(f32__f32_more_lowest) )        || ( isnan(std::fabs(f32__f32_more_lowest))        && isnan(nonstd::cx::fabs(f32__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::fabs(f32__f64_less_smallest_p)    == nonstd::cx::fabs(f32__f64_less_smallest_p) )    || ( isnan(std::fabs(f32__f64_less_smallest_p))    && isnan(nonstd::cx::fabs(f32__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::fabs(f32__f64_less_smallest_n)    == nonstd::cx::fabs(f32__f64_less_smallest_n) )    || ( isnan(std::fabs(f32__f64_less_smallest_n))    && isnan(nonstd::cx::fabs(f32__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::fabs(f32__f64_more_highest)       == nonstd::cx::fabs(f32__f64_more_highest) )       || ( isnan(std::fabs(f32__f64_more_highest))       && isnan(nonstd::cx::fabs(f32__f64_more_highest)) )       ));
+        REQUIRE(( ( std::fabs(f32__f64_more_lowest)        == nonstd::cx::fabs(f32__f64_more_lowest) )        || ( isnan(std::fabs(f32__f64_more_lowest))        && isnan(nonstd::cx::fabs(f32__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::fabs(f32__f_long_less_smallest_p) == nonstd::cx::fabs(f32__f_long_less_smallest_p) ) || ( isnan(std::fabs(f32__f_long_less_smallest_p)) && isnan(nonstd::cx::fabs(f32__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::fabs(f32__f_long_less_smallest_n) == nonstd::cx::fabs(f32__f_long_less_smallest_n) ) || ( isnan(std::fabs(f32__f_long_less_smallest_n)) && isnan(nonstd::cx::fabs(f32__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::fabs(f32__f_long_more_highest)    == nonstd::cx::fabs(f32__f_long_more_highest) )    || ( isnan(std::fabs(f32__f_long_more_highest))    && isnan(nonstd::cx::fabs(f32__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::fabs(f32__f_long_more_lowest)     == nonstd::cx::fabs(f32__f_long_more_lowest) )     || ( isnan(std::fabs(f32__f_long_more_lowest))     && isnan(nonstd::cx::fabs(f32__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::fabs(f64__positive)               == nonstd::cx::fabs(f64__positive) )               || ( isnan(std::fabs(f64__positive))               && isnan(nonstd::cx::fabs(f64__positive)) )               ));
         REQUIRE(( ( std::fabs(f64__zero)                   == nonstd::cx::fabs(f64__zero) )                   || ( isnan(std::fabs(f64__zero))                   && isnan(nonstd::cx::fabs(f64__zero)) )                   ));
         REQUIRE(( ( std::fabs(f64__negative)               == nonstd::cx::fabs(f64__negative) )               || ( isnan(std::fabs(f64__negative))               && isnan(nonstd::cx::fabs(f64__negative)) )               ));
-        REQUIRE(( ( std::fabs(f64__f32_p_smallest)         == nonstd::cx::fabs(f64__f32_p_smallest) )         || ( isnan(std::fabs(f64__f32_p_smallest))         && isnan(nonstd::cx::fabs(f64__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::fabs(f64__f32_n_smallest)         == nonstd::cx::fabs(f64__f32_n_smallest) )         || ( isnan(std::fabs(f64__f32_n_smallest))         && isnan(nonstd::cx::fabs(f64__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::fabs(f64__f32_p_largest)          == nonstd::cx::fabs(f64__f32_p_largest) )          || ( isnan(std::fabs(f64__f32_p_largest))          && isnan(nonstd::cx::fabs(f64__f32_p_largest)) )          ));
-        REQUIRE(( ( std::fabs(f64__f32_n_largest)          == nonstd::cx::fabs(f64__f32_n_largest) )          || ( isnan(std::fabs(f64__f32_n_largest))          && isnan(nonstd::cx::fabs(f64__f32_n_largest)) )          ));
-        REQUIRE(( ( std::fabs(f64__f64_p_smallest)         == nonstd::cx::fabs(f64__f64_p_smallest) )         || ( isnan(std::fabs(f64__f64_p_smallest))         && isnan(nonstd::cx::fabs(f64__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::fabs(f64__f64_n_smallest)         == nonstd::cx::fabs(f64__f64_n_smallest) )         || ( isnan(std::fabs(f64__f64_n_smallest))         && isnan(nonstd::cx::fabs(f64__f64_n_smallest)) )         ));
-        REQUIRE(( ( std::fabs(f64__f64_p_largest)          == nonstd::cx::fabs(f64__f64_p_largest) )          || ( isnan(std::fabs(f64__f64_p_largest))          && isnan(nonstd::cx::fabs(f64__f64_p_largest)) )          ));
-        REQUIRE(( ( std::fabs(f64__f64_n_largest)          == nonstd::cx::fabs(f64__f64_n_largest) )          || ( isnan(std::fabs(f64__f64_n_largest))          && isnan(nonstd::cx::fabs(f64__f64_n_largest)) )          ));
-        REQUIRE(( ( std::fabs(f64__f_long_p_smallest)      == nonstd::cx::fabs(f64__f_long_p_smallest) )      || ( isnan(std::fabs(f64__f_long_p_smallest))      && isnan(nonstd::cx::fabs(f64__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::fabs(f64__f_long_n_smallest)      == nonstd::cx::fabs(f64__f_long_n_smallest) )      || ( isnan(std::fabs(f64__f_long_n_smallest))      && isnan(nonstd::cx::fabs(f64__f_long_n_smallest)) )      ));
-    //  REQUIRE(( ( std::fabs(f64__f_long_p_largest)       == nonstd::cx::fabs(f64__f_long_p_largest) )       || ( isnan(std::fabs(f64__f_long_p_largest))       && isnan(nonstd::cx::fabs(f64__f_long_p_largest)) )       ));
-    //  REQUIRE(( ( std::fabs(f64__f_long_n_largest)       == nonstd::cx::fabs(f64__f_long_n_largest) )       || ( isnan(std::fabs(f64__f_long_n_largest))       && isnan(nonstd::cx::fabs(f64__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::fabs(f64__f32_smallest_p)         == nonstd::cx::fabs(f64__f32_smallest_p) )         || ( isnan(std::fabs(f64__f32_smallest_p))         && isnan(nonstd::cx::fabs(f64__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::fabs(f64__f32_smallest_n)         == nonstd::cx::fabs(f64__f32_smallest_n) )         || ( isnan(std::fabs(f64__f32_smallest_n))         && isnan(nonstd::cx::fabs(f64__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::fabs(f64__f32_highest)            == nonstd::cx::fabs(f64__f32_highest) )            || ( isnan(std::fabs(f64__f32_highest))            && isnan(nonstd::cx::fabs(f64__f32_highest)) )            ));
+        REQUIRE(( ( std::fabs(f64__f32_lowest)             == nonstd::cx::fabs(f64__f32_lowest) )             || ( isnan(std::fabs(f64__f32_lowest))             && isnan(nonstd::cx::fabs(f64__f32_lowest)) )             ));
+        REQUIRE(( ( std::fabs(f64__f64_smallest_p)         == nonstd::cx::fabs(f64__f64_smallest_p) )         || ( isnan(std::fabs(f64__f64_smallest_p))         && isnan(nonstd::cx::fabs(f64__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::fabs(f64__f64_smallest_n)         == nonstd::cx::fabs(f64__f64_smallest_n) )         || ( isnan(std::fabs(f64__f64_smallest_n))         && isnan(nonstd::cx::fabs(f64__f64_smallest_n)) )         ));
+        REQUIRE(( ( std::fabs(f64__f64_highest)            == nonstd::cx::fabs(f64__f64_highest) )            || ( isnan(std::fabs(f64__f64_highest))            && isnan(nonstd::cx::fabs(f64__f64_highest)) )            ));
+        REQUIRE(( ( std::fabs(f64__f64_lowest)             == nonstd::cx::fabs(f64__f64_lowest) )             || ( isnan(std::fabs(f64__f64_lowest))             && isnan(nonstd::cx::fabs(f64__f64_lowest)) )             ));
+        REQUIRE(( ( std::fabs(f64__f_long_smallest_p)      == nonstd::cx::fabs(f64__f_long_smallest_p) )      || ( isnan(std::fabs(f64__f_long_smallest_p))      && isnan(nonstd::cx::fabs(f64__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::fabs(f64__f_long_smallest_n)      == nonstd::cx::fabs(f64__f_long_smallest_n) )      || ( isnan(std::fabs(f64__f_long_smallest_n))      && isnan(nonstd::cx::fabs(f64__f_long_smallest_n)) )      ));
+    //  REQUIRE(( ( std::fabs(f64__f_long_highest)         == nonstd::cx::fabs(f64__f_long_highest) )         || ( isnan(std::fabs(f64__f_long_highest))         && isnan(nonstd::cx::fabs(f64__f_long_highest)) )         ));
+    //  REQUIRE(( ( std::fabs(f64__f_long_lowest)          == nonstd::cx::fabs(f64__f_long_lowest) )          || ( isnan(std::fabs(f64__f_long_lowest))          && isnan(nonstd::cx::fabs(f64__f_long_lowest)) )          ));
         REQUIRE(( ( std::fabs(f64__f32_nan)                == nonstd::cx::fabs(f64__f32_nan) )                || ( isnan(std::fabs(f64__f32_nan))                && isnan(nonstd::cx::fabs(f64__f32_nan)) )                ));
         REQUIRE(( ( std::fabs(f64__f64_nan)                == nonstd::cx::fabs(f64__f64_nan) )                || ( isnan(std::fabs(f64__f64_nan))                && isnan(nonstd::cx::fabs(f64__f64_nan)) )                ));
         REQUIRE(( ( std::fabs(f64__f_long_nan)             == nonstd::cx::fabs(f64__f_long_nan) )             || ( isnan(std::fabs(f64__f_long_nan))             && isnan(nonstd::cx::fabs(f64__f_long_nan)) )             ));
@@ -699,34 +700,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::fabs(f64__f64_n_inf)              == nonstd::cx::fabs(f64__f64_n_inf) )              || ( isnan(std::fabs(f64__f64_n_inf))              && isnan(nonstd::cx::fabs(f64__f64_n_inf)) )              ));
         REQUIRE(( ( std::fabs(f64__f_long_p_inf)           == nonstd::cx::fabs(f64__f_long_p_inf) )           || ( isnan(std::fabs(f64__f_long_p_inf))           && isnan(nonstd::cx::fabs(f64__f_long_p_inf)) )           ));
         REQUIRE(( ( std::fabs(f64__f_long_n_inf)           == nonstd::cx::fabs(f64__f_long_n_inf) )           || ( isnan(std::fabs(f64__f_long_n_inf))           && isnan(nonstd::cx::fabs(f64__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::fabs(f64__f32_less_p_smallest)    == nonstd::cx::fabs(f64__f32_less_p_smallest) )    || ( isnan(std::fabs(f64__f32_less_p_smallest))    && isnan(nonstd::cx::fabs(f64__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f64__f32_less_n_smallest)    == nonstd::cx::fabs(f64__f32_less_n_smallest) )    || ( isnan(std::fabs(f64__f32_less_n_smallest))    && isnan(nonstd::cx::fabs(f64__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f64__f32_more_p_largest)     == nonstd::cx::fabs(f64__f32_more_p_largest) )     || ( isnan(std::fabs(f64__f32_more_p_largest))     && isnan(nonstd::cx::fabs(f64__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::fabs(f64__f32_more_n_largest)     == nonstd::cx::fabs(f64__f32_more_n_largest) )     || ( isnan(std::fabs(f64__f32_more_n_largest))     && isnan(nonstd::cx::fabs(f64__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::fabs(f64__f64_less_p_smallest)    == nonstd::cx::fabs(f64__f64_less_p_smallest) )    || ( isnan(std::fabs(f64__f64_less_p_smallest))    && isnan(nonstd::cx::fabs(f64__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f64__f64_less_n_smallest)    == nonstd::cx::fabs(f64__f64_less_n_smallest) )    || ( isnan(std::fabs(f64__f64_less_n_smallest))    && isnan(nonstd::cx::fabs(f64__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f64__f64_more_p_largest)     == nonstd::cx::fabs(f64__f64_more_p_largest) )     || ( isnan(std::fabs(f64__f64_more_p_largest))     && isnan(nonstd::cx::fabs(f64__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::fabs(f64__f64_more_n_largest)     == nonstd::cx::fabs(f64__f64_more_n_largest) )     || ( isnan(std::fabs(f64__f64_more_n_largest))     && isnan(nonstd::cx::fabs(f64__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::fabs(f64__f_long_less_p_smallest) == nonstd::cx::fabs(f64__f_long_less_p_smallest) ) || ( isnan(std::fabs(f64__f_long_less_p_smallest)) && isnan(nonstd::cx::fabs(f64__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::fabs(f64__f_long_less_n_smallest) == nonstd::cx::fabs(f64__f_long_less_n_smallest) ) || ( isnan(std::fabs(f64__f_long_less_n_smallest)) && isnan(nonstd::cx::fabs(f64__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::fabs(f64__f_long_more_p_largest)  == nonstd::cx::fabs(f64__f_long_more_p_largest) )  || ( isnan(std::fabs(f64__f_long_more_p_largest))  && isnan(nonstd::cx::fabs(f64__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::fabs(f64__f_long_more_n_largest)  == nonstd::cx::fabs(f64__f_long_more_n_largest) )  || ( isnan(std::fabs(f64__f_long_more_n_largest))  && isnan(nonstd::cx::fabs(f64__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::fabs(f64__f32_less_smallest_p)    == nonstd::cx::fabs(f64__f32_less_smallest_p) )    || ( isnan(std::fabs(f64__f32_less_smallest_p))    && isnan(nonstd::cx::fabs(f64__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::fabs(f64__f32_less_smallest_n)    == nonstd::cx::fabs(f64__f32_less_smallest_n) )    || ( isnan(std::fabs(f64__f32_less_smallest_n))    && isnan(nonstd::cx::fabs(f64__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::fabs(f64__f32_more_highest)       == nonstd::cx::fabs(f64__f32_more_highest) )       || ( isnan(std::fabs(f64__f32_more_highest))       && isnan(nonstd::cx::fabs(f64__f32_more_highest)) )       ));
+        REQUIRE(( ( std::fabs(f64__f32_more_lowest)        == nonstd::cx::fabs(f64__f32_more_lowest) )        || ( isnan(std::fabs(f64__f32_more_lowest))        && isnan(nonstd::cx::fabs(f64__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::fabs(f64__f64_less_smallest_p)    == nonstd::cx::fabs(f64__f64_less_smallest_p) )    || ( isnan(std::fabs(f64__f64_less_smallest_p))    && isnan(nonstd::cx::fabs(f64__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::fabs(f64__f64_less_smallest_n)    == nonstd::cx::fabs(f64__f64_less_smallest_n) )    || ( isnan(std::fabs(f64__f64_less_smallest_n))    && isnan(nonstd::cx::fabs(f64__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::fabs(f64__f64_more_highest)       == nonstd::cx::fabs(f64__f64_more_highest) )       || ( isnan(std::fabs(f64__f64_more_highest))       && isnan(nonstd::cx::fabs(f64__f64_more_highest)) )       ));
+        REQUIRE(( ( std::fabs(f64__f64_more_lowest)        == nonstd::cx::fabs(f64__f64_more_lowest) )        || ( isnan(std::fabs(f64__f64_more_lowest))        && isnan(nonstd::cx::fabs(f64__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::fabs(f64__f_long_less_smallest_p) == nonstd::cx::fabs(f64__f_long_less_smallest_p) ) || ( isnan(std::fabs(f64__f_long_less_smallest_p)) && isnan(nonstd::cx::fabs(f64__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::fabs(f64__f_long_less_smallest_n) == nonstd::cx::fabs(f64__f_long_less_smallest_n) ) || ( isnan(std::fabs(f64__f_long_less_smallest_n)) && isnan(nonstd::cx::fabs(f64__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::fabs(f64__f_long_more_highest)    == nonstd::cx::fabs(f64__f_long_more_highest) )    || ( isnan(std::fabs(f64__f_long_more_highest))    && isnan(nonstd::cx::fabs(f64__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::fabs(f64__f_long_more_lowest)     == nonstd::cx::fabs(f64__f_long_more_lowest) )     || ( isnan(std::fabs(f64__f_long_more_lowest))     && isnan(nonstd::cx::fabs(f64__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::fabs(f_long__positive)               == nonstd::cx::fabs(f_long__positive) )               || ( isnan(std::fabs(f_long__positive))               && isnan(nonstd::cx::fabs(f_long__positive)) )               ));
         REQUIRE(( ( std::fabs(f_long__zero)                   == nonstd::cx::fabs(f_long__zero) )                   || ( isnan(std::fabs(f_long__zero))                   && isnan(nonstd::cx::fabs(f_long__zero)) )                   ));
         REQUIRE(( ( std::fabs(f_long__negative)               == nonstd::cx::fabs(f_long__negative) )               || ( isnan(std::fabs(f_long__negative))               && isnan(nonstd::cx::fabs(f_long__negative)) )               ));
-        REQUIRE(( ( std::fabs(f_long__f32_p_smallest)         == nonstd::cx::fabs(f_long__f32_p_smallest) )         || ( isnan(std::fabs(f_long__f32_p_smallest))         && isnan(nonstd::cx::fabs(f_long__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::fabs(f_long__f32_n_smallest)         == nonstd::cx::fabs(f_long__f32_n_smallest) )         || ( isnan(std::fabs(f_long__f32_n_smallest))         && isnan(nonstd::cx::fabs(f_long__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::fabs(f_long__f32_p_largest)          == nonstd::cx::fabs(f_long__f32_p_largest) )          || ( isnan(std::fabs(f_long__f32_p_largest))          && isnan(nonstd::cx::fabs(f_long__f32_p_largest)) )          ));
-        REQUIRE(( ( std::fabs(f_long__f32_n_largest)          == nonstd::cx::fabs(f_long__f32_n_largest) )          || ( isnan(std::fabs(f_long__f32_n_largest))          && isnan(nonstd::cx::fabs(f_long__f32_n_largest)) )          ));
-        REQUIRE(( ( std::fabs(f_long__f64_p_smallest)         == nonstd::cx::fabs(f_long__f64_p_smallest) )         || ( isnan(std::fabs(f_long__f64_p_smallest))         && isnan(nonstd::cx::fabs(f_long__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::fabs(f_long__f64_n_smallest)         == nonstd::cx::fabs(f_long__f64_n_smallest) )         || ( isnan(std::fabs(f_long__f64_n_smallest))         && isnan(nonstd::cx::fabs(f_long__f64_n_smallest)) )         ));
-        REQUIRE(( ( std::fabs(f_long__f64_p_largest)          == nonstd::cx::fabs(f_long__f64_p_largest) )          || ( isnan(std::fabs(f_long__f64_p_largest))          && isnan(nonstd::cx::fabs(f_long__f64_p_largest)) )          ));
-        REQUIRE(( ( std::fabs(f_long__f64_n_largest)          == nonstd::cx::fabs(f_long__f64_n_largest) )          || ( isnan(std::fabs(f_long__f64_n_largest))          && isnan(nonstd::cx::fabs(f_long__f64_n_largest)) )          ));
-        REQUIRE(( ( std::fabs(f_long__f_long_p_smallest)      == nonstd::cx::fabs(f_long__f_long_p_smallest) )      || ( isnan(std::fabs(f_long__f_long_p_smallest))      && isnan(nonstd::cx::fabs(f_long__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::fabs(f_long__f_long_n_smallest)      == nonstd::cx::fabs(f_long__f_long_n_smallest) )      || ( isnan(std::fabs(f_long__f_long_n_smallest))      && isnan(nonstd::cx::fabs(f_long__f_long_n_smallest)) )      ));
-        REQUIRE(( ( std::fabs(f_long__f_long_p_largest)       == nonstd::cx::fabs(f_long__f_long_p_largest) )       || ( isnan(std::fabs(f_long__f_long_p_largest))       && isnan(nonstd::cx::fabs(f_long__f_long_p_largest)) )       ));
-        REQUIRE(( ( std::fabs(f_long__f_long_n_largest)       == nonstd::cx::fabs(f_long__f_long_n_largest) )       || ( isnan(std::fabs(f_long__f_long_n_largest))       && isnan(nonstd::cx::fabs(f_long__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::fabs(f_long__f32_smallest_p)         == nonstd::cx::fabs(f_long__f32_smallest_p) )         || ( isnan(std::fabs(f_long__f32_smallest_p))         && isnan(nonstd::cx::fabs(f_long__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::fabs(f_long__f32_smallest_n)         == nonstd::cx::fabs(f_long__f32_smallest_n) )         || ( isnan(std::fabs(f_long__f32_smallest_n))         && isnan(nonstd::cx::fabs(f_long__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::fabs(f_long__f32_highest)            == nonstd::cx::fabs(f_long__f32_highest) )            || ( isnan(std::fabs(f_long__f32_highest))            && isnan(nonstd::cx::fabs(f_long__f32_highest)) )            ));
+        REQUIRE(( ( std::fabs(f_long__f32_lowest)             == nonstd::cx::fabs(f_long__f32_lowest) )             || ( isnan(std::fabs(f_long__f32_lowest))             && isnan(nonstd::cx::fabs(f_long__f32_lowest)) )             ));
+        REQUIRE(( ( std::fabs(f_long__f64_smallest_p)         == nonstd::cx::fabs(f_long__f64_smallest_p) )         || ( isnan(std::fabs(f_long__f64_smallest_p))         && isnan(nonstd::cx::fabs(f_long__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::fabs(f_long__f64_smallest_n)         == nonstd::cx::fabs(f_long__f64_smallest_n) )         || ( isnan(std::fabs(f_long__f64_smallest_n))         && isnan(nonstd::cx::fabs(f_long__f64_smallest_n)) )         ));
+        REQUIRE(( ( std::fabs(f_long__f64_highest)            == nonstd::cx::fabs(f_long__f64_highest) )            || ( isnan(std::fabs(f_long__f64_highest))            && isnan(nonstd::cx::fabs(f_long__f64_highest)) )            ));
+        REQUIRE(( ( std::fabs(f_long__f64_lowest)             == nonstd::cx::fabs(f_long__f64_lowest) )             || ( isnan(std::fabs(f_long__f64_lowest))             && isnan(nonstd::cx::fabs(f_long__f64_lowest)) )             ));
+        REQUIRE(( ( std::fabs(f_long__f_long_smallest_p)      == nonstd::cx::fabs(f_long__f_long_smallest_p) )      || ( isnan(std::fabs(f_long__f_long_smallest_p))      && isnan(nonstd::cx::fabs(f_long__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::fabs(f_long__f_long_smallest_n)      == nonstd::cx::fabs(f_long__f_long_smallest_n) )      || ( isnan(std::fabs(f_long__f_long_smallest_n))      && isnan(nonstd::cx::fabs(f_long__f_long_smallest_n)) )      ));
+        REQUIRE(( ( std::fabs(f_long__f_long_highest)         == nonstd::cx::fabs(f_long__f_long_highest) )         || ( isnan(std::fabs(f_long__f_long_highest))         && isnan(nonstd::cx::fabs(f_long__f_long_highest)) )         ));
+        REQUIRE(( ( std::fabs(f_long__f_long_lowest)          == nonstd::cx::fabs(f_long__f_long_lowest) )          || ( isnan(std::fabs(f_long__f_long_lowest))          && isnan(nonstd::cx::fabs(f_long__f_long_lowest)) )          ));
         REQUIRE(( ( std::fabs(f_long__f32_nan)                == nonstd::cx::fabs(f_long__f32_nan) )                || ( isnan(std::fabs(f_long__f32_nan))                && isnan(nonstd::cx::fabs(f_long__f32_nan)) )                ));
         REQUIRE(( ( std::fabs(f_long__f64_nan)                == nonstd::cx::fabs(f_long__f64_nan) )                || ( isnan(std::fabs(f_long__f64_nan))                && isnan(nonstd::cx::fabs(f_long__f64_nan)) )                ));
         REQUIRE(( ( std::fabs(f_long__f_long_nan)             == nonstd::cx::fabs(f_long__f_long_nan) )             || ( isnan(std::fabs(f_long__f_long_nan))             && isnan(nonstd::cx::fabs(f_long__f_long_nan)) )             ));
@@ -736,18 +737,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::fabs(f_long__f64_n_inf)              == nonstd::cx::fabs(f_long__f64_n_inf) )              || ( isnan(std::fabs(f_long__f64_n_inf))              && isnan(nonstd::cx::fabs(f_long__f64_n_inf)) )              ));
         REQUIRE(( ( std::fabs(f_long__f_long_p_inf)           == nonstd::cx::fabs(f_long__f_long_p_inf) )           || ( isnan(std::fabs(f_long__f_long_p_inf))           && isnan(nonstd::cx::fabs(f_long__f_long_p_inf)) )           ));
         REQUIRE(( ( std::fabs(f_long__f_long_n_inf)           == nonstd::cx::fabs(f_long__f_long_n_inf) )           || ( isnan(std::fabs(f_long__f_long_n_inf))           && isnan(nonstd::cx::fabs(f_long__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::fabs(f_long__f32_less_p_smallest)    == nonstd::cx::fabs(f_long__f32_less_p_smallest) )    || ( isnan(std::fabs(f_long__f32_less_p_smallest))    && isnan(nonstd::cx::fabs(f_long__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f_long__f32_less_n_smallest)    == nonstd::cx::fabs(f_long__f32_less_n_smallest) )    || ( isnan(std::fabs(f_long__f32_less_n_smallest))    && isnan(nonstd::cx::fabs(f_long__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f_long__f32_more_p_largest)     == nonstd::cx::fabs(f_long__f32_more_p_largest) )     || ( isnan(std::fabs(f_long__f32_more_p_largest))     && isnan(nonstd::cx::fabs(f_long__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::fabs(f_long__f32_more_n_largest)     == nonstd::cx::fabs(f_long__f32_more_n_largest) )     || ( isnan(std::fabs(f_long__f32_more_n_largest))     && isnan(nonstd::cx::fabs(f_long__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::fabs(f_long__f64_less_p_smallest)    == nonstd::cx::fabs(f_long__f64_less_p_smallest) )    || ( isnan(std::fabs(f_long__f64_less_p_smallest))    && isnan(nonstd::cx::fabs(f_long__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f_long__f64_less_n_smallest)    == nonstd::cx::fabs(f_long__f64_less_n_smallest) )    || ( isnan(std::fabs(f_long__f64_less_n_smallest))    && isnan(nonstd::cx::fabs(f_long__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::fabs(f_long__f64_more_p_largest)     == nonstd::cx::fabs(f_long__f64_more_p_largest) )     || ( isnan(std::fabs(f_long__f64_more_p_largest))     && isnan(nonstd::cx::fabs(f_long__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::fabs(f_long__f64_more_n_largest)     == nonstd::cx::fabs(f_long__f64_more_n_largest) )     || ( isnan(std::fabs(f_long__f64_more_n_largest))     && isnan(nonstd::cx::fabs(f_long__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::fabs(f_long__f_long_less_p_smallest) == nonstd::cx::fabs(f_long__f_long_less_p_smallest) ) || ( isnan(std::fabs(f_long__f_long_less_p_smallest)) && isnan(nonstd::cx::fabs(f_long__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::fabs(f_long__f_long_less_n_smallest) == nonstd::cx::fabs(f_long__f_long_less_n_smallest) ) || ( isnan(std::fabs(f_long__f_long_less_n_smallest)) && isnan(nonstd::cx::fabs(f_long__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::fabs(f_long__f_long_more_p_largest)  == nonstd::cx::fabs(f_long__f_long_more_p_largest) )  || ( isnan(std::fabs(f_long__f_long_more_p_largest))  && isnan(nonstd::cx::fabs(f_long__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::fabs(f_long__f_long_more_n_largest)  == nonstd::cx::fabs(f_long__f_long_more_n_largest) )  || ( isnan(std::fabs(f_long__f_long_more_n_largest))  && isnan(nonstd::cx::fabs(f_long__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::fabs(f_long__f32_less_smallest_p)    == nonstd::cx::fabs(f_long__f32_less_smallest_p) )    || ( isnan(std::fabs(f_long__f32_less_smallest_p))    && isnan(nonstd::cx::fabs(f_long__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::fabs(f_long__f32_less_smallest_n)    == nonstd::cx::fabs(f_long__f32_less_smallest_n) )    || ( isnan(std::fabs(f_long__f32_less_smallest_n))    && isnan(nonstd::cx::fabs(f_long__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::fabs(f_long__f32_more_highest)       == nonstd::cx::fabs(f_long__f32_more_highest) )       || ( isnan(std::fabs(f_long__f32_more_highest))       && isnan(nonstd::cx::fabs(f_long__f32_more_highest)) )       ));
+        REQUIRE(( ( std::fabs(f_long__f32_more_lowest)        == nonstd::cx::fabs(f_long__f32_more_lowest) )        || ( isnan(std::fabs(f_long__f32_more_lowest))        && isnan(nonstd::cx::fabs(f_long__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::fabs(f_long__f64_less_smallest_p)    == nonstd::cx::fabs(f_long__f64_less_smallest_p) )    || ( isnan(std::fabs(f_long__f64_less_smallest_p))    && isnan(nonstd::cx::fabs(f_long__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::fabs(f_long__f64_less_smallest_n)    == nonstd::cx::fabs(f_long__f64_less_smallest_n) )    || ( isnan(std::fabs(f_long__f64_less_smallest_n))    && isnan(nonstd::cx::fabs(f_long__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::fabs(f_long__f64_more_highest)       == nonstd::cx::fabs(f_long__f64_more_highest) )       || ( isnan(std::fabs(f_long__f64_more_highest))       && isnan(nonstd::cx::fabs(f_long__f64_more_highest)) )       ));
+        REQUIRE(( ( std::fabs(f_long__f64_more_lowest)        == nonstd::cx::fabs(f_long__f64_more_lowest) )        || ( isnan(std::fabs(f_long__f64_more_lowest))        && isnan(nonstd::cx::fabs(f_long__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::fabs(f_long__f_long_less_smallest_p) == nonstd::cx::fabs(f_long__f_long_less_smallest_p) ) || ( isnan(std::fabs(f_long__f_long_less_smallest_p)) && isnan(nonstd::cx::fabs(f_long__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::fabs(f_long__f_long_less_smallest_n) == nonstd::cx::fabs(f_long__f_long_less_smallest_n) ) || ( isnan(std::fabs(f_long__f_long_less_smallest_n)) && isnan(nonstd::cx::fabs(f_long__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::fabs(f_long__f_long_more_highest)    == nonstd::cx::fabs(f_long__f_long_more_highest) )    || ( isnan(std::fabs(f_long__f_long_more_highest))    && isnan(nonstd::cx::fabs(f_long__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::fabs(f_long__f_long_more_lowest)     == nonstd::cx::fabs(f_long__f_long_more_lowest) )     || ( isnan(std::fabs(f_long__f_long_more_lowest))     && isnan(nonstd::cx::fabs(f_long__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::fabs(u64__positive) == nonstd::cx::fabs(u64__positive) ) || ( isnan(std::fabs(u64__positive)) && isnan(nonstd::cx::fabs(u64__positive)) ) ));
         REQUIRE(( ( std::fabs(u64__zero)     == nonstd::cx::fabs(u64__zero) )     || ( isnan(std::fabs(u64__zero))     && isnan(nonstd::cx::fabs(u64__zero)) )     ));
@@ -766,18 +767,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::ceil(f32__positive)               == nonstd::cx::ceil(f32__positive) )               || ( isnan(std::ceil(f32__positive))               && isnan(nonstd::cx::ceil(f32__positive)) )               ));
         REQUIRE(( ( std::ceil(f32__zero)                   == nonstd::cx::ceil(f32__zero) )                   || ( isnan(std::ceil(f32__zero))                   && isnan(nonstd::cx::ceil(f32__zero)) )                   ));
         REQUIRE(( ( std::ceil(f32__negative)               == nonstd::cx::ceil(f32__negative) )               || ( isnan(std::ceil(f32__negative))               && isnan(nonstd::cx::ceil(f32__negative)) )               ));
-        REQUIRE(( ( std::ceil(f32__f32_p_smallest)         == nonstd::cx::ceil(f32__f32_p_smallest) )         || ( isnan(std::ceil(f32__f32_p_smallest))         && isnan(nonstd::cx::ceil(f32__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::ceil(f32__f32_n_smallest)         == nonstd::cx::ceil(f32__f32_n_smallest) )         || ( isnan(std::ceil(f32__f32_n_smallest))         && isnan(nonstd::cx::ceil(f32__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::ceil(f32__f32_p_largest)          == nonstd::cx::ceil(f32__f32_p_largest) )          || ( isnan(std::ceil(f32__f32_p_largest))          && isnan(nonstd::cx::ceil(f32__f32_p_largest)) )          ));
-        REQUIRE(( ( std::ceil(f32__f32_n_largest)          == nonstd::cx::ceil(f32__f32_n_largest) )          || ( isnan(std::ceil(f32__f32_n_largest))          && isnan(nonstd::cx::ceil(f32__f32_n_largest)) )          ));
-        REQUIRE(( ( std::ceil(f32__f64_p_smallest)         == nonstd::cx::ceil(f32__f64_p_smallest) )         || ( isnan(std::ceil(f32__f64_p_smallest))         && isnan(nonstd::cx::ceil(f32__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::ceil(f32__f64_n_smallest)         == nonstd::cx::ceil(f32__f64_n_smallest) )         || ( isnan(std::ceil(f32__f64_n_smallest))         && isnan(nonstd::cx::ceil(f32__f64_n_smallest)) )         ));
-    //  REQUIRE(( ( std::ceil(f32__f64_p_largest)          == nonstd::cx::ceil(f32__f64_p_largest) )          || ( isnan(std::ceil(f32__f64_p_largest))          && isnan(nonstd::cx::ceil(f32__f64_p_largest)) )          ));
-    //  REQUIRE(( ( std::ceil(f32__f64_n_largest)          == nonstd::cx::ceil(f32__f64_n_largest) )          || ( isnan(std::ceil(f32__f64_n_largest))          && isnan(nonstd::cx::ceil(f32__f64_n_largest)) )          ));
-        REQUIRE(( ( std::ceil(f32__f_long_p_smallest)      == nonstd::cx::ceil(f32__f_long_p_smallest) )      || ( isnan(std::ceil(f32__f_long_p_smallest))      && isnan(nonstd::cx::ceil(f32__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::ceil(f32__f_long_n_smallest)      == nonstd::cx::ceil(f32__f_long_n_smallest) )      || ( isnan(std::ceil(f32__f_long_n_smallest))      && isnan(nonstd::cx::ceil(f32__f_long_n_smallest)) )      ));
-    //  REQUIRE(( ( std::ceil(f32__f_long_p_largest)       == nonstd::cx::ceil(f32__f_long_p_largest) )       || ( isnan(std::ceil(f32__f_long_p_largest))       && isnan(nonstd::cx::ceil(f32__f_long_p_largest)) )       ));
-    //  REQUIRE(( ( std::ceil(f32__f_long_n_largest)       == nonstd::cx::ceil(f32__f_long_n_largest) )       || ( isnan(std::ceil(f32__f_long_n_largest))       && isnan(nonstd::cx::ceil(f32__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::ceil(f32__f32_smallest_p)         == nonstd::cx::ceil(f32__f32_smallest_p) )         || ( isnan(std::ceil(f32__f32_smallest_p))         && isnan(nonstd::cx::ceil(f32__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::ceil(f32__f32_smallest_n)         == nonstd::cx::ceil(f32__f32_smallest_n) )         || ( isnan(std::ceil(f32__f32_smallest_n))         && isnan(nonstd::cx::ceil(f32__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::ceil(f32__f32_highest)            == nonstd::cx::ceil(f32__f32_highest) )            || ( isnan(std::ceil(f32__f32_highest))            && isnan(nonstd::cx::ceil(f32__f32_highest)) )            ));
+        REQUIRE(( ( std::ceil(f32__f32_lowest)             == nonstd::cx::ceil(f32__f32_lowest) )             || ( isnan(std::ceil(f32__f32_lowest))             && isnan(nonstd::cx::ceil(f32__f32_lowest)) )             ));
+        REQUIRE(( ( std::ceil(f32__f64_smallest_p)         == nonstd::cx::ceil(f32__f64_smallest_p) )         || ( isnan(std::ceil(f32__f64_smallest_p))         && isnan(nonstd::cx::ceil(f32__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::ceil(f32__f64_smallest_n)         == nonstd::cx::ceil(f32__f64_smallest_n) )         || ( isnan(std::ceil(f32__f64_smallest_n))         && isnan(nonstd::cx::ceil(f32__f64_smallest_n)) )         ));
+    //  REQUIRE(( ( std::ceil(f32__f64_highest)            == nonstd::cx::ceil(f32__f64_highest) )            || ( isnan(std::ceil(f32__f64_highest))            && isnan(nonstd::cx::ceil(f32__f64_highest)) )            ));
+    //  REQUIRE(( ( std::ceil(f32__f64_lowest)             == nonstd::cx::ceil(f32__f64_lowest) )             || ( isnan(std::ceil(f32__f64_lowest))             && isnan(nonstd::cx::ceil(f32__f64_lowest)) )             ));
+        REQUIRE(( ( std::ceil(f32__f_long_smallest_p)      == nonstd::cx::ceil(f32__f_long_smallest_p) )      || ( isnan(std::ceil(f32__f_long_smallest_p))      && isnan(nonstd::cx::ceil(f32__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::ceil(f32__f_long_smallest_n)      == nonstd::cx::ceil(f32__f_long_smallest_n) )      || ( isnan(std::ceil(f32__f_long_smallest_n))      && isnan(nonstd::cx::ceil(f32__f_long_smallest_n)) )      ));
+    //  REQUIRE(( ( std::ceil(f32__f_long_highest)         == nonstd::cx::ceil(f32__f_long_highest) )         || ( isnan(std::ceil(f32__f_long_highest))         && isnan(nonstd::cx::ceil(f32__f_long_highest)) )         ));
+    //  REQUIRE(( ( std::ceil(f32__f_long_lowest)          == nonstd::cx::ceil(f32__f_long_lowest) )          || ( isnan(std::ceil(f32__f_long_lowest))          && isnan(nonstd::cx::ceil(f32__f_long_lowest)) )          ));
         REQUIRE(( ( std::ceil(f32__f32_nan)                == nonstd::cx::ceil(f32__f32_nan) )                || ( isnan(std::ceil(f32__f32_nan))                && isnan(nonstd::cx::ceil(f32__f32_nan)) )                ));
         REQUIRE(( ( std::ceil(f32__f64_nan)                == nonstd::cx::ceil(f32__f64_nan) )                || ( isnan(std::ceil(f32__f64_nan))                && isnan(nonstd::cx::ceil(f32__f64_nan)) )                ));
         REQUIRE(( ( std::ceil(f32__f_long_nan)             == nonstd::cx::ceil(f32__f_long_nan) )             || ( isnan(std::ceil(f32__f_long_nan))             && isnan(nonstd::cx::ceil(f32__f_long_nan)) )             ));
@@ -787,34 +788,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::ceil(f32__f64_n_inf)              == nonstd::cx::ceil(f32__f64_n_inf) )              || ( isnan(std::ceil(f32__f64_n_inf))              && isnan(nonstd::cx::ceil(f32__f64_n_inf)) )              ));
         REQUIRE(( ( std::ceil(f32__f_long_p_inf)           == nonstd::cx::ceil(f32__f_long_p_inf) )           || ( isnan(std::ceil(f32__f_long_p_inf))           && isnan(nonstd::cx::ceil(f32__f_long_p_inf)) )           ));
         REQUIRE(( ( std::ceil(f32__f_long_n_inf)           == nonstd::cx::ceil(f32__f_long_n_inf) )           || ( isnan(std::ceil(f32__f_long_n_inf))           && isnan(nonstd::cx::ceil(f32__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::ceil(f32__f32_less_p_smallest)    == nonstd::cx::ceil(f32__f32_less_p_smallest) )    || ( isnan(std::ceil(f32__f32_less_p_smallest))    && isnan(nonstd::cx::ceil(f32__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f32__f32_less_n_smallest)    == nonstd::cx::ceil(f32__f32_less_n_smallest) )    || ( isnan(std::ceil(f32__f32_less_n_smallest))    && isnan(nonstd::cx::ceil(f32__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f32__f32_more_p_largest)     == nonstd::cx::ceil(f32__f32_more_p_largest) )     || ( isnan(std::ceil(f32__f32_more_p_largest))     && isnan(nonstd::cx::ceil(f32__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::ceil(f32__f32_more_n_largest)     == nonstd::cx::ceil(f32__f32_more_n_largest) )     || ( isnan(std::ceil(f32__f32_more_n_largest))     && isnan(nonstd::cx::ceil(f32__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::ceil(f32__f64_less_p_smallest)    == nonstd::cx::ceil(f32__f64_less_p_smallest) )    || ( isnan(std::ceil(f32__f64_less_p_smallest))    && isnan(nonstd::cx::ceil(f32__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f32__f64_less_n_smallest)    == nonstd::cx::ceil(f32__f64_less_n_smallest) )    || ( isnan(std::ceil(f32__f64_less_n_smallest))    && isnan(nonstd::cx::ceil(f32__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f32__f64_more_p_largest)     == nonstd::cx::ceil(f32__f64_more_p_largest) )     || ( isnan(std::ceil(f32__f64_more_p_largest))     && isnan(nonstd::cx::ceil(f32__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::ceil(f32__f64_more_n_largest)     == nonstd::cx::ceil(f32__f64_more_n_largest) )     || ( isnan(std::ceil(f32__f64_more_n_largest))     && isnan(nonstd::cx::ceil(f32__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::ceil(f32__f_long_less_p_smallest) == nonstd::cx::ceil(f32__f_long_less_p_smallest) ) || ( isnan(std::ceil(f32__f_long_less_p_smallest)) && isnan(nonstd::cx::ceil(f32__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::ceil(f32__f_long_less_n_smallest) == nonstd::cx::ceil(f32__f_long_less_n_smallest) ) || ( isnan(std::ceil(f32__f_long_less_n_smallest)) && isnan(nonstd::cx::ceil(f32__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::ceil(f32__f_long_more_p_largest)  == nonstd::cx::ceil(f32__f_long_more_p_largest) )  || ( isnan(std::ceil(f32__f_long_more_p_largest))  && isnan(nonstd::cx::ceil(f32__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::ceil(f32__f_long_more_n_largest)  == nonstd::cx::ceil(f32__f_long_more_n_largest) )  || ( isnan(std::ceil(f32__f_long_more_n_largest))  && isnan(nonstd::cx::ceil(f32__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::ceil(f32__f32_less_smallest_p)    == nonstd::cx::ceil(f32__f32_less_smallest_p) )    || ( isnan(std::ceil(f32__f32_less_smallest_p))    && isnan(nonstd::cx::ceil(f32__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::ceil(f32__f32_less_smallest_n)    == nonstd::cx::ceil(f32__f32_less_smallest_n) )    || ( isnan(std::ceil(f32__f32_less_smallest_n))    && isnan(nonstd::cx::ceil(f32__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::ceil(f32__f32_more_highest)       == nonstd::cx::ceil(f32__f32_more_highest) )       || ( isnan(std::ceil(f32__f32_more_highest))       && isnan(nonstd::cx::ceil(f32__f32_more_highest)) )       ));
+        REQUIRE(( ( std::ceil(f32__f32_more_lowest)        == nonstd::cx::ceil(f32__f32_more_lowest) )        || ( isnan(std::ceil(f32__f32_more_lowest))        && isnan(nonstd::cx::ceil(f32__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::ceil(f32__f64_less_smallest_p)    == nonstd::cx::ceil(f32__f64_less_smallest_p) )    || ( isnan(std::ceil(f32__f64_less_smallest_p))    && isnan(nonstd::cx::ceil(f32__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::ceil(f32__f64_less_smallest_n)    == nonstd::cx::ceil(f32__f64_less_smallest_n) )    || ( isnan(std::ceil(f32__f64_less_smallest_n))    && isnan(nonstd::cx::ceil(f32__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::ceil(f32__f64_more_highest)       == nonstd::cx::ceil(f32__f64_more_highest) )       || ( isnan(std::ceil(f32__f64_more_highest))       && isnan(nonstd::cx::ceil(f32__f64_more_highest)) )       ));
+        REQUIRE(( ( std::ceil(f32__f64_more_lowest)        == nonstd::cx::ceil(f32__f64_more_lowest) )        || ( isnan(std::ceil(f32__f64_more_lowest))        && isnan(nonstd::cx::ceil(f32__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::ceil(f32__f_long_less_smallest_p) == nonstd::cx::ceil(f32__f_long_less_smallest_p) ) || ( isnan(std::ceil(f32__f_long_less_smallest_p)) && isnan(nonstd::cx::ceil(f32__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::ceil(f32__f_long_less_smallest_n) == nonstd::cx::ceil(f32__f_long_less_smallest_n) ) || ( isnan(std::ceil(f32__f_long_less_smallest_n)) && isnan(nonstd::cx::ceil(f32__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::ceil(f32__f_long_more_highest)    == nonstd::cx::ceil(f32__f_long_more_highest) )    || ( isnan(std::ceil(f32__f_long_more_highest))    && isnan(nonstd::cx::ceil(f32__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::ceil(f32__f_long_more_lowest)     == nonstd::cx::ceil(f32__f_long_more_lowest) )     || ( isnan(std::ceil(f32__f_long_more_lowest))     && isnan(nonstd::cx::ceil(f32__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::ceil(f64__positive)               == nonstd::cx::ceil(f64__positive) )               || ( isnan(std::ceil(f64__positive))               && isnan(nonstd::cx::ceil(f64__positive)) )               ));
         REQUIRE(( ( std::ceil(f64__zero)                   == nonstd::cx::ceil(f64__zero) )                   || ( isnan(std::ceil(f64__zero))                   && isnan(nonstd::cx::ceil(f64__zero)) )                   ));
         REQUIRE(( ( std::ceil(f64__negative)               == nonstd::cx::ceil(f64__negative) )               || ( isnan(std::ceil(f64__negative))               && isnan(nonstd::cx::ceil(f64__negative)) )               ));
-        REQUIRE(( ( std::ceil(f64__f32_p_smallest)         == nonstd::cx::ceil(f64__f32_p_smallest) )         || ( isnan(std::ceil(f64__f32_p_smallest))         && isnan(nonstd::cx::ceil(f64__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::ceil(f64__f32_n_smallest)         == nonstd::cx::ceil(f64__f32_n_smallest) )         || ( isnan(std::ceil(f64__f32_n_smallest))         && isnan(nonstd::cx::ceil(f64__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::ceil(f64__f32_p_largest)          == nonstd::cx::ceil(f64__f32_p_largest) )          || ( isnan(std::ceil(f64__f32_p_largest))          && isnan(nonstd::cx::ceil(f64__f32_p_largest)) )          ));
-        REQUIRE(( ( std::ceil(f64__f32_n_largest)          == nonstd::cx::ceil(f64__f32_n_largest) )          || ( isnan(std::ceil(f64__f32_n_largest))          && isnan(nonstd::cx::ceil(f64__f32_n_largest)) )          ));
-        REQUIRE(( ( std::ceil(f64__f64_p_smallest)         == nonstd::cx::ceil(f64__f64_p_smallest) )         || ( isnan(std::ceil(f64__f64_p_smallest))         && isnan(nonstd::cx::ceil(f64__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::ceil(f64__f64_n_smallest)         == nonstd::cx::ceil(f64__f64_n_smallest) )         || ( isnan(std::ceil(f64__f64_n_smallest))         && isnan(nonstd::cx::ceil(f64__f64_n_smallest)) )         ));
-        REQUIRE(( ( std::ceil(f64__f64_p_largest)          == nonstd::cx::ceil(f64__f64_p_largest) )          || ( isnan(std::ceil(f64__f64_p_largest))          && isnan(nonstd::cx::ceil(f64__f64_p_largest)) )          ));
-        REQUIRE(( ( std::ceil(f64__f64_n_largest)          == nonstd::cx::ceil(f64__f64_n_largest) )          || ( isnan(std::ceil(f64__f64_n_largest))          && isnan(nonstd::cx::ceil(f64__f64_n_largest)) )          ));
-        REQUIRE(( ( std::ceil(f64__f_long_p_smallest)      == nonstd::cx::ceil(f64__f_long_p_smallest) )      || ( isnan(std::ceil(f64__f_long_p_smallest))      && isnan(nonstd::cx::ceil(f64__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::ceil(f64__f_long_n_smallest)      == nonstd::cx::ceil(f64__f_long_n_smallest) )      || ( isnan(std::ceil(f64__f_long_n_smallest))      && isnan(nonstd::cx::ceil(f64__f_long_n_smallest)) )      ));
-    //  REQUIRE(( ( std::ceil(f64__f_long_p_largest)       == nonstd::cx::ceil(f64__f_long_p_largest) )       || ( isnan(std::ceil(f64__f_long_p_largest))       && isnan(nonstd::cx::ceil(f64__f_long_p_largest)) )       ));
-    //  REQUIRE(( ( std::ceil(f64__f_long_n_largest)       == nonstd::cx::ceil(f64__f_long_n_largest) )       || ( isnan(std::ceil(f64__f_long_n_largest))       && isnan(nonstd::cx::ceil(f64__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::ceil(f64__f32_smallest_p)         == nonstd::cx::ceil(f64__f32_smallest_p) )         || ( isnan(std::ceil(f64__f32_smallest_p))         && isnan(nonstd::cx::ceil(f64__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::ceil(f64__f32_smallest_n)         == nonstd::cx::ceil(f64__f32_smallest_n) )         || ( isnan(std::ceil(f64__f32_smallest_n))         && isnan(nonstd::cx::ceil(f64__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::ceil(f64__f32_highest)            == nonstd::cx::ceil(f64__f32_highest) )            || ( isnan(std::ceil(f64__f32_highest))            && isnan(nonstd::cx::ceil(f64__f32_highest)) )            ));
+        REQUIRE(( ( std::ceil(f64__f32_lowest)             == nonstd::cx::ceil(f64__f32_lowest) )             || ( isnan(std::ceil(f64__f32_lowest))             && isnan(nonstd::cx::ceil(f64__f32_lowest)) )             ));
+        REQUIRE(( ( std::ceil(f64__f64_smallest_p)         == nonstd::cx::ceil(f64__f64_smallest_p) )         || ( isnan(std::ceil(f64__f64_smallest_p))         && isnan(nonstd::cx::ceil(f64__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::ceil(f64__f64_smallest_n)         == nonstd::cx::ceil(f64__f64_smallest_n) )         || ( isnan(std::ceil(f64__f64_smallest_n))         && isnan(nonstd::cx::ceil(f64__f64_smallest_n)) )         ));
+        REQUIRE(( ( std::ceil(f64__f64_highest)            == nonstd::cx::ceil(f64__f64_highest) )            || ( isnan(std::ceil(f64__f64_highest))            && isnan(nonstd::cx::ceil(f64__f64_highest)) )            ));
+        REQUIRE(( ( std::ceil(f64__f64_lowest)             == nonstd::cx::ceil(f64__f64_lowest) )             || ( isnan(std::ceil(f64__f64_lowest))             && isnan(nonstd::cx::ceil(f64__f64_lowest)) )             ));
+        REQUIRE(( ( std::ceil(f64__f_long_smallest_p)      == nonstd::cx::ceil(f64__f_long_smallest_p) )      || ( isnan(std::ceil(f64__f_long_smallest_p))      && isnan(nonstd::cx::ceil(f64__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::ceil(f64__f_long_smallest_n)      == nonstd::cx::ceil(f64__f_long_smallest_n) )      || ( isnan(std::ceil(f64__f_long_smallest_n))      && isnan(nonstd::cx::ceil(f64__f_long_smallest_n)) )      ));
+    //  REQUIRE(( ( std::ceil(f64__f_long_highest)         == nonstd::cx::ceil(f64__f_long_highest) )         || ( isnan(std::ceil(f64__f_long_highest))         && isnan(nonstd::cx::ceil(f64__f_long_highest)) )         ));
+    //  REQUIRE(( ( std::ceil(f64__f_long_lowest)          == nonstd::cx::ceil(f64__f_long_lowest) )          || ( isnan(std::ceil(f64__f_long_lowest))          && isnan(nonstd::cx::ceil(f64__f_long_lowest)) )          ));
         REQUIRE(( ( std::ceil(f64__f32_nan)                == nonstd::cx::ceil(f64__f32_nan) )                || ( isnan(std::ceil(f64__f32_nan))                && isnan(nonstd::cx::ceil(f64__f32_nan)) )                ));
         REQUIRE(( ( std::ceil(f64__f64_nan)                == nonstd::cx::ceil(f64__f64_nan) )                || ( isnan(std::ceil(f64__f64_nan))                && isnan(nonstd::cx::ceil(f64__f64_nan)) )                ));
         REQUIRE(( ( std::ceil(f64__f_long_nan)             == nonstd::cx::ceil(f64__f_long_nan) )             || ( isnan(std::ceil(f64__f_long_nan))             && isnan(nonstd::cx::ceil(f64__f_long_nan)) )             ));
@@ -824,34 +825,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::ceil(f64__f64_n_inf)              == nonstd::cx::ceil(f64__f64_n_inf) )              || ( isnan(std::ceil(f64__f64_n_inf))              && isnan(nonstd::cx::ceil(f64__f64_n_inf)) )              ));
         REQUIRE(( ( std::ceil(f64__f_long_p_inf)           == nonstd::cx::ceil(f64__f_long_p_inf) )           || ( isnan(std::ceil(f64__f_long_p_inf))           && isnan(nonstd::cx::ceil(f64__f_long_p_inf)) )           ));
         REQUIRE(( ( std::ceil(f64__f_long_n_inf)           == nonstd::cx::ceil(f64__f_long_n_inf) )           || ( isnan(std::ceil(f64__f_long_n_inf))           && isnan(nonstd::cx::ceil(f64__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::ceil(f64__f32_less_p_smallest)    == nonstd::cx::ceil(f64__f32_less_p_smallest) )    || ( isnan(std::ceil(f64__f32_less_p_smallest))    && isnan(nonstd::cx::ceil(f64__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f64__f32_less_n_smallest)    == nonstd::cx::ceil(f64__f32_less_n_smallest) )    || ( isnan(std::ceil(f64__f32_less_n_smallest))    && isnan(nonstd::cx::ceil(f64__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f64__f32_more_p_largest)     == nonstd::cx::ceil(f64__f32_more_p_largest) )     || ( isnan(std::ceil(f64__f32_more_p_largest))     && isnan(nonstd::cx::ceil(f64__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::ceil(f64__f32_more_n_largest)     == nonstd::cx::ceil(f64__f32_more_n_largest) )     || ( isnan(std::ceil(f64__f32_more_n_largest))     && isnan(nonstd::cx::ceil(f64__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::ceil(f64__f64_less_p_smallest)    == nonstd::cx::ceil(f64__f64_less_p_smallest) )    || ( isnan(std::ceil(f64__f64_less_p_smallest))    && isnan(nonstd::cx::ceil(f64__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f64__f64_less_n_smallest)    == nonstd::cx::ceil(f64__f64_less_n_smallest) )    || ( isnan(std::ceil(f64__f64_less_n_smallest))    && isnan(nonstd::cx::ceil(f64__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f64__f64_more_p_largest)     == nonstd::cx::ceil(f64__f64_more_p_largest) )     || ( isnan(std::ceil(f64__f64_more_p_largest))     && isnan(nonstd::cx::ceil(f64__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::ceil(f64__f64_more_n_largest)     == nonstd::cx::ceil(f64__f64_more_n_largest) )     || ( isnan(std::ceil(f64__f64_more_n_largest))     && isnan(nonstd::cx::ceil(f64__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::ceil(f64__f_long_less_p_smallest) == nonstd::cx::ceil(f64__f_long_less_p_smallest) ) || ( isnan(std::ceil(f64__f_long_less_p_smallest)) && isnan(nonstd::cx::ceil(f64__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::ceil(f64__f_long_less_n_smallest) == nonstd::cx::ceil(f64__f_long_less_n_smallest) ) || ( isnan(std::ceil(f64__f_long_less_n_smallest)) && isnan(nonstd::cx::ceil(f64__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::ceil(f64__f_long_more_p_largest)  == nonstd::cx::ceil(f64__f_long_more_p_largest) )  || ( isnan(std::ceil(f64__f_long_more_p_largest))  && isnan(nonstd::cx::ceil(f64__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::ceil(f64__f_long_more_n_largest)  == nonstd::cx::ceil(f64__f_long_more_n_largest) )  || ( isnan(std::ceil(f64__f_long_more_n_largest))  && isnan(nonstd::cx::ceil(f64__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::ceil(f64__f32_less_smallest_p)    == nonstd::cx::ceil(f64__f32_less_smallest_p) )    || ( isnan(std::ceil(f64__f32_less_smallest_p))    && isnan(nonstd::cx::ceil(f64__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::ceil(f64__f32_less_smallest_n)    == nonstd::cx::ceil(f64__f32_less_smallest_n) )    || ( isnan(std::ceil(f64__f32_less_smallest_n))    && isnan(nonstd::cx::ceil(f64__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::ceil(f64__f32_more_highest)       == nonstd::cx::ceil(f64__f32_more_highest) )       || ( isnan(std::ceil(f64__f32_more_highest))       && isnan(nonstd::cx::ceil(f64__f32_more_highest)) )       ));
+        REQUIRE(( ( std::ceil(f64__f32_more_lowest)        == nonstd::cx::ceil(f64__f32_more_lowest) )        || ( isnan(std::ceil(f64__f32_more_lowest))        && isnan(nonstd::cx::ceil(f64__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::ceil(f64__f64_less_smallest_p)    == nonstd::cx::ceil(f64__f64_less_smallest_p) )    || ( isnan(std::ceil(f64__f64_less_smallest_p))    && isnan(nonstd::cx::ceil(f64__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::ceil(f64__f64_less_smallest_n)    == nonstd::cx::ceil(f64__f64_less_smallest_n) )    || ( isnan(std::ceil(f64__f64_less_smallest_n))    && isnan(nonstd::cx::ceil(f64__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::ceil(f64__f64_more_highest)       == nonstd::cx::ceil(f64__f64_more_highest) )       || ( isnan(std::ceil(f64__f64_more_highest))       && isnan(nonstd::cx::ceil(f64__f64_more_highest)) )       ));
+        REQUIRE(( ( std::ceil(f64__f64_more_lowest)        == nonstd::cx::ceil(f64__f64_more_lowest) )        || ( isnan(std::ceil(f64__f64_more_lowest))        && isnan(nonstd::cx::ceil(f64__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::ceil(f64__f_long_less_smallest_p) == nonstd::cx::ceil(f64__f_long_less_smallest_p) ) || ( isnan(std::ceil(f64__f_long_less_smallest_p)) && isnan(nonstd::cx::ceil(f64__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::ceil(f64__f_long_less_smallest_n) == nonstd::cx::ceil(f64__f_long_less_smallest_n) ) || ( isnan(std::ceil(f64__f_long_less_smallest_n)) && isnan(nonstd::cx::ceil(f64__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::ceil(f64__f_long_more_highest)    == nonstd::cx::ceil(f64__f_long_more_highest) )    || ( isnan(std::ceil(f64__f_long_more_highest))    && isnan(nonstd::cx::ceil(f64__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::ceil(f64__f_long_more_lowest)     == nonstd::cx::ceil(f64__f_long_more_lowest) )     || ( isnan(std::ceil(f64__f_long_more_lowest))     && isnan(nonstd::cx::ceil(f64__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::ceil(f_long__positive)               == nonstd::cx::ceil(f_long__positive) )               || ( isnan(std::ceil(f_long__positive))               && isnan(nonstd::cx::ceil(f_long__positive)) )               ));
         REQUIRE(( ( std::ceil(f_long__zero)                   == nonstd::cx::ceil(f_long__zero) )                   || ( isnan(std::ceil(f_long__zero))                   && isnan(nonstd::cx::ceil(f_long__zero)) )                   ));
         REQUIRE(( ( std::ceil(f_long__negative)               == nonstd::cx::ceil(f_long__negative) )               || ( isnan(std::ceil(f_long__negative))               && isnan(nonstd::cx::ceil(f_long__negative)) )               ));
-        REQUIRE(( ( std::ceil(f_long__f32_p_smallest)         == nonstd::cx::ceil(f_long__f32_p_smallest) )         || ( isnan(std::ceil(f_long__f32_p_smallest))         && isnan(nonstd::cx::ceil(f_long__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::ceil(f_long__f32_n_smallest)         == nonstd::cx::ceil(f_long__f32_n_smallest) )         || ( isnan(std::ceil(f_long__f32_n_smallest))         && isnan(nonstd::cx::ceil(f_long__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::ceil(f_long__f32_p_largest)          == nonstd::cx::ceil(f_long__f32_p_largest) )          || ( isnan(std::ceil(f_long__f32_p_largest))          && isnan(nonstd::cx::ceil(f_long__f32_p_largest)) )          ));
-        REQUIRE(( ( std::ceil(f_long__f32_n_largest)          == nonstd::cx::ceil(f_long__f32_n_largest) )          || ( isnan(std::ceil(f_long__f32_n_largest))          && isnan(nonstd::cx::ceil(f_long__f32_n_largest)) )          ));
-        REQUIRE(( ( std::ceil(f_long__f64_p_smallest)         == nonstd::cx::ceil(f_long__f64_p_smallest) )         || ( isnan(std::ceil(f_long__f64_p_smallest))         && isnan(nonstd::cx::ceil(f_long__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::ceil(f_long__f64_n_smallest)         == nonstd::cx::ceil(f_long__f64_n_smallest) )         || ( isnan(std::ceil(f_long__f64_n_smallest))         && isnan(nonstd::cx::ceil(f_long__f64_n_smallest)) )         ));
-        REQUIRE(( ( std::ceil(f_long__f64_p_largest)          == nonstd::cx::ceil(f_long__f64_p_largest) )          || ( isnan(std::ceil(f_long__f64_p_largest))          && isnan(nonstd::cx::ceil(f_long__f64_p_largest)) )          ));
-        REQUIRE(( ( std::ceil(f_long__f64_n_largest)          == nonstd::cx::ceil(f_long__f64_n_largest) )          || ( isnan(std::ceil(f_long__f64_n_largest))          && isnan(nonstd::cx::ceil(f_long__f64_n_largest)) )          ));
-        REQUIRE(( ( std::ceil(f_long__f_long_p_smallest)      == nonstd::cx::ceil(f_long__f_long_p_smallest) )      || ( isnan(std::ceil(f_long__f_long_p_smallest))      && isnan(nonstd::cx::ceil(f_long__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::ceil(f_long__f_long_n_smallest)      == nonstd::cx::ceil(f_long__f_long_n_smallest) )      || ( isnan(std::ceil(f_long__f_long_n_smallest))      && isnan(nonstd::cx::ceil(f_long__f_long_n_smallest)) )      ));
-        REQUIRE(( ( std::ceil(f_long__f_long_p_largest)       == nonstd::cx::ceil(f_long__f_long_p_largest) )       || ( isnan(std::ceil(f_long__f_long_p_largest))       && isnan(nonstd::cx::ceil(f_long__f_long_p_largest)) )       ));
-        REQUIRE(( ( std::ceil(f_long__f_long_n_largest)       == nonstd::cx::ceil(f_long__f_long_n_largest) )       || ( isnan(std::ceil(f_long__f_long_n_largest))       && isnan(nonstd::cx::ceil(f_long__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::ceil(f_long__f32_smallest_p)         == nonstd::cx::ceil(f_long__f32_smallest_p) )         || ( isnan(std::ceil(f_long__f32_smallest_p))         && isnan(nonstd::cx::ceil(f_long__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::ceil(f_long__f32_smallest_n)         == nonstd::cx::ceil(f_long__f32_smallest_n) )         || ( isnan(std::ceil(f_long__f32_smallest_n))         && isnan(nonstd::cx::ceil(f_long__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::ceil(f_long__f32_highest)            == nonstd::cx::ceil(f_long__f32_highest) )            || ( isnan(std::ceil(f_long__f32_highest))            && isnan(nonstd::cx::ceil(f_long__f32_highest)) )            ));
+        REQUIRE(( ( std::ceil(f_long__f32_lowest)             == nonstd::cx::ceil(f_long__f32_lowest) )             || ( isnan(std::ceil(f_long__f32_lowest))             && isnan(nonstd::cx::ceil(f_long__f32_lowest)) )             ));
+        REQUIRE(( ( std::ceil(f_long__f64_smallest_p)         == nonstd::cx::ceil(f_long__f64_smallest_p) )         || ( isnan(std::ceil(f_long__f64_smallest_p))         && isnan(nonstd::cx::ceil(f_long__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::ceil(f_long__f64_smallest_n)         == nonstd::cx::ceil(f_long__f64_smallest_n) )         || ( isnan(std::ceil(f_long__f64_smallest_n))         && isnan(nonstd::cx::ceil(f_long__f64_smallest_n)) )         ));
+        REQUIRE(( ( std::ceil(f_long__f64_highest)            == nonstd::cx::ceil(f_long__f64_highest) )            || ( isnan(std::ceil(f_long__f64_highest))            && isnan(nonstd::cx::ceil(f_long__f64_highest)) )            ));
+        REQUIRE(( ( std::ceil(f_long__f64_lowest)             == nonstd::cx::ceil(f_long__f64_lowest) )             || ( isnan(std::ceil(f_long__f64_lowest))             && isnan(nonstd::cx::ceil(f_long__f64_lowest)) )             ));
+        REQUIRE(( ( std::ceil(f_long__f_long_smallest_p)      == nonstd::cx::ceil(f_long__f_long_smallest_p) )      || ( isnan(std::ceil(f_long__f_long_smallest_p))      && isnan(nonstd::cx::ceil(f_long__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::ceil(f_long__f_long_smallest_n)      == nonstd::cx::ceil(f_long__f_long_smallest_n) )      || ( isnan(std::ceil(f_long__f_long_smallest_n))      && isnan(nonstd::cx::ceil(f_long__f_long_smallest_n)) )      ));
+        REQUIRE(( ( std::ceil(f_long__f_long_highest)         == nonstd::cx::ceil(f_long__f_long_highest) )         || ( isnan(std::ceil(f_long__f_long_highest))         && isnan(nonstd::cx::ceil(f_long__f_long_highest)) )         ));
+        REQUIRE(( ( std::ceil(f_long__f_long_lowest)          == nonstd::cx::ceil(f_long__f_long_lowest) )          || ( isnan(std::ceil(f_long__f_long_lowest))          && isnan(nonstd::cx::ceil(f_long__f_long_lowest)) )          ));
         REQUIRE(( ( std::ceil(f_long__f32_nan)                == nonstd::cx::ceil(f_long__f32_nan) )                || ( isnan(std::ceil(f_long__f32_nan))                && isnan(nonstd::cx::ceil(f_long__f32_nan)) )                ));
         REQUIRE(( ( std::ceil(f_long__f64_nan)                == nonstd::cx::ceil(f_long__f64_nan) )                || ( isnan(std::ceil(f_long__f64_nan))                && isnan(nonstd::cx::ceil(f_long__f64_nan)) )                ));
         REQUIRE(( ( std::ceil(f_long__f_long_nan)             == nonstd::cx::ceil(f_long__f_long_nan) )             || ( isnan(std::ceil(f_long__f_long_nan))             && isnan(nonstd::cx::ceil(f_long__f_long_nan)) )             ));
@@ -861,18 +862,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::ceil(f_long__f64_n_inf)              == nonstd::cx::ceil(f_long__f64_n_inf) )              || ( isnan(std::ceil(f_long__f64_n_inf))              && isnan(nonstd::cx::ceil(f_long__f64_n_inf)) )              ));
         REQUIRE(( ( std::ceil(f_long__f_long_p_inf)           == nonstd::cx::ceil(f_long__f_long_p_inf) )           || ( isnan(std::ceil(f_long__f_long_p_inf))           && isnan(nonstd::cx::ceil(f_long__f_long_p_inf)) )           ));
         REQUIRE(( ( std::ceil(f_long__f_long_n_inf)           == nonstd::cx::ceil(f_long__f_long_n_inf) )           || ( isnan(std::ceil(f_long__f_long_n_inf))           && isnan(nonstd::cx::ceil(f_long__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::ceil(f_long__f32_less_p_smallest)    == nonstd::cx::ceil(f_long__f32_less_p_smallest) )    || ( isnan(std::ceil(f_long__f32_less_p_smallest))    && isnan(nonstd::cx::ceil(f_long__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f_long__f32_less_n_smallest)    == nonstd::cx::ceil(f_long__f32_less_n_smallest) )    || ( isnan(std::ceil(f_long__f32_less_n_smallest))    && isnan(nonstd::cx::ceil(f_long__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f_long__f32_more_p_largest)     == nonstd::cx::ceil(f_long__f32_more_p_largest) )     || ( isnan(std::ceil(f_long__f32_more_p_largest))     && isnan(nonstd::cx::ceil(f_long__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::ceil(f_long__f32_more_n_largest)     == nonstd::cx::ceil(f_long__f32_more_n_largest) )     || ( isnan(std::ceil(f_long__f32_more_n_largest))     && isnan(nonstd::cx::ceil(f_long__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::ceil(f_long__f64_less_p_smallest)    == nonstd::cx::ceil(f_long__f64_less_p_smallest) )    || ( isnan(std::ceil(f_long__f64_less_p_smallest))    && isnan(nonstd::cx::ceil(f_long__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f_long__f64_less_n_smallest)    == nonstd::cx::ceil(f_long__f64_less_n_smallest) )    || ( isnan(std::ceil(f_long__f64_less_n_smallest))    && isnan(nonstd::cx::ceil(f_long__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::ceil(f_long__f64_more_p_largest)     == nonstd::cx::ceil(f_long__f64_more_p_largest) )     || ( isnan(std::ceil(f_long__f64_more_p_largest))     && isnan(nonstd::cx::ceil(f_long__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::ceil(f_long__f64_more_n_largest)     == nonstd::cx::ceil(f_long__f64_more_n_largest) )     || ( isnan(std::ceil(f_long__f64_more_n_largest))     && isnan(nonstd::cx::ceil(f_long__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::ceil(f_long__f_long_less_p_smallest) == nonstd::cx::ceil(f_long__f_long_less_p_smallest) ) || ( isnan(std::ceil(f_long__f_long_less_p_smallest)) && isnan(nonstd::cx::ceil(f_long__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::ceil(f_long__f_long_less_n_smallest) == nonstd::cx::ceil(f_long__f_long_less_n_smallest) ) || ( isnan(std::ceil(f_long__f_long_less_n_smallest)) && isnan(nonstd::cx::ceil(f_long__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::ceil(f_long__f_long_more_p_largest)  == nonstd::cx::ceil(f_long__f_long_more_p_largest) )  || ( isnan(std::ceil(f_long__f_long_more_p_largest))  && isnan(nonstd::cx::ceil(f_long__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::ceil(f_long__f_long_more_n_largest)  == nonstd::cx::ceil(f_long__f_long_more_n_largest) )  || ( isnan(std::ceil(f_long__f_long_more_n_largest))  && isnan(nonstd::cx::ceil(f_long__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::ceil(f_long__f32_less_smallest_p)    == nonstd::cx::ceil(f_long__f32_less_smallest_p) )    || ( isnan(std::ceil(f_long__f32_less_smallest_p))    && isnan(nonstd::cx::ceil(f_long__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::ceil(f_long__f32_less_smallest_n)    == nonstd::cx::ceil(f_long__f32_less_smallest_n) )    || ( isnan(std::ceil(f_long__f32_less_smallest_n))    && isnan(nonstd::cx::ceil(f_long__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::ceil(f_long__f32_more_highest)       == nonstd::cx::ceil(f_long__f32_more_highest) )       || ( isnan(std::ceil(f_long__f32_more_highest))       && isnan(nonstd::cx::ceil(f_long__f32_more_highest)) )       ));
+        REQUIRE(( ( std::ceil(f_long__f32_more_lowest)        == nonstd::cx::ceil(f_long__f32_more_lowest) )        || ( isnan(std::ceil(f_long__f32_more_lowest))        && isnan(nonstd::cx::ceil(f_long__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::ceil(f_long__f64_less_smallest_p)    == nonstd::cx::ceil(f_long__f64_less_smallest_p) )    || ( isnan(std::ceil(f_long__f64_less_smallest_p))    && isnan(nonstd::cx::ceil(f_long__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::ceil(f_long__f64_less_smallest_n)    == nonstd::cx::ceil(f_long__f64_less_smallest_n) )    || ( isnan(std::ceil(f_long__f64_less_smallest_n))    && isnan(nonstd::cx::ceil(f_long__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::ceil(f_long__f64_more_highest)       == nonstd::cx::ceil(f_long__f64_more_highest) )       || ( isnan(std::ceil(f_long__f64_more_highest))       && isnan(nonstd::cx::ceil(f_long__f64_more_highest)) )       ));
+        REQUIRE(( ( std::ceil(f_long__f64_more_lowest)        == nonstd::cx::ceil(f_long__f64_more_lowest) )        || ( isnan(std::ceil(f_long__f64_more_lowest))        && isnan(nonstd::cx::ceil(f_long__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::ceil(f_long__f_long_less_smallest_p) == nonstd::cx::ceil(f_long__f_long_less_smallest_p) ) || ( isnan(std::ceil(f_long__f_long_less_smallest_p)) && isnan(nonstd::cx::ceil(f_long__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::ceil(f_long__f_long_less_smallest_n) == nonstd::cx::ceil(f_long__f_long_less_smallest_n) ) || ( isnan(std::ceil(f_long__f_long_less_smallest_n)) && isnan(nonstd::cx::ceil(f_long__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::ceil(f_long__f_long_more_highest)    == nonstd::cx::ceil(f_long__f_long_more_highest) )    || ( isnan(std::ceil(f_long__f_long_more_highest))    && isnan(nonstd::cx::ceil(f_long__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::ceil(f_long__f_long_more_lowest)     == nonstd::cx::ceil(f_long__f_long_more_lowest) )     || ( isnan(std::ceil(f_long__f_long_more_lowest))     && isnan(nonstd::cx::ceil(f_long__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::ceil(u64__positive) == nonstd::cx::ceil(u64__positive) ) || ( isnan(std::ceil(u64__positive)) && isnan(nonstd::cx::ceil(u64__positive)) ) ));
         REQUIRE(( ( std::ceil(u64__zero)     == nonstd::cx::ceil(u64__zero) )     || ( isnan(std::ceil(u64__zero))     && isnan(nonstd::cx::ceil(u64__zero)) )     ));
@@ -902,27 +903,33 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         std::mt19937 re(rd());
 
         std::uniform_real_distribution<float> rnd_float_range(
-            -std::numeric_limits<float>::max(),
-             std::numeric_limits<float>::max());
+            0.0f,
+            std::numeric_limits<float>::max());
         std::uniform_real_distribution<double> rnd_double_range(
-            -std::numeric_limits<double>::max(),
-             std::numeric_limits<double>::max());
+            0.0,
+            std::numeric_limits<double>::max());
         std::uniform_real_distribution<long double> rnd_long_double_range(
-            -std::numeric_limits<long double>::max(),
-             std::numeric_limits<long double>::max());
+            0.0l,
+            std::numeric_limits<long double>::max());
 
         constexpr int iterations = 10000;
         for (int i = 0; i < iterations; i++) {
-            float x = rnd_float_range(re);
-            REQUIRE(( ( std::ceil(x)  == nonstd::cx::ceil(x) ) || ( isnan(std::ceil(x)) && isnan(nonstd::cx::ceil(x)) ) ));
+            float px = rnd_float_range(re);
+            float nx = -px;
+            REQUIRE(( ( std::ceil(px)  == nonstd::cx::ceil(px) ) || ( isnan(std::ceil(px)) && isnan(nonstd::cx::ceil(px)) ) ));
+            REQUIRE(( ( std::ceil(nx)  == nonstd::cx::ceil(nx) ) || ( isnan(std::ceil(nx)) && isnan(nonstd::cx::ceil(nx)) ) ));
         }
         for (int i = 0; i < iterations; i++) {
-            double x = rnd_double_range(re);
-            REQUIRE(( ( std::ceil(x)  == nonstd::cx::ceil(x) ) || ( isnan(std::ceil(x)) && isnan(nonstd::cx::ceil(x)) ) ));
+            double px = rnd_double_range(re);
+            double nx = -px;
+            REQUIRE(( ( std::ceil(px)  == nonstd::cx::ceil(px) ) || ( isnan(std::ceil(px)) && isnan(nonstd::cx::ceil(px)) ) ));
+            REQUIRE(( ( std::ceil(nx)  == nonstd::cx::ceil(nx) ) || ( isnan(std::ceil(nx)) && isnan(nonstd::cx::ceil(nx)) ) ));
         }
         for (int i = 0; i < iterations; i++) {
-            long double x = rnd_long_double_range(re);
-            REQUIRE(( ( std::ceil(x)  == nonstd::cx::ceil(x) ) || ( isnan(std::ceil(x)) && isnan(nonstd::cx::ceil(x)) ) ));
+            long double px = rnd_long_double_range(re);
+            long double nx = -px;
+            REQUIRE(( ( std::ceil(px)  == nonstd::cx::ceil(px) ) || ( isnan(std::ceil(px)) && isnan(nonstd::cx::ceil(px)) ) ));
+            REQUIRE(( ( std::ceil(nx)  == nonstd::cx::ceil(nx) ) || ( isnan(std::ceil(nx)) && isnan(nonstd::cx::ceil(nx)) ) ));
         }
     }
 
@@ -933,18 +940,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::floor(f32__positive)               == nonstd::cx::floor(f32__positive) )               || ( isnan(std::floor(f32__positive))               && isnan(nonstd::cx::floor(f32__positive)) )               ));
         REQUIRE(( ( std::floor(f32__zero)                   == nonstd::cx::floor(f32__zero) )                   || ( isnan(std::floor(f32__zero))                   && isnan(nonstd::cx::floor(f32__zero)) )                   ));
         REQUIRE(( ( std::floor(f32__negative)               == nonstd::cx::floor(f32__negative) )               || ( isnan(std::floor(f32__negative))               && isnan(nonstd::cx::floor(f32__negative)) )               ));
-        REQUIRE(( ( std::floor(f32__f32_p_smallest)         == nonstd::cx::floor(f32__f32_p_smallest) )         || ( isnan(std::floor(f32__f32_p_smallest))         && isnan(nonstd::cx::floor(f32__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::floor(f32__f32_n_smallest)         == nonstd::cx::floor(f32__f32_n_smallest) )         || ( isnan(std::floor(f32__f32_n_smallest))         && isnan(nonstd::cx::floor(f32__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::floor(f32__f32_p_largest)          == nonstd::cx::floor(f32__f32_p_largest) )          || ( isnan(std::floor(f32__f32_p_largest))          && isnan(nonstd::cx::floor(f32__f32_p_largest)) )          ));
-        REQUIRE(( ( std::floor(f32__f32_n_largest)          == nonstd::cx::floor(f32__f32_n_largest) )          || ( isnan(std::floor(f32__f32_n_largest))          && isnan(nonstd::cx::floor(f32__f32_n_largest)) )          ));
-        REQUIRE(( ( std::floor(f32__f64_p_smallest)         == nonstd::cx::floor(f32__f64_p_smallest) )         || ( isnan(std::floor(f32__f64_p_smallest))         && isnan(nonstd::cx::floor(f32__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::floor(f32__f64_n_smallest)         == nonstd::cx::floor(f32__f64_n_smallest) )         || ( isnan(std::floor(f32__f64_n_smallest))         && isnan(nonstd::cx::floor(f32__f64_n_smallest)) )         ));
-    //  REQUIRE(( ( std::floor(f32__f64_p_largest)          == nonstd::cx::floor(f32__f64_p_largest) )          || ( isnan(std::floor(f32__f64_p_largest))          && isnan(nonstd::cx::floor(f32__f64_p_largest)) )          ));
-    //  REQUIRE(( ( std::floor(f32__f64_n_largest)          == nonstd::cx::floor(f32__f64_n_largest) )          || ( isnan(std::floor(f32__f64_n_largest))          && isnan(nonstd::cx::floor(f32__f64_n_largest)) )          ));
-        REQUIRE(( ( std::floor(f32__f_long_p_smallest)      == nonstd::cx::floor(f32__f_long_p_smallest) )      || ( isnan(std::floor(f32__f_long_p_smallest))      && isnan(nonstd::cx::floor(f32__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::floor(f32__f_long_n_smallest)      == nonstd::cx::floor(f32__f_long_n_smallest) )      || ( isnan(std::floor(f32__f_long_n_smallest))      && isnan(nonstd::cx::floor(f32__f_long_n_smallest)) )      ));
-    //  REQUIRE(( ( std::floor(f32__f_long_p_largest)       == nonstd::cx::floor(f32__f_long_p_largest) )       || ( isnan(std::floor(f32__f_long_p_largest))       && isnan(nonstd::cx::floor(f32__f_long_p_largest)) )       ));
-    //  REQUIRE(( ( std::floor(f32__f_long_n_largest)       == nonstd::cx::floor(f32__f_long_n_largest) )       || ( isnan(std::floor(f32__f_long_n_largest))       && isnan(nonstd::cx::floor(f32__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::floor(f32__f32_smallest_p)         == nonstd::cx::floor(f32__f32_smallest_p) )         || ( isnan(std::floor(f32__f32_smallest_p))         && isnan(nonstd::cx::floor(f32__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::floor(f32__f32_smallest_n)         == nonstd::cx::floor(f32__f32_smallest_n) )         || ( isnan(std::floor(f32__f32_smallest_n))         && isnan(nonstd::cx::floor(f32__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::floor(f32__f32_highest)            == nonstd::cx::floor(f32__f32_highest) )            || ( isnan(std::floor(f32__f32_highest))            && isnan(nonstd::cx::floor(f32__f32_highest)) )            ));
+        REQUIRE(( ( std::floor(f32__f32_lowest)             == nonstd::cx::floor(f32__f32_lowest) )             || ( isnan(std::floor(f32__f32_lowest))             && isnan(nonstd::cx::floor(f32__f32_lowest)) )             ));
+        REQUIRE(( ( std::floor(f32__f64_smallest_p)         == nonstd::cx::floor(f32__f64_smallest_p) )         || ( isnan(std::floor(f32__f64_smallest_p))         && isnan(nonstd::cx::floor(f32__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::floor(f32__f64_smallest_n)         == nonstd::cx::floor(f32__f64_smallest_n) )         || ( isnan(std::floor(f32__f64_smallest_n))         && isnan(nonstd::cx::floor(f32__f64_smallest_n)) )         ));
+    //  REQUIRE(( ( std::floor(f32__f64_highest)            == nonstd::cx::floor(f32__f64_highest) )            || ( isnan(std::floor(f32__f64_highest))            && isnan(nonstd::cx::floor(f32__f64_highest)) )            ));
+    //  REQUIRE(( ( std::floor(f32__f64_lowest)             == nonstd::cx::floor(f32__f64_lowest) )             || ( isnan(std::floor(f32__f64_lowest))             && isnan(nonstd::cx::floor(f32__f64_lowest)) )             ));
+        REQUIRE(( ( std::floor(f32__f_long_smallest_p)      == nonstd::cx::floor(f32__f_long_smallest_p) )      || ( isnan(std::floor(f32__f_long_smallest_p))      && isnan(nonstd::cx::floor(f32__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::floor(f32__f_long_smallest_n)      == nonstd::cx::floor(f32__f_long_smallest_n) )      || ( isnan(std::floor(f32__f_long_smallest_n))      && isnan(nonstd::cx::floor(f32__f_long_smallest_n)) )      ));
+    //  REQUIRE(( ( std::floor(f32__f_long_highest)         == nonstd::cx::floor(f32__f_long_highest) )         || ( isnan(std::floor(f32__f_long_highest))         && isnan(nonstd::cx::floor(f32__f_long_highest)) )         ));
+    //  REQUIRE(( ( std::floor(f32__f_long_lowest)          == nonstd::cx::floor(f32__f_long_lowest) )          || ( isnan(std::floor(f32__f_long_lowest))          && isnan(nonstd::cx::floor(f32__f_long_lowest)) )          ));
         REQUIRE(( ( std::floor(f32__f32_nan)                == nonstd::cx::floor(f32__f32_nan) )                || ( isnan(std::floor(f32__f32_nan))                && isnan(nonstd::cx::floor(f32__f32_nan)) )                ));
         REQUIRE(( ( std::floor(f32__f64_nan)                == nonstd::cx::floor(f32__f64_nan) )                || ( isnan(std::floor(f32__f64_nan))                && isnan(nonstd::cx::floor(f32__f64_nan)) )                ));
         REQUIRE(( ( std::floor(f32__f_long_nan)             == nonstd::cx::floor(f32__f_long_nan) )             || ( isnan(std::floor(f32__f_long_nan))             && isnan(nonstd::cx::floor(f32__f_long_nan)) )             ));
@@ -954,34 +961,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::floor(f32__f64_n_inf)              == nonstd::cx::floor(f32__f64_n_inf) )              || ( isnan(std::floor(f32__f64_n_inf))              && isnan(nonstd::cx::floor(f32__f64_n_inf)) )              ));
         REQUIRE(( ( std::floor(f32__f_long_p_inf)           == nonstd::cx::floor(f32__f_long_p_inf) )           || ( isnan(std::floor(f32__f_long_p_inf))           && isnan(nonstd::cx::floor(f32__f_long_p_inf)) )           ));
         REQUIRE(( ( std::floor(f32__f_long_n_inf)           == nonstd::cx::floor(f32__f_long_n_inf) )           || ( isnan(std::floor(f32__f_long_n_inf))           && isnan(nonstd::cx::floor(f32__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::floor(f32__f32_less_p_smallest)    == nonstd::cx::floor(f32__f32_less_p_smallest) )    || ( isnan(std::floor(f32__f32_less_p_smallest))    && isnan(nonstd::cx::floor(f32__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::floor(f32__f32_less_n_smallest)    == nonstd::cx::floor(f32__f32_less_n_smallest) )    || ( isnan(std::floor(f32__f32_less_n_smallest))    && isnan(nonstd::cx::floor(f32__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::floor(f32__f32_more_p_largest)     == nonstd::cx::floor(f32__f32_more_p_largest) )     || ( isnan(std::floor(f32__f32_more_p_largest))     && isnan(nonstd::cx::floor(f32__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::floor(f32__f32_more_n_largest)     == nonstd::cx::floor(f32__f32_more_n_largest) )     || ( isnan(std::floor(f32__f32_more_n_largest))     && isnan(nonstd::cx::floor(f32__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::floor(f32__f64_less_p_smallest)    == nonstd::cx::floor(f32__f64_less_p_smallest) )    || ( isnan(std::floor(f32__f64_less_p_smallest))    && isnan(nonstd::cx::floor(f32__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::floor(f32__f64_less_n_smallest)    == nonstd::cx::floor(f32__f64_less_n_smallest) )    || ( isnan(std::floor(f32__f64_less_n_smallest))    && isnan(nonstd::cx::floor(f32__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::floor(f32__f64_more_p_largest)     == nonstd::cx::floor(f32__f64_more_p_largest) )     || ( isnan(std::floor(f32__f64_more_p_largest))     && isnan(nonstd::cx::floor(f32__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::floor(f32__f64_more_n_largest)     == nonstd::cx::floor(f32__f64_more_n_largest) )     || ( isnan(std::floor(f32__f64_more_n_largest))     && isnan(nonstd::cx::floor(f32__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::floor(f32__f_long_less_p_smallest) == nonstd::cx::floor(f32__f_long_less_p_smallest) ) || ( isnan(std::floor(f32__f_long_less_p_smallest)) && isnan(nonstd::cx::floor(f32__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::floor(f32__f_long_less_n_smallest) == nonstd::cx::floor(f32__f_long_less_n_smallest) ) || ( isnan(std::floor(f32__f_long_less_n_smallest)) && isnan(nonstd::cx::floor(f32__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::floor(f32__f_long_more_p_largest)  == nonstd::cx::floor(f32__f_long_more_p_largest) )  || ( isnan(std::floor(f32__f_long_more_p_largest))  && isnan(nonstd::cx::floor(f32__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::floor(f32__f_long_more_n_largest)  == nonstd::cx::floor(f32__f_long_more_n_largest) )  || ( isnan(std::floor(f32__f_long_more_n_largest))  && isnan(nonstd::cx::floor(f32__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::floor(f32__f32_less_smallest_p)    == nonstd::cx::floor(f32__f32_less_smallest_p) )    || ( isnan(std::floor(f32__f32_less_smallest_p))    && isnan(nonstd::cx::floor(f32__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::floor(f32__f32_less_smallest_n)    == nonstd::cx::floor(f32__f32_less_smallest_n) )    || ( isnan(std::floor(f32__f32_less_smallest_n))    && isnan(nonstd::cx::floor(f32__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::floor(f32__f32_more_highest)       == nonstd::cx::floor(f32__f32_more_highest) )       || ( isnan(std::floor(f32__f32_more_highest))       && isnan(nonstd::cx::floor(f32__f32_more_highest)) )       ));
+        REQUIRE(( ( std::floor(f32__f32_more_lowest)        == nonstd::cx::floor(f32__f32_more_lowest) )        || ( isnan(std::floor(f32__f32_more_lowest))        && isnan(nonstd::cx::floor(f32__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::floor(f32__f64_less_smallest_p)    == nonstd::cx::floor(f32__f64_less_smallest_p) )    || ( isnan(std::floor(f32__f64_less_smallest_p))    && isnan(nonstd::cx::floor(f32__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::floor(f32__f64_less_smallest_n)    == nonstd::cx::floor(f32__f64_less_smallest_n) )    || ( isnan(std::floor(f32__f64_less_smallest_n))    && isnan(nonstd::cx::floor(f32__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::floor(f32__f64_more_highest)       == nonstd::cx::floor(f32__f64_more_highest) )       || ( isnan(std::floor(f32__f64_more_highest))       && isnan(nonstd::cx::floor(f32__f64_more_highest)) )       ));
+        REQUIRE(( ( std::floor(f32__f64_more_lowest)        == nonstd::cx::floor(f32__f64_more_lowest) )        || ( isnan(std::floor(f32__f64_more_lowest))        && isnan(nonstd::cx::floor(f32__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::floor(f32__f_long_less_smallest_p) == nonstd::cx::floor(f32__f_long_less_smallest_p) ) || ( isnan(std::floor(f32__f_long_less_smallest_p)) && isnan(nonstd::cx::floor(f32__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::floor(f32__f_long_less_smallest_n) == nonstd::cx::floor(f32__f_long_less_smallest_n) ) || ( isnan(std::floor(f32__f_long_less_smallest_n)) && isnan(nonstd::cx::floor(f32__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::floor(f32__f_long_more_highest)    == nonstd::cx::floor(f32__f_long_more_highest) )    || ( isnan(std::floor(f32__f_long_more_highest))    && isnan(nonstd::cx::floor(f32__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::floor(f32__f_long_more_lowest)     == nonstd::cx::floor(f32__f_long_more_lowest) )     || ( isnan(std::floor(f32__f_long_more_lowest))     && isnan(nonstd::cx::floor(f32__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::floor(f64__positive)               == nonstd::cx::floor(f64__positive) )               || ( isnan(std::floor(f64__positive))               && isnan(nonstd::cx::floor(f64__positive)) )               ));
         REQUIRE(( ( std::floor(f64__zero)                   == nonstd::cx::floor(f64__zero) )                   || ( isnan(std::floor(f64__zero))                   && isnan(nonstd::cx::floor(f64__zero)) )                   ));
         REQUIRE(( ( std::floor(f64__negative)               == nonstd::cx::floor(f64__negative) )               || ( isnan(std::floor(f64__negative))               && isnan(nonstd::cx::floor(f64__negative)) )               ));
-        REQUIRE(( ( std::floor(f64__f32_p_smallest)         == nonstd::cx::floor(f64__f32_p_smallest) )         || ( isnan(std::floor(f64__f32_p_smallest))         && isnan(nonstd::cx::floor(f64__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::floor(f64__f32_n_smallest)         == nonstd::cx::floor(f64__f32_n_smallest) )         || ( isnan(std::floor(f64__f32_n_smallest))         && isnan(nonstd::cx::floor(f64__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::floor(f64__f32_p_largest)          == nonstd::cx::floor(f64__f32_p_largest) )          || ( isnan(std::floor(f64__f32_p_largest))          && isnan(nonstd::cx::floor(f64__f32_p_largest)) )          ));
-        REQUIRE(( ( std::floor(f64__f32_n_largest)          == nonstd::cx::floor(f64__f32_n_largest) )          || ( isnan(std::floor(f64__f32_n_largest))          && isnan(nonstd::cx::floor(f64__f32_n_largest)) )          ));
-        REQUIRE(( ( std::floor(f64__f64_p_smallest)         == nonstd::cx::floor(f64__f64_p_smallest) )         || ( isnan(std::floor(f64__f64_p_smallest))         && isnan(nonstd::cx::floor(f64__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::floor(f64__f64_n_smallest)         == nonstd::cx::floor(f64__f64_n_smallest) )         || ( isnan(std::floor(f64__f64_n_smallest))         && isnan(nonstd::cx::floor(f64__f64_n_smallest)) )         ));
-        REQUIRE(( ( std::floor(f64__f64_p_largest)          == nonstd::cx::floor(f64__f64_p_largest) )          || ( isnan(std::floor(f64__f64_p_largest))          && isnan(nonstd::cx::floor(f64__f64_p_largest)) )          ));
-        REQUIRE(( ( std::floor(f64__f64_n_largest)          == nonstd::cx::floor(f64__f64_n_largest) )          || ( isnan(std::floor(f64__f64_n_largest))          && isnan(nonstd::cx::floor(f64__f64_n_largest)) )          ));
-        REQUIRE(( ( std::floor(f64__f_long_p_smallest)      == nonstd::cx::floor(f64__f_long_p_smallest) )      || ( isnan(std::floor(f64__f_long_p_smallest))      && isnan(nonstd::cx::floor(f64__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::floor(f64__f_long_n_smallest)      == nonstd::cx::floor(f64__f_long_n_smallest) )      || ( isnan(std::floor(f64__f_long_n_smallest))      && isnan(nonstd::cx::floor(f64__f_long_n_smallest)) )      ));
-    //  REQUIRE(( ( std::floor(f64__f_long_p_largest)       == nonstd::cx::floor(f64__f_long_p_largest) )       || ( isnan(std::floor(f64__f_long_p_largest))       && isnan(nonstd::cx::floor(f64__f_long_p_largest)) )       ));
-    //  REQUIRE(( ( std::floor(f64__f_long_n_largest)       == nonstd::cx::floor(f64__f_long_n_largest) )       || ( isnan(std::floor(f64__f_long_n_largest))       && isnan(nonstd::cx::floor(f64__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::floor(f64__f32_smallest_p)         == nonstd::cx::floor(f64__f32_smallest_p) )         || ( isnan(std::floor(f64__f32_smallest_p))         && isnan(nonstd::cx::floor(f64__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::floor(f64__f32_smallest_n)         == nonstd::cx::floor(f64__f32_smallest_n) )         || ( isnan(std::floor(f64__f32_smallest_n))         && isnan(nonstd::cx::floor(f64__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::floor(f64__f32_highest)            == nonstd::cx::floor(f64__f32_highest) )            || ( isnan(std::floor(f64__f32_highest))            && isnan(nonstd::cx::floor(f64__f32_highest)) )            ));
+        REQUIRE(( ( std::floor(f64__f32_lowest)             == nonstd::cx::floor(f64__f32_lowest) )             || ( isnan(std::floor(f64__f32_lowest))             && isnan(nonstd::cx::floor(f64__f32_lowest)) )             ));
+        REQUIRE(( ( std::floor(f64__f64_smallest_p)         == nonstd::cx::floor(f64__f64_smallest_p) )         || ( isnan(std::floor(f64__f64_smallest_p))         && isnan(nonstd::cx::floor(f64__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::floor(f64__f64_smallest_n)         == nonstd::cx::floor(f64__f64_smallest_n) )         || ( isnan(std::floor(f64__f64_smallest_n))         && isnan(nonstd::cx::floor(f64__f64_smallest_n)) )         ));
+        REQUIRE(( ( std::floor(f64__f64_highest)            == nonstd::cx::floor(f64__f64_highest) )            || ( isnan(std::floor(f64__f64_highest))            && isnan(nonstd::cx::floor(f64__f64_highest)) )            ));
+        REQUIRE(( ( std::floor(f64__f64_lowest)             == nonstd::cx::floor(f64__f64_lowest) )             || ( isnan(std::floor(f64__f64_lowest))             && isnan(nonstd::cx::floor(f64__f64_lowest)) )             ));
+        REQUIRE(( ( std::floor(f64__f_long_smallest_p)      == nonstd::cx::floor(f64__f_long_smallest_p) )      || ( isnan(std::floor(f64__f_long_smallest_p))      && isnan(nonstd::cx::floor(f64__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::floor(f64__f_long_smallest_n)      == nonstd::cx::floor(f64__f_long_smallest_n) )      || ( isnan(std::floor(f64__f_long_smallest_n))      && isnan(nonstd::cx::floor(f64__f_long_smallest_n)) )      ));
+    //  REQUIRE(( ( std::floor(f64__f_long_highest)         == nonstd::cx::floor(f64__f_long_highest) )         || ( isnan(std::floor(f64__f_long_highest))         && isnan(nonstd::cx::floor(f64__f_long_highest)) )         ));
+    //  REQUIRE(( ( std::floor(f64__f_long_lowest)          == nonstd::cx::floor(f64__f_long_lowest) )          || ( isnan(std::floor(f64__f_long_lowest))          && isnan(nonstd::cx::floor(f64__f_long_lowest)) )          ));
         REQUIRE(( ( std::floor(f64__f32_nan)                == nonstd::cx::floor(f64__f32_nan) )                || ( isnan(std::floor(f64__f32_nan))                && isnan(nonstd::cx::floor(f64__f32_nan)) )                ));
         REQUIRE(( ( std::floor(f64__f64_nan)                == nonstd::cx::floor(f64__f64_nan) )                || ( isnan(std::floor(f64__f64_nan))                && isnan(nonstd::cx::floor(f64__f64_nan)) )                ));
         REQUIRE(( ( std::floor(f64__f_long_nan)             == nonstd::cx::floor(f64__f_long_nan) )             || ( isnan(std::floor(f64__f_long_nan))             && isnan(nonstd::cx::floor(f64__f_long_nan)) )             ));
@@ -991,34 +998,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::floor(f64__f64_n_inf)              == nonstd::cx::floor(f64__f64_n_inf) )              || ( isnan(std::floor(f64__f64_n_inf))              && isnan(nonstd::cx::floor(f64__f64_n_inf)) )              ));
         REQUIRE(( ( std::floor(f64__f_long_p_inf)           == nonstd::cx::floor(f64__f_long_p_inf) )           || ( isnan(std::floor(f64__f_long_p_inf))           && isnan(nonstd::cx::floor(f64__f_long_p_inf)) )           ));
         REQUIRE(( ( std::floor(f64__f_long_n_inf)           == nonstd::cx::floor(f64__f_long_n_inf) )           || ( isnan(std::floor(f64__f_long_n_inf))           && isnan(nonstd::cx::floor(f64__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::floor(f64__f32_less_p_smallest)    == nonstd::cx::floor(f64__f32_less_p_smallest) )    || ( isnan(std::floor(f64__f32_less_p_smallest))    && isnan(nonstd::cx::floor(f64__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::floor(f64__f32_less_n_smallest)    == nonstd::cx::floor(f64__f32_less_n_smallest) )    || ( isnan(std::floor(f64__f32_less_n_smallest))    && isnan(nonstd::cx::floor(f64__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::floor(f64__f32_more_p_largest)     == nonstd::cx::floor(f64__f32_more_p_largest) )     || ( isnan(std::floor(f64__f32_more_p_largest))     && isnan(nonstd::cx::floor(f64__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::floor(f64__f32_more_n_largest)     == nonstd::cx::floor(f64__f32_more_n_largest) )     || ( isnan(std::floor(f64__f32_more_n_largest))     && isnan(nonstd::cx::floor(f64__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::floor(f64__f64_less_p_smallest)    == nonstd::cx::floor(f64__f64_less_p_smallest) )    || ( isnan(std::floor(f64__f64_less_p_smallest))    && isnan(nonstd::cx::floor(f64__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::floor(f64__f64_less_n_smallest)    == nonstd::cx::floor(f64__f64_less_n_smallest) )    || ( isnan(std::floor(f64__f64_less_n_smallest))    && isnan(nonstd::cx::floor(f64__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::floor(f64__f64_more_p_largest)     == nonstd::cx::floor(f64__f64_more_p_largest) )     || ( isnan(std::floor(f64__f64_more_p_largest))     && isnan(nonstd::cx::floor(f64__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::floor(f64__f64_more_n_largest)     == nonstd::cx::floor(f64__f64_more_n_largest) )     || ( isnan(std::floor(f64__f64_more_n_largest))     && isnan(nonstd::cx::floor(f64__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::floor(f64__f_long_less_p_smallest) == nonstd::cx::floor(f64__f_long_less_p_smallest) ) || ( isnan(std::floor(f64__f_long_less_p_smallest)) && isnan(nonstd::cx::floor(f64__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::floor(f64__f_long_less_n_smallest) == nonstd::cx::floor(f64__f_long_less_n_smallest) ) || ( isnan(std::floor(f64__f_long_less_n_smallest)) && isnan(nonstd::cx::floor(f64__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::floor(f64__f_long_more_p_largest)  == nonstd::cx::floor(f64__f_long_more_p_largest) )  || ( isnan(std::floor(f64__f_long_more_p_largest))  && isnan(nonstd::cx::floor(f64__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::floor(f64__f_long_more_n_largest)  == nonstd::cx::floor(f64__f_long_more_n_largest) )  || ( isnan(std::floor(f64__f_long_more_n_largest))  && isnan(nonstd::cx::floor(f64__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::floor(f64__f32_less_smallest_p)    == nonstd::cx::floor(f64__f32_less_smallest_p) )    || ( isnan(std::floor(f64__f32_less_smallest_p))    && isnan(nonstd::cx::floor(f64__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::floor(f64__f32_less_smallest_n)    == nonstd::cx::floor(f64__f32_less_smallest_n) )    || ( isnan(std::floor(f64__f32_less_smallest_n))    && isnan(nonstd::cx::floor(f64__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::floor(f64__f32_more_highest)       == nonstd::cx::floor(f64__f32_more_highest) )       || ( isnan(std::floor(f64__f32_more_highest))       && isnan(nonstd::cx::floor(f64__f32_more_highest)) )       ));
+        REQUIRE(( ( std::floor(f64__f32_more_lowest)        == nonstd::cx::floor(f64__f32_more_lowest) )        || ( isnan(std::floor(f64__f32_more_lowest))        && isnan(nonstd::cx::floor(f64__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::floor(f64__f64_less_smallest_p)    == nonstd::cx::floor(f64__f64_less_smallest_p) )    || ( isnan(std::floor(f64__f64_less_smallest_p))    && isnan(nonstd::cx::floor(f64__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::floor(f64__f64_less_smallest_n)    == nonstd::cx::floor(f64__f64_less_smallest_n) )    || ( isnan(std::floor(f64__f64_less_smallest_n))    && isnan(nonstd::cx::floor(f64__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::floor(f64__f64_more_highest)       == nonstd::cx::floor(f64__f64_more_highest) )       || ( isnan(std::floor(f64__f64_more_highest))       && isnan(nonstd::cx::floor(f64__f64_more_highest)) )       ));
+        REQUIRE(( ( std::floor(f64__f64_more_lowest)        == nonstd::cx::floor(f64__f64_more_lowest) )        || ( isnan(std::floor(f64__f64_more_lowest))        && isnan(nonstd::cx::floor(f64__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::floor(f64__f_long_less_smallest_p) == nonstd::cx::floor(f64__f_long_less_smallest_p) ) || ( isnan(std::floor(f64__f_long_less_smallest_p)) && isnan(nonstd::cx::floor(f64__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::floor(f64__f_long_less_smallest_n) == nonstd::cx::floor(f64__f_long_less_smallest_n) ) || ( isnan(std::floor(f64__f_long_less_smallest_n)) && isnan(nonstd::cx::floor(f64__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::floor(f64__f_long_more_highest)    == nonstd::cx::floor(f64__f_long_more_highest) )    || ( isnan(std::floor(f64__f_long_more_highest))    && isnan(nonstd::cx::floor(f64__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::floor(f64__f_long_more_lowest)     == nonstd::cx::floor(f64__f_long_more_lowest) )     || ( isnan(std::floor(f64__f_long_more_lowest))     && isnan(nonstd::cx::floor(f64__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::floor(f_long__positive)               == nonstd::cx::floor(f_long__positive) )               || ( isnan(std::floor(f_long__positive))               && isnan(nonstd::cx::floor(f_long__positive)) )               ));
         REQUIRE(( ( std::floor(f_long__zero)                   == nonstd::cx::floor(f_long__zero) )                   || ( isnan(std::floor(f_long__zero))                   && isnan(nonstd::cx::floor(f_long__zero)) )                   ));
         REQUIRE(( ( std::floor(f_long__negative)               == nonstd::cx::floor(f_long__negative) )               || ( isnan(std::floor(f_long__negative))               && isnan(nonstd::cx::floor(f_long__negative)) )               ));
-        REQUIRE(( ( std::floor(f_long__f32_p_smallest)         == nonstd::cx::floor(f_long__f32_p_smallest) )         || ( isnan(std::floor(f_long__f32_p_smallest))         && isnan(nonstd::cx::floor(f_long__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::floor(f_long__f32_n_smallest)         == nonstd::cx::floor(f_long__f32_n_smallest) )         || ( isnan(std::floor(f_long__f32_n_smallest))         && isnan(nonstd::cx::floor(f_long__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::floor(f_long__f32_p_largest)          == nonstd::cx::floor(f_long__f32_p_largest) )          || ( isnan(std::floor(f_long__f32_p_largest))          && isnan(nonstd::cx::floor(f_long__f32_p_largest)) )          ));
-        REQUIRE(( ( std::floor(f_long__f32_n_largest)          == nonstd::cx::floor(f_long__f32_n_largest) )          || ( isnan(std::floor(f_long__f32_n_largest))          && isnan(nonstd::cx::floor(f_long__f32_n_largest)) )          ));
-        REQUIRE(( ( std::floor(f_long__f64_p_smallest)         == nonstd::cx::floor(f_long__f64_p_smallest) )         || ( isnan(std::floor(f_long__f64_p_smallest))         && isnan(nonstd::cx::floor(f_long__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::floor(f_long__f64_n_smallest)         == nonstd::cx::floor(f_long__f64_n_smallest) )         || ( isnan(std::floor(f_long__f64_n_smallest))         && isnan(nonstd::cx::floor(f_long__f64_n_smallest)) )         ));
-        REQUIRE(( ( std::floor(f_long__f64_p_largest)          == nonstd::cx::floor(f_long__f64_p_largest) )          || ( isnan(std::floor(f_long__f64_p_largest))          && isnan(nonstd::cx::floor(f_long__f64_p_largest)) )          ));
-        REQUIRE(( ( std::floor(f_long__f64_n_largest)          == nonstd::cx::floor(f_long__f64_n_largest) )          || ( isnan(std::floor(f_long__f64_n_largest))          && isnan(nonstd::cx::floor(f_long__f64_n_largest)) )          ));
-        REQUIRE(( ( std::floor(f_long__f_long_p_smallest)      == nonstd::cx::floor(f_long__f_long_p_smallest) )      || ( isnan(std::floor(f_long__f_long_p_smallest))      && isnan(nonstd::cx::floor(f_long__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::floor(f_long__f_long_n_smallest)      == nonstd::cx::floor(f_long__f_long_n_smallest) )      || ( isnan(std::floor(f_long__f_long_n_smallest))      && isnan(nonstd::cx::floor(f_long__f_long_n_smallest)) )      ));
-        REQUIRE(( ( std::floor(f_long__f_long_p_largest)       == nonstd::cx::floor(f_long__f_long_p_largest) )       || ( isnan(std::floor(f_long__f_long_p_largest))       && isnan(nonstd::cx::floor(f_long__f_long_p_largest)) )       ));
-        REQUIRE(( ( std::floor(f_long__f_long_n_largest)       == nonstd::cx::floor(f_long__f_long_n_largest) )       || ( isnan(std::floor(f_long__f_long_n_largest))       && isnan(nonstd::cx::floor(f_long__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::floor(f_long__f32_smallest_p)         == nonstd::cx::floor(f_long__f32_smallest_p) )         || ( isnan(std::floor(f_long__f32_smallest_p))         && isnan(nonstd::cx::floor(f_long__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::floor(f_long__f32_smallest_n)         == nonstd::cx::floor(f_long__f32_smallest_n) )         || ( isnan(std::floor(f_long__f32_smallest_n))         && isnan(nonstd::cx::floor(f_long__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::floor(f_long__f32_highest)            == nonstd::cx::floor(f_long__f32_highest) )            || ( isnan(std::floor(f_long__f32_highest))            && isnan(nonstd::cx::floor(f_long__f32_highest)) )            ));
+        REQUIRE(( ( std::floor(f_long__f32_lowest)             == nonstd::cx::floor(f_long__f32_lowest) )             || ( isnan(std::floor(f_long__f32_lowest))             && isnan(nonstd::cx::floor(f_long__f32_lowest)) )             ));
+        REQUIRE(( ( std::floor(f_long__f64_smallest_p)         == nonstd::cx::floor(f_long__f64_smallest_p) )         || ( isnan(std::floor(f_long__f64_smallest_p))         && isnan(nonstd::cx::floor(f_long__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::floor(f_long__f64_smallest_n)         == nonstd::cx::floor(f_long__f64_smallest_n) )         || ( isnan(std::floor(f_long__f64_smallest_n))         && isnan(nonstd::cx::floor(f_long__f64_smallest_n)) )         ));
+        REQUIRE(( ( std::floor(f_long__f64_highest)            == nonstd::cx::floor(f_long__f64_highest) )            || ( isnan(std::floor(f_long__f64_highest))            && isnan(nonstd::cx::floor(f_long__f64_highest)) )            ));
+        REQUIRE(( ( std::floor(f_long__f64_lowest)             == nonstd::cx::floor(f_long__f64_lowest) )             || ( isnan(std::floor(f_long__f64_lowest))             && isnan(nonstd::cx::floor(f_long__f64_lowest)) )             ));
+        REQUIRE(( ( std::floor(f_long__f_long_smallest_p)      == nonstd::cx::floor(f_long__f_long_smallest_p) )      || ( isnan(std::floor(f_long__f_long_smallest_p))      && isnan(nonstd::cx::floor(f_long__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::floor(f_long__f_long_smallest_n)      == nonstd::cx::floor(f_long__f_long_smallest_n) )      || ( isnan(std::floor(f_long__f_long_smallest_n))      && isnan(nonstd::cx::floor(f_long__f_long_smallest_n)) )      ));
+        REQUIRE(( ( std::floor(f_long__f_long_highest)         == nonstd::cx::floor(f_long__f_long_highest) )         || ( isnan(std::floor(f_long__f_long_highest))         && isnan(nonstd::cx::floor(f_long__f_long_highest)) )         ));
+        REQUIRE(( ( std::floor(f_long__f_long_lowest)          == nonstd::cx::floor(f_long__f_long_lowest) )          || ( isnan(std::floor(f_long__f_long_lowest))          && isnan(nonstd::cx::floor(f_long__f_long_lowest)) )          ));
         REQUIRE(( ( std::floor(f_long__f32_nan)                == nonstd::cx::floor(f_long__f32_nan) )                || ( isnan(std::floor(f_long__f32_nan))                && isnan(nonstd::cx::floor(f_long__f32_nan)) )                ));
         REQUIRE(( ( std::floor(f_long__f64_nan)                == nonstd::cx::floor(f_long__f64_nan) )                || ( isnan(std::floor(f_long__f64_nan))                && isnan(nonstd::cx::floor(f_long__f64_nan)) )                ));
         REQUIRE(( ( std::floor(f_long__f_long_nan)             == nonstd::cx::floor(f_long__f_long_nan) )             || ( isnan(std::floor(f_long__f_long_nan))             && isnan(nonstd::cx::floor(f_long__f_long_nan)) )             ));
@@ -1028,18 +1035,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::floor(f_long__f64_n_inf)              == nonstd::cx::floor(f_long__f64_n_inf) )              || ( isnan(std::floor(f_long__f64_n_inf))              && isnan(nonstd::cx::floor(f_long__f64_n_inf)) )              ));
         REQUIRE(( ( std::floor(f_long__f_long_p_inf)           == nonstd::cx::floor(f_long__f_long_p_inf) )           || ( isnan(std::floor(f_long__f_long_p_inf))           && isnan(nonstd::cx::floor(f_long__f_long_p_inf)) )           ));
         REQUIRE(( ( std::floor(f_long__f_long_n_inf)           == nonstd::cx::floor(f_long__f_long_n_inf) )           || ( isnan(std::floor(f_long__f_long_n_inf))           && isnan(nonstd::cx::floor(f_long__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::floor(f_long__f32_less_p_smallest)    == nonstd::cx::floor(f_long__f32_less_p_smallest) )    || ( isnan(std::floor(f_long__f32_less_p_smallest))    && isnan(nonstd::cx::floor(f_long__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::floor(f_long__f32_less_n_smallest)    == nonstd::cx::floor(f_long__f32_less_n_smallest) )    || ( isnan(std::floor(f_long__f32_less_n_smallest))    && isnan(nonstd::cx::floor(f_long__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::floor(f_long__f32_more_p_largest)     == nonstd::cx::floor(f_long__f32_more_p_largest) )     || ( isnan(std::floor(f_long__f32_more_p_largest))     && isnan(nonstd::cx::floor(f_long__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::floor(f_long__f32_more_n_largest)     == nonstd::cx::floor(f_long__f32_more_n_largest) )     || ( isnan(std::floor(f_long__f32_more_n_largest))     && isnan(nonstd::cx::floor(f_long__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::floor(f_long__f64_less_p_smallest)    == nonstd::cx::floor(f_long__f64_less_p_smallest) )    || ( isnan(std::floor(f_long__f64_less_p_smallest))    && isnan(nonstd::cx::floor(f_long__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::floor(f_long__f64_less_n_smallest)    == nonstd::cx::floor(f_long__f64_less_n_smallest) )    || ( isnan(std::floor(f_long__f64_less_n_smallest))    && isnan(nonstd::cx::floor(f_long__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::floor(f_long__f64_more_p_largest)     == nonstd::cx::floor(f_long__f64_more_p_largest) )     || ( isnan(std::floor(f_long__f64_more_p_largest))     && isnan(nonstd::cx::floor(f_long__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::floor(f_long__f64_more_n_largest)     == nonstd::cx::floor(f_long__f64_more_n_largest) )     || ( isnan(std::floor(f_long__f64_more_n_largest))     && isnan(nonstd::cx::floor(f_long__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::floor(f_long__f_long_less_p_smallest) == nonstd::cx::floor(f_long__f_long_less_p_smallest) ) || ( isnan(std::floor(f_long__f_long_less_p_smallest)) && isnan(nonstd::cx::floor(f_long__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::floor(f_long__f_long_less_n_smallest) == nonstd::cx::floor(f_long__f_long_less_n_smallest) ) || ( isnan(std::floor(f_long__f_long_less_n_smallest)) && isnan(nonstd::cx::floor(f_long__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::floor(f_long__f_long_more_p_largest)  == nonstd::cx::floor(f_long__f_long_more_p_largest) )  || ( isnan(std::floor(f_long__f_long_more_p_largest))  && isnan(nonstd::cx::floor(f_long__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::floor(f_long__f_long_more_n_largest)  == nonstd::cx::floor(f_long__f_long_more_n_largest) )  || ( isnan(std::floor(f_long__f_long_more_n_largest))  && isnan(nonstd::cx::floor(f_long__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::floor(f_long__f32_less_smallest_p)    == nonstd::cx::floor(f_long__f32_less_smallest_p) )    || ( isnan(std::floor(f_long__f32_less_smallest_p))    && isnan(nonstd::cx::floor(f_long__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::floor(f_long__f32_less_smallest_n)    == nonstd::cx::floor(f_long__f32_less_smallest_n) )    || ( isnan(std::floor(f_long__f32_less_smallest_n))    && isnan(nonstd::cx::floor(f_long__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::floor(f_long__f32_more_highest)       == nonstd::cx::floor(f_long__f32_more_highest) )       || ( isnan(std::floor(f_long__f32_more_highest))       && isnan(nonstd::cx::floor(f_long__f32_more_highest)) )       ));
+        REQUIRE(( ( std::floor(f_long__f32_more_lowest)        == nonstd::cx::floor(f_long__f32_more_lowest) )        || ( isnan(std::floor(f_long__f32_more_lowest))        && isnan(nonstd::cx::floor(f_long__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::floor(f_long__f64_less_smallest_p)    == nonstd::cx::floor(f_long__f64_less_smallest_p) )    || ( isnan(std::floor(f_long__f64_less_smallest_p))    && isnan(nonstd::cx::floor(f_long__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::floor(f_long__f64_less_smallest_n)    == nonstd::cx::floor(f_long__f64_less_smallest_n) )    || ( isnan(std::floor(f_long__f64_less_smallest_n))    && isnan(nonstd::cx::floor(f_long__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::floor(f_long__f64_more_highest)       == nonstd::cx::floor(f_long__f64_more_highest) )       || ( isnan(std::floor(f_long__f64_more_highest))       && isnan(nonstd::cx::floor(f_long__f64_more_highest)) )       ));
+        REQUIRE(( ( std::floor(f_long__f64_more_lowest)        == nonstd::cx::floor(f_long__f64_more_lowest) )        || ( isnan(std::floor(f_long__f64_more_lowest))        && isnan(nonstd::cx::floor(f_long__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::floor(f_long__f_long_less_smallest_p) == nonstd::cx::floor(f_long__f_long_less_smallest_p) ) || ( isnan(std::floor(f_long__f_long_less_smallest_p)) && isnan(nonstd::cx::floor(f_long__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::floor(f_long__f_long_less_smallest_n) == nonstd::cx::floor(f_long__f_long_less_smallest_n) ) || ( isnan(std::floor(f_long__f_long_less_smallest_n)) && isnan(nonstd::cx::floor(f_long__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::floor(f_long__f_long_more_highest)    == nonstd::cx::floor(f_long__f_long_more_highest) )    || ( isnan(std::floor(f_long__f_long_more_highest))    && isnan(nonstd::cx::floor(f_long__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::floor(f_long__f_long_more_lowest)     == nonstd::cx::floor(f_long__f_long_more_lowest) )     || ( isnan(std::floor(f_long__f_long_more_lowest))     && isnan(nonstd::cx::floor(f_long__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::floor(u64__positive) == nonstd::cx::floor(u64__positive) ) || ( isnan(std::floor(u64__positive)) && isnan(nonstd::cx::floor(u64__positive)) ) ));
         REQUIRE(( ( std::floor(u64__zero)     == nonstd::cx::floor(u64__zero) )     || ( isnan(std::floor(u64__zero))     && isnan(nonstd::cx::floor(u64__zero)) )     ));
@@ -1069,27 +1076,33 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         std::mt19937 re(rd());
 
         std::uniform_real_distribution<float> rnd_float_range(
-            -std::numeric_limits<float>::max(),
-             std::numeric_limits<float>::max());
+            0.0f,
+            std::numeric_limits<float>::max());
         std::uniform_real_distribution<double> rnd_double_range(
-            -std::numeric_limits<double>::max(),
-             std::numeric_limits<double>::max());
+            0.0,
+            std::numeric_limits<double>::max());
         std::uniform_real_distribution<long double> rnd_long_double_range(
-            -std::numeric_limits<long double>::max(),
-             std::numeric_limits<long double>::max());
+            0.0l,
+            std::numeric_limits<long double>::max());
 
         constexpr int iterations = 10000;
         for (int i = 0; i < iterations; i++) {
-            float x = rnd_float_range(re);
-            REQUIRE(( ( std::floor(x)  == nonstd::cx::floor(x) ) || ( isnan(std::floor(x)) && isnan(nonstd::cx::floor(x)) ) ));
+            float px = rnd_float_range(re);
+            float nx = -px;
+            REQUIRE(( ( std::floor(px)  == nonstd::cx::floor(px) ) || ( isnan(std::floor(px)) && isnan(nonstd::cx::floor(px)) ) ));
+            REQUIRE(( ( std::floor(nx)  == nonstd::cx::floor(nx) ) || ( isnan(std::floor(nx)) && isnan(nonstd::cx::floor(nx)) ) ));
         }
         for (int i = 0; i < iterations; i++) {
-            double x = rnd_double_range(re);
-            REQUIRE(( ( std::floor(x)  == nonstd::cx::floor(x) ) || ( isnan(std::floor(x)) && isnan(nonstd::cx::floor(x)) ) ));
+            double px = rnd_double_range(re);
+            double nx = -px;
+            REQUIRE(( ( std::floor(px)  == nonstd::cx::floor(px) ) || ( isnan(std::floor(px)) && isnan(nonstd::cx::floor(px)) ) ));
+            REQUIRE(( ( std::floor(nx)  == nonstd::cx::floor(nx) ) || ( isnan(std::floor(nx)) && isnan(nonstd::cx::floor(nx)) ) ));
         }
         for (int i = 0; i < iterations; i++) {
-            long double x = rnd_long_double_range(re);
-            REQUIRE(( ( std::floor(x)  == nonstd::cx::floor(x) ) || ( isnan(std::floor(x)) && isnan(nonstd::cx::floor(x)) ) ));
+            long double px = rnd_long_double_range(re);
+            long double nx = -px;
+            REQUIRE(( ( std::floor(px)  == nonstd::cx::floor(px) ) || ( isnan(std::floor(px)) && isnan(nonstd::cx::floor(px)) ) ));
+            REQUIRE(( ( std::floor(nx)  == nonstd::cx::floor(nx) ) || ( isnan(std::floor(nx)) && isnan(nonstd::cx::floor(nx)) ) ));
         }
     }
 
@@ -1100,18 +1113,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::trunc(f32__positive)               == nonstd::cx::trunc(f32__positive) )               || ( isnan(std::trunc(f32__positive))               && isnan(nonstd::cx::trunc(f32__positive)) )               ));
         REQUIRE(( ( std::trunc(f32__zero)                   == nonstd::cx::trunc(f32__zero) )                   || ( isnan(std::trunc(f32__zero))                   && isnan(nonstd::cx::trunc(f32__zero)) )                   ));
         REQUIRE(( ( std::trunc(f32__negative)               == nonstd::cx::trunc(f32__negative) )               || ( isnan(std::trunc(f32__negative))               && isnan(nonstd::cx::trunc(f32__negative)) )               ));
-        REQUIRE(( ( std::trunc(f32__f32_p_smallest)         == nonstd::cx::trunc(f32__f32_p_smallest) )         || ( isnan(std::trunc(f32__f32_p_smallest))         && isnan(nonstd::cx::trunc(f32__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::trunc(f32__f32_n_smallest)         == nonstd::cx::trunc(f32__f32_n_smallest) )         || ( isnan(std::trunc(f32__f32_n_smallest))         && isnan(nonstd::cx::trunc(f32__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::trunc(f32__f32_p_largest)          == nonstd::cx::trunc(f32__f32_p_largest) )          || ( isnan(std::trunc(f32__f32_p_largest))          && isnan(nonstd::cx::trunc(f32__f32_p_largest)) )          ));
-        REQUIRE(( ( std::trunc(f32__f32_n_largest)          == nonstd::cx::trunc(f32__f32_n_largest) )          || ( isnan(std::trunc(f32__f32_n_largest))          && isnan(nonstd::cx::trunc(f32__f32_n_largest)) )          ));
-        REQUIRE(( ( std::trunc(f32__f64_p_smallest)         == nonstd::cx::trunc(f32__f64_p_smallest) )         || ( isnan(std::trunc(f32__f64_p_smallest))         && isnan(nonstd::cx::trunc(f32__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::trunc(f32__f64_n_smallest)         == nonstd::cx::trunc(f32__f64_n_smallest) )         || ( isnan(std::trunc(f32__f64_n_smallest))         && isnan(nonstd::cx::trunc(f32__f64_n_smallest)) )         ));
-    //  REQUIRE(( ( std::trunc(f32__f64_p_largest)          == nonstd::cx::trunc(f32__f64_p_largest) )          || ( isnan(std::trunc(f32__f64_p_largest))          && isnan(nonstd::cx::trunc(f32__f64_p_largest)) )          ));
-    //  REQUIRE(( ( std::trunc(f32__f64_n_largest)          == nonstd::cx::trunc(f32__f64_n_largest) )          || ( isnan(std::trunc(f32__f64_n_largest))          && isnan(nonstd::cx::trunc(f32__f64_n_largest)) )          ));
-        REQUIRE(( ( std::trunc(f32__f_long_p_smallest)      == nonstd::cx::trunc(f32__f_long_p_smallest) )      || ( isnan(std::trunc(f32__f_long_p_smallest))      && isnan(nonstd::cx::trunc(f32__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::trunc(f32__f_long_n_smallest)      == nonstd::cx::trunc(f32__f_long_n_smallest) )      || ( isnan(std::trunc(f32__f_long_n_smallest))      && isnan(nonstd::cx::trunc(f32__f_long_n_smallest)) )      ));
-    //  REQUIRE(( ( std::trunc(f32__f_long_p_largest)       == nonstd::cx::trunc(f32__f_long_p_largest) )       || ( isnan(std::trunc(f32__f_long_p_largest))       && isnan(nonstd::cx::trunc(f32__f_long_p_largest)) )       ));
-    //  REQUIRE(( ( std::trunc(f32__f_long_n_largest)       == nonstd::cx::trunc(f32__f_long_n_largest) )       || ( isnan(std::trunc(f32__f_long_n_largest))       && isnan(nonstd::cx::trunc(f32__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::trunc(f32__f32_smallest_p)         == nonstd::cx::trunc(f32__f32_smallest_p) )         || ( isnan(std::trunc(f32__f32_smallest_p))         && isnan(nonstd::cx::trunc(f32__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::trunc(f32__f32_smallest_n)         == nonstd::cx::trunc(f32__f32_smallest_n) )         || ( isnan(std::trunc(f32__f32_smallest_n))         && isnan(nonstd::cx::trunc(f32__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::trunc(f32__f32_highest)            == nonstd::cx::trunc(f32__f32_highest) )            || ( isnan(std::trunc(f32__f32_highest))            && isnan(nonstd::cx::trunc(f32__f32_highest)) )            ));
+        REQUIRE(( ( std::trunc(f32__f32_lowest)             == nonstd::cx::trunc(f32__f32_lowest) )             || ( isnan(std::trunc(f32__f32_lowest))             && isnan(nonstd::cx::trunc(f32__f32_lowest)) )             ));
+        REQUIRE(( ( std::trunc(f32__f64_smallest_p)         == nonstd::cx::trunc(f32__f64_smallest_p) )         || ( isnan(std::trunc(f32__f64_smallest_p))         && isnan(nonstd::cx::trunc(f32__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::trunc(f32__f64_smallest_n)         == nonstd::cx::trunc(f32__f64_smallest_n) )         || ( isnan(std::trunc(f32__f64_smallest_n))         && isnan(nonstd::cx::trunc(f32__f64_smallest_n)) )         ));
+    //  REQUIRE(( ( std::trunc(f32__f64_highest)            == nonstd::cx::trunc(f32__f64_highest) )            || ( isnan(std::trunc(f32__f64_highest))            && isnan(nonstd::cx::trunc(f32__f64_highest)) )            ));
+    //  REQUIRE(( ( std::trunc(f32__f64_lowest)             == nonstd::cx::trunc(f32__f64_lowest) )             || ( isnan(std::trunc(f32__f64_lowest))             && isnan(nonstd::cx::trunc(f32__f64_lowest)) )             ));
+        REQUIRE(( ( std::trunc(f32__f_long_smallest_p)      == nonstd::cx::trunc(f32__f_long_smallest_p) )      || ( isnan(std::trunc(f32__f_long_smallest_p))      && isnan(nonstd::cx::trunc(f32__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::trunc(f32__f_long_smallest_n)      == nonstd::cx::trunc(f32__f_long_smallest_n) )      || ( isnan(std::trunc(f32__f_long_smallest_n))      && isnan(nonstd::cx::trunc(f32__f_long_smallest_n)) )      ));
+    //  REQUIRE(( ( std::trunc(f32__f_long_highest)         == nonstd::cx::trunc(f32__f_long_highest) )         || ( isnan(std::trunc(f32__f_long_highest))         && isnan(nonstd::cx::trunc(f32__f_long_highest)) )         ));
+    //  REQUIRE(( ( std::trunc(f32__f_long_lowest)          == nonstd::cx::trunc(f32__f_long_lowest) )          || ( isnan(std::trunc(f32__f_long_lowest))          && isnan(nonstd::cx::trunc(f32__f_long_lowest)) )          ));
         REQUIRE(( ( std::trunc(f32__f32_nan)                == nonstd::cx::trunc(f32__f32_nan) )                || ( isnan(std::trunc(f32__f32_nan))                && isnan(nonstd::cx::trunc(f32__f32_nan)) )                ));
         REQUIRE(( ( std::trunc(f32__f64_nan)                == nonstd::cx::trunc(f32__f64_nan) )                || ( isnan(std::trunc(f32__f64_nan))                && isnan(nonstd::cx::trunc(f32__f64_nan)) )                ));
         REQUIRE(( ( std::trunc(f32__f_long_nan)             == nonstd::cx::trunc(f32__f_long_nan) )             || ( isnan(std::trunc(f32__f_long_nan))             && isnan(nonstd::cx::trunc(f32__f_long_nan)) )             ));
@@ -1121,34 +1134,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::trunc(f32__f64_n_inf)              == nonstd::cx::trunc(f32__f64_n_inf) )              || ( isnan(std::trunc(f32__f64_n_inf))              && isnan(nonstd::cx::trunc(f32__f64_n_inf)) )              ));
         REQUIRE(( ( std::trunc(f32__f_long_p_inf)           == nonstd::cx::trunc(f32__f_long_p_inf) )           || ( isnan(std::trunc(f32__f_long_p_inf))           && isnan(nonstd::cx::trunc(f32__f_long_p_inf)) )           ));
         REQUIRE(( ( std::trunc(f32__f_long_n_inf)           == nonstd::cx::trunc(f32__f_long_n_inf) )           || ( isnan(std::trunc(f32__f_long_n_inf))           && isnan(nonstd::cx::trunc(f32__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::trunc(f32__f32_less_p_smallest)    == nonstd::cx::trunc(f32__f32_less_p_smallest) )    || ( isnan(std::trunc(f32__f32_less_p_smallest))    && isnan(nonstd::cx::trunc(f32__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f32__f32_less_n_smallest)    == nonstd::cx::trunc(f32__f32_less_n_smallest) )    || ( isnan(std::trunc(f32__f32_less_n_smallest))    && isnan(nonstd::cx::trunc(f32__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f32__f32_more_p_largest)     == nonstd::cx::trunc(f32__f32_more_p_largest) )     || ( isnan(std::trunc(f32__f32_more_p_largest))     && isnan(nonstd::cx::trunc(f32__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::trunc(f32__f32_more_n_largest)     == nonstd::cx::trunc(f32__f32_more_n_largest) )     || ( isnan(std::trunc(f32__f32_more_n_largest))     && isnan(nonstd::cx::trunc(f32__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::trunc(f32__f64_less_p_smallest)    == nonstd::cx::trunc(f32__f64_less_p_smallest) )    || ( isnan(std::trunc(f32__f64_less_p_smallest))    && isnan(nonstd::cx::trunc(f32__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f32__f64_less_n_smallest)    == nonstd::cx::trunc(f32__f64_less_n_smallest) )    || ( isnan(std::trunc(f32__f64_less_n_smallest))    && isnan(nonstd::cx::trunc(f32__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f32__f64_more_p_largest)     == nonstd::cx::trunc(f32__f64_more_p_largest) )     || ( isnan(std::trunc(f32__f64_more_p_largest))     && isnan(nonstd::cx::trunc(f32__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::trunc(f32__f64_more_n_largest)     == nonstd::cx::trunc(f32__f64_more_n_largest) )     || ( isnan(std::trunc(f32__f64_more_n_largest))     && isnan(nonstd::cx::trunc(f32__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::trunc(f32__f_long_less_p_smallest) == nonstd::cx::trunc(f32__f_long_less_p_smallest) ) || ( isnan(std::trunc(f32__f_long_less_p_smallest)) && isnan(nonstd::cx::trunc(f32__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::trunc(f32__f_long_less_n_smallest) == nonstd::cx::trunc(f32__f_long_less_n_smallest) ) || ( isnan(std::trunc(f32__f_long_less_n_smallest)) && isnan(nonstd::cx::trunc(f32__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::trunc(f32__f_long_more_p_largest)  == nonstd::cx::trunc(f32__f_long_more_p_largest) )  || ( isnan(std::trunc(f32__f_long_more_p_largest))  && isnan(nonstd::cx::trunc(f32__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::trunc(f32__f_long_more_n_largest)  == nonstd::cx::trunc(f32__f_long_more_n_largest) )  || ( isnan(std::trunc(f32__f_long_more_n_largest))  && isnan(nonstd::cx::trunc(f32__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::trunc(f32__f32_less_smallest_p)    == nonstd::cx::trunc(f32__f32_less_smallest_p) )    || ( isnan(std::trunc(f32__f32_less_smallest_p))    && isnan(nonstd::cx::trunc(f32__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::trunc(f32__f32_less_smallest_n)    == nonstd::cx::trunc(f32__f32_less_smallest_n) )    || ( isnan(std::trunc(f32__f32_less_smallest_n))    && isnan(nonstd::cx::trunc(f32__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::trunc(f32__f32_more_highest)       == nonstd::cx::trunc(f32__f32_more_highest) )       || ( isnan(std::trunc(f32__f32_more_highest))       && isnan(nonstd::cx::trunc(f32__f32_more_highest)) )       ));
+        REQUIRE(( ( std::trunc(f32__f32_more_lowest)        == nonstd::cx::trunc(f32__f32_more_lowest) )        || ( isnan(std::trunc(f32__f32_more_lowest))        && isnan(nonstd::cx::trunc(f32__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::trunc(f32__f64_less_smallest_p)    == nonstd::cx::trunc(f32__f64_less_smallest_p) )    || ( isnan(std::trunc(f32__f64_less_smallest_p))    && isnan(nonstd::cx::trunc(f32__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::trunc(f32__f64_less_smallest_n)    == nonstd::cx::trunc(f32__f64_less_smallest_n) )    || ( isnan(std::trunc(f32__f64_less_smallest_n))    && isnan(nonstd::cx::trunc(f32__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::trunc(f32__f64_more_highest)       == nonstd::cx::trunc(f32__f64_more_highest) )       || ( isnan(std::trunc(f32__f64_more_highest))       && isnan(nonstd::cx::trunc(f32__f64_more_highest)) )       ));
+        REQUIRE(( ( std::trunc(f32__f64_more_lowest)        == nonstd::cx::trunc(f32__f64_more_lowest) )        || ( isnan(std::trunc(f32__f64_more_lowest))        && isnan(nonstd::cx::trunc(f32__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::trunc(f32__f_long_less_smallest_p) == nonstd::cx::trunc(f32__f_long_less_smallest_p) ) || ( isnan(std::trunc(f32__f_long_less_smallest_p)) && isnan(nonstd::cx::trunc(f32__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::trunc(f32__f_long_less_smallest_n) == nonstd::cx::trunc(f32__f_long_less_smallest_n) ) || ( isnan(std::trunc(f32__f_long_less_smallest_n)) && isnan(nonstd::cx::trunc(f32__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::trunc(f32__f_long_more_highest)    == nonstd::cx::trunc(f32__f_long_more_highest) )    || ( isnan(std::trunc(f32__f_long_more_highest))    && isnan(nonstd::cx::trunc(f32__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::trunc(f32__f_long_more_lowest)     == nonstd::cx::trunc(f32__f_long_more_lowest) )     || ( isnan(std::trunc(f32__f_long_more_lowest))     && isnan(nonstd::cx::trunc(f32__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::trunc(f64__positive)               == nonstd::cx::trunc(f64__positive) )               || ( isnan(std::trunc(f64__positive))               && isnan(nonstd::cx::trunc(f64__positive)) )               ));
         REQUIRE(( ( std::trunc(f64__zero)                   == nonstd::cx::trunc(f64__zero) )                   || ( isnan(std::trunc(f64__zero))                   && isnan(nonstd::cx::trunc(f64__zero)) )                   ));
         REQUIRE(( ( std::trunc(f64__negative)               == nonstd::cx::trunc(f64__negative) )               || ( isnan(std::trunc(f64__negative))               && isnan(nonstd::cx::trunc(f64__negative)) )               ));
-        REQUIRE(( ( std::trunc(f64__f32_p_smallest)         == nonstd::cx::trunc(f64__f32_p_smallest) )         || ( isnan(std::trunc(f64__f32_p_smallest))         && isnan(nonstd::cx::trunc(f64__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::trunc(f64__f32_n_smallest)         == nonstd::cx::trunc(f64__f32_n_smallest) )         || ( isnan(std::trunc(f64__f32_n_smallest))         && isnan(nonstd::cx::trunc(f64__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::trunc(f64__f32_p_largest)          == nonstd::cx::trunc(f64__f32_p_largest) )          || ( isnan(std::trunc(f64__f32_p_largest))          && isnan(nonstd::cx::trunc(f64__f32_p_largest)) )          ));
-        REQUIRE(( ( std::trunc(f64__f32_n_largest)          == nonstd::cx::trunc(f64__f32_n_largest) )          || ( isnan(std::trunc(f64__f32_n_largest))          && isnan(nonstd::cx::trunc(f64__f32_n_largest)) )          ));
-        REQUIRE(( ( std::trunc(f64__f64_p_smallest)         == nonstd::cx::trunc(f64__f64_p_smallest) )         || ( isnan(std::trunc(f64__f64_p_smallest))         && isnan(nonstd::cx::trunc(f64__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::trunc(f64__f64_n_smallest)         == nonstd::cx::trunc(f64__f64_n_smallest) )         || ( isnan(std::trunc(f64__f64_n_smallest))         && isnan(nonstd::cx::trunc(f64__f64_n_smallest)) )         ));
-        REQUIRE(( ( std::trunc(f64__f64_p_largest)          == nonstd::cx::trunc(f64__f64_p_largest) )          || ( isnan(std::trunc(f64__f64_p_largest))          && isnan(nonstd::cx::trunc(f64__f64_p_largest)) )          ));
-        REQUIRE(( ( std::trunc(f64__f64_n_largest)          == nonstd::cx::trunc(f64__f64_n_largest) )          || ( isnan(std::trunc(f64__f64_n_largest))          && isnan(nonstd::cx::trunc(f64__f64_n_largest)) )          ));
-        REQUIRE(( ( std::trunc(f64__f_long_p_smallest)      == nonstd::cx::trunc(f64__f_long_p_smallest) )      || ( isnan(std::trunc(f64__f_long_p_smallest))      && isnan(nonstd::cx::trunc(f64__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::trunc(f64__f_long_n_smallest)      == nonstd::cx::trunc(f64__f_long_n_smallest) )      || ( isnan(std::trunc(f64__f_long_n_smallest))      && isnan(nonstd::cx::trunc(f64__f_long_n_smallest)) )      ));
-    //  REQUIRE(( ( std::trunc(f64__f_long_p_largest)       == nonstd::cx::trunc(f64__f_long_p_largest) )       || ( isnan(std::trunc(f64__f_long_p_largest))       && isnan(nonstd::cx::trunc(f64__f_long_p_largest)) )       ));
-    //  REQUIRE(( ( std::trunc(f64__f_long_n_largest)       == nonstd::cx::trunc(f64__f_long_n_largest) )       || ( isnan(std::trunc(f64__f_long_n_largest))       && isnan(nonstd::cx::trunc(f64__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::trunc(f64__f32_smallest_p)         == nonstd::cx::trunc(f64__f32_smallest_p) )         || ( isnan(std::trunc(f64__f32_smallest_p))         && isnan(nonstd::cx::trunc(f64__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::trunc(f64__f32_smallest_n)         == nonstd::cx::trunc(f64__f32_smallest_n) )         || ( isnan(std::trunc(f64__f32_smallest_n))         && isnan(nonstd::cx::trunc(f64__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::trunc(f64__f32_highest)            == nonstd::cx::trunc(f64__f32_highest) )            || ( isnan(std::trunc(f64__f32_highest))            && isnan(nonstd::cx::trunc(f64__f32_highest)) )            ));
+        REQUIRE(( ( std::trunc(f64__f32_lowest)             == nonstd::cx::trunc(f64__f32_lowest) )             || ( isnan(std::trunc(f64__f32_lowest))             && isnan(nonstd::cx::trunc(f64__f32_lowest)) )             ));
+        REQUIRE(( ( std::trunc(f64__f64_smallest_p)         == nonstd::cx::trunc(f64__f64_smallest_p) )         || ( isnan(std::trunc(f64__f64_smallest_p))         && isnan(nonstd::cx::trunc(f64__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::trunc(f64__f64_smallest_n)         == nonstd::cx::trunc(f64__f64_smallest_n) )         || ( isnan(std::trunc(f64__f64_smallest_n))         && isnan(nonstd::cx::trunc(f64__f64_smallest_n)) )         ));
+        REQUIRE(( ( std::trunc(f64__f64_highest)            == nonstd::cx::trunc(f64__f64_highest) )            || ( isnan(std::trunc(f64__f64_highest))            && isnan(nonstd::cx::trunc(f64__f64_highest)) )            ));
+        REQUIRE(( ( std::trunc(f64__f64_lowest)             == nonstd::cx::trunc(f64__f64_lowest) )             || ( isnan(std::trunc(f64__f64_lowest))             && isnan(nonstd::cx::trunc(f64__f64_lowest)) )             ));
+        REQUIRE(( ( std::trunc(f64__f_long_smallest_p)      == nonstd::cx::trunc(f64__f_long_smallest_p) )      || ( isnan(std::trunc(f64__f_long_smallest_p))      && isnan(nonstd::cx::trunc(f64__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::trunc(f64__f_long_smallest_n)      == nonstd::cx::trunc(f64__f_long_smallest_n) )      || ( isnan(std::trunc(f64__f_long_smallest_n))      && isnan(nonstd::cx::trunc(f64__f_long_smallest_n)) )      ));
+    //  REQUIRE(( ( std::trunc(f64__f_long_highest)         == nonstd::cx::trunc(f64__f_long_highest) )         || ( isnan(std::trunc(f64__f_long_highest))         && isnan(nonstd::cx::trunc(f64__f_long_highest)) )         ));
+    //  REQUIRE(( ( std::trunc(f64__f_long_lowest)          == nonstd::cx::trunc(f64__f_long_lowest) )          || ( isnan(std::trunc(f64__f_long_lowest))          && isnan(nonstd::cx::trunc(f64__f_long_lowest)) )          ));
         REQUIRE(( ( std::trunc(f64__f32_nan)                == nonstd::cx::trunc(f64__f32_nan) )                || ( isnan(std::trunc(f64__f32_nan))                && isnan(nonstd::cx::trunc(f64__f32_nan)) )                ));
         REQUIRE(( ( std::trunc(f64__f64_nan)                == nonstd::cx::trunc(f64__f64_nan) )                || ( isnan(std::trunc(f64__f64_nan))                && isnan(nonstd::cx::trunc(f64__f64_nan)) )                ));
         REQUIRE(( ( std::trunc(f64__f_long_nan)             == nonstd::cx::trunc(f64__f_long_nan) )             || ( isnan(std::trunc(f64__f_long_nan))             && isnan(nonstd::cx::trunc(f64__f_long_nan)) )             ));
@@ -1158,34 +1171,34 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::trunc(f64__f64_n_inf)              == nonstd::cx::trunc(f64__f64_n_inf) )              || ( isnan(std::trunc(f64__f64_n_inf))              && isnan(nonstd::cx::trunc(f64__f64_n_inf)) )              ));
         REQUIRE(( ( std::trunc(f64__f_long_p_inf)           == nonstd::cx::trunc(f64__f_long_p_inf) )           || ( isnan(std::trunc(f64__f_long_p_inf))           && isnan(nonstd::cx::trunc(f64__f_long_p_inf)) )           ));
         REQUIRE(( ( std::trunc(f64__f_long_n_inf)           == nonstd::cx::trunc(f64__f_long_n_inf) )           || ( isnan(std::trunc(f64__f_long_n_inf))           && isnan(nonstd::cx::trunc(f64__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::trunc(f64__f32_less_p_smallest)    == nonstd::cx::trunc(f64__f32_less_p_smallest) )    || ( isnan(std::trunc(f64__f32_less_p_smallest))    && isnan(nonstd::cx::trunc(f64__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f64__f32_less_n_smallest)    == nonstd::cx::trunc(f64__f32_less_n_smallest) )    || ( isnan(std::trunc(f64__f32_less_n_smallest))    && isnan(nonstd::cx::trunc(f64__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f64__f32_more_p_largest)     == nonstd::cx::trunc(f64__f32_more_p_largest) )     || ( isnan(std::trunc(f64__f32_more_p_largest))     && isnan(nonstd::cx::trunc(f64__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::trunc(f64__f32_more_n_largest)     == nonstd::cx::trunc(f64__f32_more_n_largest) )     || ( isnan(std::trunc(f64__f32_more_n_largest))     && isnan(nonstd::cx::trunc(f64__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::trunc(f64__f64_less_p_smallest)    == nonstd::cx::trunc(f64__f64_less_p_smallest) )    || ( isnan(std::trunc(f64__f64_less_p_smallest))    && isnan(nonstd::cx::trunc(f64__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f64__f64_less_n_smallest)    == nonstd::cx::trunc(f64__f64_less_n_smallest) )    || ( isnan(std::trunc(f64__f64_less_n_smallest))    && isnan(nonstd::cx::trunc(f64__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f64__f64_more_p_largest)     == nonstd::cx::trunc(f64__f64_more_p_largest) )     || ( isnan(std::trunc(f64__f64_more_p_largest))     && isnan(nonstd::cx::trunc(f64__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::trunc(f64__f64_more_n_largest)     == nonstd::cx::trunc(f64__f64_more_n_largest) )     || ( isnan(std::trunc(f64__f64_more_n_largest))     && isnan(nonstd::cx::trunc(f64__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::trunc(f64__f_long_less_p_smallest) == nonstd::cx::trunc(f64__f_long_less_p_smallest) ) || ( isnan(std::trunc(f64__f_long_less_p_smallest)) && isnan(nonstd::cx::trunc(f64__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::trunc(f64__f_long_less_n_smallest) == nonstd::cx::trunc(f64__f_long_less_n_smallest) ) || ( isnan(std::trunc(f64__f_long_less_n_smallest)) && isnan(nonstd::cx::trunc(f64__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::trunc(f64__f_long_more_p_largest)  == nonstd::cx::trunc(f64__f_long_more_p_largest) )  || ( isnan(std::trunc(f64__f_long_more_p_largest))  && isnan(nonstd::cx::trunc(f64__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::trunc(f64__f_long_more_n_largest)  == nonstd::cx::trunc(f64__f_long_more_n_largest) )  || ( isnan(std::trunc(f64__f_long_more_n_largest))  && isnan(nonstd::cx::trunc(f64__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::trunc(f64__f32_less_smallest_p)    == nonstd::cx::trunc(f64__f32_less_smallest_p) )    || ( isnan(std::trunc(f64__f32_less_smallest_p))    && isnan(nonstd::cx::trunc(f64__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::trunc(f64__f32_less_smallest_n)    == nonstd::cx::trunc(f64__f32_less_smallest_n) )    || ( isnan(std::trunc(f64__f32_less_smallest_n))    && isnan(nonstd::cx::trunc(f64__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::trunc(f64__f32_more_highest)       == nonstd::cx::trunc(f64__f32_more_highest) )       || ( isnan(std::trunc(f64__f32_more_highest))       && isnan(nonstd::cx::trunc(f64__f32_more_highest)) )       ));
+        REQUIRE(( ( std::trunc(f64__f32_more_lowest)        == nonstd::cx::trunc(f64__f32_more_lowest) )        || ( isnan(std::trunc(f64__f32_more_lowest))        && isnan(nonstd::cx::trunc(f64__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::trunc(f64__f64_less_smallest_p)    == nonstd::cx::trunc(f64__f64_less_smallest_p) )    || ( isnan(std::trunc(f64__f64_less_smallest_p))    && isnan(nonstd::cx::trunc(f64__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::trunc(f64__f64_less_smallest_n)    == nonstd::cx::trunc(f64__f64_less_smallest_n) )    || ( isnan(std::trunc(f64__f64_less_smallest_n))    && isnan(nonstd::cx::trunc(f64__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::trunc(f64__f64_more_highest)       == nonstd::cx::trunc(f64__f64_more_highest) )       || ( isnan(std::trunc(f64__f64_more_highest))       && isnan(nonstd::cx::trunc(f64__f64_more_highest)) )       ));
+        REQUIRE(( ( std::trunc(f64__f64_more_lowest)        == nonstd::cx::trunc(f64__f64_more_lowest) )        || ( isnan(std::trunc(f64__f64_more_lowest))        && isnan(nonstd::cx::trunc(f64__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::trunc(f64__f_long_less_smallest_p) == nonstd::cx::trunc(f64__f_long_less_smallest_p) ) || ( isnan(std::trunc(f64__f_long_less_smallest_p)) && isnan(nonstd::cx::trunc(f64__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::trunc(f64__f_long_less_smallest_n) == nonstd::cx::trunc(f64__f_long_less_smallest_n) ) || ( isnan(std::trunc(f64__f_long_less_smallest_n)) && isnan(nonstd::cx::trunc(f64__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::trunc(f64__f_long_more_highest)    == nonstd::cx::trunc(f64__f_long_more_highest) )    || ( isnan(std::trunc(f64__f_long_more_highest))    && isnan(nonstd::cx::trunc(f64__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::trunc(f64__f_long_more_lowest)     == nonstd::cx::trunc(f64__f_long_more_lowest) )     || ( isnan(std::trunc(f64__f_long_more_lowest))     && isnan(nonstd::cx::trunc(f64__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::trunc(f_long__positive)               == nonstd::cx::trunc(f_long__positive) )               || ( isnan(std::trunc(f_long__positive))               && isnan(nonstd::cx::trunc(f_long__positive)) )               ));
         REQUIRE(( ( std::trunc(f_long__zero)                   == nonstd::cx::trunc(f_long__zero) )                   || ( isnan(std::trunc(f_long__zero))                   && isnan(nonstd::cx::trunc(f_long__zero)) )                   ));
         REQUIRE(( ( std::trunc(f_long__negative)               == nonstd::cx::trunc(f_long__negative) )               || ( isnan(std::trunc(f_long__negative))               && isnan(nonstd::cx::trunc(f_long__negative)) )               ));
-        REQUIRE(( ( std::trunc(f_long__f32_p_smallest)         == nonstd::cx::trunc(f_long__f32_p_smallest) )         || ( isnan(std::trunc(f_long__f32_p_smallest))         && isnan(nonstd::cx::trunc(f_long__f32_p_smallest)) )         ));
-        REQUIRE(( ( std::trunc(f_long__f32_n_smallest)         == nonstd::cx::trunc(f_long__f32_n_smallest) )         || ( isnan(std::trunc(f_long__f32_n_smallest))         && isnan(nonstd::cx::trunc(f_long__f32_n_smallest)) )         ));
-        REQUIRE(( ( std::trunc(f_long__f32_p_largest)          == nonstd::cx::trunc(f_long__f32_p_largest) )          || ( isnan(std::trunc(f_long__f32_p_largest))          && isnan(nonstd::cx::trunc(f_long__f32_p_largest)) )          ));
-        REQUIRE(( ( std::trunc(f_long__f32_n_largest)          == nonstd::cx::trunc(f_long__f32_n_largest) )          || ( isnan(std::trunc(f_long__f32_n_largest))          && isnan(nonstd::cx::trunc(f_long__f32_n_largest)) )          ));
-        REQUIRE(( ( std::trunc(f_long__f64_p_smallest)         == nonstd::cx::trunc(f_long__f64_p_smallest) )         || ( isnan(std::trunc(f_long__f64_p_smallest))         && isnan(nonstd::cx::trunc(f_long__f64_p_smallest)) )         ));
-        REQUIRE(( ( std::trunc(f_long__f64_n_smallest)         == nonstd::cx::trunc(f_long__f64_n_smallest) )         || ( isnan(std::trunc(f_long__f64_n_smallest))         && isnan(nonstd::cx::trunc(f_long__f64_n_smallest)) )         ));
-        REQUIRE(( ( std::trunc(f_long__f64_p_largest)          == nonstd::cx::trunc(f_long__f64_p_largest) )          || ( isnan(std::trunc(f_long__f64_p_largest))          && isnan(nonstd::cx::trunc(f_long__f64_p_largest)) )          ));
-        REQUIRE(( ( std::trunc(f_long__f64_n_largest)          == nonstd::cx::trunc(f_long__f64_n_largest) )          || ( isnan(std::trunc(f_long__f64_n_largest))          && isnan(nonstd::cx::trunc(f_long__f64_n_largest)) )          ));
-        REQUIRE(( ( std::trunc(f_long__f_long_p_smallest)      == nonstd::cx::trunc(f_long__f_long_p_smallest) )      || ( isnan(std::trunc(f_long__f_long_p_smallest))      && isnan(nonstd::cx::trunc(f_long__f_long_p_smallest)) )      ));
-        REQUIRE(( ( std::trunc(f_long__f_long_n_smallest)      == nonstd::cx::trunc(f_long__f_long_n_smallest) )      || ( isnan(std::trunc(f_long__f_long_n_smallest))      && isnan(nonstd::cx::trunc(f_long__f_long_n_smallest)) )      ));
-        REQUIRE(( ( std::trunc(f_long__f_long_p_largest)       == nonstd::cx::trunc(f_long__f_long_p_largest) )       || ( isnan(std::trunc(f_long__f_long_p_largest))       && isnan(nonstd::cx::trunc(f_long__f_long_p_largest)) )       ));
-        REQUIRE(( ( std::trunc(f_long__f_long_n_largest)       == nonstd::cx::trunc(f_long__f_long_n_largest) )       || ( isnan(std::trunc(f_long__f_long_n_largest))       && isnan(nonstd::cx::trunc(f_long__f_long_n_largest)) )       ));
+        REQUIRE(( ( std::trunc(f_long__f32_smallest_p)         == nonstd::cx::trunc(f_long__f32_smallest_p) )         || ( isnan(std::trunc(f_long__f32_smallest_p))         && isnan(nonstd::cx::trunc(f_long__f32_smallest_p)) )         ));
+        REQUIRE(( ( std::trunc(f_long__f32_smallest_n)         == nonstd::cx::trunc(f_long__f32_smallest_n) )         || ( isnan(std::trunc(f_long__f32_smallest_n))         && isnan(nonstd::cx::trunc(f_long__f32_smallest_n)) )         ));
+        REQUIRE(( ( std::trunc(f_long__f32_highest)            == nonstd::cx::trunc(f_long__f32_highest) )            || ( isnan(std::trunc(f_long__f32_highest))            && isnan(nonstd::cx::trunc(f_long__f32_highest)) )            ));
+        REQUIRE(( ( std::trunc(f_long__f32_lowest)             == nonstd::cx::trunc(f_long__f32_lowest) )             || ( isnan(std::trunc(f_long__f32_lowest))             && isnan(nonstd::cx::trunc(f_long__f32_lowest)) )             ));
+        REQUIRE(( ( std::trunc(f_long__f64_smallest_p)         == nonstd::cx::trunc(f_long__f64_smallest_p) )         || ( isnan(std::trunc(f_long__f64_smallest_p))         && isnan(nonstd::cx::trunc(f_long__f64_smallest_p)) )         ));
+        REQUIRE(( ( std::trunc(f_long__f64_smallest_n)         == nonstd::cx::trunc(f_long__f64_smallest_n) )         || ( isnan(std::trunc(f_long__f64_smallest_n))         && isnan(nonstd::cx::trunc(f_long__f64_smallest_n)) )         ));
+        REQUIRE(( ( std::trunc(f_long__f64_highest)            == nonstd::cx::trunc(f_long__f64_highest) )            || ( isnan(std::trunc(f_long__f64_highest))            && isnan(nonstd::cx::trunc(f_long__f64_highest)) )            ));
+        REQUIRE(( ( std::trunc(f_long__f64_lowest)             == nonstd::cx::trunc(f_long__f64_lowest) )             || ( isnan(std::trunc(f_long__f64_lowest))             && isnan(nonstd::cx::trunc(f_long__f64_lowest)) )             ));
+        REQUIRE(( ( std::trunc(f_long__f_long_smallest_p)      == nonstd::cx::trunc(f_long__f_long_smallest_p) )      || ( isnan(std::trunc(f_long__f_long_smallest_p))      && isnan(nonstd::cx::trunc(f_long__f_long_smallest_p)) )      ));
+        REQUIRE(( ( std::trunc(f_long__f_long_smallest_n)      == nonstd::cx::trunc(f_long__f_long_smallest_n) )      || ( isnan(std::trunc(f_long__f_long_smallest_n))      && isnan(nonstd::cx::trunc(f_long__f_long_smallest_n)) )      ));
+        REQUIRE(( ( std::trunc(f_long__f_long_highest)         == nonstd::cx::trunc(f_long__f_long_highest) )         || ( isnan(std::trunc(f_long__f_long_highest))         && isnan(nonstd::cx::trunc(f_long__f_long_highest)) )         ));
+        REQUIRE(( ( std::trunc(f_long__f_long_lowest)          == nonstd::cx::trunc(f_long__f_long_lowest) )          || ( isnan(std::trunc(f_long__f_long_lowest))          && isnan(nonstd::cx::trunc(f_long__f_long_lowest)) )          ));
         REQUIRE(( ( std::trunc(f_long__f32_nan)                == nonstd::cx::trunc(f_long__f32_nan) )                || ( isnan(std::trunc(f_long__f32_nan))                && isnan(nonstd::cx::trunc(f_long__f32_nan)) )                ));
         REQUIRE(( ( std::trunc(f_long__f64_nan)                == nonstd::cx::trunc(f_long__f64_nan) )                || ( isnan(std::trunc(f_long__f64_nan))                && isnan(nonstd::cx::trunc(f_long__f64_nan)) )                ));
         REQUIRE(( ( std::trunc(f_long__f_long_nan)             == nonstd::cx::trunc(f_long__f_long_nan) )             || ( isnan(std::trunc(f_long__f_long_nan))             && isnan(nonstd::cx::trunc(f_long__f_long_nan)) )             ));
@@ -1195,18 +1208,18 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         REQUIRE(( ( std::trunc(f_long__f64_n_inf)              == nonstd::cx::trunc(f_long__f64_n_inf) )              || ( isnan(std::trunc(f_long__f64_n_inf))              && isnan(nonstd::cx::trunc(f_long__f64_n_inf)) )              ));
         REQUIRE(( ( std::trunc(f_long__f_long_p_inf)           == nonstd::cx::trunc(f_long__f_long_p_inf) )           || ( isnan(std::trunc(f_long__f_long_p_inf))           && isnan(nonstd::cx::trunc(f_long__f_long_p_inf)) )           ));
         REQUIRE(( ( std::trunc(f_long__f_long_n_inf)           == nonstd::cx::trunc(f_long__f_long_n_inf) )           || ( isnan(std::trunc(f_long__f_long_n_inf))           && isnan(nonstd::cx::trunc(f_long__f_long_n_inf)) )           ));
-        REQUIRE(( ( std::trunc(f_long__f32_less_p_smallest)    == nonstd::cx::trunc(f_long__f32_less_p_smallest) )    || ( isnan(std::trunc(f_long__f32_less_p_smallest))    && isnan(nonstd::cx::trunc(f_long__f32_less_p_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f_long__f32_less_n_smallest)    == nonstd::cx::trunc(f_long__f32_less_n_smallest) )    || ( isnan(std::trunc(f_long__f32_less_n_smallest))    && isnan(nonstd::cx::trunc(f_long__f32_less_n_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f_long__f32_more_p_largest)     == nonstd::cx::trunc(f_long__f32_more_p_largest) )     || ( isnan(std::trunc(f_long__f32_more_p_largest))     && isnan(nonstd::cx::trunc(f_long__f32_more_p_largest)) )     ));
-        REQUIRE(( ( std::trunc(f_long__f32_more_n_largest)     == nonstd::cx::trunc(f_long__f32_more_n_largest) )     || ( isnan(std::trunc(f_long__f32_more_n_largest))     && isnan(nonstd::cx::trunc(f_long__f32_more_n_largest)) )     ));
-        REQUIRE(( ( std::trunc(f_long__f64_less_p_smallest)    == nonstd::cx::trunc(f_long__f64_less_p_smallest) )    || ( isnan(std::trunc(f_long__f64_less_p_smallest))    && isnan(nonstd::cx::trunc(f_long__f64_less_p_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f_long__f64_less_n_smallest)    == nonstd::cx::trunc(f_long__f64_less_n_smallest) )    || ( isnan(std::trunc(f_long__f64_less_n_smallest))    && isnan(nonstd::cx::trunc(f_long__f64_less_n_smallest)) )    ));
-        REQUIRE(( ( std::trunc(f_long__f64_more_p_largest)     == nonstd::cx::trunc(f_long__f64_more_p_largest) )     || ( isnan(std::trunc(f_long__f64_more_p_largest))     && isnan(nonstd::cx::trunc(f_long__f64_more_p_largest)) )     ));
-        REQUIRE(( ( std::trunc(f_long__f64_more_n_largest)     == nonstd::cx::trunc(f_long__f64_more_n_largest) )     || ( isnan(std::trunc(f_long__f64_more_n_largest))     && isnan(nonstd::cx::trunc(f_long__f64_more_n_largest)) )     ));
-        REQUIRE(( ( std::trunc(f_long__f_long_less_p_smallest) == nonstd::cx::trunc(f_long__f_long_less_p_smallest) ) || ( isnan(std::trunc(f_long__f_long_less_p_smallest)) && isnan(nonstd::cx::trunc(f_long__f_long_less_p_smallest)) ) ));
-        REQUIRE(( ( std::trunc(f_long__f_long_less_n_smallest) == nonstd::cx::trunc(f_long__f_long_less_n_smallest) ) || ( isnan(std::trunc(f_long__f_long_less_n_smallest)) && isnan(nonstd::cx::trunc(f_long__f_long_less_n_smallest)) ) ));
-        REQUIRE(( ( std::trunc(f_long__f_long_more_p_largest)  == nonstd::cx::trunc(f_long__f_long_more_p_largest) )  || ( isnan(std::trunc(f_long__f_long_more_p_largest))  && isnan(nonstd::cx::trunc(f_long__f_long_more_p_largest)) )  ));
-        REQUIRE(( ( std::trunc(f_long__f_long_more_n_largest)  == nonstd::cx::trunc(f_long__f_long_more_n_largest) )  || ( isnan(std::trunc(f_long__f_long_more_n_largest))  && isnan(nonstd::cx::trunc(f_long__f_long_more_n_largest)) )  ));
+        REQUIRE(( ( std::trunc(f_long__f32_less_smallest_p)    == nonstd::cx::trunc(f_long__f32_less_smallest_p) )    || ( isnan(std::trunc(f_long__f32_less_smallest_p))    && isnan(nonstd::cx::trunc(f_long__f32_less_smallest_p)) )    ));
+        REQUIRE(( ( std::trunc(f_long__f32_less_smallest_n)    == nonstd::cx::trunc(f_long__f32_less_smallest_n) )    || ( isnan(std::trunc(f_long__f32_less_smallest_n))    && isnan(nonstd::cx::trunc(f_long__f32_less_smallest_n)) )    ));
+        REQUIRE(( ( std::trunc(f_long__f32_more_highest)       == nonstd::cx::trunc(f_long__f32_more_highest) )       || ( isnan(std::trunc(f_long__f32_more_highest))       && isnan(nonstd::cx::trunc(f_long__f32_more_highest)) )       ));
+        REQUIRE(( ( std::trunc(f_long__f32_more_lowest)        == nonstd::cx::trunc(f_long__f32_more_lowest) )        || ( isnan(std::trunc(f_long__f32_more_lowest))        && isnan(nonstd::cx::trunc(f_long__f32_more_lowest)) )        ));
+        REQUIRE(( ( std::trunc(f_long__f64_less_smallest_p)    == nonstd::cx::trunc(f_long__f64_less_smallest_p) )    || ( isnan(std::trunc(f_long__f64_less_smallest_p))    && isnan(nonstd::cx::trunc(f_long__f64_less_smallest_p)) )    ));
+        REQUIRE(( ( std::trunc(f_long__f64_less_smallest_n)    == nonstd::cx::trunc(f_long__f64_less_smallest_n) )    || ( isnan(std::trunc(f_long__f64_less_smallest_n))    && isnan(nonstd::cx::trunc(f_long__f64_less_smallest_n)) )    ));
+        REQUIRE(( ( std::trunc(f_long__f64_more_highest)       == nonstd::cx::trunc(f_long__f64_more_highest) )       || ( isnan(std::trunc(f_long__f64_more_highest))       && isnan(nonstd::cx::trunc(f_long__f64_more_highest)) )       ));
+        REQUIRE(( ( std::trunc(f_long__f64_more_lowest)        == nonstd::cx::trunc(f_long__f64_more_lowest) )        || ( isnan(std::trunc(f_long__f64_more_lowest))        && isnan(nonstd::cx::trunc(f_long__f64_more_lowest)) )        ));
+        REQUIRE(( ( std::trunc(f_long__f_long_less_smallest_p) == nonstd::cx::trunc(f_long__f_long_less_smallest_p) ) || ( isnan(std::trunc(f_long__f_long_less_smallest_p)) && isnan(nonstd::cx::trunc(f_long__f_long_less_smallest_p)) ) ));
+        REQUIRE(( ( std::trunc(f_long__f_long_less_smallest_n) == nonstd::cx::trunc(f_long__f_long_less_smallest_n) ) || ( isnan(std::trunc(f_long__f_long_less_smallest_n)) && isnan(nonstd::cx::trunc(f_long__f_long_less_smallest_n)) ) ));
+        REQUIRE(( ( std::trunc(f_long__f_long_more_highest)    == nonstd::cx::trunc(f_long__f_long_more_highest) )    || ( isnan(std::trunc(f_long__f_long_more_highest))    && isnan(nonstd::cx::trunc(f_long__f_long_more_highest)) )    ));
+        REQUIRE(( ( std::trunc(f_long__f_long_more_lowest)     == nonstd::cx::trunc(f_long__f_long_more_lowest) )     || ( isnan(std::trunc(f_long__f_long_more_lowest))     && isnan(nonstd::cx::trunc(f_long__f_long_more_lowest)) )     ));
 
         REQUIRE(( ( std::trunc(u64__positive) == nonstd::cx::trunc(u64__positive) ) || ( isnan(std::trunc(u64__positive)) && isnan(nonstd::cx::trunc(u64__positive)) ) ));
         REQUIRE(( ( std::trunc(u64__zero)     == nonstd::cx::trunc(u64__zero) )     || ( isnan(std::trunc(u64__zero))     && isnan(nonstd::cx::trunc(u64__zero)) )     ));
@@ -1236,27 +1249,33 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         std::mt19937 re(rd());
 
         std::uniform_real_distribution<float> rnd_float_range(
-            -std::numeric_limits<float>::max(),
-             std::numeric_limits<float>::max());
+            0.0f,
+            std::numeric_limits<float>::max());
         std::uniform_real_distribution<double> rnd_double_range(
-            -std::numeric_limits<double>::max(),
-             std::numeric_limits<double>::max());
+            0.0,
+            std::numeric_limits<double>::max());
         std::uniform_real_distribution<long double> rnd_long_double_range(
-            -std::numeric_limits<long double>::max(),
-             std::numeric_limits<long double>::max());
+            0.0l,
+            std::numeric_limits<long double>::max());
 
         constexpr int iterations = 10000;
         for (int i = 0; i < iterations; i++) {
-            float x = rnd_float_range(re);
-            REQUIRE(( ( std::trunc(x)  == nonstd::cx::trunc(x) ) || ( isnan(std::trunc(x)) && isnan(nonstd::cx::trunc(x)) ) ));
+            float px = rnd_float_range(re);
+            float nx = -px;
+            REQUIRE(( ( std::trunc(px)  == nonstd::cx::trunc(px) ) || ( isnan(std::trunc(px)) && isnan(nonstd::cx::trunc(px)) ) ));
+            REQUIRE(( ( std::trunc(nx)  == nonstd::cx::trunc(nx) ) || ( isnan(std::trunc(nx)) && isnan(nonstd::cx::trunc(nx)) ) ));
         }
         for (int i = 0; i < iterations; i++) {
-            double x = rnd_double_range(re);
-            REQUIRE(( ( std::trunc(x)  == nonstd::cx::trunc(x) ) || ( isnan(std::trunc(x)) && isnan(nonstd::cx::trunc(x)) ) ));
+            double px = rnd_double_range(re);
+            double nx = -px;
+            REQUIRE(( ( std::trunc(px)  == nonstd::cx::trunc(px) ) || ( isnan(std::trunc(px)) && isnan(nonstd::cx::trunc(px)) ) ));
+            REQUIRE(( ( std::trunc(nx)  == nonstd::cx::trunc(nx) ) || ( isnan(std::trunc(nx)) && isnan(nonstd::cx::trunc(nx)) ) ));
         }
         for (int i = 0; i < iterations; i++) {
-            long double x = rnd_long_double_range(re);
-            REQUIRE(( ( std::trunc(x)  == nonstd::cx::trunc(x) ) || ( isnan(std::trunc(x)) && isnan(nonstd::cx::trunc(x)) ) ));
+            long double px = rnd_long_double_range(re);
+            long double nx = -px;
+            REQUIRE(( ( std::trunc(px)  == nonstd::cx::trunc(px) ) || ( isnan(std::trunc(px)) && isnan(nonstd::cx::trunc(px)) ) ));
+            REQUIRE(( ( std::trunc(nx)  == nonstd::cx::trunc(nx) ) || ( isnan(std::trunc(nx)) && isnan(nonstd::cx::trunc(nx)) ) ));
         }
     }
 
@@ -1291,118 +1310,118 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
 
 
         // Test numeric extents
-        REQUIRE(( ( std::fmod(f32__f32_p_smallest,  1.0f) == nonstd::cx::fmod(f32__f32_p_smallest,  1.0f) ) || ( isnan(std::fmod(f32__f32_p_smallest,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_p_smallest,  1.0f)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_p_smallest, -1.0f) == nonstd::cx::fmod(f32__f32_p_smallest, -1.0f) ) || ( isnan(std::fmod(f32__f32_p_smallest, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_p_smallest, -1.0f)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_smallest,  1.0f) == nonstd::cx::fmod(f32__f32_n_smallest,  1.0f) ) || ( isnan(std::fmod(f32__f32_n_smallest,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_n_smallest,  1.0f)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_smallest, -1.0f) == nonstd::cx::fmod(f32__f32_n_smallest, -1.0f) ) || ( isnan(std::fmod(f32__f32_n_smallest, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_n_smallest, -1.0f)) ) ));
-        REQUIRE(( ( std::fmod( 1.0f, f32__f32_p_smallest) == nonstd::cx::fmod( 1.0f, f32__f32_p_smallest) ) || ( isnan(std::fmod( 1.0f, f32__f32_p_smallest)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0f, f32__f32_p_smallest) == nonstd::cx::fmod(-1.0f, f32__f32_p_smallest) ) || ( isnan(std::fmod(-1.0f, f32__f32_p_smallest)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod( 1.0f, f32__f32_n_smallest) == nonstd::cx::fmod( 1.0f, f32__f32_n_smallest) ) || ( isnan(std::fmod( 1.0f, f32__f32_n_smallest)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_n_smallest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0f, f32__f32_n_smallest) == nonstd::cx::fmod(-1.0f, f32__f32_n_smallest) ) || ( isnan(std::fmod(-1.0f, f32__f32_n_smallest)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_n_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_smallest_p,  1.0f) == nonstd::cx::fmod(f32__f32_smallest_p,  1.0f) ) || ( isnan(std::fmod(f32__f32_smallest_p,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_smallest_p,  1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_smallest_p, -1.0f) == nonstd::cx::fmod(f32__f32_smallest_p, -1.0f) ) || ( isnan(std::fmod(f32__f32_smallest_p, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_smallest_p, -1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_smallest_n,  1.0f) == nonstd::cx::fmod(f32__f32_smallest_n,  1.0f) ) || ( isnan(std::fmod(f32__f32_smallest_n,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_smallest_n,  1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_smallest_n, -1.0f) == nonstd::cx::fmod(f32__f32_smallest_n, -1.0f) ) || ( isnan(std::fmod(f32__f32_smallest_n, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_smallest_n, -1.0f)) ) ));
+        REQUIRE(( ( std::fmod( 1.0f, f32__f32_smallest_p) == nonstd::cx::fmod( 1.0f, f32__f32_smallest_p) ) || ( isnan(std::fmod( 1.0f, f32__f32_smallest_p)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod(-1.0f, f32__f32_smallest_p) == nonstd::cx::fmod(-1.0f, f32__f32_smallest_p) ) || ( isnan(std::fmod(-1.0f, f32__f32_smallest_p)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod( 1.0f, f32__f32_smallest_n) == nonstd::cx::fmod( 1.0f, f32__f32_smallest_n) ) || ( isnan(std::fmod( 1.0f, f32__f32_smallest_n)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_smallest_n)) ) ));
+        REQUIRE(( ( std::fmod(-1.0f, f32__f32_smallest_n) == nonstd::cx::fmod(-1.0f, f32__f32_smallest_n) ) || ( isnan(std::fmod(-1.0f, f32__f32_smallest_n)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_smallest_n)) ) ));
 
-        REQUIRE(( ( std::fmod(f32__f32_p_largest,  1.0f) == nonstd::cx::fmod(f32__f32_p_largest,  1.0f) ) || ( isnan(std::fmod(f32__f32_p_largest,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_p_largest,  1.0f)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_p_largest, -1.0f) == nonstd::cx::fmod(f32__f32_p_largest, -1.0f) ) || ( isnan(std::fmod(f32__f32_p_largest, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_p_largest, -1.0f)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_largest,  1.0f) == nonstd::cx::fmod(f32__f32_n_largest,  1.0f) ) || ( isnan(std::fmod(f32__f32_n_largest,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_n_largest,  1.0f)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_largest, -1.0f) == nonstd::cx::fmod(f32__f32_n_largest, -1.0f) ) || ( isnan(std::fmod(f32__f32_n_largest, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_n_largest, -1.0f)) ) ));
-        REQUIRE(( ( std::fmod( 1.0f, f32__f32_p_largest) == nonstd::cx::fmod( 1.0f, f32__f32_p_largest) ) || ( isnan(std::fmod( 1.0f, f32__f32_p_largest)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_p_largest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0f, f32__f32_p_largest) == nonstd::cx::fmod(-1.0f, f32__f32_p_largest) ) || ( isnan(std::fmod(-1.0f, f32__f32_p_largest)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_p_largest)) ) ));
-        REQUIRE(( ( std::fmod( 1.0f, f32__f32_n_largest) == nonstd::cx::fmod( 1.0f, f32__f32_n_largest) ) || ( isnan(std::fmod( 1.0f, f32__f32_n_largest)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_n_largest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0f, f32__f32_n_largest) == nonstd::cx::fmod(-1.0f, f32__f32_n_largest) ) || ( isnan(std::fmod(-1.0f, f32__f32_n_largest)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_n_largest)) ) ));
-
-
-        REQUIRE(( ( std::fmod(f64__f64_p_smallest,  1.0) == nonstd::cx::fmod(f64__f64_p_smallest,  1.0) ) || ( isnan(std::fmod(f64__f64_p_smallest,  1.0)) && isnan(nonstd::cx::fmod(f64__f64_p_smallest,  1.0)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_p_smallest, -1.0) == nonstd::cx::fmod(f64__f64_p_smallest, -1.0) ) || ( isnan(std::fmod(f64__f64_p_smallest, -1.0)) && isnan(nonstd::cx::fmod(f64__f64_p_smallest, -1.0)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_smallest,  1.0) == nonstd::cx::fmod(f64__f64_n_smallest,  1.0) ) || ( isnan(std::fmod(f64__f64_n_smallest,  1.0)) && isnan(nonstd::cx::fmod(f64__f64_n_smallest,  1.0)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_smallest, -1.0) == nonstd::cx::fmod(f64__f64_n_smallest, -1.0) ) || ( isnan(std::fmod(f64__f64_n_smallest, -1.0)) && isnan(nonstd::cx::fmod(f64__f64_n_smallest, -1.0)) ) ));
-        REQUIRE(( ( std::fmod( 1.0, f64__f64_p_smallest) == nonstd::cx::fmod( 1.0, f64__f64_p_smallest) ) || ( isnan(std::fmod( 1.0, f64__f64_p_smallest)) && isnan(nonstd::cx::fmod( 1.0, f64__f64_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0, f64__f64_p_smallest) == nonstd::cx::fmod(-1.0, f64__f64_p_smallest) ) || ( isnan(std::fmod(-1.0, f64__f64_p_smallest)) && isnan(nonstd::cx::fmod(-1.0, f64__f64_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod( 1.0, f64__f64_n_smallest) == nonstd::cx::fmod( 1.0, f64__f64_n_smallest) ) || ( isnan(std::fmod( 1.0, f64__f64_n_smallest)) && isnan(nonstd::cx::fmod( 1.0, f64__f64_n_smallest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0, f64__f64_n_smallest) == nonstd::cx::fmod(-1.0, f64__f64_n_smallest) ) || ( isnan(std::fmod(-1.0, f64__f64_n_smallest)) && isnan(nonstd::cx::fmod(-1.0, f64__f64_n_smallest)) ) ));
-
-        REQUIRE(( ( std::fmod(f64__f64_p_largest,  1.0) == nonstd::cx::fmod(f64__f64_p_largest,  1.0) ) || ( isnan(std::fmod(f64__f64_p_largest,  1.0)) && isnan(nonstd::cx::fmod(f64__f64_p_largest,  1.0)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_p_largest, -1.0) == nonstd::cx::fmod(f64__f64_p_largest, -1.0) ) || ( isnan(std::fmod(f64__f64_p_largest, -1.0)) && isnan(nonstd::cx::fmod(f64__f64_p_largest, -1.0)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_largest,  1.0) == nonstd::cx::fmod(f64__f64_n_largest,  1.0) ) || ( isnan(std::fmod(f64__f64_n_largest,  1.0)) && isnan(nonstd::cx::fmod(f64__f64_n_largest,  1.0)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_largest, -1.0) == nonstd::cx::fmod(f64__f64_n_largest, -1.0) ) || ( isnan(std::fmod(f64__f64_n_largest, -1.0)) && isnan(nonstd::cx::fmod(f64__f64_n_largest, -1.0)) ) ));
-        REQUIRE(( ( std::fmod( 1.0, f64__f64_p_largest) == nonstd::cx::fmod( 1.0, f64__f64_p_largest) ) || ( isnan(std::fmod( 1.0, f64__f64_p_largest)) && isnan(nonstd::cx::fmod( 1.0, f64__f64_p_largest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0, f64__f64_p_largest) == nonstd::cx::fmod(-1.0, f64__f64_p_largest) ) || ( isnan(std::fmod(-1.0, f64__f64_p_largest)) && isnan(nonstd::cx::fmod(-1.0, f64__f64_p_largest)) ) ));
-        REQUIRE(( ( std::fmod( 1.0, f64__f64_n_largest) == nonstd::cx::fmod( 1.0, f64__f64_n_largest) ) || ( isnan(std::fmod( 1.0, f64__f64_n_largest)) && isnan(nonstd::cx::fmod( 1.0, f64__f64_n_largest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0, f64__f64_n_largest) == nonstd::cx::fmod(-1.0, f64__f64_n_largest) ) || ( isnan(std::fmod(-1.0, f64__f64_n_largest)) && isnan(nonstd::cx::fmod(-1.0, f64__f64_n_largest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_highest,  1.0f) == nonstd::cx::fmod(f32__f32_highest,  1.0f) ) || ( isnan(std::fmod(f32__f32_highest,  1.0f)) && isnan(nonstd::cx::fmod(f32__f32_highest,  1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_highest, -1.0f) == nonstd::cx::fmod(f32__f32_highest, -1.0f) ) || ( isnan(std::fmod(f32__f32_highest, -1.0f)) && isnan(nonstd::cx::fmod(f32__f32_highest, -1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_lowest,  1.0f)  == nonstd::cx::fmod(f32__f32_lowest,  1.0f) )  || ( isnan(std::fmod(f32__f32_lowest,  1.0f))  && isnan(nonstd::cx::fmod(f32__f32_lowest,  1.0f)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_lowest, -1.0f)  == nonstd::cx::fmod(f32__f32_lowest, -1.0f) )  || ( isnan(std::fmod(f32__f32_lowest, -1.0f))  && isnan(nonstd::cx::fmod(f32__f32_lowest, -1.0f)) ) ));
+        REQUIRE(( ( std::fmod( 1.0f, f32__f32_highest) == nonstd::cx::fmod( 1.0f, f32__f32_highest) ) || ( isnan(std::fmod( 1.0f, f32__f32_highest)) && isnan(nonstd::cx::fmod( 1.0f, f32__f32_highest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0f, f32__f32_highest) == nonstd::cx::fmod(-1.0f, f32__f32_highest) ) || ( isnan(std::fmod(-1.0f, f32__f32_highest)) && isnan(nonstd::cx::fmod(-1.0f, f32__f32_highest)) ) ));
+        REQUIRE(( ( std::fmod( 1.0f, f32__f32_lowest)  == nonstd::cx::fmod( 1.0f, f32__f32_lowest) )  || ( isnan(std::fmod( 1.0f, f32__f32_lowest))  && isnan(nonstd::cx::fmod( 1.0f, f32__f32_lowest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0f, f32__f32_lowest)  == nonstd::cx::fmod(-1.0f, f32__f32_lowest) )  || ( isnan(std::fmod(-1.0f, f32__f32_lowest))  && isnan(nonstd::cx::fmod(-1.0f, f32__f32_lowest)) ) ));
 
 
-        REQUIRE(( ( std::fmod(f_long__f_long_p_smallest,  1.0l) == nonstd::cx::fmod(f_long__f_long_p_smallest,  1.0l) ) || ( isnan(std::fmod(f_long__f_long_p_smallest,  1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_p_smallest,  1.0l)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_p_smallest, -1.0l) == nonstd::cx::fmod(f_long__f_long_p_smallest, -1.0l) ) || ( isnan(std::fmod(f_long__f_long_p_smallest, -1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_p_smallest, -1.0l)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_smallest,  1.0l) == nonstd::cx::fmod(f_long__f_long_n_smallest,  1.0l) ) || ( isnan(std::fmod(f_long__f_long_n_smallest,  1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_n_smallest,  1.0l)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_smallest, -1.0l) == nonstd::cx::fmod(f_long__f_long_n_smallest, -1.0l) ) || ( isnan(std::fmod(f_long__f_long_n_smallest, -1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_n_smallest, -1.0l)) ) ));
-        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_p_smallest) == nonstd::cx::fmod( 1.0l, f_long__f_long_p_smallest) ) || ( isnan(std::fmod( 1.0l, f_long__f_long_p_smallest)) && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_p_smallest) == nonstd::cx::fmod(-1.0l, f_long__f_long_p_smallest) ) || ( isnan(std::fmod(-1.0l, f_long__f_long_p_smallest)) && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_n_smallest) == nonstd::cx::fmod( 1.0l, f_long__f_long_n_smallest) ) || ( isnan(std::fmod( 1.0l, f_long__f_long_n_smallest)) && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_n_smallest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_n_smallest) == nonstd::cx::fmod(-1.0l, f_long__f_long_n_smallest) ) || ( isnan(std::fmod(-1.0l, f_long__f_long_n_smallest)) && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_n_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_smallest_p,  1.0) == nonstd::cx::fmod(f64__f64_smallest_p,  1.0) ) || ( isnan(std::fmod(f64__f64_smallest_p,  1.0)) && isnan(nonstd::cx::fmod(f64__f64_smallest_p,  1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_smallest_p, -1.0) == nonstd::cx::fmod(f64__f64_smallest_p, -1.0) ) || ( isnan(std::fmod(f64__f64_smallest_p, -1.0)) && isnan(nonstd::cx::fmod(f64__f64_smallest_p, -1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_smallest_n,  1.0) == nonstd::cx::fmod(f64__f64_smallest_n,  1.0) ) || ( isnan(std::fmod(f64__f64_smallest_n,  1.0)) && isnan(nonstd::cx::fmod(f64__f64_smallest_n,  1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_smallest_n, -1.0) == nonstd::cx::fmod(f64__f64_smallest_n, -1.0) ) || ( isnan(std::fmod(f64__f64_smallest_n, -1.0)) && isnan(nonstd::cx::fmod(f64__f64_smallest_n, -1.0)) ) ));
+        REQUIRE(( ( std::fmod( 1.0, f64__f64_smallest_p) == nonstd::cx::fmod( 1.0, f64__f64_smallest_p) ) || ( isnan(std::fmod( 1.0, f64__f64_smallest_p)) && isnan(nonstd::cx::fmod( 1.0, f64__f64_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod(-1.0, f64__f64_smallest_p) == nonstd::cx::fmod(-1.0, f64__f64_smallest_p) ) || ( isnan(std::fmod(-1.0, f64__f64_smallest_p)) && isnan(nonstd::cx::fmod(-1.0, f64__f64_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod( 1.0, f64__f64_smallest_n) == nonstd::cx::fmod( 1.0, f64__f64_smallest_n) ) || ( isnan(std::fmod( 1.0, f64__f64_smallest_n)) && isnan(nonstd::cx::fmod( 1.0, f64__f64_smallest_n)) ) ));
+        REQUIRE(( ( std::fmod(-1.0, f64__f64_smallest_n) == nonstd::cx::fmod(-1.0, f64__f64_smallest_n) ) || ( isnan(std::fmod(-1.0, f64__f64_smallest_n)) && isnan(nonstd::cx::fmod(-1.0, f64__f64_smallest_n)) ) ));
 
-        REQUIRE(( ( std::fmod(f_long__f_long_p_largest,  1.0l) == nonstd::cx::fmod(f_long__f_long_p_largest,  1.0l) ) || ( isnan(std::fmod(f_long__f_long_p_largest,  1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_p_largest,  1.0l)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_p_largest, -1.0l) == nonstd::cx::fmod(f_long__f_long_p_largest, -1.0l) ) || ( isnan(std::fmod(f_long__f_long_p_largest, -1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_p_largest, -1.0l)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_largest,  1.0l) == nonstd::cx::fmod(f_long__f_long_n_largest,  1.0l) ) || ( isnan(std::fmod(f_long__f_long_n_largest,  1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_n_largest,  1.0l)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_largest, -1.0l) == nonstd::cx::fmod(f_long__f_long_n_largest, -1.0l) ) || ( isnan(std::fmod(f_long__f_long_n_largest, -1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_n_largest, -1.0l)) ) ));
-        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_p_largest) == nonstd::cx::fmod( 1.0l, f_long__f_long_p_largest) ) || ( isnan(std::fmod( 1.0l, f_long__f_long_p_largest)) && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_p_largest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_p_largest) == nonstd::cx::fmod(-1.0l, f_long__f_long_p_largest) ) || ( isnan(std::fmod(-1.0l, f_long__f_long_p_largest)) && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_p_largest)) ) ));
-        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_n_largest) == nonstd::cx::fmod( 1.0l, f_long__f_long_n_largest) ) || ( isnan(std::fmod( 1.0l, f_long__f_long_n_largest)) && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_n_largest)) ) ));
-        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_n_largest) == nonstd::cx::fmod(-1.0l, f_long__f_long_n_largest) ) || ( isnan(std::fmod(-1.0l, f_long__f_long_n_largest)) && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_n_largest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_highest,  1.0) == nonstd::cx::fmod(f64__f64_highest,  1.0) ) || ( isnan(std::fmod(f64__f64_highest,  1.0)) && isnan(nonstd::cx::fmod(f64__f64_highest,  1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_highest, -1.0) == nonstd::cx::fmod(f64__f64_highest, -1.0) ) || ( isnan(std::fmod(f64__f64_highest, -1.0)) && isnan(nonstd::cx::fmod(f64__f64_highest, -1.0)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_lowest,  1.0)  == nonstd::cx::fmod(f64__f64_lowest,  1.0) )  || ( isnan(std::fmod(f64__f64_lowest,  1.0))  && isnan(nonstd::cx::fmod(f64__f64_lowest,  1.0)) )  ));
+        REQUIRE(( ( std::fmod(f64__f64_lowest, -1.0)  == nonstd::cx::fmod(f64__f64_lowest, -1.0) )  || ( isnan(std::fmod(f64__f64_lowest, -1.0))  && isnan(nonstd::cx::fmod(f64__f64_lowest, -1.0)) )  ));
+        REQUIRE(( ( std::fmod( 1.0, f64__f64_highest) == nonstd::cx::fmod( 1.0, f64__f64_highest) ) || ( isnan(std::fmod( 1.0, f64__f64_highest)) && isnan(nonstd::cx::fmod( 1.0, f64__f64_highest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0, f64__f64_highest) == nonstd::cx::fmod(-1.0, f64__f64_highest) ) || ( isnan(std::fmod(-1.0, f64__f64_highest)) && isnan(nonstd::cx::fmod(-1.0, f64__f64_highest)) ) ));
+        REQUIRE(( ( std::fmod( 1.0, f64__f64_lowest)  == nonstd::cx::fmod( 1.0, f64__f64_lowest) )  || ( isnan(std::fmod( 1.0, f64__f64_lowest))  && isnan(nonstd::cx::fmod( 1.0, f64__f64_lowest)) )  ));
+        REQUIRE(( ( std::fmod(-1.0, f64__f64_lowest)  == nonstd::cx::fmod(-1.0, f64__f64_lowest) )  || ( isnan(std::fmod(-1.0, f64__f64_lowest))  && isnan(nonstd::cx::fmod(-1.0, f64__f64_lowest)) )  ));
+
+
+        REQUIRE(( ( std::fmod(f_long__f_long_smallest_p,  1.0l) == nonstd::cx::fmod(f_long__f_long_smallest_p,  1.0l) ) || ( isnan(std::fmod(f_long__f_long_smallest_p,  1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_smallest_p,  1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_smallest_p, -1.0l) == nonstd::cx::fmod(f_long__f_long_smallest_p, -1.0l) ) || ( isnan(std::fmod(f_long__f_long_smallest_p, -1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_smallest_p, -1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_smallest_n,  1.0l) == nonstd::cx::fmod(f_long__f_long_smallest_n,  1.0l) ) || ( isnan(std::fmod(f_long__f_long_smallest_n,  1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_smallest_n,  1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_smallest_n, -1.0l) == nonstd::cx::fmod(f_long__f_long_smallest_n, -1.0l) ) || ( isnan(std::fmod(f_long__f_long_smallest_n, -1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_smallest_n, -1.0l)) ) ));
+        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_smallest_p) == nonstd::cx::fmod( 1.0l, f_long__f_long_smallest_p) ) || ( isnan(std::fmod( 1.0l, f_long__f_long_smallest_p)) && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_smallest_p) == nonstd::cx::fmod(-1.0l, f_long__f_long_smallest_p) ) || ( isnan(std::fmod(-1.0l, f_long__f_long_smallest_p)) && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_smallest_n) == nonstd::cx::fmod( 1.0l, f_long__f_long_smallest_n) ) || ( isnan(std::fmod( 1.0l, f_long__f_long_smallest_n)) && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_smallest_n)) ) ));
+        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_smallest_n) == nonstd::cx::fmod(-1.0l, f_long__f_long_smallest_n) ) || ( isnan(std::fmod(-1.0l, f_long__f_long_smallest_n)) && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_smallest_n)) ) ));
+
+        REQUIRE(( ( std::fmod(f_long__f_long_highest,  1.0l) == nonstd::cx::fmod(f_long__f_long_highest,  1.0l) ) || ( isnan(std::fmod(f_long__f_long_highest,  1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_highest,  1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_highest, -1.0l) == nonstd::cx::fmod(f_long__f_long_highest, -1.0l) ) || ( isnan(std::fmod(f_long__f_long_highest, -1.0l)) && isnan(nonstd::cx::fmod(f_long__f_long_highest, -1.0l)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_lowest,  1.0l)  == nonstd::cx::fmod(f_long__f_long_lowest,  1.0l) )  || ( isnan(std::fmod(f_long__f_long_lowest,  1.0l))  && isnan(nonstd::cx::fmod(f_long__f_long_lowest,  1.0l)) )  ));
+        REQUIRE(( ( std::fmod(f_long__f_long_lowest, -1.0l)  == nonstd::cx::fmod(f_long__f_long_lowest, -1.0l) )  || ( isnan(std::fmod(f_long__f_long_lowest, -1.0l))  && isnan(nonstd::cx::fmod(f_long__f_long_lowest, -1.0l)) )  ));
+        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_highest) == nonstd::cx::fmod( 1.0l, f_long__f_long_highest) ) || ( isnan(std::fmod( 1.0l, f_long__f_long_highest)) && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_highest)) ) ));
+        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_highest) == nonstd::cx::fmod(-1.0l, f_long__f_long_highest) ) || ( isnan(std::fmod(-1.0l, f_long__f_long_highest)) && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_highest)) ) ));
+        REQUIRE(( ( std::fmod( 1.0l, f_long__f_long_lowest)  == nonstd::cx::fmod( 1.0l, f_long__f_long_lowest) )  || ( isnan(std::fmod( 1.0l, f_long__f_long_lowest))  && isnan(nonstd::cx::fmod( 1.0l, f_long__f_long_lowest)) )  ));
+        REQUIRE(( ( std::fmod(-1.0l, f_long__f_long_lowest)  == nonstd::cx::fmod(-1.0l, f_long__f_long_lowest) )  || ( isnan(std::fmod(-1.0l, f_long__f_long_lowest))  && isnan(nonstd::cx::fmod(-1.0l, f_long__f_long_lowest)) )  ));
 
         // Test INF
-        REQUIRE(( ( std::fmod(f32__f32_p_smallest, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_p_smallest, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_p_smallest, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_p_smallest, f32__f32_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_p_smallest, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_p_smallest, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_p_smallest, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_p_smallest, f32__f32_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_smallest, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_n_smallest, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_n_smallest, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_n_smallest, f32__f32_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_smallest, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_n_smallest, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_n_smallest, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_n_smallest, f32__f32_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_p_smallest) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_p_smallest) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_p_smallest)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_p_smallest) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_p_smallest) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_p_smallest)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_n_smallest) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_n_smallest) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_n_smallest)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_n_smallest)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_n_smallest) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_n_smallest) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_n_smallest)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_n_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_smallest_p, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_smallest_p, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_smallest_p, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_smallest_p, f32__f32_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_smallest_p, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_smallest_p, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_smallest_p, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_smallest_p, f32__f32_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_smallest_n, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_smallest_n, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_smallest_n, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_smallest_n, f32__f32_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_smallest_n, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_smallest_n, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_smallest_n, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_smallest_n, f32__f32_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_smallest_p) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_smallest_p) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_smallest_p)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_smallest_p) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_smallest_p) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_smallest_p)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_smallest_n) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_smallest_n) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_smallest_n)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_smallest_n)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_smallest_n) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_smallest_n) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_smallest_n)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_smallest_n)) ) ));
 
-        REQUIRE(( ( std::fmod(f32__f32_p_largest, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_p_largest, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_p_largest, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_p_largest, f32__f32_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_p_largest, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_p_largest, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_p_largest, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_p_largest, f32__f32_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_largest, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_n_largest, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_n_largest, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_n_largest, f32__f32_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_largest, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_n_largest, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_n_largest, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_n_largest, f32__f32_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_p_largest) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_p_largest) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_p_largest)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_p_largest)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_p_largest) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_p_largest) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_p_largest)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_p_largest)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_n_largest) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_n_largest) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_n_largest)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_n_largest)) ) ));
-        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_n_largest) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_n_largest) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_n_largest)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_n_largest)) ) ));
-
-
-        REQUIRE(( ( std::fmod(f64__f64_p_smallest, f64__f64_p_inf) == nonstd::cx::fmod(f64__f64_p_smallest, f64__f64_p_inf) ) || ( isnan(std::fmod(f64__f64_p_smallest, f64__f64_p_inf)) && isnan(nonstd::cx::fmod(f64__f64_p_smallest, f64__f64_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_p_smallest, f64__f64_n_inf) == nonstd::cx::fmod(f64__f64_p_smallest, f64__f64_n_inf) ) || ( isnan(std::fmod(f64__f64_p_smallest, f64__f64_n_inf)) && isnan(nonstd::cx::fmod(f64__f64_p_smallest, f64__f64_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_smallest, f64__f64_p_inf) == nonstd::cx::fmod(f64__f64_n_smallest, f64__f64_p_inf) ) || ( isnan(std::fmod(f64__f64_n_smallest, f64__f64_p_inf)) && isnan(nonstd::cx::fmod(f64__f64_n_smallest, f64__f64_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_smallest, f64__f64_n_inf) == nonstd::cx::fmod(f64__f64_n_smallest, f64__f64_n_inf) ) || ( isnan(std::fmod(f64__f64_n_smallest, f64__f64_n_inf)) && isnan(nonstd::cx::fmod(f64__f64_n_smallest, f64__f64_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_p_smallest) == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_p_smallest) ) || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_p_smallest)) && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_p_smallest) == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_p_smallest) ) || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_p_smallest)) && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_n_smallest) == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_n_smallest) ) || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_n_smallest)) && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_n_smallest)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_n_smallest) == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_n_smallest) ) || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_n_smallest)) && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_n_smallest)) ) ));
-
-        REQUIRE(( ( std::fmod(f64__f64_p_largest, f64__f64_p_inf) == nonstd::cx::fmod(f64__f64_p_largest, f64__f64_p_inf) ) || ( isnan(std::fmod(f64__f64_p_largest, f64__f64_p_inf)) && isnan(nonstd::cx::fmod(f64__f64_p_largest, f64__f64_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_p_largest, f64__f64_n_inf) == nonstd::cx::fmod(f64__f64_p_largest, f64__f64_n_inf) ) || ( isnan(std::fmod(f64__f64_p_largest, f64__f64_n_inf)) && isnan(nonstd::cx::fmod(f64__f64_p_largest, f64__f64_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_largest, f64__f64_p_inf) == nonstd::cx::fmod(f64__f64_n_largest, f64__f64_p_inf) ) || ( isnan(std::fmod(f64__f64_n_largest, f64__f64_p_inf)) && isnan(nonstd::cx::fmod(f64__f64_n_largest, f64__f64_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_largest, f64__f64_n_inf) == nonstd::cx::fmod(f64__f64_n_largest, f64__f64_n_inf) ) || ( isnan(std::fmod(f64__f64_n_largest, f64__f64_n_inf)) && isnan(nonstd::cx::fmod(f64__f64_n_largest, f64__f64_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_p_largest) == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_p_largest) ) || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_p_largest)) && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_p_largest)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_p_largest) == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_p_largest) ) || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_p_largest)) && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_p_largest)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_n_largest) == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_n_largest) ) || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_n_largest)) && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_n_largest)) ) ));
-        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_n_largest) == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_n_largest) ) || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_n_largest)) && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_n_largest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_highest, f32__f32_p_inf) == nonstd::cx::fmod(f32__f32_highest, f32__f32_p_inf) ) || ( isnan(std::fmod(f32__f32_highest, f32__f32_p_inf)) && isnan(nonstd::cx::fmod(f32__f32_highest, f32__f32_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_highest, f32__f32_n_inf) == nonstd::cx::fmod(f32__f32_highest, f32__f32_n_inf) ) || ( isnan(std::fmod(f32__f32_highest, f32__f32_n_inf)) && isnan(nonstd::cx::fmod(f32__f32_highest, f32__f32_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_lowest, f32__f32_p_inf)  == nonstd::cx::fmod(f32__f32_lowest, f32__f32_p_inf) )  || ( isnan(std::fmod(f32__f32_lowest, f32__f32_p_inf))  && isnan(nonstd::cx::fmod(f32__f32_lowest, f32__f32_p_inf)) )  ));
+        REQUIRE(( ( std::fmod(f32__f32_lowest, f32__f32_n_inf)  == nonstd::cx::fmod(f32__f32_lowest, f32__f32_n_inf) )  || ( isnan(std::fmod(f32__f32_lowest, f32__f32_n_inf))  && isnan(nonstd::cx::fmod(f32__f32_lowest, f32__f32_n_inf)) )  ));
+        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_highest) == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_highest) ) || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_highest)) && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_highest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_highest) == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_highest) ) || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_highest)) && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_highest)) ) ));
+        REQUIRE(( ( std::fmod(f32__f32_p_inf, f32__f32_lowest)  == nonstd::cx::fmod(f32__f32_p_inf, f32__f32_lowest) )  || ( isnan(std::fmod(f32__f32_p_inf, f32__f32_lowest))  && isnan(nonstd::cx::fmod(f32__f32_p_inf, f32__f32_lowest)) )  ));
+        REQUIRE(( ( std::fmod(f32__f32_n_inf, f32__f32_lowest)  == nonstd::cx::fmod(f32__f32_n_inf, f32__f32_lowest) )  || ( isnan(std::fmod(f32__f32_n_inf, f32__f32_lowest))  && isnan(nonstd::cx::fmod(f32__f32_n_inf, f32__f32_lowest)) )  ));
 
 
-        REQUIRE(( ( std::fmod(f_long__f_long_p_smallest, f_long__f_long_p_inf) == nonstd::cx::fmod(f_long__f_long_p_smallest, f_long__f_long_p_inf) ) || ( isnan(std::fmod(f_long__f_long_p_smallest, f_long__f_long_p_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_p_smallest, f_long__f_long_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_p_smallest, f_long__f_long_n_inf) == nonstd::cx::fmod(f_long__f_long_p_smallest, f_long__f_long_n_inf) ) || ( isnan(std::fmod(f_long__f_long_p_smallest, f_long__f_long_n_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_p_smallest, f_long__f_long_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_smallest, f_long__f_long_p_inf) == nonstd::cx::fmod(f_long__f_long_n_smallest, f_long__f_long_p_inf) ) || ( isnan(std::fmod(f_long__f_long_n_smallest, f_long__f_long_p_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_n_smallest, f_long__f_long_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_smallest, f_long__f_long_n_inf) == nonstd::cx::fmod(f_long__f_long_n_smallest, f_long__f_long_n_inf) ) || ( isnan(std::fmod(f_long__f_long_n_smallest, f_long__f_long_n_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_n_smallest, f_long__f_long_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_p_smallest) == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_p_smallest) ) || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_p_smallest)) && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_p_smallest) == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_p_smallest) ) || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_p_smallest)) && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_p_smallest)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_n_smallest) == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_n_smallest) ) || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_n_smallest)) && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_n_smallest)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_n_smallest) == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_n_smallest) ) || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_n_smallest)) && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_n_smallest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_smallest_p, f64__f64_p_inf) == nonstd::cx::fmod(f64__f64_smallest_p, f64__f64_p_inf) ) || ( isnan(std::fmod(f64__f64_smallest_p, f64__f64_p_inf)) && isnan(nonstd::cx::fmod(f64__f64_smallest_p, f64__f64_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_smallest_p, f64__f64_n_inf) == nonstd::cx::fmod(f64__f64_smallest_p, f64__f64_n_inf) ) || ( isnan(std::fmod(f64__f64_smallest_p, f64__f64_n_inf)) && isnan(nonstd::cx::fmod(f64__f64_smallest_p, f64__f64_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_smallest_n, f64__f64_p_inf) == nonstd::cx::fmod(f64__f64_smallest_n, f64__f64_p_inf) ) || ( isnan(std::fmod(f64__f64_smallest_n, f64__f64_p_inf)) && isnan(nonstd::cx::fmod(f64__f64_smallest_n, f64__f64_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_smallest_n, f64__f64_n_inf) == nonstd::cx::fmod(f64__f64_smallest_n, f64__f64_n_inf) ) || ( isnan(std::fmod(f64__f64_smallest_n, f64__f64_n_inf)) && isnan(nonstd::cx::fmod(f64__f64_smallest_n, f64__f64_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_smallest_p) == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_smallest_p) ) || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_smallest_p)) && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_smallest_p) == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_smallest_p) ) || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_smallest_p)) && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_smallest_n) == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_smallest_n) ) || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_smallest_n)) && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_smallest_n)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_smallest_n) == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_smallest_n) ) || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_smallest_n)) && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_smallest_n)) ) ));
 
-        REQUIRE(( ( std::fmod(f_long__f_long_p_largest, f_long__f_long_p_inf) == nonstd::cx::fmod(f_long__f_long_p_largest, f_long__f_long_p_inf) ) || ( isnan(std::fmod(f_long__f_long_p_largest, f_long__f_long_p_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_p_largest, f_long__f_long_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_p_largest, f_long__f_long_n_inf) == nonstd::cx::fmod(f_long__f_long_p_largest, f_long__f_long_n_inf) ) || ( isnan(std::fmod(f_long__f_long_p_largest, f_long__f_long_n_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_p_largest, f_long__f_long_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_largest, f_long__f_long_p_inf) == nonstd::cx::fmod(f_long__f_long_n_largest, f_long__f_long_p_inf) ) || ( isnan(std::fmod(f_long__f_long_n_largest, f_long__f_long_p_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_n_largest, f_long__f_long_p_inf)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_largest, f_long__f_long_n_inf) == nonstd::cx::fmod(f_long__f_long_n_largest, f_long__f_long_n_inf) ) || ( isnan(std::fmod(f_long__f_long_n_largest, f_long__f_long_n_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_n_largest, f_long__f_long_n_inf)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_p_largest) == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_p_largest) ) || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_p_largest)) && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_p_largest)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_p_largest) == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_p_largest) ) || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_p_largest)) && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_p_largest)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_n_largest) == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_n_largest) ) || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_n_largest)) && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_n_largest)) ) ));
-        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_n_largest) == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_n_largest) ) || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_n_largest)) && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_n_largest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_highest, f64__f64_p_inf) == nonstd::cx::fmod(f64__f64_highest, f64__f64_p_inf) ) || ( isnan(std::fmod(f64__f64_highest, f64__f64_p_inf)) && isnan(nonstd::cx::fmod(f64__f64_highest, f64__f64_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_highest, f64__f64_n_inf) == nonstd::cx::fmod(f64__f64_highest, f64__f64_n_inf) ) || ( isnan(std::fmod(f64__f64_highest, f64__f64_n_inf)) && isnan(nonstd::cx::fmod(f64__f64_highest, f64__f64_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_lowest, f64__f64_p_inf)  == nonstd::cx::fmod(f64__f64_lowest, f64__f64_p_inf) )  || ( isnan(std::fmod(f64__f64_lowest, f64__f64_p_inf))  && isnan(nonstd::cx::fmod(f64__f64_lowest, f64__f64_p_inf)) )  ));
+        REQUIRE(( ( std::fmod(f64__f64_lowest, f64__f64_n_inf)  == nonstd::cx::fmod(f64__f64_lowest, f64__f64_n_inf) )  || ( isnan(std::fmod(f64__f64_lowest, f64__f64_n_inf))  && isnan(nonstd::cx::fmod(f64__f64_lowest, f64__f64_n_inf)) )  ));
+        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_highest) == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_highest) ) || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_highest)) && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_highest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_highest) == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_highest) ) || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_highest)) && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_highest)) ) ));
+        REQUIRE(( ( std::fmod(f64__f64_p_inf, f64__f64_lowest)  == nonstd::cx::fmod(f64__f64_p_inf, f64__f64_lowest) )  || ( isnan(std::fmod(f64__f64_p_inf, f64__f64_lowest))  && isnan(nonstd::cx::fmod(f64__f64_p_inf, f64__f64_lowest)) )  ));
+        REQUIRE(( ( std::fmod(f64__f64_n_inf, f64__f64_lowest)  == nonstd::cx::fmod(f64__f64_n_inf, f64__f64_lowest) )  || ( isnan(std::fmod(f64__f64_n_inf, f64__f64_lowest))  && isnan(nonstd::cx::fmod(f64__f64_n_inf, f64__f64_lowest)) )  ));
+
+
+        REQUIRE(( ( std::fmod(f_long__f_long_smallest_p, f_long__f_long_p_inf) == nonstd::cx::fmod(f_long__f_long_smallest_p, f_long__f_long_p_inf) ) || ( isnan(std::fmod(f_long__f_long_smallest_p, f_long__f_long_p_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_smallest_p, f_long__f_long_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_smallest_p, f_long__f_long_n_inf) == nonstd::cx::fmod(f_long__f_long_smallest_p, f_long__f_long_n_inf) ) || ( isnan(std::fmod(f_long__f_long_smallest_p, f_long__f_long_n_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_smallest_p, f_long__f_long_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_smallest_n, f_long__f_long_p_inf) == nonstd::cx::fmod(f_long__f_long_smallest_n, f_long__f_long_p_inf) ) || ( isnan(std::fmod(f_long__f_long_smallest_n, f_long__f_long_p_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_smallest_n, f_long__f_long_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_smallest_n, f_long__f_long_n_inf) == nonstd::cx::fmod(f_long__f_long_smallest_n, f_long__f_long_n_inf) ) || ( isnan(std::fmod(f_long__f_long_smallest_n, f_long__f_long_n_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_smallest_n, f_long__f_long_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_smallest_p) == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_smallest_p) ) || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_smallest_p)) && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_smallest_p) == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_smallest_p) ) || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_smallest_p)) && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_smallest_p)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_smallest_n) == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_smallest_n) ) || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_smallest_n)) && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_smallest_n)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_smallest_n) == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_smallest_n) ) || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_smallest_n)) && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_smallest_n)) ) ));
+
+        REQUIRE(( ( std::fmod(f_long__f_long_highest, f_long__f_long_p_inf) == nonstd::cx::fmod(f_long__f_long_highest, f_long__f_long_p_inf) ) || ( isnan(std::fmod(f_long__f_long_highest, f_long__f_long_p_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_highest, f_long__f_long_p_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_highest, f_long__f_long_n_inf) == nonstd::cx::fmod(f_long__f_long_highest, f_long__f_long_n_inf) ) || ( isnan(std::fmod(f_long__f_long_highest, f_long__f_long_n_inf)) && isnan(nonstd::cx::fmod(f_long__f_long_highest, f_long__f_long_n_inf)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_lowest, f_long__f_long_p_inf)  == nonstd::cx::fmod(f_long__f_long_lowest, f_long__f_long_p_inf) )  || ( isnan(std::fmod(f_long__f_long_lowest, f_long__f_long_p_inf))  && isnan(nonstd::cx::fmod(f_long__f_long_lowest, f_long__f_long_p_inf)) )  ));
+        REQUIRE(( ( std::fmod(f_long__f_long_lowest, f_long__f_long_n_inf)  == nonstd::cx::fmod(f_long__f_long_lowest, f_long__f_long_n_inf) )  || ( isnan(std::fmod(f_long__f_long_lowest, f_long__f_long_n_inf))  && isnan(nonstd::cx::fmod(f_long__f_long_lowest, f_long__f_long_n_inf)) )  ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_highest) == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_highest) ) || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_highest)) && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_highest)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_highest) == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_highest) ) || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_highest)) && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_highest)) ) ));
+        REQUIRE(( ( std::fmod(f_long__f_long_p_inf, f_long__f_long_lowest)  == nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_lowest) )  || ( isnan(std::fmod(f_long__f_long_p_inf, f_long__f_long_lowest))  && isnan(nonstd::cx::fmod(f_long__f_long_p_inf, f_long__f_long_lowest)) )  ));
+        REQUIRE(( ( std::fmod(f_long__f_long_n_inf, f_long__f_long_lowest)  == nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_lowest) )  || ( isnan(std::fmod(f_long__f_long_n_inf, f_long__f_long_lowest))  && isnan(nonstd::cx::fmod(f_long__f_long_n_inf, f_long__f_long_lowest)) )  ));
 
 
         // Test NaN propagation
@@ -1423,30 +1442,52 @@ TEST_CASE("Constexpr Math Utilities", "[nonstd][cx]") {
         std::mt19937 re(rd());
 
         std::uniform_real_distribution<float> rnd_float_range(
-            -std::numeric_limits<float>::max(),
-             std::numeric_limits<float>::max());
+            0.0f,
+            std::numeric_limits<float>::max());
         std::uniform_real_distribution<double> rnd_double_range(
-            -std::numeric_limits<double>::max(),
-             std::numeric_limits<double>::max());
+            0.0,
+            std::numeric_limits<double>::max());
         std::uniform_real_distribution<long double> rnd_long_double_range(
-            -std::numeric_limits<long double>::max(),
-             std::numeric_limits<long double>::max());
+            0.0l,
+            std::numeric_limits<long double>::max());
 
+        // NB. We're cheating a bit here. We don't compare against the output of
+        // std::fmod, rather we compare against what the C standard states fmod
+        // should return; "exactly the value `x - n*y`, where `n` is `x/y` with
+        // its fractional part truncated". Interpreted as `x - truc(x/y) * y`.
+        // We do this because fmod is too good at it's job. As in 'it seems to
+        // use precision greater than `long double`s' too good. As in 'there
+        // seems to be an assembly instruction just for this' too good.
         constexpr int iterations = 10000;
         for (int i = 0; i < iterations; i++) {
-            float x = rnd_float_range(re);
-            float y = rnd_float_range(re);
-            REQUIRE(( ( std::fmod(x, y)  == nonstd::cx::fmod(x, y) ) || ( isnan(std::fmod(x, y)) && isnan(nonstd::cx::fmod(x, y)) ) ));
+            float px = rnd_float_range(re);
+            float nx = -px;
+            float py = rnd_float_range(re);
+            float ny = -py;
+            REQUIRE(( ( std::fmod(px, py) == nonstd::cx::fmod(px, py) ) || ( isnan(std::fmod(px, py)) && isnan(nonstd::cx::fmod(px, py)) ) ));
+            REQUIRE(( ( std::fmod(px, ny) == nonstd::cx::fmod(px, ny) ) || ( isnan(std::fmod(px, ny)) && isnan(nonstd::cx::fmod(px, ny)) ) ));
+            REQUIRE(( ( std::fmod(nx, py) == nonstd::cx::fmod(nx, py) ) || ( isnan(std::fmod(nx, py)) && isnan(nonstd::cx::fmod(nx, py)) ) ));
+            REQUIRE(( ( std::fmod(nx, ny) == nonstd::cx::fmod(nx, ny) ) || ( isnan(std::fmod(nx, ny)) && isnan(nonstd::cx::fmod(nx, ny)) ) ));
         }
         for (int i = 0; i < iterations; i++) {
-            double x = rnd_double_range(re);
-            double y = rnd_double_range(re);
-            REQUIRE(( ( std::fmod(x, y)  == nonstd::cx::fmod(x, y) ) || ( isnan(std::fmod(x, y)) && isnan(nonstd::cx::fmod(x, y)) ) ));
+            double px = rnd_double_range(re);
+            double nx = -px;
+            double py = rnd_double_range(re);
+            double ny = -py;
+            REQUIRE(( ( (px - std::trunc(px/py)*py) == nonstd::cx::fmod(px, py) ) || ( isnan((px - std::trunc(px/py)*py)) && isnan(nonstd::cx::fmod(px, py)) ) ));
+            REQUIRE(( ( (px - std::trunc(px/ny)*ny) == nonstd::cx::fmod(px, ny) ) || ( isnan((px - std::trunc(px/ny)*ny)) && isnan(nonstd::cx::fmod(px, ny)) ) ));
+            REQUIRE(( ( (nx - std::trunc(nx/py)*py) == nonstd::cx::fmod(nx, py) ) || ( isnan((nx - std::trunc(nx/py)*py)) && isnan(nonstd::cx::fmod(nx, py)) ) ));
+            REQUIRE(( ( (nx - std::trunc(nx/ny)*ny) == nonstd::cx::fmod(nx, ny) ) || ( isnan((nx - std::trunc(nx/ny)*ny)) && isnan(nonstd::cx::fmod(nx, ny)) ) ));
         }
         for (int i = 0; i < iterations; i++) {
-            long double x = rnd_long_double_range(re);
-            long double y = rnd_long_double_range(re);
-            REQUIRE(( ( std::fmod(x, y)  == nonstd::cx::fmod(x, y) ) || ( isnan(std::fmod(x, y)) && isnan(nonstd::cx::fmod(x, y)) ) ));
+            long double px = rnd_long_double_range(re);
+            long double nx = -px;
+            long double py = rnd_long_double_range(re);
+            long double ny = -py;
+            REQUIRE(( ( (px - std::trunc(px/py)*py) == nonstd::cx::fmod(px, py) ) || ( isnan((px - std::trunc(px/py)*py)) && isnan(nonstd::cx::fmod(px, py)) ) ));
+            REQUIRE(( ( (px - std::trunc(px/ny)*ny) == nonstd::cx::fmod(px, ny) ) || ( isnan((px - std::trunc(px/ny)*ny)) && isnan(nonstd::cx::fmod(px, ny)) ) ));
+            REQUIRE(( ( (nx - std::trunc(nx/py)*py) == nonstd::cx::fmod(nx, py) ) || ( isnan((nx - std::trunc(nx/py)*py)) && isnan(nonstd::cx::fmod(nx, py)) ) ));
+            REQUIRE(( ( (nx - std::trunc(nx/ny)*ny) == nonstd::cx::fmod(nx, ny) ) || ( isnan((nx - std::trunc(nx/ny)*ny)) && isnan(nonstd::cx::fmod(nx, ny)) ) ));
         }
     }
 
