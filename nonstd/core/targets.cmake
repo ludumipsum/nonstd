@@ -64,6 +64,9 @@ pm_autotarget(
         nonstd::core::core
 )
 
+if(PM_OS_LINUX)
+    target_link_libraries(nonstd.core.stacktrace dl)
+endif()
 
 
 n2_platform_test(
