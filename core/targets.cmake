@@ -65,7 +65,7 @@ pm_autotarget(
 )
 
 if(PM_OS_LINUX)
-    target_link_libraries(nonstd.core.stacktrace dl)
+    target_link_libraries(nonstd.core.stacktrace INTERFACE dl)
 endif()
 
 
