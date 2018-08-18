@@ -8,6 +8,11 @@ pm_autotarget(
         thirdparty::fmt
 )
 
+if(PM_OS_LINUX)
+    # This is only actually required when building with sanitizers.
+    target_link_libraries(nonstd.nonstd INTERFACE pthread)
+endif()
+
 pm_autotarget(
     NAME angle
     HEADERS angle.h
