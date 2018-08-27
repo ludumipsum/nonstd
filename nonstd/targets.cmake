@@ -22,14 +22,6 @@ pm_autotarget(
 )
 
 pm_autotarget(
-    NAME array
-    HEADERS array.h
-    DEPENDS
-        nonstd::nonstd
-        nonstd::memory
-)
-
-pm_autotarget(
     NAME chrono
     HEADERS chrono.h
     DEPENDS
@@ -230,14 +222,6 @@ n2_platform_test(
     SOURCES angle.test.cc
     DEPENDS
         nonstd::angle
-        platform::testrunner
-)
-
-n2_platform_test(
-    NAME array.test
-    SOURCES array.test.cc
-    DEPENDS
-        nonstd::array
         platform::testrunner
 )
 
