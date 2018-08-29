@@ -94,15 +94,6 @@ pm_autotarget(
 )
 
 pm_autotarget(
-    NAME memory
-    HEADERS memory.h
-    DEPENDS
-        nonstd::nonstd
-        nonstd::memory::buffer
-        nonstd::memory::core_functions
-)
-
-pm_autotarget(
     NAME optional
     HEADERS optional.h
     DEPENDS
