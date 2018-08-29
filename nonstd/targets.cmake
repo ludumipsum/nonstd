@@ -72,17 +72,6 @@ pm_autotarget(
 )
 
 pm_autotarget(
-    NAME hash_table
-    HEADERS hash_table.h
-    DEPENDS
-        nonstd::nonstd
-        nonstd::math
-        nonstd::memory
-        nonstd::optional
-        nonstd::utility_ext
-)
-
-pm_autotarget(
     NAME keyboard
     HEADERS keyboard.h
     DEPENDS
@@ -245,14 +234,6 @@ n2_platform_test(
     NAME cx.test
     SOURCES cx.test.cc
     DEPENDS
-        platform::testrunner
-)
-
-n2_platform_test(
-    NAME hash_table.test
-    SOURCES hash_table.test.cc
-    DEPENDS
-        nonstd::hash_table
         platform::testrunner
 )
 
