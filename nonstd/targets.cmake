@@ -100,8 +100,6 @@ pm_autotarget(
         nonstd::nonstd
         nonstd::memory::buffer
         nonstd::memory::core_functions
-        nonstd::memory::nr_lazy
-        nonstd::memory::nr_ptr
 )
 
 pm_autotarget(
