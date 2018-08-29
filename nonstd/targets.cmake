@@ -132,15 +132,6 @@ pm_autotarget(
 )
 
 pm_autotarget(
-    NAME ring
-    HEADERS ring.h
-    DEPENDS
-        nonstd::nonstd
-        nonstd::memory
-        nonstd::scope_guard
-)
-
-pm_autotarget(
     NAME scope_guard
     HEADERS scope_guard.h
 )
@@ -276,14 +267,6 @@ n2_platform_test(
     SOURCES predicate.test.cc
     DEPENDS
         nonstd::predicate
-        platform::testrunner
-)
-
-n2_platform_test(
-    NAME ring.test
-    SOURCES ring.test.cc
-    DEPENDS
-        nonstd::ring
         platform::testrunner
 )
 
