@@ -94,17 +94,6 @@ pm_autotarget(
 )
 
 pm_autotarget(
-    NAME memory
-    HEADERS memory.h
-    DEPENDS
-        nonstd::nonstd
-        nonstd::memory::buffer
-        nonstd::memory::core_functions
-        nonstd::memory::nr_lazy
-        nonstd::memory::nr_ptr
-)
-
-pm_autotarget(
     NAME optional
     HEADERS optional.h
     DEPENDS
@@ -139,14 +128,6 @@ pm_autotarget(
 pm_autotarget(
     NAME special_member_filters
     HEADERS special_member_filters.h
-)
-
-pm_autotarget(
-    NAME stream
-    HEADERS stream.h
-    DEPENDS
-        nonstd::nonstd
-        nonstd::memory
 )
 
 pm_autotarget(
@@ -283,14 +264,6 @@ n2_platform_test(
     SOURCES special_member_filters.test.cc
     DEPENDS
         nonstd::special_member_filters
-        platform::testrunner
-)
-
-n2_platform_test(
-    NAME stream.test
-    SOURCES stream.test.cc
-    DEPENDS
-        nonstd::stream
         platform::testrunner
 )
 
