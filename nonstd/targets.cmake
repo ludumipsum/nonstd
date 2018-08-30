@@ -72,17 +72,6 @@ pm_autotarget(
 )
 
 pm_autotarget(
-    NAME hash_table
-    HEADERS hash_table.h
-    DEPENDS
-        nonstd::nonstd
-        nonstd::math
-        nonstd::memory
-        nonstd::optional
-        nonstd::utility_ext
-)
-
-pm_autotarget(
     NAME keyboard
     HEADERS keyboard.h
     DEPENDS
@@ -102,17 +91,6 @@ pm_autotarget(
     HEADERS math.h
     DEPENDS
         nonstd::nonstd
-)
-
-pm_autotarget(
-    NAME memory
-    HEADERS memory.h
-    DEPENDS
-        nonstd::nonstd
-        nonstd::memory::buffer
-        nonstd::memory::core_functions
-        nonstd::memory::nr_lazy
-        nonstd::memory::nr_ptr
 )
 
 pm_autotarget(
@@ -143,15 +121,6 @@ pm_autotarget(
 )
 
 pm_autotarget(
-    NAME ring
-    HEADERS ring.h
-    DEPENDS
-        nonstd::nonstd
-        nonstd::memory
-        nonstd::scope_guard
-)
-
-pm_autotarget(
     NAME scope_guard
     HEADERS scope_guard.h
 )
@@ -159,14 +128,6 @@ pm_autotarget(
 pm_autotarget(
     NAME special_member_filters
     HEADERS special_member_filters.h
-)
-
-pm_autotarget(
-    NAME stream
-    HEADERS stream.h
-    DEPENDS
-        nonstd::nonstd
-        nonstd::memory
 )
 
 pm_autotarget(
@@ -249,14 +210,6 @@ n2_platform_test(
 )
 
 n2_platform_test(
-    NAME hash_table.test
-    SOURCES hash_table.test.cc
-    DEPENDS
-        nonstd::hash_table
-        platform::testrunner
-)
-
-n2_platform_test(
     NAME lazy.test
     SOURCES lazy.test.cc
     DEPENDS
@@ -299,14 +252,6 @@ n2_platform_test(
 )
 
 n2_platform_test(
-    NAME ring.test
-    SOURCES ring.test.cc
-    DEPENDS
-        nonstd::ring
-        platform::testrunner
-)
-
-n2_platform_test(
     NAME scope_guard.test
     SOURCES scope_guard.test.cc
     DEPENDS
@@ -319,14 +264,6 @@ n2_platform_test(
     SOURCES special_member_filters.test.cc
     DEPENDS
         nonstd::special_member_filters
-        platform::testrunner
-)
-
-n2_platform_test(
-    NAME stream.test
-    SOURCES stream.test.cc
-    DEPENDS
-        nonstd::stream
         platform::testrunner
 )
 
