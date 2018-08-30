@@ -12,6 +12,7 @@
 #if defined(NONSTD_OS_WINDOWS)
 
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX 1
 #include <windows.h>
 
 /** `near`/`far` pointer annotation macros
