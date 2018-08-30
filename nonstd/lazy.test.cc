@@ -7,7 +7,6 @@
 #include <platform/testrunner/testrunner.h>
 
 #include <nonstd/nonstd.h>
-#include <nonstd/memory.h>
 #include <platform/memory/memory.h>
 #include <platform/memory/nr_ptr.h>
 #include <platform/testrunner/helpers/construction_counter.h>
