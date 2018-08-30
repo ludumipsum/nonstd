@@ -7,8 +7,8 @@
 #include <platform/testrunner/testrunner.h>
 
 #include <nonstd/nonstd.h>
-#include <nonstd/memory.h>
 #include <platform/memory/memory.h>
+#include <platform/memory/nr_ptr.h>
 #include <platform/testrunner/helpers/construction_counter.h>
 
 
@@ -16,8 +16,8 @@ namespace nonstd_test::lazy {
 
 using namespace Catch::Matchers;
 using nonstd::lazy;
-using nonstd::nr_ptr;
 using nonstd::test::construction_counter;
+using memory::nr_ptr;
 
 constexpr i32 test_value = 42;
 lazy<i32> global_instance { test_value };
